@@ -3,10 +3,10 @@ import { fileURLToPath } from "node:url";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
-/** Isolated rendered regression: no database or shared E2E fixture required. */
+/** Isolated rendered regression backed by the in-memory browser fixture; no database required. */
 export default {
   testDir: path.join(root, "e2e"),
-  testMatch: ["studio-graph-drag.spec.js", "clue-flow-drag.spec.js", "creator-interaction-bridges.spec.js", "creator-mechanism-workbench.spec.js"],
+  testMatch: ["studio-graph-drag.spec.js", "clue-flow-drag.spec.js", "creator-interaction-bridges.spec.js", "creator-mechanism-workbench.spec.js", "tabletop-map-zoom.spec.js"],
   timeout: 30_000,
   workers: 1,
   reporter: "list",
@@ -17,11 +17,20 @@ export default {
     screenshot: "only-on-failure",
     trace: "retain-on-failure"
   },
-  webServer: {
-    command: "npm run dev -- --host 127.0.0.1 --port 4173",
-    cwd: root,
-    url: "http://127.0.0.1:4173/",
-    reuseExistingServer: true,
-    timeout: 120_000
-  }
+  webServer: [
+    {
+      command: "node scripts/browser-fixture-api.mjs",
+      cwd: root,
+      url: "http://127.0.0.1:4180/api/health",
+      reuseExistingServer: false,
+      timeout: 120_000
+    },
+    {
+      command: "npm run dev -- --host 127.0.0.1 --port 4173 --strictPort",
+      cwd: root,
+      url: "http://127.0.0.1:4173/",
+      reuseExistingServer: false,
+      timeout: 120_000
+    }
+  ]
 };

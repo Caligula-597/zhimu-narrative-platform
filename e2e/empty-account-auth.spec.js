@@ -24,42 +24,19 @@ test("email code verification enters a responsive zero-world workspace", async (
   await page.locator("[data-auth-verify-code]").click();
 
   await expect(page.locator("#modal-backdrop")).not.toHaveClass(/show/);
-  await expect(page.locator("#content")).toContainText("当前账号还没有剧本");
+  await expect(page.locator("#content")).toContainText("先创建一个属于你的世界");
+  await expect(page.locator("body")).toHaveAttribute("data-product-active", "0");
+  await expect(page.locator("body")).toHaveAttribute("data-product-mode", "");
+  await expect(page.locator("body")).toHaveAttribute("data-product-key", "");
 
-  const advanced = page.locator("#nav-advanced");
-  if (await advanced.getAttribute("hidden") !== null) {
-    await page.locator('[data-action="toggle-nav-advanced"]').click();
-    await expect(advanced).toBeVisible();
-  }
-
-  const views = [
-    ["creatorCockpit", "创作驾驶舱"],
-    ["constitution", "创作宪法"],
-    ["diagnostics", "作品诊断中心"],
-    ["playtest", "AI 玩家试跑实验室"],
-    ["writer", "角色私人剧本"],
-    ["truth", "谜底与关系"],
-    ["studio", "剧情编排图谱"],
-    ["clues", "线索管理"],
-    ["rules", "自动化规则"],
-    ["miniGames", "小游戏设计"],
-    ["archive", "存档与复盘"],
-    ["settings", "世界设置"],
-    ["account", "账号与资产"]
+  const productViews = [
+    "creatorCockpit", "constitution", "diagnostics", "playtest", "writer", "truth",
+    "studio", "clues", "rules", "miniGames", "archive", "settings", "tabletopMap", "boardGame"
   ];
-
-  for (const [view, title] of views) {
-    const nav = page.locator(`.nav-item[data-view="${view}"]:visible`);
-    await expect(nav).toHaveCount(1);
-    await nav.click();
-    await expect(page.locator("#page-title")).toHaveText(title);
-    await expect(page.locator("#content")).not.toContainText("正在加载该功能模块");
-    await expect(page.locator("#content")).not.toContainText("功能模块加载失败");
+  for (const view of productViews) {
+    await expect(page.locator(`.nav-item[data-view="${view}"]`).first()).toBeHidden();
   }
-
-  await page.locator('.nav-item[data-view="diagnostics"]:visible').click();
-  await expect(page.locator("#content")).toContainText("创建或选择剧本后");
-  await expect(page.locator("#content")).not.toContainText("正在运行结构诊断");
+  await expect(page.locator("#nav-advanced")).toBeHidden();
 
   await page.locator('.nav-item[data-view="account"]:visible').click();
   await expect(page.locator("#content")).toContainText("browser-fixture@getzhimu.local");
@@ -68,7 +45,7 @@ test("email code verification enters a responsive zero-world workspace", async (
 
 test("email verification link logs in and removes the one-time URL token", async ({ page }) => {
   await page.goto("/?verify=fixture-link-token");
-  await expect(page.locator("#content")).toContainText("当前账号还没有剧本");
+  await expect(page.locator("#content")).toContainText("先创建一个属于你的世界");
   await expect(page).not.toHaveURL(/verify=/);
   await expect(page.locator("#modal-backdrop")).not.toHaveClass(/show/);
 });
@@ -81,15 +58,13 @@ test("mobile verification link keeps an empty account responsive across protecte
   await page.goto("/?verify=fixture-link-token");
   await expect(page).not.toHaveURL(/verify=/);
   await expect(page.locator("#modal-backdrop")).not.toHaveClass(/show/);
-  await expect(page.locator("#content")).toContainText("当前账号还没有剧本");
+  await expect(page.locator("#content")).toContainText("先创建一个属于你的世界");
 
-  const advanced = page.locator("#nav-advanced");
-  await page.locator('[data-action="toggle-nav-advanced"]').click();
-  await expect(advanced).toBeVisible();
-
-  await page.locator('.nav-item[data-view="writer"]:visible').click();
-  await expect(page.locator("#page-title")).toHaveText("角色私人剧本");
-  await expect(page.locator("#content")).not.toContainText("功能模块加载失败");
+  await expect(page.locator("body")).toHaveAttribute("data-product-active", "0");
+  await expect(page.locator("body")).toHaveAttribute("data-product-mode", "");
+  await expect(page.locator("body")).toHaveAttribute("data-product-key", "");
+  await expect(page.locator("#nav-advanced")).toBeHidden();
+  await expect(page.locator('.nav-item[data-view="writer"]')).toBeHidden();
 
   await page.locator('.mobile-account-nav[data-view="account"]:visible').click();
   await expect(page.locator("#page-title")).toHaveText("账号与资产");

@@ -5,6 +5,7 @@ import { normalizeError } from "../components/status-ui.js";
 import { render } from "./runtime-facade.js";
 import { callView } from "./view-registry.js";
 import { bibleField, loadTruthBibleTab } from "../views/truth-bible.js";
+import { readAppearanceStatesFromRoot } from "../views/role-archive-panel.js";
 import { ownsBibleAction } from "./action-ownership.js";
 
 const showError = (error, fallback = "操作失败") => showToast(normalizeError(error, fallback));
@@ -34,6 +35,9 @@ const showError = (error, fallback = "操作失败") => showToast(normalizeError
         return true;
       case "truth-tab-foreshadow":
         void loadTruthBibleTab("foreshadow");
+        return true;
+      case "truth-tab-materials":
+        void loadTruthBibleTab("materials");
         return true;
       case "truth-tab-relations":
         void loadTruthBibleTab("relations");
@@ -106,6 +110,35 @@ const showError = (error, fallback = "操作失败") => showToast(normalizeError
         }
         return true;
 
+      case "add-material-booklet": {
+        try {
+          const pageBody = field("pageBody", "data-material-field");
+          await zhimuApi.createMaterialBooklet({
+            kind: field("kind", "data-material-field") || "diary",
+            title: field("title", "data-material-field"),
+            summary: field("summary", "data-material-field"),
+            ownerRoleSlotId: field("ownerRoleSlotId", "data-material-field") || null,
+            phaseLabel: field("phaseLabel", "data-material-field"),
+            pages: pageBody ? [{ title: "首页", body: pageBody, sequence: 1 }] : []
+          }, worldId);
+          showToast("物料册已添加");
+          void loadTruthBibleTab("materials");
+        } catch (error) {
+          showError(error);
+        }
+        return true;
+      }
+
+      case "delete-material-booklet":
+        try {
+          await zhimuApi.deleteMaterialBooklet(el?.dataset?.bookletId, worldId);
+          showToast("已删除");
+          void loadTruthBibleTab("materials");
+        } catch (error) {
+          showError(error);
+        }
+        return true;
+
       case "delete-truth-claim":
         try {
           await zhimuApi.deleteTruthClaim(el?.dataset?.claimId, worldId);
@@ -135,6 +168,7 @@ const showError = (error, fallback = "操作失败") => showToast(normalizeError
             actionLine: read("actionLine"),
             innerConflict: read("innerConflict"),
             voiceHints: read("voiceHints"),
+            appearanceStates: readAppearanceStatesFromRoot(root),
             arc
           }, worldId);
           showToast("角色档案已保存");
@@ -142,6 +176,23 @@ const showError = (error, fallback = "操作失败") => showToast(normalizeError
         } catch (error) {
           showError(error);
         }
+        return true;
+      }
+
+      case "add-appearance-state": {
+        const roleId = el?.dataset?.roleId;
+        const list = document.querySelector(`[data-role-archive="${roleId}"] [data-appearance-list]`);
+        if (!list) return true;
+        const index = list.querySelectorAll("[data-appearance-index]").length;
+        list.insertAdjacentHTML("beforeend", `
+          <div class="appearance-state-row" data-appearance-index="${index}">
+            <label class="cockpit-field compact"><span>阶段（幕/日）</span>
+              <input class="field" data-appearance-field="phaseLabel" value="" placeholder="如 D1 / 第二幕"></label>
+            <label class="cockpit-field compact"><span>此时外形 / 状态</span>
+              <input class="field" data-appearance-field="appearance" value="" placeholder="玩家当天看到的外形"></label>
+            <label class="cockpit-field compact"><span>备注</span>
+              <input class="field" data-appearance-field="notes" value=""></label>
+          </div>`);
         return true;
       }
 

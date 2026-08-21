@@ -4,6 +4,7 @@ export * from "./schemas/player.js";
 export * from "./schemas/world.js";
 export * from "./schemas/creator.js";
 export * from "./schemas/ai.js";
+export * from "./schemas/world-engine.js";
 export * from "./schemas/platform.js";
 export * from "./schemas/checkpoint.js";
 export * from "./schemas/player-progress.js";

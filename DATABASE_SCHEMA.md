@@ -183,7 +183,7 @@ users ──┬── world_members ── worlds ──┬── role_slots ─
 ### `write_idempotency`（013）
 
 写操作幂等缓存；键 `(room_id, idempotency_key)`，存 `route_key` + JSON `response`。  
-支持路由见 [FEATURE_CATALOG §27](./FEATURE_CATALOG.md#27-alpha-评估与后端基础2026-06-03) 或 `backend/README.md`。
+支持路由见 `backend/README.md` 与运行中的 OpenAPI `/documentation`。
 
 ### `host_audit_log`（013）
 

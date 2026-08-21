@@ -1,11 +1,13 @@
 import { state } from "../state.js";
+import { describeSyncDiagnostics } from "../../../shared/sync-diagnostics.js";
 import { escapeHtml, formatRelativeTime } from "../utils/format.js";
 import { resolveChapterSegmentKey, segmentRunbookFromOperations } from "../../../shared/segment-contract.js";
+import { hostVoiceRoster, hostVoiceStatusLabel } from "../runtime/host-voice-controller.js";
 
 function paceClock(pace = {}) {
-  let elapsed = pace.elapsedMs || 0;
-  if (pace.running && pace.startedAt) elapsed += Date.now() - pace.startedAt;
-  const ms = pace.mode === "count-up" ? elapsed : Math.max(0, (pace.targetMs || 0) - elapsed);
+  let elapsed = Number(pace.elapsedMs) || 0;
+  if (pace.status === "running") elapsed += Math.max(0, Date.now() - Number(pace._receivedAt || Date.now()));
+  const ms = pace.mode === "countup" ? elapsed : Math.max(0, (Number(pace.durationMs) || 0) - elapsed);
   const total = Math.floor(ms / 1000);
   const h = Math.floor(total / 3600);
   const m = Math.floor((total % 3600) / 60);
@@ -71,10 +73,10 @@ function hostActs() {
   return [...byKey.values()].sort((a, b) => (a.sequence || 0) - (b.sequence || 0));
 }
 
-function activeAct() {
+function activeAct(preferredActKey = "") {
   const acts = hostActs();
   if (!acts.length) return null;
-  const selected = state.hostSelectedActKey || "";
+  const selected = state.hostSelectedActKey || preferredActKey;
   return acts.find((act) => act.key === selected) || acts[0];
 }
 
@@ -225,6 +227,189 @@ function renderRemedies(act) {
   </div>`;
 }
 
+function discoveryProgressLabel(session) {
+  if (!session) return { tone: "idle", label: "未开始", detail: "0 / —" };
+  const labels = {
+    scanning: "侦测中",
+    ready: "待抽取",
+    drawing: "抽取中",
+    complete: "已完成",
+  };
+  return {
+    tone: session.phase || "idle",
+    label: labels[session.phase] || "未开始",
+    detail: `${Number(session.drawnCount) || 0} 已抽 · ${Number(session.remainingCount) || 0} 剩余`,
+  };
+}
+
+function renderHostDiscoveryMatrix() {
+  const progress = state.cloudHostDiscoveryProgress;
+  const locations = progress?.locations || [];
+  const players = progress?.players || [];
+  if (!locations.length || !players.length) return "";
+  const sessions = new Map((progress.sessions || []).map(
+    (session) => [`${session.roleSlotId}:${session.locationId}`, session]
+  ));
+  return `<section class="host-discovery-progress" aria-label="玩家地点探索进度">
+    <div class="host-discovery-progress-head">
+      <div><p class="section-kicker">DISCOVERY MIRROR</p><h4>角色 × 地点探索进度</h4><p>仅显示阶段与数量；线索正文和剩余顺序不会出现在主持镜像中。</p></div>
+      <span>${players.filter((player) => player.joined).length} 位玩家在线席</span>
+    </div>
+    <div class="host-discovery-table-wrap">
+      <table class="host-discovery-table">
+        <thead><tr><th scope="col">玩家 / 角色</th>${locations.map((location) => `<th scope="col"><span>${escapeHtml(location.name)}</span><small>${escapeHtml(location.segmentKey || "未绑分段")}</small></th>`).join("")}</tr></thead>
+        <tbody>${players.map((player) => `<tr><th scope="row"><strong>${escapeHtml(player.displayName || "尚未入房")}</strong><small>${escapeHtml(player.roleName || "未命名角色")}</small></th>${locations.map((location) => {
+          const status = discoveryProgressLabel(sessions.get(`${player.roleSlotId}:${location.id}`));
+          return `<td><span class="host-discovery-state is-${escapeHtml(status.tone)}">${escapeHtml(status.label)}</span><small>${escapeHtml(status.detail)}</small></td>`;
+        }).join("")}</tr>`).join("")}</tbody>
+      </table>
+    </div>
+  </section>`;
+}
+
+function renderHostTabletopStage(presentation) {
+  const map = presentation?.map;
+  if (!map?.host?.locations?.length) return "";
+  const locations = map.host.locations;
+  const locationIds = new Set(locations.map((location) => location.id));
+  const revealed = new Set(map.revealedLocationIds || []);
+  const routes = (map.routes || []).filter(([from, to]) => locationIds.has(from) && locationIds.has(to));
+  const byId = new Map(locations.map((location) => [location.id, location]));
+  const active = byId.get(map.activeLocationId) || locations[0];
+  const dice = map.dice || {};
+  const diceLabel = `${Number(dice.count) || 1}d${Number(dice.sides) || 20}${Number(dice.modifier) ? Number(dice.modifier) > 0 ? `+${Number(dice.modifier)}` : Number(dice.modifier) : ""}`;
+  return `<section class="host-stage-panel">
+    <div class="section-head">
+      <div><p class="section-kicker">PLAYER STAGE</p><h3>跑团地图同步</h3><p>${escapeHtml(map.title)} · ${locations.length} 个地点 · ${escapeHtml(diceLabel)}</p></div>
+      <button class="secondary-btn" type="button" data-action="host-tabletop-toggle-map">${map.visible ? "对玩家隐藏地图" : "向玩家公开地图"}</button>
+    </div>
+    <div class="host-stage-grid">
+      <div class="host-stage-map" role="group" aria-label="选择玩家当前地点">
+        <svg viewBox="0 0 100 100" aria-hidden="true">${routes.map(([from, to]) => {
+          const start = byId.get(from);
+          const end = byId.get(to);
+          return `<line x1="${Number(start?.x || 0.5) * 100}" y1="${Number(start?.y || 0.5) * 100}" x2="${Number(end?.x || 0.5) * 100}" y2="${Number(end?.y || 0.5) * 100}"></line>`;
+        }).join("")}</svg>
+        ${locations.map((location, index) => `<button type="button" class="host-stage-node${location.id === active?.id ? " is-active" : ""}${revealed.has(location.id) ? " is-revealed" : ""}" style="--map-x:${Number(location.x) * 100}%;--map-y:${Number(location.y) * 100}%" data-action="host-tabletop-select-location" data-location-id="${escapeHtml(location.id)}" aria-label="设为当前地点：${escapeHtml(location.name)}"><span>${index + 1}</span><b>${escapeHtml(location.name)}</b></button>`).join("")}
+      </div>
+      <div class="host-stage-location-list">
+        ${locations.map((location) => {
+          const isActive = location.id === active?.id;
+          const isRevealed = revealed.has(location.id);
+          return `<article class="host-stage-location${isActive ? " is-active" : ""}">
+            <button type="button" class="host-stage-location-main" data-action="host-tabletop-select-location" data-location-id="${escapeHtml(location.id)}">
+              <span>${isActive ? "当前地点" : location.segmentKey ? `绑定 ${escapeHtml(location.segmentKey)}` : escapeHtml(location.type)}</span>
+              <strong>${escapeHtml(location.name)}</strong>
+              <small>${escapeHtml(location.hostNotes || location.description || "尚未填写主持备注")}</small>
+            </button>
+            <button type="button" class="secondary-btn compact" data-action="host-tabletop-toggle-location" data-location-id="${escapeHtml(location.id)}" ${isActive ? "disabled" : ""}>${isRevealed ? "对玩家隐藏" : "向玩家公开"}</button>
+          </article>`;
+        }).join("")}
+      </div>
+    </div>
+    ${renderHostDiscoveryMatrix()}
+    ${renderHostTabletopEncounter(map, active)}
+    ${renderHostTabletopCheck(map, active, diceLabel)}
+    ${renderHostTabletopOutcome(map)}
+    <div class="host-stage-footer">
+      <span class="status-chip ${map.visible ? "published" : "draft"}">${map.visible ? "玩家可见" : "仅主持可见"}</span>
+      <span>已公开 ${revealed.size}/${locations.length} 个地点</span>
+      <span>队伍 ${map.party?.length || 0} 人</span>
+      <span>结局条件 ${map.host.endingCount || 0} 组</span>
+    </div>
+  </section>`;
+}
+
+function renderHostTabletopEncounter(map, activeLocation) {
+  const activeEncounter = map.activeEncounter;
+  const npcById = new Map((map.host?.npcs || []).map((npc) => [npc.id, npc]));
+  const configuredNpcs = (activeLocation?.encounterNpcIds || []).map((id) => npcById.get(id)).filter(Boolean);
+  if (activeEncounter?.status === "active") {
+    return `<section class="host-stage-encounter is-active" data-host-tabletop-encounter aria-live="polite">
+      <div><p class="section-kicker">ENCOUNTER LIVE</p><h4>${escapeHtml(activeEncounter.locationName)}遭遇进行中</h4><p>玩家端已收到遭遇状态；结束后会保留当前地点与已揭示地图。</p></div>
+      <div class="host-stage-encounter-roster">${activeEncounter.npcs.map((npc) => `<span><strong>${escapeHtml(npc.name)}</strong><small>${escapeHtml(npc.role || "NPC")} · HP ${npc.hp}/${npc.maxHp}</small></span>`).join("")}</div>
+      <button type="button" class="secondary-btn" data-action="host-tabletop-end-encounter">结束遭遇</button>
+    </section>`;
+  }
+  if (!configuredNpcs.length) return "";
+  return `<section class="host-stage-encounter" data-host-tabletop-encounter-builder>
+    <div><p class="section-kicker">ENCOUNTER READY</p><h4>触发${escapeHtml(activeLocation.name)}遭遇</h4><p>${configuredNpcs.map((npc) => `${escapeHtml(npc.name)} · HP ${npc.hp}/${npc.maxHp}`).join("；")}</p></div>
+    <button type="button" class="primary-btn" data-action="host-tabletop-start-encounter">触发遭遇并同步</button>
+  </section>`;
+}
+
+function renderHostTabletopCheck(map, activeLocation, diceLabel) {
+  const check = map.activeCheck;
+  if (check) {
+    const result = check.result;
+    const pending = check.status === "pending" || !result;
+    const mode = { normal: "普通", advantage: "优势", disadvantage: "劣势" }[check.rollMode] || "普通";
+    return `<section class="host-stage-check${pending ? " is-pending" : result.success ? " is-success" : " is-failure"}" data-host-tabletop-check>
+      <div class="host-stage-check-head">
+        <div><p class="section-kicker">${pending ? "AWAITING CHECK" : "CHECK RESULT"}</p><h4>${escapeHtml(check.label)}</h4><p>${escapeHtml(check.instruction)}</p></div>
+        <span class="status-chip ${pending ? "testing" : result.success ? "published" : "blocked"}">${pending ? "等待公开掷骰" : escapeHtml(result.degreeLabel)}</span>
+      </div>
+      <div class="host-stage-check-meta"><span>${escapeHtml(diceLabel)}</span><span>难度 ${check.target}</span><span>加值 ${Number(check.bonus) >= 0 ? "+" : ""}${Number(check.bonus) || 0}</span><span>${mode}</span></div>
+      ${pending ? `<div class="host-stage-check-actions"><button type="button" class="primary-btn" data-action="host-tabletop-roll-check">公开掷骰并同步结果</button><button type="button" class="secondary-btn" data-action="host-tabletop-clear-check">取消判定</button></div>` : `<div class="host-stage-check-result"><strong>${result.rolls.join(" + ")}${Number(result.total) !== Number(result.rawTotal) ? ` → ${result.total}` : ` = ${result.total}`}</strong><span>目标 ${result.target} · 差值 ${result.margin >= 0 ? "+" : ""}${result.margin}</span><p>${escapeHtml(check.outcomeText)}</p></div>${renderHostCheckChanges(map, check)}<div class="host-stage-check-actions">${check.appliedAt ? "" : `<button type="button" class="primary-btn" data-action="host-tabletop-apply-check-outcome">应用数值并计算结局</button>`}<button type="button" class="secondary-btn" data-action="host-tabletop-clear-check">完成并继续流程</button></div>`}
+    </section>`;
+  }
+  const templates = activeLocation?.checks || [];
+  return `<section class="host-stage-check-builder" data-host-tabletop-check-builder>
+    <div class="host-stage-check-builder-head"><div><p class="section-kicker">NEXT ACTION</p><h4>发起场景判定</h4><p>玩家会先看到行动目标，公开掷骰后再同步成功或失败导向。</p></div><span>${escapeHtml(diceLabel)}</span></div>
+    ${templates.length ? `<div class="host-stage-check-presets">${templates.map((template) => `<button type="button" data-action="host-tabletop-start-check" data-check-id="${escapeHtml(template.id)}"><span>预设判定</span><strong>${escapeHtml(template.label)}</strong><small>难度 ${template.target} · ${escapeHtml(template.instruction)}</small></button>`).join("")}</div>` : `<p class="host-stage-check-empty">创作端尚未给这个地点配置预设判定，可以先使用下面的临场判定。</p>`}
+    <div class="host-stage-check-custom">
+      <label><span>临场判定</span><input class="field" maxlength="80" value="调查${escapeHtml(activeLocation?.name || "当前场景")}" data-host-check-label></label>
+      <label><span>难度</span><input class="field" type="number" min="-9999" max="9999" step="1" value="${Number(map.dice?.defaultTarget) || 12}" data-host-check-target></label>
+      <label><span>加值</span><input class="field" type="number" min="-999" max="999" step="1" value="0" data-host-check-bonus></label>
+      <label><span>模式</span><select class="field" data-host-check-mode><option value="normal">普通</option><option value="advantage">优势</option><option value="disadvantage">劣势</option></select></label>
+      <button type="button" class="secondary-btn" data-action="host-tabletop-start-custom-check">发起临场判定</button>
+    </div>
+  </section>`;
+}
+
+function renderHostCheckChanges(map, check) {
+  const applied = Array.isArray(check.appliedChanges) ? check.appliedChanges : [];
+  if (check.appliedAt) {
+    return `<div class="host-stage-check-changes is-applied" data-host-tabletop-check-changes><strong>已写入房间变量</strong>${applied.length
+      ? `<div>${applied.map((change) => `<span>${escapeHtml(change.label)} <b>${Number(change.delta) > 0 ? "+" : ""}${Number(change.delta)}</b> → ${Number(change.value)}</span>`).join("")}</div>`
+      : `<small>此分支没有配置数值变化，结局条件仍已重新计算。</small>`}</div>`;
+  }
+  const effects = check.result?.success ? check.successEffects : check.failureEffects;
+  const variableLookup = new Map((map.host?.variables || []).map((variable) => [variable.id, variable]));
+  const preview = Object.entries(effects || {}).filter(([, delta]) => Number(delta)).map(([id, delta]) => ({
+    label: variableLookup.get(id)?.label || id,
+    delta: Number(delta)
+  }));
+  return `<div class="host-stage-check-changes" data-host-tabletop-check-changes><strong>等待主持人确认数值</strong>${preview.length
+    ? `<div>${preview.map((change) => `<span>${escapeHtml(change.label)} <b>${change.delta > 0 ? "+" : ""}${change.delta}</b></span>`).join("")}</div>`
+    : `<small>创作端未配置此分支的数值变化，可直接确认以刷新结局条件。</small>`}</div>`;
+}
+
+function renderHostTabletopOutcome(map) {
+  const host = map.host;
+  if (!host?.variables?.length && !host?.endingCount) return "";
+  const published = map.publishedEnding;
+  const candidates = host.endingCandidates || [];
+  const closest = host.closestEnding;
+  const conclusion = state.sessionConclusion;
+  const conclusionLabel = {
+    publishing: "正在公开结局",
+    recap_pending: "复盘准备中",
+    ready: "复盘已就绪",
+    failed: "复盘准备失败，可重试",
+  }[conclusion?.status] || "";
+  return `<section class="host-stage-outcome" data-host-tabletop-outcome>
+    <div class="host-stage-outcome-head"><div><p class="section-kicker">CONDITION ROUTER</p><h4>变量与结局导向</h4><p>判定只更新变量；满足条件的结局仍由主持人确认后公开。</p></div><span>${candidates.length} 个可用候选</span></div>
+    <div class="host-stage-variable-strip">${(host.variables || []).map((variable) => {
+      const percent = Math.round((Number(variable.value) - Number(variable.min)) / Math.max(1, Number(variable.max) - Number(variable.min)) * 100);
+      return `<div><span><b>${escapeHtml(variable.label)}</b><strong>${Number(variable.value)}</strong></span><i style="--runtime-value:${Math.max(0, Math.min(100, percent))}%"><b></b></i><small>${Number(variable.min)}—${Number(variable.max)}</small></div>`;
+    }).join("")}</div>
+    ${published ? `<article class="host-stage-published-ending is-${escapeHtml(published.tone)}" data-host-tabletop-published-ending><div><span>玩家端已公开</span><h5>${escapeHtml(published.name)}</h5><p>${escapeHtml(published.summary)}</p></div><button type="button" class="secondary-btn" data-action="host-tabletop-unpublish-ending">收回公开</button></article>` : ""}
+    ${conclusionLabel ? `<div class="host-conclusion-status is-${escapeHtml(conclusion.status)}" role="status"><strong>${escapeHtml(conclusionLabel)}</strong><span>${conclusion.recapId ? `复盘编号 ${escapeHtml(conclusion.recapId)}` : "结局公开后即使生成失败也不会自动撤回"}</span></div>` : ""}
+    ${candidates.length ? `<div class="host-stage-ending-list">${candidates.map((ending) => `<article class="is-${escapeHtml(ending.tone)}"><div><span>条件已满足 · ${ending.readiness}%</span><h5>${escapeHtml(ending.name)}</h5><p>${escapeHtml(ending.summary)}</p><small>${ending.conditions.map((condition) => `${escapeHtml(condition.variableLabel)} ${condition.operator} ${condition.threshold}`).join(" · ")}</small></div><button type="button" class="primary-btn" data-action="host-tabletop-publish-ending" data-ending-id="${escapeHtml(ending.id)}"${conclusion?.status === "recap_pending" || conclusion?.status === "publishing" || conclusion?.status === "ready" ? " disabled" : ""}>${conclusion?.status === "failed" && conclusion.endingId === ending.id ? "重试准备复盘" : published?.id === ending.id ? "补齐复盘" : "公开并准备复盘"}</button></article>`).join("")}</div>` : closest ? `<div class="host-stage-ending-empty"><strong>尚无结局满足全部条件</strong><span>最接近「${escapeHtml(closest.name)}」· ${closest.readiness}%</span></div>` : `<div class="host-stage-ending-empty"><strong>创作端尚未添加结局规则</strong><span>可以继续推进判定，稍后再补充条件判断器。</span></div>`}
+  </section>`;
+}
+
 function queueItems() {
   const items = [];
   for (const event of (state.cloudHostEvents || []).filter((row) => row.status !== "delayed")) {
@@ -260,6 +445,18 @@ function queueItems() {
         vote.status === "open"
           ? `<button class="secondary-btn" data-action="host-vote-status" data-vote-id="${escapeHtml(vote.id)}" data-status="closed">关闭</button>`
           : `<button class="primary-btn" data-action="host-vote-status" data-vote-id="${escapeHtml(vote.id)}" data-status="published">公布</button>`
+    });
+  }
+  for (const action of state.cloudHostItemActions || []) {
+    if (action.status !== "pending") continue;
+    const player = (state.cloudHostPlayers || []).find((row) => row.role_slot_id === action.roleSlotId);
+    items.push({
+      type: "item",
+      priority: 27,
+      time: action.submittedAt,
+      title: action.label || "物品动作",
+      detail: `${player?.role_name || "玩家"} · ${action.actionKind}${action.targetType !== "none" ? ` · 目标 ${action.targetId}` : ""}`,
+      actions: `<button class="primary-btn" data-action="host-resolve-item-action" data-item-action-id="${escapeHtml(action.actionId)}" data-revision="${Number(action.revision)}" data-decision="approve">批准</button><button class="secondary-btn" data-action="host-resolve-item-action" data-item-action-id="${escapeHtml(action.actionId)}" data-revision="${Number(action.revision)}" data-decision="reject">拒绝</button>`
     });
   }
   for (const action of state.cloudHostPrivateActions || []) {
@@ -318,6 +515,7 @@ function renderPlayersColumn({ playersTableRows }) {
       <div><p class="section-kicker">PLAYERS</p><h3>玩家状态</h3><p>${players.filter((p) => p.joined).length}/${players.length} 已入房</p></div>
       <div class="row host-manual-actions">
         <button class="secondary-btn" data-action="host-manual-grant-clue">发线索</button>
+        <button class="secondary-btn" data-action="host-manual-grant-booklet">发物料册</button>
         <button class="secondary-btn" data-action="host-manual-grant-item">发物品</button>
         <button class="secondary-btn" data-action="host-manual-unlock-section">解锁分幕</button>
       </div>
@@ -328,9 +526,9 @@ function renderPlayersColumn({ playersTableRows }) {
   </section>`;
 }
 
-function renderCurrentActColumn() {
+function renderCurrentActColumn(preferredActKey = "", presentation = null) {
   const acts = hostActs();
-  const act = activeAct();
+  const act = activeAct(preferredActKey);
   return `<section class="host-command-card host-current-act-panel">
     <div class="section-head">
       <div><p class="section-kicker">CURRENT ACT</p><h3>${escapeHtml(act?.title || "当前幕控场")}</h3><p>${escapeHtml(act?.key || "尚未建立 Segment / Runbook")}</p></div>
@@ -339,6 +537,7 @@ function renderCurrentActColumn() {
     ${actSelector(acts, act)}
     ${renderRunbook(act)}
     ${renderPlayerTasks(act)}
+    ${renderHostTabletopStage(presentation)}
     <div class="host-current-grid">
       <section><div class="section-head compact"><div><h3>应发线索</h3></div><button class="secondary-btn" data-action="host-manual-grant-clue" data-act-key="${escapeHtml(act?.key || "")}">手动发线索</button></div>${renderClueGrants(act)}</section>
       <section><div class="section-head compact"><div><h3>补救话术</h3></div></div>${renderRemedies(act)}</section>
@@ -350,7 +549,10 @@ function renderCurrentActColumn() {
 }
 
 function renderTopbar({ room, world }) {
-  const pace = state.paceTimer || { mode: "count-up", running: false, elapsedMs: 0 };
+  const pace = state.paceTimer || { mode: "countup", status: "idle", elapsedMs: 0 };
+  const syncDetail = describeSyncDiagnostics(state.roomSyncDiagnostics, {
+    fallbackCursor: state.currentState?.syncState?.serverCursor
+  });
   return `<section class="host-command-topbar">
     <div class="host-topbar-room">
       <span class="live-label"><i></i>LIVE</span>
@@ -358,22 +560,81 @@ function renderTopbar({ room, world }) {
     </div>
     <div class="host-topbar-meta">
       ${room?.invite_code ? `<span>邀请码 <code class="invite-code-inline">${escapeHtml(room.invite_code)}</code></span>` : ""}
-      <span>${state.roomEventsConnected ? "实时同步已连接" : "轮询同步中"}</span>
+      <span role="status" aria-live="polite">${escapeHtml(syncDetail)}</span>
     </div>
     <div class="host-topbar-timer">
       <strong data-host-pace-clock>${escapeHtml(paceClock(pace))}</strong>
-      <button class="secondary-btn" data-action="host-pace-toggle">${pace.running ? "暂停" : "开始"}</button>
+      <button class="secondary-btn" data-action="host-pace-toggle">${pace.status === "running" ? "暂停" : "开始"}</button>
       <button class="secondary-btn" data-action="host-pace-reset">重置</button>
     </div>
   </section>`;
 }
 
-export function renderHostCommandCenter({ room, world, playersTableRows }) {
+function renderHostVoicePanel() {
+  const session = state.voiceSession;
+  const policy = session?.voicePolicy || {};
+  const mainRoom = (session?.voiceRooms || []).find((room) => room.id === policy.mainRoomId)
+    || (session?.voiceRooms || []).find((room) => room.room_type === "public");
+  const roster = hostVoiceRoster();
+  const connectedCount = roster.filter((member) => member.connected).length;
+  const connected = state.hostVoiceLiveStatus === "connected";
+  const connecting = state.hostVoiceLiveStatus === "connecting";
+  const ended = ["completed", "archived"].includes(policy.roomStatus);
+  const started = Boolean(policy.privateRoomsEnabled);
+  const confirmingStart = !started && !ended && state.hostVoiceStartConfirmUntil > Date.now();
+  return `<section class="host-voice-panel" aria-label="全员主语音房">
+    <div class="host-voice-summary">
+      <span class="host-voice-mark" aria-hidden="true">${connected ? "🎙" : "♬"}</span>
+      <div>
+        <p class="section-kicker">MAIN VOICE</p>
+        <h2>${escapeHtml(mainRoom?.name || "全员主语音房")}</h2>
+        <p>主持人与全部玩家共用固定主房 · ${escapeHtml(hostVoiceStatusLabel())}</p>
+      </div>
+    </div>
+    <div class="host-voice-roster">
+      ${roster.length ? roster.map((member) => `<span class="host-voice-person ${member.connected ? "is-connected" : ""}"><b>${escapeHtml(member.roleLabel)}</b>${escapeHtml(member.name)}<i>${member.connected ? "语音在线" : "已入房"}</i></span>`).join("") : `<span class="host-voice-empty">等待房间成员加入</span>`}
+    </div>
+    <div class="host-voice-policy">
+      <span class="status-chip ${started || ended ? "published" : "testing"}">${ended ? "场次已结束" : started ? "场次已开始" : "候场中"}</span>
+      <small>${ended ? "密谈已关闭；全员主房保留用于复盘" : started ? "玩家现可邀请同伴创建临时密谈" : `当前仅开放全员主房 · ${connectedCount}/${roster.length} 人已连接音频${confirmingStart ? " · 等待二次确认" : ""}`}</small>
+    </div>
+    <div class="host-voice-actions">
+      ${started || ended ? "" : `<button class="primary-btn ${confirmingStart ? "is-confirming" : ""}" type="button" data-action="host-session-start" ${state.hostVoiceBusy ? "disabled" : ""}>${confirmingStart ? "再次确认正式开场" : "正式开始场次"}</button>`}
+      ${connected
+        ? `<button class="secondary-btn" type="button" data-action="host-voice-mic">${state.hostVoiceMicEnabled ? "关闭麦克风" : "开启麦克风"}</button>
+           ${state.hostVoicePlaybackBlocked ? `<button class="primary-btn" type="button" data-action="host-voice-playback">开启扬声器</button>` : ""}
+           <button class="secondary-btn" type="button" data-action="host-voice-disconnect">退出音频</button>`
+        : `<button class="secondary-btn" type="button" data-action="host-voice-connect" ${!mainRoom || connecting || state.hostVoiceBusy ? "disabled" : ""}>${connecting ? "正在连接…" : "进入主语音房"}</button>`}
+    </div>
+  </section>`;
+}
+
+function renderRelationshipControlPanel() {
+  const relationships = state.cloudHostRelationships || [];
+  const statusLabels = {
+    unknown: "未定义", allied: "结盟", trusted: "信任", strained: "紧张", hostile: "敌对", broken: "决裂",
+  };
+  return `<section class="host-command-card host-relationship-panel">
+    <div class="section-head"><div><p class="section-kicker">RELATIONSHIPS</p><h3>关系状态调配</h3><p>只发布现场已经发生的变化；主持备注始终不进入玩家投影。</p></div></div>
+    ${relationships.length ? `<div class="host-relationship-list">${relationships.map((relationship) => `<article class="host-relationship-row" data-host-relationship="${escapeHtml(relationship.relationshipId)}">
+      <div><strong>${escapeHtml(relationship.fromRoleName)} → ${escapeHtml(relationship.toRoleName)}</strong><small>${escapeHtml(relationship.authoredLabel)} · 原始强度 ${Number(relationship.authoredStrength)}</small></div>
+      <label>当前强度<input type="number" min="-10" max="10" value="${Number(relationship.currentStrength)}" data-relationship-field="strength"></label>
+      <label>现场状态<select data-relationship-field="status">${Object.entries(statusLabels).map(([value, label]) => `<option value="${value}" ${relationship.status === value ? "selected" : ""}>${label}</option>`).join("")}</select></label>
+      <label>公开范围<select data-relationship-field="disclosure"><option value="hidden" ${relationship.disclosure === "hidden" ? "selected" : ""}>仅主持</option><option value="involved" ${relationship.disclosure === "involved" ? "selected" : ""}>关系双方</option><option value="public" ${relationship.disclosure === "public" ? "selected" : ""}>全房公开</option></select></label>
+      <label class="host-relationship-note">玩家可见说明<input value="${escapeHtml(relationship.publicNote || "")}" maxlength="1000" data-relationship-field="publicNote" placeholder="例如：两人刚刚交换了证据"></label>
+      <button class="secondary-btn" data-action="host-update-relationship" data-relationship-id="${escapeHtml(relationship.relationshipId)}" data-revision="${Number(relationship.revision)}">发布变化</button>
+    </article>`).join("")}</div>` : `<div class="empty-state">创作端尚未建立人物关系；请先在谜底与关系工作台配置。</div>`}
+  </section>`;
+}
+
+export function renderHostCommandCenter({ room, world, playersTableRows, currentBeatKey = "", presentation = null }) {
   return `<section class="host-command-center">
     ${renderTopbar({ room, world })}
+    ${renderHostVoicePanel()}
+    ${renderRelationshipControlPanel()}
     <div class="host-command-grid">
       ${renderPlayersColumn({ playersTableRows })}
-      ${renderCurrentActColumn()}
+      ${renderCurrentActColumn(currentBeatKey, presentation)}
       ${renderQueuePanel()}
     </div>
   </section>`;

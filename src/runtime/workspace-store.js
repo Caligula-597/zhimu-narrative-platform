@@ -1,6 +1,6 @@
 /** World / room selection and workspace domain helpers (demo vs logged-in). */
 import * as zhimuApi from "../api/index.js";
-import { worldStore, studioStore, roomStore, userStore } from "../state/index.js";
+import { worldStore, studioStore, userStore } from "../state/index.js";
 
 let prefetchedWorldsPromise = null;
 
@@ -24,9 +24,7 @@ export function isDemoBrowseMode() {
 
 export function activeRuntimeRoom() {
   const studio = studioStore.get();
-  const room = roomStore.get();
   return (studio.cloudStudio?.rooms || []).find((roomObj) => roomObj.id === zhimuApi.context.roomId)
-    || (room.cloudPlayer?.room?.id === zhimuApi.context.roomId ? room.cloudPlayer.room : null)
     || null;
 }
 
@@ -80,10 +78,17 @@ export async function ensureActiveWorld() {
     return null;
   }
 
-  const activeId = zhimuApi.context.worldId;
-  if (activeId && worlds.some((world) => world.id === activeId)) return activeId;
-
-  zhimuApi.selectWorld(worlds[0].id);
-  zhimuApi.clearRoom();
-  return worlds[0].id;
+  let activeId = zhimuApi.context.worldId;
+  if (!activeId || !worlds.some((world) => world.id === activeId)) {
+    activeId = worlds[0].id;
+    zhimuApi.selectWorld(activeId);
+    zhimuApi.clearRoom();
+  }
+  try {
+    const world = await zhimuApi.getWorld(activeId);
+    worldStore.set({ cloudWorkspacePreview: { world } });
+  } catch {
+    worldStore.set({ cloudWorkspacePreview: null });
+  }
+  return activeId;
 }

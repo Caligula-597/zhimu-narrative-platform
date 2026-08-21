@@ -10,13 +10,15 @@ function toPage(rows, { limit, offset }) {
 
 export async function listPrivateActionsForRole(roomId, roleSlotId, { limit = 100, offset = 0 } = {}) {
   const result = await query(
-    `SELECT *
-     FROM room_private_actions
-     WHERE room_id = $1 AND (
-       actor_role_slot_id = $2
-       OR (visibility = 'actor_target_host' AND target_role_slot_id = $2)
+    `SELECT private_action.*, actor_role.name AS actor_role_name
+     FROM room_private_actions private_action
+     JOIN role_slots actor_role ON actor_role.id = private_action.actor_role_slot_id
+     WHERE private_action.room_id = $1 AND (
+       private_action.actor_role_slot_id = $2
+       OR private_action.visibility = 'public'
+       OR (private_action.visibility = 'actor_target_host' AND private_action.target_role_slot_id = $2)
      )
-     ORDER BY created_at DESC
+     ORDER BY private_action.created_at DESC
      LIMIT $3 OFFSET $4`,
     [roomId, roleSlotId, limit + 1, offset]
   );

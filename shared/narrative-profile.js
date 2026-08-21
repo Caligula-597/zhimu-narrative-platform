@@ -6,75 +6,25 @@
  * legacy caller has migrated.
  */
 
+import {
+  PRODUCT_DOMAINS,
+  PRODUCT_DOMAIN_TYPES,
+  normalizeProductDomainType,
+  productDomainDefinition
+} from "./product-domains/registry.js";
+
 export const NARRATIVE_PROFILE_VERSION = 1;
-export const CREATION_TYPES = Object.freeze(["murder_mystery", "tabletop_rpg", "interactive_story"]);
+export const CREATION_TYPES = PRODUCT_DOMAIN_TYPES;
 export const RUN_FORMATS = Object.freeze(["single_session", "campaign"]);
 export const ROLE_MODES = Object.freeze(["fixed", "player_created", "mixed"]);
 export const RULESET_MODES = Object.freeze(["none", "system_neutral", "custom"]);
 export const LEGACY_WORLD_MODES = Object.freeze(["scripted", "campaign", "hybrid"]);
 
-export const CREATOR_TERMINOLOGY = Object.freeze({
-  murder_mystery: Object.freeze({
-    role: "角色本",
-    roleShort: "角色",
-    act: "公共幕",
-    scene: "场景",
-    clue: "线索",
-    secret: "秘密",
-    host: "主持人",
-    work: "剧本"
-  }),
-  tabletop_rpg: Object.freeze({
-    role: "调查员 / PC",
-    roleShort: "PC",
-    act: "章节",
-    scene: "场景",
-    clue: "HO",
-    secret: "KP 信息",
-    host: "KP",
-    work: "模组"
-  }),
-  interactive_story: Object.freeze({
-    role: "角色",
-    roleShort: "角色",
-    act: "章节",
-    scene: "场景",
-    clue: "信息卡",
-    secret: "隐藏信息",
-    host: "导演",
-    work: "互动故事"
-  })
-});
+export const CREATOR_TERMINOLOGY = Object.freeze(Object.fromEntries(
+  Object.entries(PRODUCT_DOMAINS).map(([key, domain]) => [key, domain.terminology])
+));
 
-export const NARRATIVE_MODE_PROFILES = Object.freeze({
-  murder_mystery: Object.freeze({
-    key: "murder_mystery",
-    label: "剧本杀",
-    description: "固定或半固定角色、分幕阅读、搜证、指认与结局复盘。",
-    defaultRunFormat: "single_session",
-    defaultRoleMode: "fixed",
-    defaultRulesetMode: "none",
-    terminology: CREATOR_TERMINOLOGY.murder_mystery
-  }),
-  tabletop_rpg: Object.freeze({
-    key: "tabletop_rpg",
-    label: "桌面角色扮演",
-    description: "角色卡、场景行动、判定与可持续多场次战役。",
-    defaultRunFormat: "campaign",
-    defaultRoleMode: "mixed",
-    defaultRulesetMode: "system_neutral",
-    terminology: CREATOR_TERMINOLOGY.tabletop_rpg
-  }),
-  interactive_story: Object.freeze({
-    key: "interactive_story",
-    label: "互动叙事",
-    description: "章节、角色视角、场景选择与导演控制的互动故事。",
-    defaultRunFormat: "single_session",
-    defaultRoleMode: "fixed",
-    defaultRulesetMode: "none",
-    terminology: CREATOR_TERMINOLOGY.interactive_story
-  })
-});
+export const NARRATIVE_MODE_PROFILES = PRODUCT_DOMAINS;
 
 const LEGACY_DEFAULTS = Object.freeze({
   scripted: Object.freeze({
@@ -108,7 +58,7 @@ function optionalText(value, maxLength = 120) {
 }
 
 export function normalizeCreationType(value) {
-  return enumValue(value, CREATION_TYPES, "murder_mystery");
+  return normalizeProductDomainType(value);
 }
 
 export function normalizeNarrativeProfile(value = {}, options = {}) {
@@ -121,7 +71,7 @@ export function normalizeNarrativeProfile(value = {}, options = {}) {
   const legacyDefaults = LEGACY_DEFAULTS[legacyMode] || {};
   const fallbackCreationType = options.fallbackCreationType || legacyDefaults.creationType || "murder_mystery";
   const creationType = enumValue(source.creationType, CREATION_TYPES, normalizeCreationType(fallbackCreationType));
-  const modeDefaults = NARRATIVE_MODE_PROFILES[creationType];
+  const modeDefaults = productDomainDefinition(creationType);
   const runFormat = enumValue(
     source.runFormat,
     RUN_FORMATS,
@@ -160,9 +110,25 @@ export function narrativeProfileFromSettings(settings = {}) {
   });
 }
 
+/**
+ * Resolve a product profile from either a full world snapshot or a lightweight
+ * world-list row. List APIs intentionally expose only `creation_type` instead
+ * of the complete settings document, so shell routing must not assume settings
+ * are always present.
+ */
+export function narrativeProfileFromWorld(world = {}) {
+  const source = record(world);
+  const settings = record(source.settings);
+  return normalizeNarrativeProfile(settings.narrativeProfile, {
+    legacyWorldMode: settings.worldMode,
+    fallbackCreationType: source.creation_type ?? source.creationType ?? settings.creationType
+  });
+}
+
 export function legacyWorldModeForNarrativeProfile(value = {}) {
   const profile = normalizeNarrativeProfile(value);
   if (profile.creationType === "tabletop_rpg") return "campaign";
+  if (profile.creationType === "board_game") return "campaign";
   if (profile.runFormat === "campaign") return "hybrid";
   return "scripted";
 }

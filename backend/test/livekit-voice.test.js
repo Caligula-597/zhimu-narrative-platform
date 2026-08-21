@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { randomUUID } from "node:crypto";
 import { fixtureRoomId } from "./helpers/fixture-ids.js";
 import test from "node:test";
 import { createApp } from "../src/app.js";
@@ -28,6 +29,25 @@ function withLiveKitEnv(fn) {
       else process.env[key] = value;
     }
   });
+}
+
+async function addTemporaryVoiceInvitee(context) {
+  const userId = randomUUID();
+  await query(
+    `INSERT INTO users (id, email, display_name, user_kind, email_verified_at)
+     VALUES ($1, $2, '临时语音玩家', 'registered', now())`,
+    [userId, `voice-${userId}@zhimu.local`]
+  );
+  await query(
+    `INSERT INTO room_members (room_id, user_id, member_type) VALUES ($1, $2, 'player')`,
+    [fixtureRoomId, userId]
+  );
+  context.after(async () => {
+    await query(`DELETE FROM voice_room_members WHERE user_id = $1`, [userId]);
+    await query(`DELETE FROM room_members WHERE room_id = $1 AND user_id = $2`, [fixtureRoomId, userId]);
+    await query(`DELETE FROM users WHERE id = $1`, [userId]);
+  });
+  return userId;
 }
 
 async function publicVoiceRoomId() {
@@ -86,11 +106,13 @@ test("invited player can request token for private voice room", async (context) 
     });
     assert.equal(response.statusCode, 200);
     assert.ok(response.json().token);
+
   });
 });
 
 test("uninvited active room member cannot request private voice token", async (context) => {
   await withLiveKitEnv(async () => {
+    const temporaryInviteeId = await addTemporaryVoiceInvitee(context);
     const app = await createApp({ logger: false, allowDemoUserHeader: true });
     context.after(() => app.close());
     const created = await app.inject({
@@ -100,7 +122,7 @@ test("uninvited active room member cannot request private voice token", async (c
       payload: {
         name: `LiveKit blocked ${Date.now()}`,
         roomType: "invite_private",
-        inviteUserIds: []
+        inviteUserIds: [temporaryInviteeId]
       }
     });
     assert.equal(created.statusCode, 201);
@@ -118,6 +140,7 @@ test("uninvited active room member cannot request private voice token", async (c
 
 test("host can listen to private voice room when room setting hostVoiceListen is true", async (context) => {
   await withLiveKitEnv(async () => {
+    const temporaryInviteeId = await addTemporaryVoiceInvitee(context);
     const app = await createApp({ logger: false, allowDemoUserHeader: true });
     context.after(async () => {
       await query(`UPDATE rooms SET settings = '{}'::jsonb WHERE id = $1`, [fixtureRoomId]);
@@ -134,7 +157,7 @@ test("host can listen to private voice room when room setting hostVoiceListen is
       payload: {
         name: `Host listen ${Date.now()}`,
         roomType: "invite_private",
-        inviteUserIds: []
+        inviteUserIds: [temporaryInviteeId]
       }
     });
     assert.equal(created.statusCode, 201);
@@ -147,6 +170,24 @@ test("host can listen to private voice room when room setting hostVoiceListen is
     });
     assert.equal(response.statusCode, 200);
     assert.ok(response.json().token);
+
+    const messageAttempt = await app.inject({
+      method: "POST",
+      url: `/api/voice-rooms/${voiceRoomId}/messages`,
+      headers: { "x-user-id": hostUserId },
+      payload: { body: "旁听主持人不应能插话" }
+    });
+    assert.equal(messageAttempt.statusCode, 403);
+    assert.equal(messageAttempt.json().code, "VOICE_ACCESS_DENIED");
+
+    const memberAttempt = await app.inject({
+      method: "POST",
+      url: `/api/voice-rooms/${voiceRoomId}/members`,
+      headers: { "x-user-id": hostUserId },
+      payload: { inviteUserIds: [hostUserId] }
+    });
+    assert.equal(memberAttempt.statusCode, 403);
+    assert.equal(memberAttempt.json().code, "VOICE_ACCESS_DENIED");
   });
 });
 

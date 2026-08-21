@@ -65,7 +65,6 @@ test("all Writer full-page tools consume the shared layout instead of rebuilding
     "src/views/writer-snapshot-workspace.js",
     "src/views/writer-story-assistant-view.js",
     "src/views/writer-review-view.js",
-    "src/views/writer-player-preview-view.js",
     "src/views/writer-collaboration-view.js",
     "src/views/writer-world-logs-view.js"
   ];
@@ -74,4 +73,12 @@ test("all Writer full-page tools consume the shared layout instead of rebuilding
     assert.match(source, /from "\.\/writer-tool-layout\.js"/, file);
     assert.doesNotMatch(source, /<section class="writer-tool-workspace/, file);
   }
+});
+
+test("uploaded prose that misses the gate requires explicit human review before import", () => {
+  const source = read("src/views/writer-document-workspace.js");
+  assert.match(source, /gate\?\.decision === "manual_review" && !session\.draft\.proseReviewConfirmed/u);
+  assert.match(source, /data-document-check="proseReviewConfirmed"/u);
+  assert.match(source, /未确认前不会写入/u);
+  assert.match(source, /不代表稿件已达到发布或精品库标准/u);
 });

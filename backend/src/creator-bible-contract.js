@@ -33,6 +33,18 @@ export function normalizeRoleArc(raw) {
   return Object.fromEntries(ARC_STAGES.map((key) => [key, String(value[key] ?? "").trim()]));
 }
 
+export function normalizeAppearanceStates(raw) {
+  if (!Array.isArray(raw)) return [];
+  return raw
+    .slice(0, 48)
+    .map((row) => ({
+      phaseLabel: String(row?.phaseLabel ?? row?.phase ?? "").trim().slice(0, 80),
+      appearance: String(row?.appearance ?? "").trim().slice(0, 2000),
+      notes: String(row?.notes ?? "").trim().slice(0, 2000)
+    }))
+    .filter((row) => row.phaseLabel || row.appearance || row.notes);
+}
+
 export function normalizeRoleArchiveBody(body = {}) {
   return {
     publicIdentity: String(body.publicIdentity ?? "").trim(),
@@ -46,6 +58,7 @@ export function normalizeRoleArchiveBody(body = {}) {
     arc: normalizeRoleArc(body.arc),
     lies: Array.isArray(body.lies) ? body.lies.map((l) => String(l ?? "").trim()).filter(Boolean).slice(0, 12) : [],
     actTasks: Array.isArray(body.actTasks) ? body.actTasks.slice(0, 24) : [],
+    appearanceStates: normalizeAppearanceStates(body.appearanceStates),
     metadata: body.metadata && typeof body.metadata === "object" ? body.metadata : {}
   };
 }
@@ -75,6 +88,9 @@ export function normalizeRoleArchivePatch(body = {}) {
   if (hasField(body, "actTasks")) {
     patch.actTasks = Array.isArray(body.actTasks) ? body.actTasks.slice(0, 24) : [];
   }
+  if (hasField(body, "appearanceStates")) {
+    patch.appearanceStates = normalizeAppearanceStates(body.appearanceStates);
+  }
   if (hasField(body, "metadata")) {
     patch.metadata = body.metadata && typeof body.metadata === "object" ? body.metadata : {};
   }
@@ -95,6 +111,7 @@ export function mergeRoleArchivePatch(existing, patch = {}) {
         arc: existing.arc ?? defaultRoleArc(),
         lies: existing.lies ?? [],
         actTasks: existing.actTasks ?? [],
+        appearanceStates: existing.appearanceStates ?? [],
         metadata: existing.metadata ?? {}
       }
     : normalizeRoleArchiveBody({});
@@ -226,6 +243,74 @@ export function normalizeTimelineEventPatch(body = {}) {
   }
   const alibiNotes = patchString(body, "alibiNotes");
   if (alibiNotes !== undefined) patch.alibiNotes = alibiNotes;
+  if (hasField(body, "metadata")) {
+    patch.metadata = body.metadata && typeof body.metadata === "object" ? body.metadata : {};
+  }
+  return patch;
+}
+
+export const MATERIAL_BOOKLET_KINDS = ["diary", "catalog", "manual", "prop_book", "other"];
+export const MATERIAL_BOOKLET_VISIBILITIES = ["host_only", "owner_role", "shared_roles", "public_table"];
+
+export function normalizeMaterialPages(raw) {
+  if (!Array.isArray(raw)) return [];
+  return raw
+    .slice(0, 80)
+    .map((row, index) => ({
+      pageLabel: String(row?.pageLabel ?? row?.label ?? "").trim().slice(0, 80),
+      title: String(row?.title ?? "").trim().slice(0, 200),
+      body: String(row?.body ?? "").trim().slice(0, 12000),
+      sequence: Math.max(1, Number(row?.sequence) || index + 1)
+    }))
+    .filter((row) => row.pageLabel || row.title || row.body);
+}
+
+function normalizeUuidList(raw, max = 48) {
+  if (!Array.isArray(raw)) return [];
+  return [...new Set(raw.filter(Boolean).map((id) => String(id)))].slice(0, max);
+}
+
+export function normalizeMaterialBookletBody(body = {}) {
+  const kind = MATERIAL_BOOKLET_KINDS.includes(body.kind) ? body.kind : "diary";
+  const visibility = MATERIAL_BOOKLET_VISIBILITIES.includes(body.visibility)
+    ? body.visibility
+    : "host_only";
+  return {
+    kind,
+    title: String(body.title ?? "").trim().slice(0, 200),
+    summary: String(body.summary ?? "").trim().slice(0, 4000),
+    ownerRoleSlotId: body.ownerRoleSlotId || null,
+    phaseLabel: String(body.phaseLabel ?? "").trim().slice(0, 80),
+    chapterId: body.chapterId || null,
+    visibility,
+    pages: normalizeMaterialPages(body.pages),
+    linkedClueIds: normalizeUuidList(body.linkedClueIds),
+    linkedRoleSlotIds: normalizeUuidList(body.linkedRoleSlotIds),
+    sequence: Math.max(1, Number(body.sequence) || 1),
+    metadata: body.metadata && typeof body.metadata === "object" ? body.metadata : {}
+  };
+}
+
+export function normalizeMaterialBookletPatch(body = {}) {
+  const patch = {};
+  if (hasField(body, "kind") && MATERIAL_BOOKLET_KINDS.includes(body.kind)) patch.kind = body.kind;
+  const title = patchString(body, "title");
+  if (title !== undefined) patch.title = title.slice(0, 200);
+  const summary = patchString(body, "summary");
+  if (summary !== undefined) patch.summary = summary.slice(0, 4000);
+  const ownerRoleSlotId = patchNullableUuid(body, "ownerRoleSlotId");
+  if (ownerRoleSlotId !== undefined) patch.ownerRoleSlotId = ownerRoleSlotId;
+  const phaseLabel = patchString(body, "phaseLabel");
+  if (phaseLabel !== undefined) patch.phaseLabel = phaseLabel.slice(0, 80);
+  const chapterId = patchNullableUuid(body, "chapterId");
+  if (chapterId !== undefined) patch.chapterId = chapterId;
+  if (hasField(body, "visibility") && MATERIAL_BOOKLET_VISIBILITIES.includes(body.visibility)) {
+    patch.visibility = body.visibility;
+  }
+  if (hasField(body, "pages")) patch.pages = normalizeMaterialPages(body.pages);
+  if (hasField(body, "linkedClueIds")) patch.linkedClueIds = normalizeUuidList(body.linkedClueIds);
+  if (hasField(body, "linkedRoleSlotIds")) patch.linkedRoleSlotIds = normalizeUuidList(body.linkedRoleSlotIds);
+  if (hasField(body, "sequence")) patch.sequence = Math.max(1, Number(body.sequence) || 1);
   if (hasField(body, "metadata")) {
     patch.metadata = body.metadata && typeof body.metadata === "object" ? body.metadata : {};
   }

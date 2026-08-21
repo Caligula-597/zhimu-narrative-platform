@@ -19,6 +19,14 @@ export function hostGrantClue(payload) {
   return request(`/rooms/${demoContext.roomId}/host/grant-clue`, { userId: demoContext.hostUserId, method: "POST", body: payload, idempotent: true });
 }
 
+export function listHostMaterialBooklets() {
+  return request(`/rooms/${demoContext.roomId}/host/material-booklets`, { userId: demoContext.hostUserId });
+}
+
+export function hostGrantBooklet(payload) {
+  return request(`/rooms/${demoContext.roomId}/host/grant-booklet`, { userId: demoContext.hostUserId, method: "POST", body: payload, idempotent: true });
+}
+
 export function hostGrantItem(payload) {
   return request(`/rooms/${demoContext.roomId}/host/grant-item`, { userId: demoContext.hostUserId, method: "POST", body: payload, idempotent: true });
 }

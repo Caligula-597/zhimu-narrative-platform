@@ -41,9 +41,10 @@ import { renderHostRuleWorkspace } from "./host-rule-workspace.js";
 import { renderHostVoteWorkspace } from "./host-vote-workspace.js";
 import { renderHostMechanismWorkspace } from "./host-mechanism-workspace.js";
 import { normalizeRuntimeCurrentState } from "../../../shared/runtime-current-state.js";
+import { roomContentBindingPresentation } from "../../../shared/room-content-binding.js";
 
 export function bindConsoleContext({ render, showToast }) {
-  bindHostPaceTimerContext({ render });
+  bindHostPaceTimerContext({ render, showToast });
   bindHostEventQueueContext({ render, showToast });
   bindHostRulesContext({ render, showToast });
   bindHostMiniGameContext({ render, showToast });
@@ -59,13 +60,22 @@ export function renderConsole(){
  const hostPlayersErrorBanner=hostPlayersError?`<section class="demo-strip" style="margin-bottom:14px;border-color:rgba(167,120,61,0.45);background:var(--brass-soft)"><div><span class="cloud-pill">玩家进度</span><strong style="margin-top:7px">未能加载玩家运行状态</strong><p>${escapeHtml(hostPlayersError)}</p></div><button class="secondary-btn" type="button" data-action="refresh-host-players">重试</button></section>`:"";
  const inviteCode=room.invite_code||"";
  const runtimeState=normalizeRuntimeCurrentState(state.currentState,{audience:"host",connected:state.roomEventsConnected});
+ const runtimeBinding=roomContentBindingPresentation(runtimeState.contentBinding||room.contentBinding);
+ const currentBeat=runtimeState.currentBeat;
+ const currentBeatDetail=currentBeat?.host?.dmTasks||currentBeat?.host?.goal||currentBeat?.player?.content||runtimeState.phase.detail;
+ const currentBeatGoal=currentBeat?.host?.goal||"";
+ const currentBeatAdvance=currentBeat?.host?.advanceCondition||"";
+ const currentBeatMinutes=currentBeat?.host?.estimatedMinutes;
  const runtimeStatePanel=`<section class="demo-strip host-runtime-state" style="margin-bottom:14px">
   <div>
    <span class="cloud-pill">${escapeHtml(runtimeState.syncState.status==="synced"?"三端已同步":"正在恢复同步")}</span>
-   <strong style="margin-top:7px">${escapeHtml(runtimeState.phase.label)}</strong>
-   <p>${escapeHtml(runtimeState.phase.detail)} · 游标 ${runtimeState.syncState.serverCursor} · ${runtimeState.syncState.isFrozen?"发布版本冻结运行":"实时草稿运行"}</p>
+   <strong style="margin-top:7px">${escapeHtml(currentBeat?`第 ${currentBeat.position}/${currentBeat.total} 段 · ${currentBeat.title}`:runtimeState.phase.label)}</strong>
+   <p>${escapeHtml(currentBeatDetail)}</p>
+   ${currentBeatGoal&&currentBeatGoal!==currentBeatDetail?`<p><b>本幕目标：</b>${escapeHtml(currentBeatGoal)}</p>`:""}
+   ${currentBeatAdvance?`<p><b>推进条件：</b>${escapeHtml(currentBeatAdvance)}</p>`:""}
+   <p class="muted-note">${escapeHtml(runtimeState.phase.label)} · 游标 ${runtimeState.syncState.serverCursor} · ${escapeHtml(runtimeBinding.label)}</p>
   </div>
-  <div class="row">${runtimeState.suggestedActions.slice(0,2).map(item=>`<span class="status-chip testing">${escapeHtml(item.label)}</span>`).join("")}</div>
+  <div class="row">${currentBeatMinutes!=null?`<span class="status-chip draft">预计 ${Number(currentBeatMinutes)} 分钟</span>`:""}${runtimeState.suggestedActions.slice(0,2).map(item=>`<span class="status-chip testing">${escapeHtml(item.label)}</span>`).join("")}</div>
  </section>`;
  const noPlayerProgressHint=players.length&&!joinedCount?`<section class="demo-strip" style="margin-bottom:14px"><div><span class="cloud-pill">等待玩家入房</span><strong style="margin-top:7px">尚无阅读进度</strong><p>${inviteCode?`邀请码 <code class="invite-code-inline">${escapeHtml(inviteCode)}</code> · 复制后发给玩家，或让他们打开 play.getzhimu.com 输入码。`:"分享运行房邀请码"}读完一幕后本页玩家表会自动更新。</p>${inviteCode?`<div class="row" style="margin-top:8px"><button class="secondary-btn" data-action="copy-invite-code" data-invite-code="${escapeHtml(inviteCode)}">复制邀请码</button><button class="secondary-btn" data-action="copy-play-link" data-invite-code="${escapeHtml(inviteCode)}">复制玩家链接</button><button class="secondary-btn" data-action="room-invite-current">邀请详情</button></div>`:""}</div><button class="secondary-btn" data-action="onboarding-go-player">进入玩家视角</button></section>`:"";
  const hostRisks=[];
@@ -98,7 +108,7 @@ export function renderConsole(){
  return `<section class="host-console">
   <div class="host-console-status">${cloudStatus()}</div>
   ${runtimeStatePanel}
-  ${renderHostCommandCenter({ room, world, playersTableRows: hostPlayerTableRows })}
+  ${renderHostCommandCenter({ room, world, playersTableRows: hostPlayerTableRows, currentBeatKey: currentBeat?.key, presentation: runtimeState.presentation })}
   ${renderHostMechanismWorkspace()}
   ${renderHostEventWorkspace()}
   ${renderHostVoteWorkspace()}
@@ -108,9 +118,45 @@ export function renderConsole(){
   ${hostRiskPanel}
   ${noPlayerProgressHint}
   ${hostPlayersErrorBanner}
+  ${hostCohostPanel(room)}
   ${hostSessionToolbar(inviteCode)}
   ${hostSupportPanels(events)}
  </section>`;
+}
+
+function hostCohostPanel(room) {
+  const cohosts = state.cloudHostCohosts || [];
+  const canManage = Boolean(state.cloudHostCohostCanManage)
+    || String(state.user?.id || "") === String(room?.host_user_id || "");
+  const rows = cohosts.length
+    ? cohosts.map((item) => `<div class="checkpoint-row" style="display:flex;justify-content:space-between;gap:12px;align-items:center">
+        <div><strong>${escapeHtml(item.displayName || "协主持")}</strong>
+          <p class="muted-note">${escapeHtml(item.email || item.userId || "")}</p></div>
+        ${canManage ? `<button type="button" class="secondary-btn" data-action="host-remove-cohost" data-user-id="${escapeHtml(item.userId)}">移除</button>` : ""}
+      </div>`).join("")
+    : `<div class="empty-state">尚未任命协主持。主主持可填写已注册用户的邮箱或用户 ID 进行任命。</div>`;
+  const manageBlock = canManage
+    ? `<div class="row" style="margin-top:10px;gap:8px;flex-wrap:wrap">
+        <input class="field" type="text" data-cohost-target placeholder="邮箱或用户 ID" style="min-width:220px;flex:1">
+        <button type="button" class="primary-btn" data-action="host-appoint-cohost">任命协主持</button>
+      </div>`
+    : `<p class="muted-note" style="margin-top:8px">仅主主持可任命或移除协主持；协主持可共同操作监控台。</p>`;
+  const caseNotes = state?.studio?.world?.settings?.caseHostNotes
+    || state?.studio?.experienceConfiguration?.caseHostNotes
+    || null;
+  const dualHostTip = caseNotes?.dualHost
+    ? `<p class="muted-note" style="margin-top:8px"><strong>本局分工：</strong>${escapeHtml(String(caseNotes.dualHost))}</p>`
+    : "";
+  const openingTip = caseNotes?.opening
+    ? `<p class="muted-note"><strong>开场：</strong>${escapeHtml(String(caseNotes.opening))}</p>`
+    : "";
+  return `<section class="card host-cohost-panel" data-host-cohost-panel style="margin-bottom:14px">
+    <div class="section-head compact"><div><p class="section-kicker">DUAL HOST</p><h3>双主持</h3>
+      <p>主主持可任命协主持共同操作本房；主主持身份仍唯一，不可转让。</p></div></div>
+    ${dualHostTip}${openingTip}
+    ${rows}
+    ${manageBlock}
+  </section>`;
 }
 
 function hostSessionToolbar(inviteCode) {

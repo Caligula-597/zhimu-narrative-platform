@@ -95,6 +95,27 @@ test("release-bound room keeps authored content frozen across Player, Host and C
   const app = await createApp({ logger: false, allowDemoUserHeader: true });
   context.after(() => app.close());
   const fixture = await createFixture(context);
+  const liveRoomResponse = await app.inject({
+    method: "POST",
+    url: `/api/worlds/${fixture.worldId}/rooms`,
+    headers: {
+      "x-user-id": hostUserId,
+      "idempotency-key": `runtime-live-room-${randomUUID()}`
+    },
+    payload: { name: "Live draft room" }
+  });
+  assert.equal(liveRoomResponse.statusCode, 201, liveRoomResponse.body);
+  const liveRoom = liveRoomResponse.json();
+  const liveCreatorState = await app.inject({
+    method: "GET",
+    url: `/api/worlds/${fixture.worldId}/rooms/${liveRoom.id}/current-state`,
+    headers: { "x-user-id": hostUserId }
+  });
+  assert.equal(liveCreatorState.statusCode, 200, liveCreatorState.body);
+  assert.equal(liveCreatorState.json().contentBinding.isFrozen, false);
+  assert.equal(liveCreatorState.json().currentBeat.key, "ch1");
+  assert.equal(liveCreatorState.json().currentBeat.host.hostTruth, "Host truth");
+
   const releaseResponse = await app.inject({
     method: "POST",
     url: `/api/worlds/${fixture.worldId}/releases`,

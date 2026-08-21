@@ -18,10 +18,13 @@ export function renderState({
   actions = "",
   compact = false
 } = {}) {
+  const stateAttributes = tone === "loading"
+    ? ' role="status" aria-live="polite" aria-busy="true"'
+    : "";
   const detailList = details.length
     ? `<ul class="unified-state-details">${details.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>`
     : "";
-  return `<section class="unified-state unified-state-${tone} ${compact ? "compact" : ""}">
+  return `<section class="unified-state unified-state-${tone} ${compact ? "compact" : ""}"${stateAttributes}>
     ${kicker ? `<p class="section-kicker">${escapeHtml(kicker)}</p>` : ""}
     ${title ? `<h3>${escapeHtml(title)}</h3>` : ""}
     ${message ? `<p>${escapeHtml(message)}</p>` : ""}

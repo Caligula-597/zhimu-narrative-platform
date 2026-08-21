@@ -295,6 +295,91 @@ const runtimeActionSchema = {
   },
 };
 
+const runtimeCurrentBeatSchema = {
+  anyOf: [
+    {
+      type: "object",
+      additionalProperties: false,
+      required: [
+        "id",
+        "key",
+        "title",
+        "sequence",
+        "position",
+        "total",
+        "source",
+        "player",
+        "host",
+      ],
+      properties: {
+        id: uuid,
+        key: { type: "string" },
+        title: { type: "string" },
+        sequence: { type: "integer", minimum: 1 },
+        position: { type: "integer", minimum: 1 },
+        total: { type: "integer", minimum: 1 },
+        source: {
+          type: "string",
+          enum: [
+            "mechanism_round",
+            "reading_progress",
+            "next_section",
+            "host_control",
+            "segment_order",
+          ],
+        },
+        player: {
+          type: "object",
+          additionalProperties: false,
+          required: ["content", "tips", "tasks"],
+          properties: {
+            content: { type: "string" },
+            tips: { type: "array", items: { type: "string" } },
+            tasks: { type: "array", items: { type: "string" } },
+          },
+        },
+        host: {
+          anyOf: [
+            {
+              type: "object",
+              additionalProperties: false,
+              required: [
+                "goal",
+                "flow",
+                "hostTruth",
+                "dmTasks",
+                "openClues",
+                "privateChatHints",
+                "advanceCondition",
+                "fallbacks",
+                "estimatedMinutes",
+              ],
+              properties: {
+                goal: { type: "string" },
+                flow: { type: "string" },
+                hostTruth: { type: "string" },
+                dmTasks: { type: "string" },
+                openClues: { type: "string" },
+                privateChatHints: { type: "string" },
+                advanceCondition: { type: "string" },
+                fallbacks: { type: "array", items: { type: "string" } },
+                estimatedMinutes: {
+                  anyOf: [
+                    { type: "integer", minimum: 0, maximum: 999 },
+                    { type: "null" },
+                  ],
+                },
+              },
+            },
+            { type: "null" },
+          ],
+        },
+      },
+    },
+    { type: "null" },
+  ],
+};
+
 const playerMechanismProjectionSchema = {
   anyOf: [
     {
@@ -397,8 +482,25 @@ const playerMechanismProjectionSchema = {
             {
               type: "object",
               additionalProperties: false,
-              required: ["title"],
-              properties: { title: { type: "string" } },
+              required: ["title", "consequence", "roleEpilogue"],
+              properties: {
+                title: { type: "string" },
+                consequence: { type: "string" },
+                roleEpilogue: {
+                  anyOf: [
+                    {
+                      type: "object",
+                      additionalProperties: false,
+                      required: ["title", "consequence"],
+                      properties: {
+                        title: { type: "string" },
+                        consequence: { type: "string" },
+                      },
+                    },
+                    { type: "null" },
+                  ],
+                },
+              },
             },
             { type: "null" },
           ],
@@ -418,6 +520,9 @@ export const runtimeCurrentStateSchema = {
     "audience",
     "roomId",
     "worldId",
+    "contentBinding",
+    "currentBeat",
+    "presentation",
     "phase",
     "suggestedActions",
     "blockers",
@@ -429,6 +534,9 @@ export const runtimeCurrentStateSchema = {
     audience: { type: "string", enum: ["player", "host", "creator"] },
     roomId: uuid,
     worldId: uuid,
+    contentBinding: roomContentBindingSchema,
+    currentBeat: runtimeCurrentBeatSchema,
+    presentation: openObject,
     phase: {
       type: "object",
       additionalProperties: false,

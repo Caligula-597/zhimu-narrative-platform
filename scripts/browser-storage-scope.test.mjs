@@ -32,7 +32,6 @@ test("creator cockpit drafts include both account and world", () => {
 
 test("draft and onboarding implementations use account-scoped storage", () => {
   for (const file of [
-    "../src/runtime/ai-draft-store.js",
     "../src/runtime/world-revision.js",
     "../src/components/first-run-chooser.js",
     "../src/components/onboarding-strip.js"

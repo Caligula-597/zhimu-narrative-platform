@@ -146,6 +146,7 @@ test("web vitals are reported to the shared app backend", () => {
 
 test("host command center uses segment runbooks and five critical queue actions", () => {
   const layoutSource = readFileSync(path.join(root, "src", "views", "host-layout.js"), "utf8");
+  const directorSource = readFileSync(path.join(root, "src", "runtime", "director-actions.js"), "utf8");
   const stylesSource = readFileSync(path.join(root, "src", "styles.css"), "utf8");
   assert.match(layoutSource, /state\.cloudWorldSegments/);
   assert.match(layoutSource, /export function hostRunbooks/);
@@ -161,12 +162,28 @@ test("host command center uses segment runbooks and five critical queue actions"
   assert.match(layoutSource, /解锁本幕分幕/);
   assert.match(layoutSource, /renderHostCommandCenter/);
   assert.match(layoutSource, /data-action="host-select-act"/);
+  assert.match(layoutSource, /state\.hostSelectedActKey\s*\|\|\s*preferredActKey/);
+  assert.match(layoutSource, /renderCurrentActColumn\(currentBeatKey, presentation\)/);
+  assert.match(layoutSource, /data-action="host-tabletop-select-location"/);
+  assert.match(layoutSource, /data-action="host-tabletop-toggle-map"/);
+  assert.match(layoutSource, /data-action="host-tabletop-toggle-location"/);
+  assert.match(layoutSource, /data-action="host-tabletop-start-check"/);
+  assert.match(layoutSource, /data-action="host-tabletop-roll-check"/);
+  assert.match(layoutSource, /data-action="host-tabletop-start-encounter"/);
+  assert.match(layoutSource, /data-action="host-tabletop-end-encounter"/);
+  assert.match(layoutSource, /data-action="host-tabletop-apply-check-outcome"/);
+  assert.match(layoutSource, /data-action="host-tabletop-publish-ending"/);
+  assert.match(layoutSource, /data-host-tabletop-outcome/);
+  assert.match(directorSource, /createRuntimeTabletopCheck/);
+  assert.match(directorSource, /resolveRuntimeTabletopCheck/);
+  assert.match(directorSource, /applyRuntimeTabletopCheckOutcome/);
   for (const action of ["host-apply-remedy", "host-vote-status", "host-review-private-action", "host-review-testimony"]) {
     assert.match(layoutSource, new RegExp(`data-action=["']${action}["']`), `missing command center action: ${action}`);
   }
   assert.match(stylesSource, /host-command-center/);
   assert.match(stylesSource, /host-clue-grant-item/);
   assert.match(stylesSource, /host-task-item/);
+  assert.match(stylesSource, /host-stage-map/);
   assert.match(stylesSource, /@media \(max-width: 1180px\)/);
 });
 

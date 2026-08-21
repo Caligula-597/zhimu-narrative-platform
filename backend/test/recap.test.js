@@ -75,7 +75,7 @@ test("player can view own perspective recap", async (context) => {
     method: "POST",
     url: `/api/rooms/${fixtureRoomId}/recaps`,
     headers: { "x-user-id": hostUserId },
-    payload: { title: "玩家视角测试复盘", description: "" }
+    payload: { title: "角色内容测试复盘", description: "" }
   });
   assert.equal(create.statusCode, 201);
   const recapId = create.json().id;

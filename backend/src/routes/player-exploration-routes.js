@@ -7,6 +7,11 @@ import {
   sharePlayerClueWithRoom,
   updatePlayerClueNote
 } from "../player-exploration-service.js";
+import {
+  applyPlayerDiscoveryAction,
+  listPlayerDiscoverySessions
+} from "../room-discovery-service.js";
+import { getRoomPaceClock } from "../room-pace-clock-service.js";
 import { withRoomIdempotency } from "../idempotency-helpers.js";
 import { requireActor } from "../request-actor.js";
 import { requireRoomRole } from "./route-guards.js";
@@ -18,6 +23,7 @@ import {
   readClueSchema,
   roomIdParams
 } from "./schemas.js";
+import { discoveryActionSchema } from "./schemas/room-discovery.js";
 
 async function requirePlayerMembership(actorId, roomId) {
   const membership = await requireRoomRole(actorId, roomId);
@@ -31,6 +37,33 @@ export async function registerPlayerExplorationRoutes(app) {
     const { roomId } = request.params;
     const membership = await requirePlayerMembership(actorId, roomId);
     return loadPlayerExploration(roomId, membership.role_slot_id);
+  });
+
+  app.get("/api/rooms/:roomId/discovery-sessions", { schema: { params: roomIdParams } }, async (request) => {
+    const actorId = requireActor(request);
+    const { roomId } = request.params;
+    const membership = await requirePlayerMembership(actorId, roomId);
+    return listPlayerDiscoverySessions(roomId, membership.role_slot_id);
+  });
+
+  app.get("/api/rooms/:roomId/pace-clock", { schema: { params: roomIdParams } }, async (request) => {
+    const actorId = requireActor(request);
+    const { roomId } = request.params;
+    await requirePlayerMembership(actorId, roomId);
+    return getRoomPaceClock(roomId, { audience: "player" });
+  });
+
+  app.post("/api/rooms/:roomId/discovery-sessions/:locationId/actions", { schema: discoveryActionSchema }, async (request) => {
+    const actorId = requireActor(request);
+    const { roomId, locationId } = request.params;
+    const membership = await requirePlayerMembership(actorId, roomId);
+    return applyPlayerDiscoveryAction({
+      roomId,
+      roleSlotId: membership.role_slot_id,
+      actorId,
+      locationId,
+      input: request.body
+    });
   });
 
   app.post("/api/rooms/:roomId/investigation-points/:pointId/investigate", { schema: investigatePointSchema }, async (request) => {

@@ -34,6 +34,12 @@ function round(value) {
   return Number(Number(value || 0).toFixed(2));
 }
 
+function deploymentRevision(raw) {
+  const value = String(raw || "").trim();
+  if (!/^[a-f0-9]{40}$/iu.test(value)) throw new Error("--deployment-revision must be a 40-character Git SHA");
+  return value.toLowerCase();
+}
+
 export function parsePlayerHomeBenchmarkOptions(argv = process.argv.slice(2), env = process.env) {
   const baseUrl = String(arg(argv, "--url", env.API_BASE_URL || "http://127.0.0.1:4180")).replace(/\/$/, "");
   const parsedUrl = new URL(baseUrl);
@@ -50,6 +56,30 @@ export function parsePlayerHomeBenchmarkOptions(argv = process.argv.slice(2), en
     throw new Error("remote benchmarks require PLAYER_HOME_BEARER_TOKENS; use --allow-demo-header only for an isolated non-production environment");
   }
   if (authMode === "demo-header" && !userIds.length) throw new Error("at least one player user id is required");
+
+  const evidenceMode = String(arg(argv, "--evidence-mode", "baseline")).toLowerCase();
+  if (!new Set(["baseline", "staging"]).has(evidenceMode)) {
+    throw new Error("--evidence-mode must be baseline or staging");
+  }
+  let targetEnvironment = loopback ? "local" : "unclassified";
+  let targetDeploymentId = "";
+  let targetDeploymentRevision = "";
+  if (evidenceMode === "staging") {
+    if (parsedUrl.protocol !== "https:") throw new Error("staging capacity evidence must use https");
+    if (authMode !== "bearer" || bearerTokens.length < 2) {
+      throw new Error("staging capacity evidence requires at least two PLAYER_HOME_BEARER_TOKENS");
+    }
+    targetEnvironment = String(arg(argv, "--environment", env.CAPACITY_TARGET_ENVIRONMENT || "")).toLowerCase();
+    if (targetEnvironment !== "staging") throw new Error("--environment=staging is required for staging evidence");
+    if (String(arg(argv, "--confirm-host", "")).toLowerCase() !== parsedUrl.hostname.toLowerCase()) {
+      throw new Error(`--confirm-host must exactly match ${parsedUrl.hostname}`);
+    }
+    targetDeploymentId = String(arg(argv, "--deployment-id", env.CAPACITY_DEPLOYMENT_ID || "")).trim();
+    if (!targetDeploymentId) throw new Error("--deployment-id is required for staging evidence");
+    targetDeploymentRevision = deploymentRevision(
+      arg(argv, "--deployment-revision", env.CAPACITY_DEPLOYMENT_REVISION || "")
+    );
+  }
 
   const concurrency = positiveNumber(arg(argv, "--concurrency", "20"), "--concurrency", { integer: true });
   const requests = positiveNumber(arg(argv, "--requests", "200"), "--requests", { integer: true });
@@ -74,6 +104,10 @@ export function parsePlayerHomeBenchmarkOptions(argv = process.argv.slice(2), en
     userIds,
     bearerTokens,
     authMode,
+    evidenceMode,
+    targetEnvironment,
+    targetDeploymentId,
+    targetDeploymentRevision,
     concurrency,
     requests,
     warmup,
@@ -144,6 +178,10 @@ export async function runPlayerHomeBenchmark(options, fetchImpl = fetch) {
   const totalBytes = results.reduce((sum, item) => sum + item.bytes, 0);
   const p95 = percentile(latency, 0.95);
   const p99 = percentile(latency, 0.99);
+  const passed = successful.length > 0
+    && errorRatePct <= options.errorRateLimit
+    && p95 <= options.p95Limit
+    && p99 <= options.p99Limit;
 
   return {
     schemaVersion: 2,
@@ -155,6 +193,13 @@ export async function runPlayerHomeBenchmark(options, fetchImpl = fetch) {
     endpoint: options.endpoint,
     authMode: options.authMode,
     productionRepresentativeAuth: options.authMode === "bearer",
+    evidenceMode: options.evidenceMode || "baseline",
+    capacityEvidenceReady: options.evidenceMode === "staging" && passed,
+    target: {
+      environment: options.targetEnvironment || "local",
+      deploymentId: options.targetDeploymentId || "",
+      deploymentRevision: options.targetDeploymentRevision || ""
+    },
     runtime: {
       nodeVersion: process.version,
       ci: String(process.env.CI || "").toLowerCase() === "true",
@@ -195,10 +240,7 @@ export async function runPlayerHomeBenchmark(options, fetchImpl = fetch) {
       p99Ms: options.p99Limit,
       maxErrorRatePct: options.errorRateLimit
     },
-    passed: successful.length > 0
-      && errorRatePct <= options.errorRateLimit
-      && p95 <= options.p95Limit
-      && p99 <= options.p99Limit
+    passed
   };
 }
 

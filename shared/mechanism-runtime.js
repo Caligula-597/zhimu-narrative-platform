@@ -504,9 +504,23 @@ function resolveEnding(runtime, packageValue) {
     packageValue.endingRoutes.find(
       (route) => route.key === packageValue.endingResolution.defaultRouteKey,
     ) || packageValue.endingRoutes.find((route) => route.isDefault);
+  const resolvedRoleEpilogueKeys = Object.fromEntries(asArray(packageValue.roleEpilogues).map((epilogue) => {
+    const matchedVariants = asArray(epilogue.variants)
+      .filter((variant) => !variant.isDefault && asArray(variant.requirements).every((requirement) =>
+        requirementSatisfied(
+          collectionFor(runtime, requirement.targetType, factValues)?.[requirement.targetKey],
+          requirement.operator,
+          requirement.value,
+        )
+      ))
+      .sort((left, right) => Number(right.priority || 0) - Number(left.priority || 0));
+    const fallback = asArray(epilogue.variants).find((variant) => variant.isDefault);
+    return [epilogue.roleKey, matchedVariants[0]?.key || fallback?.key || null];
+  }));
   return {
     matchedRouteKeys: matched.map((route) => route.key),
     resolvedRouteKey: matched[0]?.key || defaultRoute?.key || null,
+    resolvedRoleEpilogueKeys,
   };
 }
 
@@ -555,6 +569,7 @@ export function initializeMechanismRuntime(packageInput) {
     },
     decisionStates: {},
     executedInvestigations: {},
+    investigationUseCounts: {},
     ending: null,
   };
   for (const state of packageValue.stateRegistry)
@@ -647,7 +662,12 @@ export function executeMechanismInvestigation(
       "Investigation is not available in the current round",
       { investigationKey },
     );
-  if (runtimeInput.executedInvestigations[action.key]) {
+  const maxUses = Math.max(1, Math.min(99, Number(action.maxUses) || 1));
+  const used = Math.max(
+    0,
+    Number(runtimeInput.investigationUseCounts?.[action.key]) || 0,
+  );
+  if (runtimeInput.executedInvestigations[action.key] || used >= maxUses) {
     fail(
       "MECHANISM_INVESTIGATION_ALREADY_RESOLVED",
       "Investigation has already been resolved",
@@ -662,7 +682,23 @@ export function executeMechanismInvestigation(
       { investigationKey, outcome },
     );
   let runtime = clone(runtimeInput);
+  if (!runtime.investigationUseCounts) runtime.investigationUseCounts = {};
   const changes = [];
+  if (action.cost?.resourceKey && Number(action.cost.amount) > 0) {
+    runtime = applyResourceDeltas(
+      runtime,
+      [
+        {
+          resourceKey: action.cost.resourceKey,
+          operation: "lose",
+          amount: Number(action.cost.amount),
+        },
+      ],
+      packageValue,
+      changes,
+      `${action.key}:cost`,
+    );
+  }
   runtime = applyStateWrites(
     runtime,
     branch.stateWrites,
@@ -684,11 +720,19 @@ export function executeMechanismInvestigation(
     changes,
     `${action.key}:${outcome}`,
   );
-  runtime.executedInvestigations = withRecordValue(
-    runtime.executedInvestigations,
+  const nextUsed = used + 1;
+  runtime.investigationUseCounts = withRecordValue(
+    runtime.investigationUseCounts,
     action.key,
-    outcome,
+    nextUsed,
   );
+  if (nextUsed >= maxUses) {
+    runtime.executedInvestigations = withRecordValue(
+      runtime.executedInvestigations,
+      action.key,
+      outcome,
+    );
+  }
   return {
     runtime,
     changes,
@@ -839,11 +883,16 @@ export function projectMechanismRuntime(runtimeInput, packageInput) {
       )
       .map(clone),
     availableInvestigations: packageValue.investigationActions
-      .filter(
-        (action) =>
-          action.roundKey === runtime.currentRoundKey &&
-          !runtime.executedInvestigations[action.key],
-      )
+      .filter((action) => {
+        if (action.roundKey !== runtime.currentRoundKey) return false;
+        if (runtime.executedInvestigations[action.key]) return false;
+        const maxUses = Math.max(1, Math.min(99, Number(action.maxUses) || 1));
+        const used = Math.max(
+          0,
+          Number(runtime.investigationUseCounts?.[action.key]) || 0,
+        );
+        return used < maxUses;
+      })
       .map(clone),
   };
 }
@@ -862,6 +911,7 @@ export function projectPlayerMechanismRuntime(
     updatedAt = null,
     roundStartedAt = null,
     ownSubmissions = [],
+    roleKey = "",
   } = {},
 ) {
   const packageValue = assertMechanismPackage(packageInput);
@@ -877,6 +927,13 @@ export function projectPlayerMechanismRuntime(
           (entry) => entry.key === runtime.ending?.resolvedRouteKey,
         ) ?? null)
       : null;
+  const roleEpilogueGroup = roleKey
+    ? asArray(packageValue.roleEpilogues).find((entry) => entry.roleKey === roleKey)
+    : null;
+  const resolvedRoleEpilogueKey = roleKey
+    ? runtime?.ending?.resolvedRoleEpilogueKeys?.[roleKey]
+    : null;
+  const roleEpilogue = asArray(roleEpilogueGroup?.variants).find((entry) => entry.key === resolvedRoleEpilogueKey) || null;
 
   return {
     initialized: Boolean(runtime),
@@ -977,7 +1034,14 @@ export function projectPlayerMechanismRuntime(
               };
             })
         : [],
-    ending: endingRoute ? { title: String(endingRoute.title ?? "") } : null,
+    ending: endingRoute ? {
+      title: String(endingRoute.title ?? ""),
+      consequence: String(endingRoute.consequence ?? ""),
+      roleEpilogue: roleEpilogue ? {
+        title: String(roleEpilogue.title ?? ""),
+        consequence: String(roleEpilogue.consequence ?? ""),
+      } : null,
+    } : null,
     waitingForHost: runtime?.status === "running",
     updatedAt: updatedAt == null ? null : new Date(updatedAt).toISOString(),
   };

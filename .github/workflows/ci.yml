@@ -55,7 +55,6 @@ jobs:
           npm run check:world-writes
           npm run check:architecture
           npm run audit:nonfunctional
-          npm run test:release-gates
       - name: Install Playwright browsers
         run: npx playwright install chromium firefox webkit --with-deps
       - name: Build frontend
@@ -98,17 +97,8 @@ jobs:
       - name: Unit and integration tests
         run: npm run check:tests && npm test
         working-directory: backend
-      - name: Format helper tests
-        run: npm run test:format-helpers
-      - name: Modal helper tests
-        run: npm run test:modal-helpers
-      - name: Shared runtime, auth, Trusted Types, and UI semantics tests
-        run: |
-          npm run test:shared
-          npm run test:runtime-stores
-          npm run test:auth-matrix
-          npm run test:trusted-types
-          npm run test:ui-semantics
+      - name: All root unit and contract tests
+        run: npm run test:root
       - name: Verified empty-account browser journey
         run: npm run test:empty-account:browser
       - name: Install play portal dependencies

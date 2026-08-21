@@ -5,6 +5,8 @@ export async function handlePlayVoiceAction({
   setBusy,
   setToast,
   formatApiError,
+  privateVoiceRoomsEnabled,
+  privateVoiceRoomsUnavailableMessage,
   openVoiceRoomPicker,
   openCreateVoiceRoomModal,
   openInviteVoiceRoomModal,
@@ -25,6 +27,10 @@ export async function handlePlayVoiceAction({
       openVoiceRoomPicker(render);
       return true;
     case "voice-room-create":
+      if (!privateVoiceRoomsEnabled()) {
+        setToast(privateVoiceRoomsUnavailableMessage(), render);
+        return true;
+      }
       openCreateVoiceRoomModal(render);
       return true;
     case "voice-room-invite":

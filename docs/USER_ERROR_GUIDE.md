@@ -29,7 +29,11 @@
 | 错误码 | 用户常见提示 | 何时出现 | 如何检测 |
 |--------|--------------|----------|----------|
 | FORBIDDEN | 没有权限执行此操作 | 角色权限不足 | 玩家账号调用主持 API |
-| HOST_ROLE_REQUIRED | 需要主持人权限 | 非主持访问主持接口 | 玩家 GET host-events |
+| HOST_ROLE_REQUIRED | 需要主持人或协主持权限 | 非主持访问主持接口 | 玩家 GET host-events |
+| COHOST_PRIMARY_REQUIRED | 只有主主持可任命或移除协主持 | 协主持或其他人尝试任命 | 非主主持 POST host/cohosts |
+| COHOST_ALREADY_ASSIGNED | 该用户已是本房主持或协主持 | 重复任命 | 对已有 host/cohost 再任命 |
+| COHOST_TARGET_INVALID | 协主持须为已注册用户且不能是主主持 | 邮箱未注册或指向主主持 | 无效目标 |
+| COHOST_NOT_FOUND | 未找到该协主持成员 | 移除不存在的协主持 | DELETE 非 cohost |
 | ROOM_MEMBERSHIP_REQUIRED | 你不是该运行房成员 | 未入房访问房内 API | 未 join 时读 player-home |
 | WORLD_EDITOR_REQUIRED | 需要世界编辑权限 | viewer 修改世界内容 | viewer 角色 PATCH 世界 |
 | VOICE_ACCESS_DENIED | 无权进入该语音房 | 未受邀进入私密语音房 | 未邀请用户请求 token |

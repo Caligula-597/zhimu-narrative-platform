@@ -1,7 +1,6 @@
 /**
  * Creator cockpit — live workflow shell wired to dashboard, studio, and native panels.
  */
-import "./creator-cockpit-story-spine.css";
 import * as zhimuApi from "../api/index.js";
 import { showToast } from "../components/toast.js";
 import * as U from "../components/emptyState.js";
@@ -87,7 +86,6 @@ function buildContext() {
     relationships: worldStore.get().cloudRoleRelationships || [],
     diagnostics: worldStore.get().cloudStoryDiagnostics,
     playtest: worldStore.get().cloudAiPlaytestActive || worldStore.get().cloudAiPlaytestRuns?.[0] || null,
-    storySpineLlmStatus: worldStore.get().cloudStorySpineLlmStatus,
     draft: cockpit,
     dashboard: dash
   };
@@ -176,10 +174,7 @@ export async function refreshCockpitData({ force = false } = {}) {
   syncDraftForWorld();
   inFlightPromise = (async () => {
     try {
-      const [bootstrap, llmStatus] = await Promise.all([
-        loadCockpitBootstrap(worldId),
-        zhimuApi.getDeepseekStatus().catch(() => ({ configured: false }))
-      ]);
+      const bootstrap = await loadCockpitBootstrap(worldId);
       if (seq !== loadSeq) return;
       worldStore.set({
         cloudCreatorDashboard: bootstrap.dashboard,
@@ -188,8 +183,7 @@ export async function refreshCockpitData({ force = false } = {}) {
         cloudBibleSummary: bootstrap.bibleSummary,
         cloudSegments: bootstrap.segments || [],
         cloudTruthClaims: bootstrap.truthClaims || [],
-        cloudRoleRelationships: bootstrap.roleRelationships || [],
-        cloudStorySpineLlmStatus: llmStatus
+        cloudRoleRelationships: bootstrap.roleRelationships || []
       });
       syncDraftForWorld();
       if (cockpit.activeCanvas === "feedback") {
@@ -285,9 +279,9 @@ export function rerenderCockpit() {
 }
 
 function renderStageTabs(stages) {
-  return stages.map((stage, index) => `
+  return stages.map((stage) => `
     <button type="button" class="cockpit-stage-tab ${stage.id === cockpit.activeStage ? "active" : ""}" data-cockpit-stage="${stage.id}">
-      <span>${String(index + 1).padStart(2, "0")}</span>
+      <span>•</span>
       <strong>${stage.short}</strong>
       <small>${completionPercent(stage)}%</small>
     </button>`).join("");
@@ -355,9 +349,9 @@ export function creatorCockpit() {
     return U.creatorWorkspaceEmpty?.({
       title: "创作驾驶舱",
       kicker: "CREATOR COCKPIT",
-      intro: "按真实创作流程组织：概念 → 架构 → 人物 → 流程 → 文稿 → 测试。请先选择或创建剧本。",
+      intro: "按概念、架构、人物、运行、文稿和测试六类工作组织；它们可以按任意顺序进入。请先选择或创建剧本。",
       guideTitle: "开始",
-      guideItems: [{ label: "流程", title: "六阶段主流程", text: "驾驶舱是唯一创作顺序；左清单、中画布、右副驾完成多数工作。", bullets: ["灵感池、核心事实、章节、角色均可快速添加", "复杂编辑打开侧栏「精细编辑器」"] }]
+      guideItems: [{ label: "工作区", title: "六类并列创作区域", text: "从你当前掌握的材料进入，不设置必经顺序。", bullets: ["灵感池、核心事实、章节、角色均可独立编辑", "复杂编辑打开侧栏「精细编辑器」"] }]
     }) || `<section class="card"><h3>尚未选择剧本</h3></section>`;
   }
   syncDraftForWorld();
@@ -375,7 +369,7 @@ export function creatorCockpit() {
       <div>
         <p class="eyebrow">CREATOR COCKPIT · ${escapeHtml(worldName)}</p>
         <h2>创作驾驶舱</h2>
-        <p class="cockpit-hero-lede">六阶段是唯一主流程。侧栏「精细编辑器」用于复杂专业页；「工作模式」只是按任务类型切换视图。</p>
+        <p class="cockpit-hero-lede">六类工作区彼此并列，可以从任意位置开始。侧栏「精细编辑器」用于处理复杂专业内容。</p>
         <span>字段完成 <strong>${dash?.readiness?.productionPercent ?? "—"}%</strong> · 系统检查 <strong>${(dash?.checks || []).length}</strong> 条 · error ${(dash?.checks || []).filter((c) => c.level === "error").length} · warning ${(dash?.checks || []).filter((c) => c.level === "warning").length}</span>
       </div>
       <div class="cockpit-hero-actions">

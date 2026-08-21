@@ -1,5 +1,4 @@
 import { throwErr } from "./api-errors.js";
-import { transaction } from "./db.js";
 import { createVoiceRoomToken, isLiveKitConfigured } from "./livekit.js";
 import {
   configureVoiceTransaction,
@@ -11,6 +10,7 @@ import {
   insertVoiceRoom,
   insertVoiceRoomMembers,
   listVoiceRoomMessages,
+  loadVoiceSessionForActor,
   lockRoomForVoiceMutation
 } from "./repositories/voice-repository.js";
 import { transactionWithEvents } from "./transaction-events.js";
@@ -49,6 +49,12 @@ async function assertAllActiveRoomMembers(client, roomId, userIds) {
 export async function resolveVoiceRoomAccess(actorId, voiceRoomId) {
   const row = await findVoiceRoomAccess(actorId, voiceRoomId);
   if (!row) return { allowed: false, error: "Voice room membership required" };
+  if (row.room_type !== "public" && !row.room_started_at) {
+    return { allowed: false, code: "VOICE_PRIVATE_BEFORE_START", error: "Private voice rooms open after the host starts the session" };
+  }
+  if (row.room_type !== "public" && ["completed", "archived"].includes(row.room_status)) {
+    return { allowed: false, code: "VOICE_PRIVATE_AFTER_END", error: "Private voice rooms close when the session ends" };
+  }
   if (row.room_type === "public" || row.voice_member) return { allowed: true, ...row };
   if (row.member_type === "host" && row.host_voice_listen) {
     return { allowed: true, ...row, host_listen: true };
@@ -58,8 +64,14 @@ export async function resolveVoiceRoomAccess(actorId, voiceRoomId) {
 
 export async function requireVoiceRoomAccess(actorId, voiceRoomId) {
   const access = await resolveVoiceRoomAccess(actorId, voiceRoomId);
-  if (!access.allowed) throwErr("VOICE_ACCESS_DENIED", access.error);
+  if (!access.allowed) throwErr(access.code || "VOICE_ACCESS_DENIED", access.error);
   return access;
+}
+
+export async function loadVoiceSession(actorId, roomId) {
+  const session = await loadVoiceSessionForActor(actorId, roomId);
+  if (!session) throwErr("ROOM_MEMBERSHIP_REQUIRED");
+  return session;
 }
 
 export async function loadVoiceRoomMessages(actorId, voiceRoomId) {
@@ -86,13 +98,25 @@ export async function createVoiceRoomForActor({
     throwErr("VOICE_PUBLIC_CREATE_FORBIDDEN");
   }
 
+  const invitedOtherUserIds = uniqueUserIds(inviteUserIds)
+    .filter((userId) => String(userId) !== String(actorId));
   const invitees = roomType === "public"
     ? []
-    : uniqueUserIds([actorId, ...inviteUserIds]);
+    : [actorId, ...invitedOtherUserIds];
   try {
-    return await transaction(async (client) => {
+    return await transactionWithEvents(async (client, queueEvent) => {
       await configureVoiceTransaction(client);
-      if (!await lockRoomForVoiceMutation(client, roomId)) throwErr("ROOM_NOT_FOUND");
+      const runtimeRoom = await lockRoomForVoiceMutation(client, roomId);
+      if (!runtimeRoom) throwErr("ROOM_NOT_FOUND");
+      if (roomType !== "public" && !runtimeRoom.started_at) {
+        throwErr("VOICE_PRIVATE_BEFORE_START");
+      }
+      if (roomType !== "public" && ["completed", "archived"].includes(runtimeRoom.status)) {
+        throwErr("VOICE_PRIVATE_AFTER_END");
+      }
+      if (roomType === "invite_private" && invitedOtherUserIds.length === 0) {
+        throwErr("VOICE_INVITE_COUNT_INVALID", "请至少邀请一名其他房间成员");
+      }
       // This must be a new statement after the row lock is acquired. A count
       // embedded in the locking statement can retain a pre-wait snapshot and
       // miss the concurrent transaction that just committed.
@@ -115,6 +139,13 @@ export async function createVoiceRoomForActor({
           actorId
         });
       }
+      queueEvent(roomId, "room.voice_room_created", {
+        voiceRoomId: created.id,
+        voiceRoomName: created.name,
+        createdByUserId: actorId,
+        audience: roomType === "public" ? "room" : "restricted",
+        audienceUserIds: roomType === "public" ? [] : invitees
+      });
       return created;
     });
   } catch (error) {
@@ -147,18 +178,37 @@ export async function appendVoiceRoomMembers(actorId, voiceRoomId, inviteUserIds
   const access = await requireVoiceRoomAccess(actorId, voiceRoomId);
   assertInviteList(inviteUserIds, { requireOne: true });
   if (access.room_type === "public") throwErr("VOICE_PUBLIC_NO_INVITE");
+  if (access.host_listen && !access.voice_member) {
+    throwErr("VOICE_ACCESS_DENIED", "主持旁听模式为只读，不能改动密谈成员");
+  }
   const invitees = uniqueUserIds(inviteUserIds);
-  await transaction(async (client) => {
+  const inserted = await transactionWithEvents(async (client, queueEvent) => {
     await configureVoiceTransaction(client);
+    const runtimeRoom = await lockRoomForVoiceMutation(client, access.room_id);
+    if (!runtimeRoom) throwErr("ROOM_NOT_FOUND");
+    if (!runtimeRoom.started_at) throwErr("VOICE_PRIVATE_BEFORE_START");
+    if (["completed", "archived"].includes(runtimeRoom.status)) {
+      throwErr("VOICE_PRIVATE_AFTER_END");
+    }
     await assertAllActiveRoomMembers(client, access.room_id, invitees);
-    await insertVoiceRoomMembers(client, { voiceRoomId, userIds: invitees, actorId });
+    const addedUserIds = await insertVoiceRoomMembers(client, { voiceRoomId, userIds: invitees, actorId });
+    if (addedUserIds.length) {
+      queueEvent(access.room_id, "room.voice_room_members_updated", {
+        voiceRoomId,
+        voiceRoomName: access.name,
+        invitedByUserId: actorId,
+        audience: "restricted",
+        audienceUserIds: addedUserIds
+      });
+    }
+    return addedUserIds;
   });
-  return { ok: true, invited: invitees.length };
+  return { ok: true, invited: inserted.length, alreadyMembers: invitees.length - inserted.length };
 }
 
 export async function issueVoiceRoomToken(actorId, roomId, voiceRoomId) {
   const access = await resolveVoiceRoomAccess(actorId, voiceRoomId);
-  if (!access.allowed) throwErr("VOICE_ACCESS_DENIED", access.error);
+  if (!access.allowed) throwErr(access.code || "VOICE_ACCESS_DENIED", access.error);
   if (access.room_id !== roomId) throwErr("VOICE_ROOM_NOT_IN_PARALLEL_ROOM");
   if (!isLiveKitConfigured()) throwErr("LIVEKIT_NOT_CONFIGURED");
 

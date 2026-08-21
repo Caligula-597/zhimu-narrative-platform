@@ -5,13 +5,20 @@ import {
   normalizeCreativeConstitution
 } from "../shared/creative-constitution.js";
 import { AI_PLAYER_ARCHETYPES } from "../shared/ai-playtest.js";
+import { createBoardGameAiDraftPreview, detectedUnsupportedBoardGameRequirements } from "../shared/board-game-ai-draft.js";
+import { projectRuntimePresentation } from "../shared/runtime-presentation.js";
 
 const host = "127.0.0.1";
 const port = Number(process.env.ZHIMU_BROWSER_FIXTURE_PORT || 4180);
 const verificationAuthFixture = process.env.ZHIMU_BROWSER_FIXTURE_AUTH === "verification";
 const emptyAccountFixture = process.env.ZHIMU_BROWSER_FIXTURE_EMPTY_ACCOUNT === "true";
+const fixtureCreationType = ["murder_mystery", "tabletop_rpg", "board_game"]
+  .includes(process.env.ZHIMU_BROWSER_FIXTURE_PRODUCT)
+  ? process.env.ZHIMU_BROWSER_FIXTURE_PRODUCT
+  : "murder_mystery";
 const verificationChallengeId = "7f5f69b2-5330-4cc9-9497-5a6c751c80e8";
 let verificationFixtureAuthenticated = false;
+let emptyAccountBootstrapped = false;
 const fixtureUserId = "154aa8a9-9cd2-4098-90f4-c75e56c0cc53";
 const portalProfiles = {
   creator: {
@@ -52,6 +59,7 @@ let roomSequence = 2;
 let clueSequence = 1;
 let ruleSequence = 0;
 let qualityReportSequence = 0;
+let roleSequence = 4;
 const qualityReports = [];
 const opsFixtureUserId = "77777777-7777-4777-8777-777777770001";
 let opsFixtureUsers = [{
@@ -81,7 +89,7 @@ const release = {
   sourceRevision: 7,
   snapshotSchemaVersion: 1,
   narrativeProfile: {
-    creationType: "murder_mystery",
+    creationType: fixtureCreationType,
     runtimeShape: "one_shot",
     characterMode: "fixed_roles",
     rulesetFamily: "narrative"
@@ -131,6 +139,162 @@ const bindingFor = (selectedReleaseId = null) => {
     };
 };
 
+const playerRoleId = "66666666-6666-4666-8666-555555550001";
+const secondPlayerRoleId = "66666666-6666-4666-8666-555555550002";
+const secondPlayerUserId = "1d5e8155-a80f-4e7f-99f0-0ae317a35f36";
+
+const fixtureSegments = [{
+  id: "88888888-8888-4888-8888-555555550011",
+  segment_key: "arrival-check",
+  title: "进入联盟隔离区",
+  sequence: 1,
+  chapter_id: "chapter-1",
+  story: {
+    beatPlan: {
+      goal: "让玩家确认比赛数据与现实身份已经被隔离。",
+      playerContent: "你们抵达联盟隔离服务器，入口只接受赛事身份凭证。",
+      dmTasks: "说明入口规则，并确认所有玩家已经进入语音。",
+      advanceCondition: "玩家完成身份核验并进入审查室。",
+      estimatedMinutes: 8
+    }
+  },
+  operations: {
+    title: "进入联盟隔离区",
+    flow: "核验身份 → 说明隔离规则 → 开放审查室",
+    hostTruth: "入口日志不会直接证明授权范围。",
+    playerTips: ["先核对自己的身份凭证", "留意训练权限与比赛权限的差别"],
+    playerTasks: ["全员进入审查室并确认身份"]
+  }
+}, {
+  id: "88888888-8888-4888-8888-555555550012",
+  segment_key: "authorization-review",
+  title: "核对代理授权",
+  sequence: 2,
+  chapter_id: "chapter-2",
+  story: {
+    beatPlan: {
+      goal: "让玩家形成对授权边界的共同判断。",
+      playerContent: "联盟审查已进入授权边界核对。你们需要判断训练授权是否覆盖正式比赛。",
+      dmTasks: "分别询问授权签发者与实际使用者，再汇总全桌倾向。",
+      openClues: "代理授权原始记录",
+      advanceCondition: "全桌提交授权边界结论。",
+      estimatedMinutes: 16
+    }
+  },
+  operations: {
+    title: "核对代理授权",
+    flow: "公开记录 → 分组核对 → 汇总判断",
+    hostTruth: "正式比赛授权从未完成签署。",
+    fallbacks: ["若讨论停滞，公开训练授权的有效期。"],
+    playerTips: ["对照原始授权记录", "区分身份真实与授权有效"],
+    playerTasks: ["讨论授权是否覆盖正式比赛"]
+  }
+}, {
+  id: "88888888-8888-4888-8888-555555550013",
+  segment_key: "appeal-route",
+  title: "资格冻结与申诉",
+  sequence: 3,
+  chapter_id: "chapter-3",
+  story: {
+    beatPlan: {
+      goal: "把授权判断转化为可执行的结局路线。",
+      playerContent: "联盟已经冻结代理资格。你们需要决定由谁提交申诉证据。",
+      dmTasks: "确认申诉代表和公开证据，不提前宣布最终裁定。",
+      advanceCondition: "玩家确认申诉代表与证据清单。",
+      estimatedMinutes: 12
+    }
+  },
+  operations: {
+    title: "资格冻结与申诉",
+    flow: "冻结资格 → 选择代表 → 提交申诉",
+    hostTruth: "裁定仍由条件判断器根据证据与信誉值决定。",
+    playerTips: ["先决定谁来承担申诉风险", "只提交能够公开验证的证据"],
+    playerTasks: ["选出申诉代表", "整理公开证据清单"]
+  }
+}];
+
+const fixtureTabletopMapDesign = {
+  title: "联盟隔离服务器",
+  locations: [{
+    id: "server-lobby",
+    name: "身份验证大厅",
+    type: "安全入口",
+    description: "漂浮的身份凭证在入口闸机前逐一亮起。",
+    hostNotes: "若玩家遗漏凭证差异，提示日志时间比比赛开始早七分钟。",
+    segmentKey: "arrival-check",
+    x: 0.18,
+    y: 0.66,
+    z: 1,
+    encounterNpcIds: []
+  }, {
+    id: "review-room",
+    name: "授权审查室",
+    type: "调查场景",
+    description: "授权原始记录与赛事报名记录并排投射在环形屏幕上。",
+    hostNotes: "隐藏事实：正式比赛授权缺少签发者的二次确认。",
+    segmentKey: "authorization-review",
+    discovery: {
+      scanLabel: "正在校验授权链",
+      scanHint: "审查环将在片刻后完成比对",
+      unlockLabel: "审查节点已开放",
+      collectionLabel: "审查证物",
+      countTemplate: "{count} 份可核验证物",
+      archiveLabel: "AUTH RECORD"
+    },
+    x: 0.5,
+    y: 0.34,
+    z: 2,
+    encounterNpcIds: ["npc-auditor"],
+    checks: [{
+      id: "verify-authorization",
+      label: "核验二次授权",
+      instruction: "说明如何比对签发记录与赛事报名时间。",
+      target: 14,
+      bonus: 1,
+      rollMode: "normal",
+      successText: "你确认了二次授权缺失。",
+      failureText: "日志链不完整，但仍可提交人工复核。",
+      successEffects: { trust: 2 },
+      failureEffects: { trust: -4 }
+    }]
+  }, {
+    id: "appeal-terminal",
+    name: "联盟申诉终端",
+    type: "结局节点",
+    description: "终端只接受一名代表和一组可公开验证的证据。",
+    hostNotes: "不要提前显示结局阈值；由条件判断器在提交后结算。",
+    segmentKey: "appeal-route",
+    x: 0.82,
+    y: 0.64,
+    z: 3,
+    encounterNpcIds: ["npc-auditor"]
+  }],
+  routes: [["server-lobby", "review-room"], ["review-room", "appeal-terminal"]],
+  variables: [{ id: "trust", label: "联盟信誉", value: 6, min: 0, max: 10 }],
+  endings: [{
+    id: "appeal-approved",
+    name: "申诉通过",
+    summary: "联盟接受公开证据并恢复参赛资格。",
+    tone: "resolve",
+    priority: 5,
+    logic: "all",
+    conditions: [{ id: "trust-high", variableId: "trust", operator: ">=", value: 7 }]
+  }, {
+    id: "appeal-rejected",
+    name: "维持冻结",
+    summary: "联盟暂不接受申诉，队伍需要承担后续代价。",
+    tone: "cost",
+    priority: 5,
+    logic: "all",
+    conditions: [{ id: "trust-low", variableId: "trust", operator: "<=", value: 3 }]
+  }],
+  system: {
+    players: [{ id: playerRoleId, name: "小满", role: "职业选手", hp: 9, maxHp: 12 }],
+    npcs: [{ id: "npc-auditor", name: "审查官赫兹", role: "联盟审查官", hp: 14, maxHp: 14 }],
+    dice: { count: 1, sides: 20, modifier: 2, defaultTarget: 12 }
+  }
+};
+
 const rooms = [{
   id: "55555555-5555-4555-8555-555555550001",
   name: "旧版实时草稿房",
@@ -140,7 +304,16 @@ const rooms = [{
   member_count: 1,
   role_slot_count: 4,
   is_mine: true,
-  contentBinding: bindingFor()
+  contentBinding: bindingFor(),
+  settings: {
+    runtimePresentation: {
+      activeSegmentKey: "authorization-review",
+      activeLocationId: "review-room",
+      revealedLocationIds: ["server-lobby", "review-room"],
+      mapVisible: true,
+      updatedAt: "2026-08-10T08:00:00.000Z"
+    }
+  }
 }, {
   id: "55555555-5555-4555-8555-555555550002",
   name: "R2 预绑定房",
@@ -150,10 +323,179 @@ const rooms = [{
   member_count: 0,
   role_slot_count: 4,
   is_mine: true,
-  contentBinding: bindingFor(releaseId)
+  contentBinding: bindingFor(releaseId),
+  settings: {
+    runtimePresentation: {
+      activeSegmentKey: "authorization-review",
+      activeLocationId: "review-room",
+      revealedLocationIds: ["server-lobby", "review-room"],
+      mapVisible: true,
+      updatedAt: "2026-08-10T08:00:00.000Z"
+    }
+  }
 }];
 
-const playerRoleId = "66666666-6666-4666-8666-555555550001";
+const voiceRoomsByRoom = new Map(rooms.map((room, index) => [room.id, [{
+  id: `99999999-9999-4999-8999-${String(index + 1).padStart(12, "0")}`,
+  name: "全员主语音房",
+  room_type: "public",
+  status: "active"
+}]]));
+const voiceCreateIdempotency = new Map();
+const discoverySessionsByRoom = new Map();
+const conclusionsByRoom = new Map();
+
+function discoveryStoreFor(roomId) {
+  if (!discoverySessionsByRoom.has(roomId)) discoverySessionsByRoom.set(roomId, new Map());
+  return discoverySessionsByRoom.get(roomId);
+}
+
+function idleConclusion() {
+  return { status: "idle", endingId: null, recapId: null, revision: 0 };
+}
+
+function conclusionFor(roomId) {
+  return projectFixtureConclusion(conclusionsByRoom.get(roomId) || idleConclusion());
+}
+
+function projectFixtureConclusion(conclusion) {
+  return {
+    status: conclusion.status,
+    endingId: conclusion.endingId || null,
+    recapId: conclusion.recapId || null,
+    revision: Number(conclusion.revision) || 0,
+    ...(conclusion.updatedAt ? { updatedAt: conclusion.updatedAt } : {})
+  };
+}
+
+function discoveryClueIdsFor(room, locationId) {
+  const location = fixtureTabletopMapDesign.locations.find((item) => item.id === locationId);
+  if (!location) return [];
+  return browserPlayerClues(room)
+    .filter((clue) => {
+      const metadata = clue.metadata || {};
+      if (metadata.locationId) return String(metadata.locationId) === String(location.id);
+      return String(metadata.segmentKey || clue.segment_key || "") === String(location.segmentKey || "");
+    })
+    .map((clue) => String(clue.id));
+}
+
+function projectFixtureDiscoverySession(session) {
+  if (!session) return null;
+  const { remainingClueIds: _privateOrder, ...projected } = session;
+  return projected;
+}
+
+function applyFixtureDiscoveryAction(room, locationId, input = {}) {
+  const store = discoveryStoreFor(room.id);
+  const existing = store.get(locationId) || null;
+  const expectedRevision = Number(input.expectedRevision);
+  if (!Number.isSafeInteger(expectedRevision) || expectedRevision < 0) {
+    return { error: { status: 400, code: "DISCOVERY_REVISION_REQUIRED" } };
+  }
+  if (existing && input.action === "scan_started" && expectedRevision === 0) {
+    return { session: projectFixtureDiscoverySession(existing) };
+  }
+  if ((existing?.revision || 0) !== expectedRevision) {
+    return {
+      error: {
+        status: 409,
+        code: "DISCOVERY_VERSION_CONFLICT",
+        currentRevision: existing?.revision || 0
+      }
+    };
+  }
+  const clueIds = discoveryClueIdsFor(room, locationId);
+  const drawnClueIds = (existing?.drawnClueIds || []).filter((id) => clueIds.includes(id));
+  let remainingClueIds = [
+    ...(existing?.remainingClueIds || []).filter((id) => clueIds.includes(id) && !drawnClueIds.includes(id)),
+    ...clueIds.filter((id) => !drawnClueIds.includes(id) && !(existing?.remainingClueIds || []).includes(id))
+  ];
+  const now = new Date().toISOString();
+  let phase = existing?.phase || "idle";
+  let scanStartedAt = existing?.scanStartedAt || null;
+  let scanReadyAt = existing?.scanReadyAt || null;
+  let completedAt = existing?.completedAt || null;
+  if (input.action === "scan_started") {
+    if (phase === "idle") phase = "scanning";
+    else if (phase === "complete" && remainingClueIds.length) {
+      phase = "ready";
+      completedAt = null;
+    }
+    scanStartedAt ||= now;
+  } else if (input.action === "scan_ready") {
+    if (!existing || !["scanning", "ready"].includes(phase)) {
+      return { error: { status: 409, code: "DISCOVERY_ACTION_INVALID" } };
+    }
+    phase = remainingClueIds.length ? "ready" : "complete";
+    scanReadyAt ||= now;
+    if (!remainingClueIds.length) completedAt ||= now;
+  } else if (input.action === "clue_drawn") {
+    if (!existing || !["ready", "drawing"].includes(phase) || !remainingClueIds.length) {
+      return { error: { status: 409, code: "DISCOVERY_ACTION_INVALID" } };
+    }
+    drawnClueIds.push(remainingClueIds.shift());
+    phase = remainingClueIds.length ? "drawing" : "complete";
+    if (!remainingClueIds.length) completedAt ||= now;
+  } else if (input.action === "reshuffle") {
+    if (!existing || !["ready", "drawing"].includes(phase)) {
+      return { error: { status: 409, code: "DISCOVERY_ACTION_INVALID" } };
+    }
+    remainingClueIds = [...remainingClueIds].reverse();
+  } else {
+    return { error: { status: 400, code: "DISCOVERY_ACTION_INVALID" } };
+  }
+  const session = {
+    locationId,
+    segmentKey: fixtureTabletopMapDesign.locations.find((item) => item.id === locationId)?.segmentKey || locationId,
+    phase,
+    drawnClueIds,
+    lastDrawnClueId: drawnClueIds.at(-1) || null,
+    remainingClueIds,
+    remainingCount: remainingClueIds.length,
+    scanStartedAt,
+    scanReadyAt,
+    completedAt,
+    revision: expectedRevision + 1,
+    updatedAt: now
+  };
+  store.set(locationId, session);
+  return { session: projectFixtureDiscoverySession(session) };
+}
+
+function browserVoiceSession(room) {
+  const voiceRooms = voiceRoomsByRoom.get(room.id) || [];
+  const mainRoom = voiceRooms.find((voiceRoom) => voiceRoom.room_type === "public");
+  return {
+    voiceRooms: room.started_at ? voiceRooms : voiceRooms.filter((voiceRoom) => voiceRoom.room_type === "public"),
+    voiceRoster: [{
+      user_id: fixtureUserId,
+      member_type: "host",
+      role_slot_id: null,
+      role_name: null,
+      display_name: "浏览器主持"
+    }, {
+      user_id: "1d5e8155-a80f-4e7f-99f0-0ae317a35f35",
+      member_type: "player",
+      role_slot_id: playerRoleId,
+      role_name: "小满",
+      display_name: "浏览器玩家"
+    }, {
+      user_id: secondPlayerUserId,
+      member_type: "player",
+      role_slot_id: secondPlayerRoleId,
+      role_name: "闻溪",
+      display_name: "迟到玩家"
+    }],
+    voicePolicy: {
+      mainRoomId: mainRoom?.id || null,
+      privateRoomsEnabled: Boolean(room.started_at),
+      startedAt: room.started_at || null,
+      roomStatus: room.status
+    }
+  };
+}
+
 const playerSectionId = "77777777-7777-4777-8777-555555550001";
 
 const mechanismDecision = {
@@ -204,16 +546,49 @@ function newFixtureMechanismRuntime({ initialized = false } = {}) {
 function mechanismGrantedClues(room) {
   const runtime = mechanismRuntimeFor(room);
   if (!runtime?.grantedClue) return [];
-  return [{
-    id: "99999999-9999-4999-8999-555555550001",
-    name: "代理授权原始记录",
-    public_text: "原始记录确认：小满只授权数字孪生用于训练。",
+  return [
+    {
+      id: "99999999-9999-4999-8999-555555550001",
+      name: "被覆盖的签发时间",
+      public_text: "原始记录上的签发时间被二次墨迹覆盖，边缘仍能辨认出 23:40。",
+      segment_key: "authorization-review"
+    },
+    {
+      id: "99999999-9999-4999-8999-555555550002",
+      name: "训练用途附录",
+      public_text: "附录只授权数字孪生用于封闭训练，没有正式比赛代理条款。",
+      segment_key: "authorization-review"
+    },
+    {
+      id: "99999999-9999-4999-8999-555555550003",
+      name: "审查终端缓存",
+      public_text: "缓存记录显示，正式比赛权限是在原授权完成后被单独写入的。",
+      segment_key: "authorization-review"
+    }
+  ].map((clue) => ({
+    ...clue,
     acquired_at: runtime.updatedAt,
     read_at: null,
     is_owner: true,
     owner_role_slot_id: playerRoleId,
     owner_role_name: "小满"
-  }];
+  }));
+}
+
+function browserPlayerClues(room) {
+  const authored = workspacePreview.clues
+    .filter((clue) => !clue.role_slot_id || String(clue.role_slot_id) === String(playerRoleId))
+    .filter((clue) => clue.metadata?.locationId || clue.metadata?.segmentKey)
+    .map((clue) => ({
+      ...clue,
+      segment_key: clue.metadata?.segmentKey || "",
+      acquired_at: "2026-08-10T08:00:00.000Z",
+      read_at: null,
+      is_owner: true,
+      owner_role_slot_id: playerRoleId,
+      owner_role_name: "Browser player"
+    }));
+  return [...authored, ...mechanismGrantedClues(room)];
 }
 
 for (const room of rooms) {
@@ -339,6 +714,8 @@ function browserPlayerCurrentState(room) {
       reason: "确认数字代理的授权范围"
     }],
     blockers: [],
+    currentBeat: browserCurrentBeat(room, "player"),
+    presentation: browserRuntimePresentation(room, "player"),
     mechanism: {
       initialized: Boolean(runtime?.initialized),
       stale: false,
@@ -405,6 +782,65 @@ function browserPlayerCurrentState(room) {
   };
 }
 
+function browserCurrentBeat(room, audience = "player") {
+  const requestedKey = String(room.settings?.runtimePresentation?.activeSegmentKey || "");
+  const segment = fixtureSegments.find((item) => item.segment_key === requestedKey) || fixtureSegments[0];
+  const position = Math.max(1, fixtureSegments.indexOf(segment) + 1);
+  const beat = segment.story?.beatPlan || {};
+  const operations = segment.operations || {};
+  return {
+    id: segment.id,
+    key: segment.segment_key,
+    title: segment.title,
+    sequence: segment.sequence,
+    position,
+    total: fixtureSegments.length,
+    source: "host_control",
+    player: {
+      content: beat.playerContent || "",
+      tips: operations.playerTips || [],
+      tasks: operations.playerTasks || []
+    },
+    host: audience === "player" ? null : {
+      goal: beat.goal || "",
+      flow: operations.flow || "",
+      hostTruth: operations.hostTruth || "",
+      dmTasks: beat.dmTasks || "",
+      openClues: beat.openClues || "",
+      privateChatHints: beat.privateChatHints || "",
+      advanceCondition: beat.advanceCondition || "",
+      fallbacks: operations.fallbacks || [],
+      estimatedMinutes: beat.estimatedMinutes ?? null
+    }
+  };
+}
+
+function browserRuntimePresentation(room, audience = "player") {
+  return projectRuntimePresentation({
+    world,
+    roomSettings: room.settings || {},
+    currentBeat: browserCurrentBeat(room, audience),
+    audience
+  });
+}
+
+function browserHostCurrentState(room) {
+  const playerState = browserPlayerCurrentState(room);
+  return {
+    ...playerState,
+    audience: "host",
+    currentBeat: browserCurrentBeat(room, "host"),
+    presentation: browserRuntimePresentation(room, "host"),
+    suggestedActions: [{
+      key: "create_checkpoint",
+      label: "创建当前进度存档",
+      priority: 3,
+      target: "checkpoint",
+      reason: "关键推进后保存恢复点"
+    }]
+  };
+}
+
 function browserPlayerHomeCore(room) {
   return {
     room: {
@@ -429,13 +865,13 @@ function browserPlayerHomeCore(room) {
       completed_at: "2026-08-06T09:55:00.000Z"
     }],
     notes: [],
-    clues: mechanismGrantedClues(room),
+    clues: browserPlayerClues(room),
     sharedClues: [],
     roomMembers: [],
     suspicions: [],
     testimonies: [],
     privateActions: [],
-    voiceRooms: [],
+    ...browserVoiceSession(room),
     inventory: [],
     hostConfirm: null,
     currentGame: null,
@@ -449,7 +885,7 @@ function browserPlayerHomeCore(room) {
 }
 
 function browserPlayerHomeSocial(room) {
-  const grantedClues = mechanismGrantedClues(room);
+  const grantedClues = browserPlayerClues(room);
   return {
     notes: [],
     clues: grantedClues,
@@ -463,7 +899,7 @@ function browserPlayerHomeSocial(room) {
     suspicions: [],
     testimonies: [],
     privateActions: [],
-    voiceRooms: [],
+    ...browserVoiceSession(room),
     inventory: [],
     hostConfirm: null,
     currentGame: null,
@@ -486,12 +922,25 @@ function browserPlayerHomeSocial(room) {
 
 const world = {
   id: worldId,
-  name: "浏览器验收剧本",
+  creation_type: fixtureCreationType,
+  name: fixtureCreationType === "board_game"
+    ? "浏览器验收桌游"
+    : fixtureCreationType === "tabletop_rpg"
+      ? "浏览器验收模组"
+      : "浏览器验收剧本",
   summary: "只存在于本机进程内的隔离验收数据",
   status: "testing",
   membership_role: "owner",
   content_revision: 8,
-  settings: {
+  settings: fixtureCreationType === "tabletop_rpg" ? {
+    narrativeProfile: { creationType: "tabletop_rpg" },
+    tabletopMapDesign: fixtureTabletopMapDesign
+  } : fixtureCreationType === "board_game" ? {
+    narrativeProfile: { creationType: "board_game" }
+  } : {
+    narrativeProfile: {
+      creationType: "murder_mystery"
+    },
     creativeConstitution: {
       version: 1,
       theme: "错误时间顺序如何制造偏见",
@@ -555,7 +1004,12 @@ const workspacePreview = {
     host_text: "用于引出第一幕的失踪线索。",
     visibility: "role",
     clue_kind: "general",
-    metadata: { clueType: "text", grantMode: "auto", importance: "normal" }
+    metadata: {
+      clueType: "text",
+      grantMode: "auto",
+      importance: "normal",
+      segmentKey: "authorization-review"
+    }
   }, {
     id: "clue-2",
     name: "采访记录",
@@ -564,7 +1018,12 @@ const workspacePreview = {
     visibility: "role",
     role_slot_id: "role-2",
     clue_kind: "general",
-    metadata: { clueType: "text", grantMode: "manual", importance: "key" }
+    metadata: {
+      clueType: "text",
+      grantMode: "manual",
+      importance: "key",
+      segmentKey: "authorization-review"
+    }
   }, {
     id: "clue-3",
     name: "尸温记录",
@@ -573,11 +1032,18 @@ const workspacePreview = {
     visibility: "role",
     role_slot_id: "role-3",
     clue_kind: "general",
-    metadata: { clueType: "text", grantMode: "manual", importance: "key" }
+    metadata: {
+      clueType: "text",
+      grantMode: "manual",
+      importance: "key",
+      locationId: "server-lobby",
+      segmentKey: "arrival-check"
+    }
   }],
   items: [],
   investigationPoints: [{ id: "point-1", name: "检查停摆时钟", scene_id: "scene-2" }],
   edges: [],
+  segments: fixtureSegments,
   rooms
 };
 
@@ -587,6 +1053,10 @@ const dashboard = {
   readiness: { label: "可内测", productionPercent: 72 },
   production: []
 };
+
+function visibleFixtureWorlds() {
+  return emptyAccountFixture && !emptyAccountBootstrapped ? [] : [world];
+}
 
 function sendJson(response, status, payload, headers = {}) {
   response.writeHead(status, {
@@ -629,6 +1099,8 @@ function sendSse(request, response, roomId) {
     "cache-control": "no-cache, no-transform",
     connection: "keep-alive"
   });
+  response.socket?.setNoDelay(true);
+  response.flushHeaders();
   response.write(`data: ${JSON.stringify({ type: "connected", fixture: true })}\n\n`);
   const client = { roomId, response };
   sseClients.add(client);
@@ -824,12 +1296,59 @@ function buildFixturePlaytestReport(body = {}) {
   };
 }
 
+function fixtureBoardGameCandidate() {
+  return {
+    title: "边境号令",
+    designGoal: "通过同时盖放命令移动单位、补给并改变区域控制与席位分数。",
+    playerCount: { min: 4, max: 8 },
+    playTimeMinutes: 60,
+    components: [{ id: "frontier-map", type: "board", name: "边境地图", quantity: 1, description: "由区域与路线组成的公共地图。", playerAction: "移动单位或改变区域控制。", stateFields: [], assets: [], entries: [], notes: "" }],
+    variables: [
+      { id: "score", label: "席位分数", scope: "player", initialValue: 0, min: 0, max: 30 },
+      { id: "supply", label: "补给", scope: "player", initialValue: 3, min: 0, max: 12 }
+    ],
+    mechanisms: [{ id: "facility-score", templateKey: "track_change", name: "设施计分", sourceComponentId: "frontier-map", trigger: "计分阶段", conditionMode: "all", conditions: [{ id: "score-ready", sourceKey: "score", operator: "gte", value: "0" }], effects: [{ id: "score-add", targetKey: "score", operation: "add", value: "1" }], notes: "" }],
+    engine: {
+      version: 1, maxRounds: 6,
+      map: {
+        kind: "area_graph",
+        nodes: [
+          { id: "north", label: "北境关", x: 18, y: 22, terrain: "mountain", scoreValue: 1 },
+          { id: "fort", label: "中央要塞", x: 55, y: 38, terrain: "fort", scoreValue: 3 },
+          { id: "fields", label: "南部田野", x: 25, y: 76, terrain: "plain", scoreValue: 1 },
+          { id: "port", label: "潮汐港", x: 78, y: 72, terrain: "port", scoreValue: 2 }
+        ],
+        edges: [
+          { id: "north-fort", from: "north", to: "fort", bidirectional: true },
+          { id: "north-fields", from: "north", to: "fields", bidirectional: true },
+          { id: "fort-port", from: "fort", to: "port", bidirectional: true },
+          { id: "fields-port", from: "fields", to: "port", bidirectional: true }
+        ]
+      },
+      phases: [{ id: "orders", label: "同时下令", mode: "reveal", actionIds: ["march", "control", "resupply"], description: "全部提交后公开。" }],
+      actions: [
+        { id: "march", label: "行军", kind: "move", phaseId: "orders", target: "adjacent_region", resourceKey: "supply", cost: 1, description: "支付1补给，移动到相邻区域。" },
+        { id: "control", label: "控制", kind: "control", phaseId: "orders", target: "any_region", resourceKey: "supply", cost: 1, description: "支付1补给，控制一个区域。" },
+        { id: "resupply", label: "补给", kind: "gain", phaseId: "orders", target: "none", resourceKey: "supply", amount: 2, description: "补给增加2。" }
+      ],
+      setup: { unitsPerSeat: 1, startingNodeIds: ["north", "fort", "fields", "port"] },
+      endCondition: { type: "rounds", value: 6 }, information: "public"
+    },
+    rulebook: { objective: "第六轮后分数较高者获胜。", setup: "放置地图与单位，每席位获得3补给。", turnStructure: "盖放命令，统一公开并结算。", playerActions: "选择当前阶段的合法行动。", endCondition: "第六轮完成后结束。", tieBreak: "比较剩余补给。", notes: "" }
+  };
+}
+
 const server = http.createServer(async (request, response) => {
   const url = new URL(request.url || "/", `http://${host}:${port}`);
   const path = url.pathname;
 
   if (request.method === "GET" && path === "/api/health") {
     return sendJson(response, 200, { ok: true, fixture: true });
+  }
+  if (request.method === "POST" && path === "/api/metrics/web-vitals") {
+    await readJson(request);
+    response.writeHead(204, { "cache-control": "no-store" });
+    return response.end();
   }
   if (request.method === "GET" && path === "/api/auth/config") {
     return sendJson(response, 200, verificationAuthFixture
@@ -844,6 +1363,7 @@ const server = http.createServer(async (request, response) => {
   }
   if (verificationAuthFixture && request.method === "POST" && path === "/api/test/reset-verification") {
     verificationFixtureAuthenticated = false;
+    emptyAccountBootstrapped = false;
     return sendJson(response, 200, { ok: true });
   }
   if (request.method === "GET" && path === "/api/auth/me") {
@@ -1195,7 +1715,35 @@ const server = http.createServer(async (request, response) => {
     });
   }
   if (request.method === "GET" && path === "/api/worlds") {
-    return sendJson(response, 200, emptyAccountFixture ? [] : [world]);
+    return sendJson(response, 200, visibleFixtureWorlds());
+  }
+  if (request.method === "GET" && path === `/api/worlds/${worldId}`) {
+    return sendJson(response, 200, { ...world }, revisionHeaders());
+  }
+  if (request.method === "POST" && path === "/api/worlds") {
+    const body = await readJson(request);
+    emptyAccountBootstrapped = true;
+    world.name = String(body.name || world.name);
+    world.summary = String(body.summary || "");
+    world.settings = { ...(body.settings || {}) };
+    workspacePreview.chapters = [];
+    workspacePreview.roles = [];
+    roleSequence = 0;
+    workspacePreview.sections = [];
+    workspacePreview.scenes = [];
+    workspacePreview.clues = [];
+    rules.splice(0, rules.length);
+    dashboard.counts = {
+      ...(dashboard.counts || {}),
+      chapters: 0,
+      roles: 0,
+      sections: 0,
+      scenes: 0,
+      clues: 0,
+      rules: 0,
+      rooms: 0
+    };
+    return sendJson(response, 201, { ...world }, revisionHeaders());
   }
   if (request.method === "GET" && path === "/api/worlds/catalog") {
     return sendJson(response, 200, []);
@@ -1213,6 +1761,9 @@ const server = http.createServer(async (request, response) => {
   if (request.method === "GET" && path === `/api/worlds/${worldId}/studio`) {
     return sendJson(response, 200, workspacePreview, { "x-world-revision": "8" });
   }
+  if (request.method === "GET" && path === `/api/worlds/${worldId}/bible/role-archives`) {
+    return sendJson(response, 200, { archives: [] });
+  }
   if (request.method === "GET" && path === `/api/worlds/${worldId}/story-assistant/deepseek/status`) {
     return sendJson(response, 200, {
       configured: false,
@@ -1221,6 +1772,30 @@ const server = http.createServer(async (request, response) => {
       connectionName: null,
       routingMode: "own_only",
       platformAvailable: false
+    });
+  }
+  if (request.method === "GET" && path === `/api/worlds/${worldId}/story-manuscript`) {
+    return sendJson(response, 200, {
+      body: "# 浏览器验收剧本\n\n用于本地浏览器验收的剧情母稿。",
+      generatedBody: "# 浏览器验收剧本\n\n用于本地浏览器验收的剧情母稿。",
+      lastSyncDirection: "graph_to_manuscript",
+      updatedAt: "2026-07-23T00:00:00.000Z"
+    });
+  }
+  if (request.method === "POST" && path === `/api/worlds/${worldId}/board-game/ai/design-draft`) {
+    const body = await readJson(request);
+    const scope = ["patch", "missing", "current", "full"].includes(body.scope) ? body.scope : "missing";
+    const currentSection = ["components", "seats", "mechanisms", "engine", "rulebook"].includes(body.currentSection) ? body.currentSection : "components";
+    const unsupported = detectedUnsupportedBoardGameRequirements(body.instructions);
+    const preview = createBoardGameAiDraftPreview(body.currentDesign, fixtureBoardGameCandidate(), { scope, currentSection });
+    return sendJson(response, 200, {
+      generationId: "88888888-8888-4888-8888-555555550001",
+      seed: String(body.seed || "browser-fixture"), scope, currentSection,
+      summary: "已生成包含区域地图、同时盖放命令、移动补给与区域控制的可执行候选。",
+      capabilityPlan: { requested: [{ description: "区域地图与可执行行动", capabilityId: "map.area_graph" }], unsupported, assumptions: ["未指定区域数量，示例补全为四个区域。"], impactedSections: ["components", "mechanisms", "engine", "rulebook"] },
+      ...preview,
+      blocking: preview.blocking || unsupported.length > 0,
+      model: "browser-fixture", provider: "fixture", usage: null
     });
   }
   if (request.method === "GET" && path === `/api/worlds/${worldId}/quality-reports`) {
@@ -1259,7 +1834,6 @@ const server = http.createServer(async (request, response) => {
       mechanism: "机制推理",
       narrative: "叙事诡计",
       open: "开放调查",
-      sandbox: "跑团沙盒"
     }[diagnosticStandard] || "本格公平";
     const rawConstitution = world.settings?.creativeConstitution;
     const constitution = normalizeCreativeConstitution(rawConstitution);
@@ -1389,10 +1963,223 @@ const server = http.createServer(async (request, response) => {
     return sendJson(response, 200, rules);
   }
   if (request.method === "GET" && path === `/api/worlds/${worldId}/segments`) {
-    return sendJson(response, 200, { segments: [] });
+    return sendJson(response, 200, { segments: fixtureSegments });
   }
   if (request.method === "GET" && path === `/api/worlds/${worldId}/logs`) {
     return sendJson(response, 200, []);
+  }
+  const roomSettingsMatch = path.match(/^\/api\/rooms\/([^/]+)\/settings$/);
+  if (request.method === "PATCH" && roomSettingsMatch) {
+    const room = rooms.find((item) => item.id === roomSettingsMatch[1]);
+    if (!room) return sendJson(response, 404, { code: "ROOM_NOT_FOUND", error: "Room not found" });
+    const body = await readJson(request);
+    const incomingSettings = body.settings || {};
+    const incomingPresentation = incomingSettings.runtimePresentation;
+    room.settings = {
+      ...(room.settings || {}),
+      ...incomingSettings,
+      ...(incomingPresentation ? {
+        runtimePresentation: {
+          ...(room.settings?.runtimePresentation || {}),
+          ...incomingPresentation
+        }
+      } : {})
+    };
+    const presentation = room.settings.runtimePresentation || {};
+    broadcastRoomEvent(room.id, {
+      type: "room.presentation_updated",
+      activeSegmentKey: presentation.activeSegmentKey || "",
+      activeLocationId: presentation.activeLocationId || "",
+      revealedLocationIds: presentation.revealedLocationIds || [],
+      mapVisible: Boolean(presentation.mapVisible),
+      checkStatus: presentation.activeCheck?.status || "cleared",
+      checkLabel: presentation.activeCheck?.label || "",
+      encounterStatus: presentation.activeEncounter?.status || "cleared",
+      encounterLocationId: presentation.activeEncounter?.locationId || "",
+      updatedAt: presentation.updatedAt || new Date().toISOString()
+    });
+    return sendJson(response, 200, { ok: true, settings: room.settings });
+  }
+  const roomStartMatch = path.match(/^\/api\/rooms\/([^/]+)\/host\/start$/);
+  if (request.method === "POST" && roomStartMatch) {
+    const room = rooms.find((item) => item.id === roomStartMatch[1]);
+    if (!room) return sendJson(response, 404, { code: "ROOM_NOT_FOUND", error: "Room not found" });
+    const alreadyStarted = Boolean(room.started_at);
+    room.started_at ||= new Date().toISOString();
+    room.status = "active";
+    broadcastRoomEvent(room.id, {
+      type: "room.session_started",
+      startedAt: room.started_at,
+      status: room.status
+    });
+    return sendJson(response, 200, {
+      ok: true,
+      alreadyStarted,
+      room: { id: room.id, status: room.status, started_at: room.started_at }
+    });
+  }
+  const voiceCreateMatch = path.match(/^\/api\/rooms\/([^/]+)\/voice-rooms$/);
+  if (request.method === "POST" && voiceCreateMatch) {
+    const room = rooms.find((item) => item.id === voiceCreateMatch[1]);
+    if (!room) return sendJson(response, 404, { code: "ROOM_NOT_FOUND", error: "Room not found" });
+    if (!room.started_at) {
+      return sendJson(response, 409, {
+        code: "VOICE_PRIVATE_BEFORE_START",
+        error: "主持人正式开场后才可使用私密语音房"
+      });
+    }
+    const body = await readJson(request);
+    if (!Array.isArray(body.inviteUserIds) || body.inviteUserIds.length === 0) {
+      return sendJson(response, 400, {
+        code: "VOICE_INVITE_COUNT_INVALID",
+        error: "请至少邀请一名其他房间成员"
+      });
+    }
+    const idempotencyKey = String(request.headers["idempotency-key"] || "").trim();
+    const idempotencyScope = idempotencyKey ? `${room.id}:${idempotencyKey}` : "";
+    if (idempotencyScope && voiceCreateIdempotency.has(idempotencyScope)) {
+      return sendJson(response, 201, voiceCreateIdempotency.get(idempotencyScope));
+    }
+    const voiceRooms = voiceRoomsByRoom.get(room.id) || [];
+    const created = {
+      id: `99999999-9999-4999-8999-${String(voiceRooms.length + 100).padStart(12, "0")}`,
+      name: String(body.name || "临时密谈"),
+      room_type: "invite_private",
+      status: "active"
+    };
+    voiceRooms.push(created);
+    voiceRoomsByRoom.set(room.id, voiceRooms);
+    if (idempotencyScope) voiceCreateIdempotency.set(idempotencyScope, created);
+    broadcastRoomEvent(room.id, {
+      type: "room.voice_room_created",
+      voiceRoomId: created.id,
+      voiceRoomName: created.name,
+      createdByUserId: "1d5e8155-a80f-4e7f-99f0-0ae317a35f35",
+      audience: "restricted",
+      audienceUserIds: ["1d5e8155-a80f-4e7f-99f0-0ae317a35f35", ...body.inviteUserIds]
+    });
+    return sendJson(response, 201, created);
+  }
+  const voiceTokenMatch = path.match(/^\/api\/rooms\/([^/]+)\/voice-rooms\/([^/]+)\/token$/);
+  if (request.method === "POST" && voiceTokenMatch) {
+    return sendJson(response, 503, {
+      code: "LIVEKIT_NOT_CONFIGURED",
+      error: "浏览器验收环境未配置 LiveKit，界面已保留文字频道"
+    });
+  }
+  const voiceMessagesMatch = path.match(/^\/api\/voice-rooms\/([^/]+)\/messages$/);
+  if (request.method === "GET" && voiceMessagesMatch) return sendJson(response, 200, []);
+  if (request.method === "GET" && path === "/api/account/recaps") {
+    return sendJson(response, 200, { recaps: [], total: 0 });
+  }
+  if (request.method === "GET" && path === "/api/storage/usage") {
+    return sendJson(response, 200, {
+      planCode: "beta",
+      planLabel: "内测",
+      isInternalBeta: true,
+      usedBytes: 0,
+      maxBytes: 10 * 1024 * 1024 * 1024,
+      remainingBytes: 10 * 1024 * 1024 * 1024,
+      usedWorlds: 1,
+      maxWorlds: 20,
+      remainingWorlds: 19,
+      maxSingleFileBytes: 50 * 1024 * 1024
+    });
+  }
+  const roomContentPolicyMatch = path.match(/^\/api\/worlds\/([^/]+)\/rooms\/content-policy$/);
+  if (request.method === "GET" && roomContentPolicyMatch) {
+    if (roomContentPolicyMatch[1] !== worldId) {
+      return sendJson(response, 404, { code: "WORLD_NOT_FOUND", error: "World not found" });
+    }
+    return sendJson(response, 200, {
+      defaultMode: "release",
+      defaultReleaseEnabled: true,
+      publicListingRequiresRelease: true,
+      allowExplicitLiveDraft: true
+    });
+  }
+  const discoveryActionMatch = path.match(/^\/api\/rooms\/([^/]+)\/discovery-sessions\/([^/]+)\/actions$/);
+  if (request.method === "POST" && discoveryActionMatch) {
+    const room = rooms.find((item) => item.id === discoveryActionMatch[1]);
+    if (!room) return sendJson(response, 404, { code: "ROOM_NOT_FOUND", error: "Room not found" });
+    const locationId = decodeURIComponent(discoveryActionMatch[2]);
+    if (!fixtureTabletopMapDesign.locations.some((item) => item.id === locationId)) {
+      return sendJson(response, 404, { code: "DISCOVERY_LOCATION_UNAVAILABLE", error: "Location unavailable" });
+    }
+    const body = await readJson(request);
+    const result = applyFixtureDiscoveryAction(room, locationId, body);
+    if (result.error) {
+      return sendJson(response, result.error.status, {
+        code: result.error.code,
+        error: result.error.code,
+        ...(result.error.currentRevision == null ? {} : { currentRevision: result.error.currentRevision })
+      });
+    }
+    broadcastRoomEvent(room.id, {
+      type: "room.discovery_updated",
+      locationId,
+      roleSlotId: playerRoleId,
+      action: body.action,
+      revision: result.session.revision,
+      drawnCount: result.session.drawnClueIds.length,
+      remainingCount: result.session.remainingCount
+    });
+    return sendJson(response, 200, result.session);
+  }
+  const hostConclusionMatch = path.match(/^\/api\/rooms\/([^/]+)\/host\/conclusion$/);
+  if (request.method === "POST" && hostConclusionMatch) {
+    const room = rooms.find((item) => item.id === hostConclusionMatch[1]);
+    if (!room) return sendJson(response, 404, { code: "ROOM_NOT_FOUND", error: "Room not found" });
+    const body = await readJson(request);
+    const existing = conclusionsByRoom.get(room.id);
+    if (existing?.idempotencyKey && existing.idempotencyKey !== body.idempotencyKey) {
+      return sendJson(response, 409, { code: "CONCLUSION_ALREADY_PREPARED", error: "Conclusion already prepared" });
+    }
+    const presentation = browserRuntimePresentation(room, "host");
+    const ending = presentation.map?.host?.endingCandidates?.find((item) => String(item.id) === String(body.endingId))
+      || (String(presentation.map?.publishedEnding?.id || "") === String(body.endingId) ? presentation.map.publishedEnding : null);
+    if (!ending) {
+      return sendJson(response, 409, { code: "CONCLUSION_ENDING_INVALID", error: "Ending is unavailable" });
+    }
+    if (existing && ["publishing", "recap_pending", "ready"].includes(existing.status)) {
+      return sendJson(response, 200, { conclusion: projectFixtureConclusion(existing) });
+    }
+    const now = new Date().toISOString();
+    room.settings = {
+      ...(room.settings || {}),
+      runtimePresentation: {
+        ...(room.settings?.runtimePresentation || {}),
+        publishedEnding: { id: body.endingId, publishedAt: now },
+        updatedAt: now
+      }
+    };
+    const conclusion = {
+      status: "ready",
+      endingId: String(body.endingId),
+      recapId: `recap-${room.id}`,
+      revision: (existing?.revision || 0) + 2,
+      updatedAt: now,
+      idempotencyKey: String(body.idempotencyKey || "")
+    };
+    conclusionsByRoom.set(room.id, conclusion);
+    const publicConclusion = projectFixtureConclusion(conclusion);
+    broadcastRoomEvent(room.id, {
+      type: "room.presentation_updated",
+      activeSegmentKey: room.settings.runtimePresentation.activeSegmentKey || "",
+      activeLocationId: room.settings.runtimePresentation.activeLocationId || "",
+      revealedLocationIds: room.settings.runtimePresentation.revealedLocationIds || [],
+      mapVisible: Boolean(room.settings.runtimePresentation.mapVisible),
+      checkStatus: room.settings.runtimePresentation.activeCheck?.status || "cleared",
+      checkLabel: room.settings.runtimePresentation.activeCheck?.label || "",
+      encounterStatus: room.settings.runtimePresentation.activeEncounter?.status || "cleared",
+      encounterLocationId: room.settings.runtimePresentation.activeEncounter?.locationId || "",
+      updatedAt: now
+    });
+    broadcastRoomEvent(room.id, { type: "room.conclusion_updated", ...publicConclusion });
+    return sendJson(response, 200, {
+      conclusion: publicConclusion,
+      recap: { id: conclusion.recapId, title: String(body.title || ending.name), created_at: now }
+    });
   }
   const roomPathMatch = path.match(/^\/api\/rooms\/([^/]+)(\/.*)$/);
   if (request.method === "GET" && roomPathMatch && roomPathMatch[1] !== "invite") {
@@ -1400,9 +2187,45 @@ const server = http.createServer(async (request, response) => {
     const room = rooms.find((item) => item.id === requestedRoomId);
     if (!room) return sendJson(response, 404, { code: "ROOM_NOT_FOUND", error: "Room not found" });
     if (suffix === "/events/stream") return sendSse(request, response, room.id);
+    if (suffix === "/runtime-content") {
+      return sendJson(response, 200, {
+        room: { id: room.id, worldId, name: room.name, status: room.status },
+        contentBinding: room.contentBinding,
+        content: { ...workspacePreview, segments: fixtureSegments }
+      });
+    }
     if (suffix === "/player-home/core") return sendJson(response, 200, browserPlayerHomeCore(room));
     if (suffix === "/player-home/social") return sendJson(response, 200, browserPlayerHomeSocial(room));
     if (suffix === "/current-state") return sendJson(response, 200, browserPlayerCurrentState(room));
+    if (suffix === "/host/current-state") return sendJson(response, 200, browserHostCurrentState(room));
+    if (suffix === "/voice-session") return sendJson(response, 200, browserVoiceSession(room));
+    if (suffix === "/discovery-sessions") {
+      return sendJson(response, 200, {
+        sessions: [...discoveryStoreFor(room.id).values()].map(projectFixtureDiscoverySession)
+      });
+    }
+    if (suffix === "/host/discovery-progress") {
+      return sendJson(response, 200, {
+        locations: fixtureTabletopMapDesign.locations.map(({ id, name, segmentKey }) => ({ id, name, segmentKey })),
+        players: [{ roleSlotId: playerRoleId, roleName: "Browser player", displayName: "Browser player", joined: true }],
+        sessions: [...discoveryStoreFor(room.id).values()].map((session) => ({
+          roleSlotId: playerRoleId,
+          locationId: session.locationId,
+          phase: session.phase,
+          drawnCount: session.drawnClueIds.length,
+          remainingCount: session.remainingCount,
+          scanStartedAt: session.scanStartedAt,
+          scanReadyAt: session.scanReadyAt,
+          completedAt: session.completedAt,
+          revision: session.revision,
+          updatedAt: session.updatedAt
+        }))
+      });
+    }
+    if (suffix === "/pace-clock" || suffix === "/host/pace-clock") return sendJson(response, 200, { clock: null });
+    if (suffix === "/conclusion") return sendJson(response, 200, { conclusion: conclusionFor(room.id) });
+    if (suffix === "/player/item-actions" || suffix === "/host/item-actions") return sendJson(response, 200, { itemActions: [] });
+    if (suffix === "/player/relationships" || suffix === "/host/relationships") return sendJson(response, 200, { relationships: [] });
     if (suffix === "/exploration") {
       return sendJson(response, 200, {
         scenes: [{
@@ -1479,10 +2302,27 @@ const server = http.createServer(async (request, response) => {
         member_count: 0,
         role_slot_count: 4,
         is_mine: true,
-        contentBinding: bindingFor(selectedReleaseId)
+        contentBinding: bindingFor(selectedReleaseId),
+        settings: {
+          runtimePresentation: {
+            activeSegmentKey: "authorization-review",
+            activeLocationId: "review-room",
+            revealedLocationIds: ["server-lobby", "review-room"],
+            mapVisible: true,
+            updatedAt: new Date().toISOString()
+          }
+        }
       };
       rooms.unshift(room);
+      voiceRoomsByRoom.set(room.id, [{
+        id: `99999999-9999-4999-8999-${String(roomSequence).padStart(12, "0")}`,
+        name: "全员主语音房",
+        room_type: "public",
+        status: "active"
+      }]);
       mechanismRuntimes.set(room.id, newFixtureMechanismRuntime());
+      discoverySessionsByRoom.set(room.id, new Map());
+      conclusionsByRoom.delete(room.id);
       dashboard.counts.rooms = rooms.length;
       return sendJson(response, 201, room);
     } catch (error) {
@@ -1692,8 +2532,51 @@ const server = http.createServer(async (request, response) => {
   }
   if (request.method === "PATCH" && path === `/api/worlds/${worldId}`) {
     const body = await readJson(request);
-    if (body.settings && typeof body.settings === "object") world.settings = body.settings;
+    if (Object.hasOwn(body, "name")) world.name = String(body.name || world.name);
+    if (Object.hasOwn(body, "summary")) world.summary = String(body.summary || "");
+    if (body.settings && typeof body.settings === "object") {
+      world.settings = { ...(world.settings || {}), ...body.settings };
+    }
     return sendJson(response, 200, bumpRevision({ ...world }), revisionHeaders());
+  }
+  if (request.method === "POST" && path === `/api/worlds/${worldId}/roles`) {
+    const body = await readJson(request);
+    roleSequence += 1;
+    const role = {
+      id: `role-${roleSequence}`,
+      name: String(body.name || `玩家席位 ${roleSequence}`),
+      public_profile: String(body.publicProfile || ""),
+      private_profile: String(body.privateProfile || ""),
+      sequence: Math.max(1, Number(body.sequence) || workspacePreview.roles.length + 1)
+    };
+    workspacePreview.roles.push(role);
+    workspacePreview.roles.sort((a, b) => Number(a.sequence) - Number(b.sequence));
+    dashboard.counts.roles = workspacePreview.roles.length;
+    return sendJson(response, 201, bumpRevision(role), revisionHeaders());
+  }
+  const rolePathMatch = path.match(new RegExp(`^/api/worlds/${worldId}/roles/([^/]+)$`));
+  if (request.method === "PUT" && rolePathMatch) {
+    const role = workspacePreview.roles.find((item) => item.id === rolePathMatch[1]);
+    if (!role) return sendJson(response, 404, { code: "ROLE_NOT_FOUND", error: "Role not found" });
+    const body = await readJson(request);
+    Object.assign(role, {
+      name: String(body.name ?? role.name),
+      public_profile: String(body.publicProfile ?? role.public_profile ?? ""),
+      private_profile: String(body.privateProfile ?? role.private_profile ?? ""),
+      sequence: Math.max(1, Number(body.sequence) || role.sequence || 1)
+    });
+    workspacePreview.roles.sort((a, b) => Number(a.sequence) - Number(b.sequence));
+    return sendJson(response, 200, bumpRevision(role), revisionHeaders());
+  }
+  if (request.method === "DELETE" && rolePathMatch) {
+    const index = workspacePreview.roles.findIndex((item) => item.id === rolePathMatch[1]);
+    if (index < 0) return sendJson(response, 404, { code: "ROLE_NOT_FOUND", error: "Role not found" });
+    workspacePreview.roles.splice(index, 1);
+    workspacePreview.sections = workspacePreview.sections.filter((item) => item.role_slot_id !== rolePathMatch[1]);
+    dashboard.counts.roles = workspacePreview.roles.length;
+    dashboard.counts.sections = workspacePreview.sections.length;
+    bumpRevision();
+    return sendJson(response, 204, null, revisionHeaders());
   }
   if (request.method === "POST" && path === `/api/worlds/${worldId}/clues`) {
     const body = await readJson(request);

@@ -5,6 +5,7 @@ import {
 } from "../../shared/api-client.js";
 import { createSessionTokenStore } from "../../shared/session-token.js";
 import { scopedSseCursorKey } from "../../shared/sse-client.js";
+import { readSseCursor } from "../../shared/sync-diagnostics.js";
 
 const viteEnv = import.meta.env || {};
 const APP_ORIGIN = (
@@ -37,6 +38,10 @@ const portal = createPortalApiClient({
 });
 
 const { request } = portal;
+
+export function getRoomEventCursor(roomId, userId, storage = globalThis.localStorage) {
+  return readSseCursor(storage, sseCursorKey(roomId, userId));
+}
 
 export function getAppOrigin() {
   return APP_ORIGIN;
@@ -136,6 +141,21 @@ export const api = {
   completeSection: (roomId, sectionId) =>
     request(`/rooms/${roomId}/sections/${sectionId}/complete`, { method: "POST", body: {} }),
   exploration: (roomId) => request(`/rooms/${roomId}/exploration`),
+  discoverySessions: (roomId) => request(`/rooms/${roomId}/discovery-sessions`),
+  discoveryAction: (roomId, locationId, payload) =>
+    request(`/rooms/${roomId}/discovery-sessions/${encodeURIComponent(locationId)}/actions`, {
+      method: "POST",
+      body: payload
+    }),
+  paceClock: (roomId) => request(`/rooms/${roomId}/pace-clock`),
+  roomConclusion: (roomId) => request(`/rooms/${roomId}/conclusion`),
+  itemActions: (roomId) => request(`/rooms/${roomId}/player/item-actions`),
+  submitItemAction: (roomId, itemId, payload) =>
+    request(`/rooms/${roomId}/player/items/${itemId}/actions`, {
+      method: "POST",
+      body: payload,
+      idempotent: true
+    }),
   investigate: (roomId, pointId) =>
     request(`/rooms/${roomId}/investigation-points/${pointId}/investigate`, { method: "POST", body: {} }),
   readClue: (roomId, clueId) =>
@@ -153,12 +173,13 @@ export const api = {
     request(`/rooms/${roomId}/notebook/${entryId}`, { method: "DELETE" }),
   myTimeline: (roomId) => request(`/rooms/${roomId}/my-timeline`),
   getVoiceMessages: (voiceRoomId) => request(`/voice-rooms/${voiceRoomId}/messages`),
+  getVoiceSession: (roomId) => request(`/rooms/${roomId}/voice-session`),
   getVoiceRoomToken: (roomId, voiceRoomId) =>
     request(`/rooms/${roomId}/voice-rooms/${voiceRoomId}/token`, { method: "POST", body: {} }),
   sendVoiceMessage: (voiceRoomId, body) =>
     request(`/voice-rooms/${voiceRoomId}/messages`, { method: "POST", body: { body } }),
   createVoiceRoom: (roomId, payload) =>
-    request(`/rooms/${roomId}/voice-rooms`, { method: "POST", body: payload }),
+    request(`/rooms/${roomId}/voice-rooms`, { method: "POST", body: payload, idempotent: true }),
   inviteVoiceRoomMembers: (voiceRoomId, inviteUserIds) =>
     request(`/voice-rooms/${voiceRoomId}/members`, { method: "POST", body: { inviteUserIds } }),
   platformSite: () => request("/platform/site"),
@@ -199,10 +220,24 @@ export const api = {
   joinOfficialExample: () => request("/platform/official-example/join", { method: "POST", body: {} }),
   latestRecap: (roomId) => request(`/rooms/${roomId}/recap/latest`),
   getRecap: (roomId, recapId) => request(`/rooms/${roomId}/recaps/${recapId}`),
+  recapLibrary: (filters = {}) => {
+    const query = new URLSearchParams();
+    if (filters.worldId) query.set("worldId", filters.worldId);
+    if (filters.roleSlotId) query.set("roleSlotId", filters.roleSlotId);
+    return request(`/account/recaps${query.size ? `?${query}` : ""}`);
+  },
+  recapLibraryDetail: (recapId) => request(`/account/recaps/${recapId}`),
+  hideRecapLibraryEntry: (recapId) => request(`/account/recaps/${recapId}`, { method: "DELETE" }),
+  updateRecapLibraryPreferences: (roomId, retentionDays) =>
+    request(`/account/recaps/preferences/${roomId}`, {
+      method: "PUT",
+      body: { retentionDays }
+    }),
   completePlayerTask: (roomId, taskId) =>
     request(`/rooms/${roomId}/player-tasks/${taskId}/complete`, { method: "POST", body: {} }),
   setSuspicion: (roomId, targetRoleSlotId, payload) =>
     request(`/rooms/${roomId}/suspicions/${targetRoleSlotId}`, { method: "PUT", body: payload }),
+  relationships: (roomId) => request(`/rooms/${roomId}/player/relationships`),
   submitTestimony: (roomId, payload) =>
     request(`/rooms/${roomId}/testimonies`, { method: "POST", body: payload }),
   submitSatisfaction: (payload) =>
@@ -219,6 +254,8 @@ export const api = {
   streamRoomEvents(roomId, onEvent, signal, userId) {
     return portal.streamRoomEvents({ roomId, onEvent, signal, cursorKey: sseCursorKey(roomId, userId) });
   },
+
+  getRoomEventCursor,
 
   streamPlatformEvents(onEvent, signal, userId) {
     return portal.streamPlatformEvents({ onEvent, signal, cursorKey: platformSseCursorKey(userId) });

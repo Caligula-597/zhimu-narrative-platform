@@ -1,6 +1,6 @@
 # 织幕 · 生产部署
 
-最后更新：2026-07-24
+最后更新：2026-08-17
 
 > **分域架构**：[SPLIT_DOMAINS.md](./SPLIT_DOMAINS.md)  
 > **必看**：[MANUAL_SETUP_CHECKLIST.md](./MANUAL_SETUP_CHECKLIST.md)  
@@ -24,7 +24,7 @@ Cloudflare 仍负责 **DNS + R2**；营销站与 Railway 应用**分域部署**�
 | `deploy/Dockerfile.fullstack` | Railway **Root Directory 留空** |
 | `railway.toml` / `railway.json` | Dockerfile = `deploy/Dockerfile.fullstack` |
 | `npm run railway:push-env` | Railway 自定义域 **`app.getzhimu.com`** |
-| `npm run migrate:split-domains` | Cloudflare Pages 绑定 **`getzhimu.com`** |
+| `npm run cloudflare:sync-pages` / `npm run cloudflare:sync-dns` | Cloudflare Pages 与 DNS 配置同步 |
 | `site/`、`play/`、`host/` 独立 Vite 构建 → Pages | 删除根域指向 Railway 的旧 DNS（若冲突）并核对三个 Pages 自定义域 |
 
 ---
@@ -35,7 +35,8 @@ Cloudflare 仍负责 **DNS + R2**；营销站与 Railway 应用**分域部署**�
 copy .env.railway.setup.example .env.railway.setup
 # 填 RAILWAY_ACCOUNT_TOKEN=...
 npm run railway:bootstrap
-npm run migrate:split-domains   # 可选：同步 DNS + Pages
+npm run cloudflare:sync-pages
+npm run cloudflare:sync-dns
 ```
 
 ---

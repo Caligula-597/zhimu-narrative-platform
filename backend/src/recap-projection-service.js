@@ -1,26 +1,47 @@
 export function filterRecapForPlayer(snapshot, roleSlotId) {
-  const myPerformance = (snapshot.rolePerformances ?? [])
+  const source = snapshot || {};
+  const myPerformance = (source.rolePerformances ?? [])
     .find((row) => row.roleSlotId === roleSlotId) ?? null;
-  const personalNotes = (snapshot.notes ?? [])
+  const personalNotes = (source.notes ?? [])
     .filter((row) => row.roleSlotId === roleSlotId);
 
   return {
-    ...snapshot,
+    generatedAt: source.generatedAt,
+    description: source.description ?? "",
+    room: source.room ? {
+      id: source.room.id,
+      name: source.room.name,
+      status: source.room.status,
+      worldId: source.room.worldId,
+      worldName: source.room.worldName,
+      createdAt: source.room.createdAt,
+      firstJoinAt: source.room.firstJoinAt,
+      lastActivityAt: source.room.lastActivityAt,
+    } : null,
+    truth: source.truth ?? null,
+    players: source.players ?? [],
+    unlockedScenes: source.unlockedScenes ?? [],
+    stats: source.stats ?? {},
+    readingCompletions: source.readingCompletions ?? [],
     perspective: "postgame",
     highlightRoleSlotId: roleSlotId,
     roleSlotId,
-    storyNarrative: snapshot.storyNarrative ?? null,
-    rolePerformances: snapshot.rolePerformances ?? [],
+    storyNarrative: source.storyNarrative ?? null,
+    rolePerformances: source.rolePerformances ?? [],
     myPerformance,
     personalNotes,
-    clueDiscovery: snapshot.clueDiscovery ?? [],
-    missedClues: snapshot.undiscoveredClues ?? [],
-    keyTimeline: snapshot.keyTimeline ?? [],
-    investigations: (snapshot.investigations ?? [])
+    clueDiscovery: source.clueDiscovery ?? [],
+    missedClues: source.undiscoveredClues ?? [],
+    keyTimeline: source.keyTimeline ?? [],
+    investigations: (source.investigations ?? [])
       .filter((row) => row.roleSlotId === roleSlotId),
     notes: personalNotes,
-    hostConfirmedEvents: snapshot.hostConfirmedEvents ?? [],
-    endingTriggers: snapshot.endingTriggers ?? []
+    miniGames: source.miniGames ?? [],
+    privateActions: (source.privateActions ?? [])
+      .filter((row) => row.roleSlotId === roleSlotId),
+    hostConfirmedEvents: source.hostConfirmedEvents ?? [],
+    endingTriggers: source.endingTriggers ?? [],
+    conclusion: source.conclusion?.endingId ? { endingId: source.conclusion.endingId } : undefined
   };
 }
 
@@ -31,6 +52,7 @@ export function summarizeRecap(snapshot = {}) {
     cluesUndiscovered: snapshot.stats?.cluesUndiscovered ?? 0,
     investigationsCompleted: snapshot.stats?.investigationsCompleted ?? 0,
     rulesTriggered: snapshot.stats?.rulesTriggered ?? 0,
-    notesWritten: snapshot.stats?.notesWritten ?? 0
+    notesWritten: snapshot.stats?.notesWritten ?? 0,
+    miniGamesCompleted: snapshot.stats?.miniGamesCompleted ?? 0
   };
 }

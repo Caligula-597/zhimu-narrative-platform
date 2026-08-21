@@ -6,8 +6,8 @@ import {
 let lifecycle = null;
 let boundStreamKey = "";
 
-function ctxSetStatus(status, ctx) {
-  ctx?.setStreamStatus?.(status);
+function ctxSetStatus(status, ctx, meta) {
+  ctx?.setStreamStatus?.(status, meta);
 }
 
 export async function handleRoomEvent(type, data, ctx) {
@@ -55,6 +55,18 @@ export async function handleRoomEvent(type, data, ctx) {
         if (data.itemName) ctx.onToast(`获得物品：${data.itemName}`);
       }
       break;
+    case "room.booklet_granted":
+      if (affectsPlayer) {
+        ctx.bumpTabPulse?.("clues");
+        await ctx.onRefresh();
+        if (data.bookletTitle) ctx.onToast(`获得物料册：${data.bookletTitle}`);
+      }
+      break;
+    case "room.item_action_updated":
+      ctx.bumpTabPulse?.("inventory");
+      await ctx.onRefresh();
+      ctx.onToast(data.status === "pending" ? "物品动作正在等待主持人确认" : "物品动作状态已更新");
+      break;
     case "room.section_unlocked":
     case "room.player_joined":
     case "room.checkpoint_restored":
@@ -67,6 +79,33 @@ export async function handleRoomEvent(type, data, ctx) {
       ctx.bumpTabPulse?.("home");
       await ctx.onRefresh();
       ctx.onToast(`房间内容已切换到 R${Number(data.releaseNumber) || "?"}`);
+      break;
+    case "room.session_started":
+      ctx.bumpTabPulse?.("voice");
+      await ctx.onRefresh();
+      ctx.onToast("主持人已正式开场 · 玩家密谈现已开放");
+      break;
+    case "room.presentation_updated":
+      ctx.bumpTabPulse?.("home");
+      await ctx.onRefresh();
+      ctx.onToast(
+        data.encounterStatus === "active"
+          ? "主持人已触发当前场景遭遇"
+          : data.checkStatus === "pending"
+          ? `主持人发起判定${data.checkLabel ? `：${data.checkLabel}` : ""}`
+          : data.checkStatus === "resolved"
+            ? `公开判定已结算${data.checkLabel ? `：${data.checkLabel}` : ""}`
+            : data.activeLocationId ? "主持人已更新当前场景" : "主持人已更新当前流程"
+      );
+      break;
+    case "room.pace_clock_updated":
+      await ctx.onRefresh();
+      if (data.visibleToPlayers) ctx.onToast(data.status === "paused" ? "主持人已暂停节奏计时" : "主持人已更新节奏计时");
+      break;
+    case "room.conclusion_updated":
+      ctx.bumpTabPulse?.("recap");
+      await ctx.onRefresh();
+      ctx.onToast(data.status === "ready" ? "本局复盘已准备完成" : "结局已公开，正在准备复盘");
       break;
     case "room.mechanism_state_updated": {
       ctx.bumpTabPulse?.("home");
@@ -189,6 +228,19 @@ export async function handleRoomEvent(type, data, ctx) {
         ctx.bumpTabPulse?.("voice");
       }
       break;
+    case "room.voice_room_created":
+    case "room.voice_room_members_updated": {
+      ctx.bumpTabPulse?.("voice");
+      await ctx.onRefresh();
+      const myUserId = ctx.getUserId?.();
+      const actorId = data.createdByUserId || data.invitedByUserId;
+      if (!myUserId || !actorId || String(myUserId) !== String(actorId)) {
+        ctx.onToast(type === "room.voice_room_created"
+          ? `你被邀请加入密谈${data.voiceRoomName ? `「${data.voiceRoomName}」` : ""}`
+          : `你已被加入密谈${data.voiceRoomName ? `「${data.voiceRoomName}」` : ""}`);
+      }
+      break;
+    }
     case "room.vote_created":
     case "room.vote_updated":
     case "room.private_action_submitted":
@@ -198,6 +250,11 @@ export async function handleRoomEvent(type, data, ctx) {
       ctx.bumpTabPulse?.("social");
       await ctx.onRefresh();
       if (type === "room.vote_created") ctx.onToast("主持人开启了投票/指认");
+      break;
+    case "room.relationship_updated":
+      ctx.bumpTabPulse?.("suspicions");
+      await ctx.onRefresh();
+      ctx.onToast("人物关系出现了新的变化");
       break;
     default:
       break;
@@ -230,7 +287,8 @@ export function connectRoomEvents(roomId, ctx, { force = false } = {}) {
     onEvent: (type, data) => handleRoomEvent(type, data, ctx),
     refresh: () => ctx.onRefresh(),
     shouldPoll: () => ctx.getView() === "game" && ctx.getRoomId() === roomId,
-    onStatus: (status) => ctxSetStatus(status, ctx),
+    onStatus: (status, meta) => ctxSetStatus(status, ctx, meta),
+    onReconciled: (meta) => ctx.setStreamReconciled?.(meta),
     onConnectionChange: (connected) => ctx.setConnected?.(connected),
     onAuthLost: () => ctx.onAuthLost?.(),
     onError: (error, meta) => ctx.onStreamError?.(error, meta)

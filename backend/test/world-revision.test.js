@@ -340,22 +340,14 @@ test("story assistant imports participate in world revision conflicts", async (c
   assert.equal(draftImport.statusCode, 201, draftImport.body);
   assert.equal(Number(draftImport.json().content_revision), revision + 1);
 
-  const staleDeepseekImport = await app.inject({
+  const staleDraftImport = await app.inject({
     method: "POST",
-    url: `/api/worlds/${worldId}/story-assistant/deepseek/import`,
+    url: `/api/worlds/${worldId}/story-assistant/import`,
     headers: { "x-user-id": hostUserId, "if-match": `"${revision}"` },
-    payload: {
-      proposal: {
-        chapters: [{ key: `rev-ch-${suffix}`, title: "Revision chapter" }],
-        scenes: [{ key: `rev-scene-${suffix}`, chapterKey: `rev-ch-${suffix}`, name: "Revision scene" }],
-        investigationPoints: [],
-        clues: [],
-        edges: []
-      }
-    }
+    payload: { text: `scene: Stale assistant scene ${suffix}` }
   });
-  assert.equal(staleDeepseekImport.statusCode, 409, staleDeepseekImport.body);
-  assert.equal(staleDeepseekImport.json().code, "WORLD_VERSION_CONFLICT");
+  assert.equal(staleDraftImport.statusCode, 409, staleDraftImport.body);
+  assert.equal(staleDraftImport.json().code, "WORLD_VERSION_CONFLICT");
 });
 
 test("document page imports participate in world revision conflicts", async (context) => {

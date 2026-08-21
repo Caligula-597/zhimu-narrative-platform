@@ -31,6 +31,45 @@ test("content Release changes are visible to every room participant", () => {
   assert.equal(projectRoomEventForAudience(event, player).event, event);
 });
 
+test("formal session start is visible to every room participant", () => {
+  const event = {
+    type: "room.session_started",
+    startedAt: "2026-08-11T09:30:00.000Z",
+    status: "active",
+  };
+  assert.equal(projectRoomEventForAudience(event, player).event, event);
+});
+
+test("host presentation updates are public but contain no author-only content", () => {
+  const event = {
+    type: "room.presentation_updated",
+    activeSegmentKey: "ch2",
+    activeLocationId: "tower",
+    revealedLocationIds: ["harbor", "tower"],
+    mapVisible: true,
+    checkStatus: "cleared",
+    checkLabel: "",
+    encounterStatus: "active",
+    encounterLocationId: "tower",
+    updatedAt: "2026-08-10T00:00:00.000Z",
+    hostNotes: "the keeper is lying",
+    endings: [{ id: "secret-ending" }],
+    activeEncounter: { npcIds: ["secret-npc-id"] }
+  };
+  assert.deepEqual(projectRoomEventForAudience(event, player).event, {
+    type: "room.presentation_updated",
+    activeSegmentKey: "ch2",
+    activeLocationId: "tower",
+    revealedLocationIds: ["harbor", "tower"],
+    mapVisible: true,
+    checkStatus: "cleared",
+    checkLabel: "",
+    encounterStatus: "active",
+    encounterLocationId: "tower",
+    updatedAt: "2026-08-10T00:00:00.000Z"
+  });
+});
+
 test("mechanism progress is public but internal runtime data is stripped", () => {
   const projected = projectRoomEventForAudience(
     {
@@ -210,6 +249,72 @@ test("private nudges, actions and voice activity enforce their explicit audience
       player,
     ).event,
   );
+  for (const type of ["room.voice_room_created", "room.voice_room_members_updated"]) {
+    assert.equal(
+      projectRoomEventForAudience(
+        {
+          type,
+          voiceRoomId: "voice-2",
+          audience: "restricted",
+          audienceUserIds: ["user-2"],
+        },
+        player,
+      ).event,
+      null,
+    );
+    assert.ok(
+      projectRoomEventForAudience(
+        {
+          type,
+          voiceRoomId: "voice-2",
+          audience: "restricted",
+          audienceUserIds: ["user-1"],
+        },
+        player,
+      ).event,
+    );
+  }
+});
+
+test("public statements notify every room role without exposing unrelated private actions", () => {
+  const statement = projectRoomEventForAudience({
+    type: "room.private_action_submitted",
+    actionId: "action-public",
+    actionType: "public_statement",
+    visibility: "public",
+    roleSlotIds: ["role-a"],
+  }, { ...player, roleSlotId: "role-b" });
+  assert.equal(statement.event?.actionId, "action-public");
+
+  const secret = projectRoomEventForAudience({
+    type: "room.private_action_submitted",
+    actionId: "action-secret",
+    actionType: "secret_action",
+    visibility: "actor_host",
+    roleSlotIds: ["role-a"],
+  }, { ...player, roleSlotId: "role-b" });
+  assert.equal(secret.event, null);
+});
+
+test("relationship disclosure and retraction reach only affected players", () => {
+  const involved = projectRoomEventForAudience({
+    type: "room.relationship_updated",
+    relationshipId: "relationship-1",
+    roleSlotIds: ["role-a", "role-b"],
+    disclosure: "involved",
+    previousDisclosure: "hidden",
+    revision: 1,
+  }, { ...player, roleSlotId: "role-b" });
+  assert.equal(involved.event?.relationshipId, "relationship-1");
+  assert.equal(projectRoomEventForAudience(involved.event, { ...player, roleSlotId: "role-c" }).event, null);
+
+  const retract = projectRoomEventForAudience({
+    ...involved.event,
+    disclosure: "hidden",
+    previousDisclosure: "public",
+    revision: 2,
+  }, { ...player, roleSlotId: "role-c" });
+  assert.equal(retract.event?.disclosure, "hidden");
 });
 
 test("hidden journal events become cursor-only heartbeats", () => {
@@ -297,4 +402,66 @@ test("host player notes events remain host-only", () => {
     projectRoomEventForAudience(event, { memberType: "host" }).event,
     event,
   );
+});
+
+test("discovery progress events are host-only and contain no clue order", () => {
+  const event = {
+    type: "room.discovery_updated",
+    locationId: "library",
+    roleSlotId: "role-1",
+    action: "clue_drawn",
+    revision: 3,
+    drawnCount: 1,
+    remainingCount: 2,
+  };
+  assert.equal(projectRoomEventForAudience(event, { memberType: "host" }).event, event);
+  assert.equal(projectRoomEventForAudience(event, player).event, null);
+  assert.equal("drawnClueIds" in event, false);
+  assert.equal("remainingClueIds" in event, false);
+});
+
+test("pace clock events are public but contain only projection invalidation fields", () => {
+  const event = {
+    type: "room.pace_clock_updated",
+    revision: 5,
+    status: "running",
+    visibleToPlayers: true,
+  };
+  assert.deepEqual(projectRoomEventForAudience(event, player).event, event);
+  assert.equal("startedAt" in event, false);
+  assert.equal("elapsedMs" in event, false);
+  assert.deepEqual(
+    projectRoomEventForAudience({ ...event, visibleToPlayers: false }, player).event,
+    { type: "room.pace_clock_updated", revision: 5, visibleToPlayers: false }
+  );
+});
+
+test("conclusion events expose only player-safe readiness fields", () => {
+  const event = {
+    type: "room.conclusion_updated",
+    status: "ready",
+    endingId: "escape",
+    recapId: "recap-1",
+    revision: 4,
+    failureCode: "must-not-cross",
+  };
+  assert.deepEqual(projectRoomEventForAudience(event, player).event, {
+    type: "room.conclusion_updated",
+    status: "ready",
+    endingId: "escape",
+    recapId: "recap-1",
+    revision: 4,
+  });
+});
+
+test("item action updates are delivered only to the owning role", () => {
+  const event = {
+    type: "room.item_action_updated",
+    actionId: "action-1",
+    roleSlotId: "role-a",
+    status: "pending",
+    revision: 1,
+  };
+  assert.equal(projectRoomEventForAudience(event, player).event, null);
+  assert.deepEqual(projectRoomEventForAudience(event, { ...player, roleSlotId: "role-a" }).event, event);
 });

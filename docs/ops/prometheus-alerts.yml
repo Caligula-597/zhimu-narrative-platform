@@ -50,10 +50,19 @@ groups:
           description: "db_pool_waiting={{ $value }}"
 
       - alert: SseConnectionsHigh
-        expr: sse_connections_active > 5000
+        expr: sum(sse_connections_active) / clamp_min(sum(sse_connection_limit{scope="total"}), 1) > 0.8
         for: 10m
         labels:
           severity: warning
         annotations:
           summary: "SSE 连接数偏高"
-          description: "sse_connections_active={{ $value }}"
+          description: "SSE process capacity utilization={{ $value | humanizePercentage }}"
+
+      - alert: SseAdmissionRejected
+        expr: sum(rate(sse_connection_admissions_total{outcome="rejected"}[5m])) > 0
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "SSE 连接开始被 admission guard 拒绝"
+          description: "rejected SSE admission rate={{ $value }}/s; inspect scope label and capacity"

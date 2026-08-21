@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { readFileSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 import { spawnSync } from "node:child_process";
@@ -16,7 +16,6 @@ const CURRENT_TRUTH = new Set([
   "backend/README.md",
   "backend/docs/API_ERRORS.md",
   "docs/ARCHITECTURE_PORT_AUDIT_ZH.md",
-  "docs/CODEBASE_FUNCTION_MAP_ZH.md",
   "docs/DOCUMENTATION_INDEX_ZH.md",
   "docs/DOMAIN_BOUNDARIES_ZH.md",
   "docs/FRONTEND_README_ZH.md",
@@ -40,7 +39,6 @@ const ROOT_HISTORIES = new Set([
   "ALPHA_FEATURE_MATRIX.md",
   "FEATURE_CATALOG.md",
   "IMPLEMENTATION_STATUS.md",
-  "RELEASE_NOTES.md",
   "design-qa.md"
 ]);
 
@@ -72,6 +70,7 @@ function gitTrackedMarkdown() {
   return result.stdout
     .split(/\r?\n/)
     .filter(Boolean)
+    .filter((file) => existsSync(join(root, file)))
     .sort((a, b) => a.localeCompare(b, "zh-CN"));
 }
 
@@ -124,10 +123,7 @@ function render() {
   const lines = [
     "# 织幕文档总索引",
     "",
-    "最后更新：2026-07-30",
-    "工程事实基线：2026-07-24；产品与品牌维护入口更新：2026-07-30",
-    "",
-    "> 本页由 `npm run docs:index` 从 Git 跟踪的 Markdown 生成，确保每份现有文档都有归属。它解决“去哪找”和“能否作为当前真相”两个问题，不会把历史记录改写成今天的结论。",
+    "> 本页由 `npm run docs:index` 从当前工作区实际存在的 Markdown 生成。已在工作区删除但尚未提交的文件不会重新进入索引。",
     "",
     "## 使用规则",
     "",

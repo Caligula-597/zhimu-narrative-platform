@@ -34,7 +34,6 @@ const API_DOMAIN_FILES = [
   "src/api/room.js",
   "src/api/host.js",
   "src/api/player.js",
-  "src/api/voice.js",
   "src/api/recap.js",
   "src/api/ai.js",
   "src/api/content.js",
@@ -80,7 +79,6 @@ const requiredModuleScripts = [
   "src/views/clues.js",
   "src/views/assets.js",
   "src/views/rules.js",
-  "src/views/player.js",
   "src/views/archive.js",
   "src/views/settings.js",
   "src/bootstrap/render-shell.js",
@@ -95,17 +93,16 @@ const requiredModuleScripts = [
   "src/runtime/actions-workspace.js",
   "src/runtime/global-search.js",
   "src/runtime/search-focus.js",
-  "src/runtime/livekit-voice.js",
   "src/runtime/data.js",
   "src/runtime/actions.js",
   "app.js"
 ];
-const requiredNavViews = ["creatorCockpit", "writer", "truth", "studio", "clues", "rules", "miniGames", "archive", "settings", "account", "ops"];
+const requiredNavViews = ["creatorCockpit", "writer", "truth", "studio", "tabletopMap", "clues", "rules", "miniGames", "archive", "settings", "account", "ops"];
 const requiredDomIds = ["content", "toast", "modal-backdrop", "modal", "page-title", "create-world-btn", "preview-btn", "run-btn"];
 const requiredApiMethods = [
-  "getWorlds", "getStudio", "getPlayerHome", "getHostProgress", "getHostPlayers", "getHostPlayerDetail", "getHostAuditLog",
-  "joinRoom", "getRoomInvite", "searchWorld", "getAssetDownloadUrl", "shareClueToRoles", "delayHostEvent",
-  "completeSection", "getExploration", "createWorld", "getRules", "hostGrantClue", "hostUnlockSection", "dismissHostEvent"
+  "getWorlds", "getStudio", "getHostProgress", "getHostPlayers", "getHostPlayerDetail", "getHostAuditLog",
+  "joinRoom", "getRoomInvite", "searchWorld", "getAssetDownloadUrl", "delayHostEvent",
+  "createWorld", "getRules", "hostGrantClue", "hostGrantBooklet", "hostUnlockSection", "dismissHostEvent"
 ];
 
 const results = [];
@@ -240,10 +237,9 @@ await check("state-runtime-boundaries", async () => {
   }
   // 关键字段已迁至 shard 文件，检查 Creator 自身消费的运行态字段。
   const shardFieldChecks = [
-    { shard: "src/state/voice-store.js", fields: ["voiceRoomId", "voiceLiveStatus"] },
     { shard: "src/state/world-store.js", fields: ["cloudWorldLogs"] },
     { shard: "src/state/studio-store.js", fields: ["cloudStudio"] },
-    { shard: "src/state/room-store.js", fields: ["cloudPlayer", "cloudHost", "cloudHostPlayers", "cloudHostStuckCount", "cloudHostEvents", "cloudCheckpoints", "cloudRecaps", "cloudRecapLatest"] }
+    { shard: "src/state/room-store.js", fields: ["cloudHost", "cloudHostPlayers", "cloudHostStuckCount", "cloudHostEvents", "cloudCheckpoints", "cloudRecaps", "cloudRecapLatest"] }
   ];
   for (const { shard, fields } of shardFieldChecks) {
     const js = readSource(shard);
@@ -307,21 +303,6 @@ await check("studio-node-edit-wired", async () => {
   return "studio node edit panel wired";
 });
 
-await check("clue-sharing-wired", async () => {
-  const player = readSource("src/views/player.js");
-  for (const token of ["shareCloudClue", "sharedClueSection"]) {
-    if (!player.includes(token)) throw new Error(`player view missing clue-sharing token ${token}`);
-  }
-  if (!readSource("host/src/views/console.js").includes("hostClueMatrixCard")) {
-    throw new Error("canonical Host console missing hostClueMatrixCard");
-  }
-  const apiBundle = readApiBundle();
-  for (const method of ["shareClueToRoom", "updateCluePlayerNote", "getHostClueMatrix"]) {
-    if (!apiHasMethod(apiBundle, method)) throw new Error(`api bundle missing ${method}`);
-  }
-  return "clue sharing wired";
-});
-
 await check("rule-visual-wired", async () => {
   const rules = readSource("src/views/rules.js");
   const ruleJs = readSource("rule-visual.js");
@@ -383,16 +364,6 @@ await check("clues-view-wired", async () => {
   }
   if (!/case "clues": return getView\("clues"\)\.clues/.test(resolverJs)) throw new Error("view-resolver.js must resolve clues view through registry");
   return "standalone clues management view wired";
-});
-
-await check("clue-share-roles-wired", async () => {
-  const player = readSource("src/views/player.js");
-  const apiBundle = readApiBundle();
-  for (const token of ["share-clue-roles", "shareClueToRoles", "shared_with_roles", "私享线索"]) {
-    const bundle = `${player}${apiBundle}`;
-    if (!bundle.includes(token)) throw new Error(`clue share-roles wiring missing ${token}`);
-  }
-  return "player private clue share UI wired";
 });
 
 await check("host-delay-wired", async () => {
@@ -512,13 +483,9 @@ await check("friendly-api-errors-wired", async () => {
 
 await check("inventory-wired", async () => {
   const studio = readSource("src/views/studio.js");
-  const player = readSource("src/views/player.js");
   const roomJs = readSource("src/runtime/room-events.js");
   for (const token of ["openStudioItem", "studio-add-item", "requiredItemId"]) {
     if (!studio.includes(token)) throw new Error(`studio view missing inventory token ${token}`);
-  }
-  for (const token of ["inventoryRows", "hasRequiredItem", "inventory-card"]) {
-    if (!player.includes(token)) throw new Error(`player view missing inventory token ${token}`);
   }
   if (!readSource("host/src/views/host-layout.js").includes("host-manual-grant-item")) {
     throw new Error("canonical Host console missing host grant item");
@@ -528,22 +495,7 @@ await check("inventory-wired", async () => {
   for (const method of ["createItem", "updateItem", "deleteItem", "hostGrantItem"]) {
     if (!apiHasMethod(apiBundle, method)) throw new Error(`api bundle missing ${method}`);
   }
-  return "items/inventory UI + API wired";
-});
-
-await check("livekit-voice-wired", async () => {
-  const player = readSource("src/views/player.js");
-  const livekit = readSource("src/runtime/livekit-voice.js");
-  for (const token of ["voice-live-connect", "voice-live-disconnect", "voiceMicEnabled", "getVoiceRoomToken"]) {
-    const bundle = `${player}${livekit}`;
-    if (!bundle.includes(token)) throw new Error(`livekit voice missing token ${token}`);
-  }
-  for (const key of ["voiceLiveStatus", "voiceParticipants"]) {
-    if (!readSource("src/state/voice-store.js").includes(key)) throw new Error(`voice-store missing ${key}`);
-  }
-  const apiBundle = readApiBundle();
-  if (!apiHasMethod(apiBundle, "getVoiceRoomToken")) throw new Error("api bundle missing getVoiceRoomToken");
-  return "LiveKit voice client wired";
+  return "Creator items + Host inventory controls wired";
 });
 
 await check("recap-wired", async () => {

@@ -6,6 +6,7 @@ export async function loadRuntimeContentRecord(roomId, runQuery = query) {
             room.world_id,
             room.name AS room_name,
             room.status AS room_status,
+            room.settings AS room_settings,
             room.release_id,
             world.name AS world_name,
             world.summary AS world_summary,

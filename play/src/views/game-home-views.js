@@ -12,6 +12,7 @@ import {
   normalizeMechanismInteraction,
   normalizeMechanismOptionPresentation,
 } from "../../../shared/mechanism-interactions.js";
+import { renderPlayerStageMapBoundary } from "./game-tabletop-stage-loader.js";
 
 export function renderGameResume() {
   return `
@@ -70,14 +71,35 @@ function runtimeStateBanner() {
     audience: "player",
     connected: state.roomEventsConnected,
   });
+  const currentBeat = current.currentBeat;
+  const currentBeatDetail = currentBeat?.player?.content || current.phase.detail;
+  const currentBeatTasks = currentBeat?.player?.tasks || [];
+  const currentBeatTips = currentBeat?.player?.tips || [];
+  const progress = currentBeat ? Math.max(0, Math.min(100, Math.round(currentBeat.position / currentBeat.total * 100))) : 0;
   return `
-    <div class="banner room-content-binding-banner ${current.syncState.status === "synced" ? "soft" : "host-wait-banner"}">
-      <div>
-        <strong>${escapeHtml(current.phase.label)}</strong>
-        <p>${escapeHtml(current.phase.detail)} · ${current.syncState.status === "synced" ? "进度已同步" : "正在恢复实时连接"}</p>
+    <article class="runtime-flow-card card ${current.syncState.status === "synced" ? "is-synced" : "is-reconnecting"}">
+      <div class="runtime-flow-head">
+        <div>
+          <p class="eyebrow">主持流程同步</p>
+          <h2>${escapeHtml(currentBeat ? currentBeat.title : current.phase.label)}</h2>
+          <p>${escapeHtml(currentBeatDetail)}</p>
+        </div>
+        <span class="status-chip ${current.syncState.status === "synced" ? "published" : "testing"}">${current.syncState.status === "synced" ? "主持端已同步" : "正在恢复连接"}</span>
       </div>
-      <span class="status-chip ${current.syncState.isFrozen ? "published" : "testing"}">${current.syncState.isFrozen ? "冻结版本" : "实时草稿"}</span>
-    </div>`;
+      ${currentBeat ? `<div class="runtime-flow-progress"><div><span>第 ${currentBeat.position} / ${currentBeat.total} 段</span><b>${progress}%</b></div><i style="--progress:${progress}%"><b></b></i></div>` : ""}
+      <div class="runtime-flow-guidance">
+        ${currentBeatTasks.length ? `<section><span>现在要做</span><ul>${currentBeatTasks.map((task) => `<li>${escapeHtml(task)}</li>`).join("")}</ul></section>` : ""}
+        ${currentBeatTips.length ? `<section><span>行动提示</span><div>${currentBeatTips.map((tip) => `<em>${escapeHtml(tip)}</em>`).join("")}</div></section>` : ""}
+      </div>
+      ${renderPlayerStageMapBoundary(current.presentation?.map, {
+        clues: state.home?.clues || [],
+        sharedClues: state.home?.sharedClues || [],
+        discoverySessions: state.discoverySessions,
+        roomId: state.roomId,
+        roleSlotId: state.home?.role?.id,
+      })}
+      <footer><span>${escapeHtml(current.phase.label)}</span><span>${current.syncState.isFrozen ? "冻结版本" : "实时草稿"}</span><span>${current.syncState.status === "synced" ? "进度已同步" : "数据可能稍有延迟"}</span></footer>
+    </article>`;
 }
 
 function renderMechanismDecision(decision) {
@@ -196,11 +218,14 @@ export function renderMechanismProgress() {
       </article>`;
   }
   if (mechanism.status === "completed") {
+    const epilogue = mechanism.ending?.roleEpilogue;
     return `
       <article class="mechanism-progress card is-complete">
         <p class="eyebrow">实时剧情机制 · 已完成</p>
         <h3>${escapeHtml(mechanism.ending?.title || "本场机制已结算")}</h3>
-        <p class="muted">最终状态已由主持端确认并同步。</p>
+        ${mechanism.ending?.consequence ? `<p>${escapeHtml(mechanism.ending.consequence)}</p>` : ""}
+        ${epilogue ? `<div class="mechanism-player-action"><span>你的个人尾声</span><strong>${escapeHtml(epilogue.title)}</strong><p>${escapeHtml(epilogue.consequence)}</p></div>` : ""}
+        <p class="muted">主结局与个人余波均由前面各轮已经发生的行动结算。</p>
       </article>`;
   }
 

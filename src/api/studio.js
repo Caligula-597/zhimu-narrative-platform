@@ -24,6 +24,13 @@ export function updateClue(clueId, payload) {
   return worldWrite(`/worlds/${demoContext.worldId}/clues/${clueId}`, { body: payload });
 }
 
+export function bindCluePaths(payload) {
+  return worldWrite(`/worlds/${demoContext.worldId}/clues/bind-paths`, {
+    method: "POST",
+    body: payload
+  });
+}
+
 export function createItem(payload) {
   return worldWrite(`/worlds/${demoContext.worldId}/items`, { method: "POST", body: payload });
 }

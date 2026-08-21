@@ -5,10 +5,6 @@ set -e
 echo "[zhimu-api] running migrations…"
 node scripts/migrate.js
 
-if [ "${RUN_PLATFORM_CATALOG_SEED:-false}" = "true" ]; then
-  echo "[zhimu-api] RUN_PLATFORM_CATALOG_SEED is deprecated — skipped"
-fi
-
 if [ "${RUN_DB_SEED:-false}" = "true" ]; then
   echo "[zhimu-api] RUN_DB_SEED=true: full seed pass…"
   node scripts/seed.js

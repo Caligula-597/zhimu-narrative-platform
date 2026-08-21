@@ -28,6 +28,7 @@ function storedRow({ revision = 1 } = {}) {
     event_states: {},
     decision_states: {},
     executed_investigations: {},
+    investigation_use_counts: {},
     ending: null,
     revision,
     initialized_by_user_id: "user-host",
@@ -52,6 +53,7 @@ function runtime() {
     events: {},
     decisionStates: {},
     executedInvestigations: {},
+    investigationUseCounts: {},
     ending: null,
   };
 }
@@ -105,7 +107,7 @@ test("room mechanism state writes keep SQL parameters and persisted runtime fiel
     "2026-08-06T00:05:00.000Z",
   );
   assert.deepEqual(inserted.runtime.resources, { "review-seat": 2 });
-  assert.equal(insertClient.calls[0].params.length, 21);
+  assert.equal(insertClient.calls[0].params.length, 22);
   assert.equal(
     insertClient.calls[0].params[12],
     JSON.stringify({ "state-auth": "unknown" }),
@@ -118,7 +120,7 @@ test("room mechanism state writes keep SQL parameters and persisted runtime fiel
     runtime: runtime(),
   });
   assert.equal(replaced.revision, 2);
-  assert.equal(replaceClient.calls[0].params.length, 22);
+  assert.equal(replaceClient.calls[0].params.length, 23);
 
   const updateClient = assertingClient(storedRow({ revision: 3 }));
   const updated = await updateRoomMechanismRuntime(updateClient, {
@@ -128,8 +130,8 @@ test("room mechanism state writes keep SQL parameters and persisted runtime fiel
     restartRoundClock: true,
   });
   assert.equal(updated.revision, 3);
-  assert.equal(updateClient.calls[0].params.length, 16);
-  assert.equal(updateClient.calls[0].params[15], true);
+  assert.equal(updateClient.calls[0].params.length, 17);
+  assert.equal(updateClient.calls[0].params[16], true);
 });
 
 test("room mechanism action log persists the revision edge and structured changes", async () => {

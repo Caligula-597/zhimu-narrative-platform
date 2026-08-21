@@ -27,7 +27,7 @@ async function requirePlayerRole(actorId, roomId) {
 
 async function requireCreatorRuntimeRoom(actorId, worldId, roomId) {
   await requireWorldRole(actorId, worldId, WORLD_CREATOR_READER_ROLES);
-  const provider = await loadRuntimeContentProvider(roomId, { includeLiveSnapshot: false });
+  const provider = await loadRuntimeContentProvider(roomId);
   if (!provider || provider.worldId !== worldId) throwErr("ROOM_NOT_FOUND");
   return provider;
 }

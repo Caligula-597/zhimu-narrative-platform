@@ -170,7 +170,16 @@ function parseSseEventOperationKey(key) {
   return { bus, outcome };
 }
 
-export function renderPrometheusMetrics({ poolStats = {}, sseStats = {}, platformSseStats = {}, eventOutboxStats = {}, uptimeSeconds = 0, readyOk = apiReadyGauge } = {}) {
+export function renderPrometheusMetrics({
+  poolStats = {},
+  sseStats = {},
+  platformSseStats = {},
+  sseAdmissionStats = {},
+  sseLimits = {},
+  eventOutboxStats = {},
+  uptimeSeconds = 0,
+  readyOk = apiReadyGauge
+} = {}) {
   const sections = [
     renderCounter("http_requests_total", "Total HTTP requests", httpRequests),
     renderCounter("http_errors_5xx_total", "HTTP 5xx responses", httpErrors5xx),
@@ -205,6 +214,21 @@ export function renderPrometheusMetrics({ poolStats = {}, sseStats = {}, platfor
     `# HELP platform_sse_connections_active Active platform SSE subscriber connections`,
     `# TYPE platform_sse_connections_active gauge`,
     `platform_sse_connections_active ${platformSseStats.connections ?? 0}`,
+    `# HELP sse_connection_admissions_total SSE admission outcomes in this process`,
+    `# TYPE sse_connection_admissions_total counter`,
+    `sse_connection_admissions_total${formatLabels({ outcome: "accepted", scope: "process" })} ${sseAdmissionStats.acceptedTotal ?? 0}`,
+    `sse_connection_admissions_total${formatLabels({ outcome: "released", scope: "process" })} ${sseAdmissionStats.releasedTotal ?? 0}`,
+    `sse_connection_admissions_total${formatLabels({ outcome: "rejected", scope: "actor" })} ${sseAdmissionStats.rejectedActorTotal ?? 0}`,
+    `sse_connection_admissions_total${formatLabels({ outcome: "rejected", scope: "ip" })} ${sseAdmissionStats.rejectedIpTotal ?? 0}`,
+    `sse_connection_admissions_total${formatLabels({ outcome: "rejected", scope: "total" })} ${sseAdmissionStats.rejectedTotalLimit ?? 0}`,
+    `# HELP sse_connections_peak Peak concurrent SSE admissions in this process`,
+    `# TYPE sse_connections_peak gauge`,
+    `sse_connections_peak ${sseAdmissionStats.peakConnections ?? 0}`,
+    `# HELP sse_connection_limit Configured local SSE admission limits`,
+    `# TYPE sse_connection_limit gauge`,
+    `sse_connection_limit${formatLabels({ scope: "actor" })} ${sseLimits.perActor ?? 0}`,
+    `sse_connection_limit${formatLabels({ scope: "ip" })} ${sseLimits.perIp ?? 0}`,
+    `sse_connection_limit${formatLabels({ scope: "total" })} ${sseLimits.total ?? 0}`,
     `# HELP event_outbox_pending Events waiting for durable dispatch`,
     `# TYPE event_outbox_pending gauge`,
     `event_outbox_pending ${eventOutboxStats.pending ?? 0}`,

@@ -65,7 +65,17 @@ test("SSE guard caps one actor and releases leases idempotently", () => {
   const replacement = acquireSseConnection(request("actor-a", "203.0.113.1"), reply(), env);
   replacement();
   second();
-  assert.deepEqual(getSseConnectionGuardStats(), { totalConnections: 0, actors: 0, ips: 0 });
+  assert.deepEqual(getSseConnectionGuardStats(), {
+    totalConnections: 0,
+    actors: 0,
+    ips: 0,
+    acceptedTotal: 3,
+    releasedTotal: 3,
+    rejectedActorTotal: 1,
+    rejectedIpTotal: 0,
+    rejectedTotalLimit: 0,
+    peakConnections: 2
+  });
 });
 
 test("SSE guard caps shared IP and total process connections independently", () => {
@@ -98,4 +108,7 @@ test("SSE guard caps shared IP and total process connections independently", () 
     (error) => error.details?.scope === "sse_total"
   );
   totalLeases.forEach((release) => release());
+  const stats = getSseConnectionGuardStats();
+  assert.equal(stats.rejectedIpTotal, 1);
+  assert.equal(stats.rejectedTotalLimit, 1);
 });

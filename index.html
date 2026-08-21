@@ -8,6 +8,8 @@
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
+    <meta name="robots" content="noindex, nofollow, noarchive" />
+
     <title>织幕 · 长线互动叙事引擎</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -21,6 +23,8 @@
   </head>
 
   <body>
+
+    <a class="skip-link" href="#creator-main">跳到主要内容</a>
 
     <div class="app-shell">
 
@@ -72,19 +76,29 @@
 
         <nav class="main-nav" aria-label="主导航">
 
-          <p class="nav-label">主流程</p>
+          <p class="nav-label" data-product-shell="murder_mystery">剧本杀创作</p>
 
-          <button class="nav-item active" data-view="creatorCockpit" aria-label="创作驾驶舱" title="创作驾驶舱"><span class="nav-icon">CC</span><span class="nav-text">创作驾驶舱</span></button>
+          <button class="nav-item active" data-view="creatorCockpit" data-product-shell="murder_mystery" aria-label="创作驾驶舱" title="创作驾驶舱"><span class="nav-icon">CC</span><span class="nav-text">创作驾驶舱</span></button>
 
-          <button class="nav-item" data-view="constitution" aria-label="创作宪法" title="创作宪法"><span class="nav-icon">北</span><span class="nav-text">创作宪法</span></button>
+          <button class="nav-item" data-view="constitution" data-product-shell="murder_mystery" aria-label="创作宪法" title="创作宪法"><span class="nav-icon">北</span><span class="nav-text">创作宪法</span></button>
 
-          <button class="nav-item" data-view="diagnostics" aria-label="作品诊断中心" title="作品诊断中心"><span class="nav-icon">✦</span><span class="nav-text">作品诊断中心</span></button>
+          <button class="nav-item" data-view="diagnostics" data-product-shell="murder_mystery" aria-label="作品诊断中心" title="作品诊断中心"><span class="nav-icon">✦</span><span class="nav-text">作品诊断中心</span></button>
 
-          <button class="nav-item" data-view="playtest" aria-label="玩家试跑实验室" title="玩家试跑实验室"><span class="nav-icon">AI</span><span class="nav-text">玩家试跑实验室</span></button>
+          <button class="nav-item" data-view="playtest" data-product-shell="murder_mystery" aria-label="玩家试跑实验室" title="玩家试跑实验室"><span class="nav-icon">AI</span><span class="nav-text">玩家试跑实验室</span></button>
 
-          <button type="button" class="nav-item nav-expand-btn" data-action="toggle-nav-advanced" aria-label="展开精细编辑器" aria-expanded="false" aria-controls="nav-advanced" title="展开或收起精细编辑器"><span class="nav-icon">⋯</span><span class="nav-text" data-nav-advanced-label>精细编辑器</span><span class="nav-chevron" aria-hidden="true">⌄</span></button>
+          <p class="nav-label" data-product-shell="tabletop_rpg" hidden>跑团创作</p>
+
+          <button class="nav-item" data-view="tabletopMap" data-product-shell="tabletop_rpg" aria-label="跑团地图、判定与遭遇" title="跑团地图、判定与遭遇" hidden><span class="nav-icon">骰</span><span class="nav-text">跑团工作台</span></button>
+
+          <p class="nav-label" data-product-shell="board_game" hidden>桌游创作</p>
+
+          <button class="nav-item" data-view="boardGame" data-product-shell="board_game" aria-label="桌游创作中心" title="桌游创作中心" hidden><span class="nav-icon">棋</span><span class="nav-text">桌游创作中心</span></button>
+
+          <button type="button" class="nav-item nav-expand-btn" data-action="toggle-nav-advanced" data-product-shell="murder_mystery" aria-label="展开剧本杀编辑器" aria-expanded="false" aria-controls="nav-advanced" title="展开或收起剧本杀编辑器"><span class="nav-icon">⋯</span><span class="nav-text" data-nav-advanced-label>剧本杀编辑器</span><span class="nav-chevron" aria-hidden="true">⌄</span></button>
 
           <div class="nav-advanced" id="nav-advanced" hidden>
+
+            <p class="nav-scope-label" data-nav-product-scope>剧本杀专属工具</p>
 
             <button class="nav-item" data-view="writer" aria-label="角色私人剧本" title="角色私人剧本"><span class="nav-icon">✎</span><span class="nav-text">角色私人剧本</span></button>
 
@@ -94,17 +108,19 @@
 
             <button class="nav-item" data-view="clues" aria-label="线索管理" title="线索管理"><span class="nav-icon">◆</span><span class="nav-text">线索管理</span></button>
 
-            <button class="nav-item" data-view="rules" aria-label="自动化规则" title="自动化规则"><span class="nav-icon">⌘</span><span class="nav-text">自动化规则</span></button>
-
             <button class="nav-item" data-view="miniGames" aria-label="小游戏设计" title="小游戏设计"><span class="nav-icon">#</span><span class="nav-text">小游戏设计</span></button>
+
+            <p class="nav-scope-label" data-nav-shared-scope>剧本杀运行工具</p>
+
+            <button class="nav-item" data-view="rules" aria-label="自动化规则" title="自动化规则"><span class="nav-icon">⌘</span><span class="nav-text">自动化规则</span></button>
 
             <button class="nav-item" data-view="archive" aria-label="存档与复盘" title="存档与复盘"><span class="nav-icon">◷</span><span class="nav-text">存档与复盘</span></button>
 
           </div>
 
-          <p class="nav-label">帮助</p>
+          <p class="nav-label" data-product-shell="murder_mystery">帮助</p>
 
-          <button class="nav-item" data-action="open-creator-guide" aria-label="打开创作指引" title="打开创作指引"><span class="nav-icon">?</span><span class="nav-text">创作指引</span></button>
+          <button class="nav-item" data-action="open-creator-guide" data-product-shell="murder_mystery" aria-label="打开剧本杀创作指引" title="打开剧本杀创作指引"><span class="nav-icon">?</span><span class="nav-text">创作指引</span></button>
 
         </nav>
 
@@ -136,7 +152,7 @@
 
 
 
-      <main class="main-area">
+      <main class="main-area" id="creator-main" tabindex="-1">
 
         <div id="auth-banner" class="auth-banner" hidden>
           <div class="auth-banner-copy">
@@ -153,7 +169,7 @@
 
             <p class="eyebrow" id="page-eyebrow">世界工作区</p>
 
-            <h1 id="page-title">世界总览</h1>
+            <h1 id="page-title" tabindex="-1">世界总览</h1>
 
           </div>
 
@@ -187,7 +203,7 @@
 
     <div class="modal-backdrop" id="modal-backdrop">
 
-      <section class="modal" id="modal"></section>
+      <section class="modal" id="modal" role="dialog" aria-modal="true" tabindex="-1"></section>
 
     </div>
 

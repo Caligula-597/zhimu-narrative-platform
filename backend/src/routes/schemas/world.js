@@ -133,7 +133,169 @@ export const updateRoomSettingsSchema = {
         additionalProperties: false,
         properties: {
           hostVoiceListen: { type: "boolean" },
-          defaultRunMode: { type: "string", enum: ["automatic", "host_confirm", "manual"] }
+          defaultRunMode: { type: "string", enum: ["automatic", "host_confirm", "manual"] },
+          runtimePresentation: {
+            type: "object",
+            additionalProperties: false,
+            required: ["updatedAt"],
+            minProperties: 2,
+            properties: {
+              activeSegmentKey: { type: "string", maxLength: 120 },
+              activeLocationId: { type: "string", maxLength: 80 },
+              revealedLocationIds: {
+                type: "array",
+                maxItems: 24,
+                uniqueItems: true,
+                items: { type: "string", maxLength: 80 }
+              },
+              mapVisible: { type: "boolean" },
+              activeCheck: {
+                anyOf: [
+                  { type: "null" },
+                  {
+                    type: "object",
+                    additionalProperties: false,
+                    required: [
+                      "id", "templateId", "locationId", "label", "instruction", "target", "bonus",
+                      "rollMode", "dice", "status", "result", "successText", "failureText",
+                      "outcomeText", "startedAt", "resolvedAt"
+                    ],
+                    properties: {
+                      id: { type: "string", minLength: 1, maxLength: 80 },
+                      templateId: { type: "string", maxLength: 80 },
+                      locationId: { type: "string", maxLength: 80 },
+                      label: { type: "string", minLength: 1, maxLength: 80 },
+                      instruction: { type: "string", maxLength: 240 },
+                      target: { type: "integer", minimum: -9999, maximum: 9999 },
+                      bonus: { type: "integer", minimum: -999, maximum: 999 },
+                      rollMode: { type: "string", enum: ["normal", "advantage", "disadvantage"] },
+                      dice: {
+                        type: "object",
+                        additionalProperties: false,
+                        required: ["count", "sides", "modifier", "defaultTarget"],
+                        properties: {
+                          count: { type: "integer", minimum: 1, maximum: 10 },
+                          sides: { type: "integer", minimum: 2, maximum: 1000 },
+                          modifier: { type: "integer", minimum: -999, maximum: 999 },
+                          defaultTarget: { type: "integer", minimum: -9999, maximum: 9999 }
+                        }
+                      },
+                      status: { type: "string", enum: ["pending", "resolved"] },
+                      result: {
+                        anyOf: [
+                          { type: "null" },
+                          {
+                            type: "object",
+                            additionalProperties: false,
+                            required: ["label", "rollMode", "attempts", "rolls", "rawTotal", "total", "target", "success", "criticalSuccess", "criticalFailure", "margin", "degree", "degreeLabel", "degreeRank"],
+                            properties: {
+                              label: { type: "string", maxLength: 80 },
+                              rollMode: { type: "string", enum: ["normal", "advantage", "disadvantage"] },
+                              attempts: { type: "array", maxItems: 2, items: { type: "array", maxItems: 10, items: { type: "integer", minimum: 1, maximum: 1000 } } },
+                              rolls: { type: "array", minItems: 1, maxItems: 10, items: { type: "integer", minimum: 1, maximum: 1000 } },
+                              rawTotal: { type: "integer", minimum: -9999, maximum: 9999 },
+                              total: { type: "integer", minimum: -9999, maximum: 9999 },
+                              target: { type: "integer", minimum: -9999, maximum: 9999 },
+                              success: { type: "boolean" },
+                              criticalSuccess: { type: "boolean" },
+                              criticalFailure: { type: "boolean" },
+                              margin: { type: "integer", minimum: -9999, maximum: 9999 },
+                              degree: { type: "string", maxLength: 40 },
+                              degreeLabel: { type: "string", maxLength: 40 },
+                              degreeRank: { type: "integer", minimum: -9, maximum: 9 }
+                            }
+                          }
+                        ]
+                      },
+                      successText: { type: "string", maxLength: 240 },
+                      failureText: { type: "string", maxLength: 240 },
+                      successEffects: {
+                        type: "object",
+                        maxProperties: 8,
+                        additionalProperties: { type: "integer", minimum: -9999, maximum: 9999 }
+                      },
+                      failureEffects: {
+                        type: "object",
+                        maxProperties: 8,
+                        additionalProperties: { type: "integer", minimum: -9999, maximum: 9999 }
+                      },
+                      appliedChanges: {
+                        type: "array",
+                        maxItems: 8,
+                        items: {
+                          type: "object",
+                          additionalProperties: false,
+                          required: ["id", "label", "previous", "value", "delta"],
+                          properties: {
+                            id: { type: "string", minLength: 1, maxLength: 80 },
+                            label: { type: "string", minLength: 1, maxLength: 40 },
+                            previous: { type: "integer", minimum: -9999, maximum: 9999 },
+                            value: { type: "integer", minimum: -9999, maximum: 9999 },
+                            delta: { type: "integer", minimum: -9999, maximum: 9999 }
+                          }
+                        }
+                      },
+                      appliedAt: { type: "string", maxLength: 40 },
+                      outcomeText: { type: "string", maxLength: 240 },
+                      startedAt: { type: "string", maxLength: 40 },
+                      resolvedAt: { type: "string", maxLength: 40 }
+                    }
+                  }
+                ]
+              },
+              activeEncounter: {
+                anyOf: [
+                  { type: "null" },
+                  {
+                    type: "object",
+                    additionalProperties: false,
+                    required: ["locationId", "npcIds", "status", "startedAt"],
+                    properties: {
+                      locationId: { type: "string", minLength: 1, maxLength: 80 },
+                      npcIds: {
+                        type: "array",
+                        minItems: 1,
+                        maxItems: 12,
+                        uniqueItems: true,
+                        items: { type: "string", minLength: 1, maxLength: 80 }
+                      },
+                      status: { type: "string", enum: ["active"] },
+                      startedAt: { type: "string", format: "date-time" }
+                    }
+                  }
+                ]
+              },
+              variableValues: {
+                type: "array",
+                maxItems: 8,
+                uniqueItems: true,
+                items: {
+                  type: "object",
+                  additionalProperties: false,
+                  required: ["id", "value"],
+                  properties: {
+                    id: { type: "string", minLength: 1, maxLength: 80 },
+                    value: { type: "integer", minimum: -9999, maximum: 9999 }
+                  }
+                }
+              },
+              publishedEnding: {
+                anyOf: [
+                  { type: "null" },
+                  {
+                    type: "object",
+                    additionalProperties: false,
+                    required: ["id", "publishedAt"],
+                    properties: {
+                      id: { type: "string", minLength: 1, maxLength: 80 },
+                      publishedAt: { type: "string", format: "date-time" }
+                    }
+                  }
+                ]
+              },
+              updatedAt: { type: "string", format: "date-time" }
+            }
+          }
         },
         minProperties: 1
       }
@@ -148,6 +310,47 @@ const contentVisibility = { type: "string", enum: ["author", "host", "role", "fa
 export const bibleRoleSlotParams = paramsSchema({ worldId: uuid, roleSlotId: uuid });
 export const bibleBeatIdParams = paramsSchema({ worldId: uuid, beatId: uuid });
 export const bibleEventIdParams = paramsSchema({ worldId: uuid, eventId: uuid });
+export const bibleBookletIdParams = paramsSchema({ worldId: uuid, bookletId: uuid });
+
+export const postMaterialBookletSchema = {
+  params: worldIdParams,
+  body: {
+    type: "object",
+    additionalProperties: false,
+    properties: {
+      kind: { type: "string", enum: ["diary", "catalog", "manual", "prop_book", "other"] },
+      title: { type: "string", maxLength: 200 },
+      summary: { type: "string", maxLength: 4000 },
+      ownerRoleSlotId: contentOptionalUuid,
+      phaseLabel: { type: "string", maxLength: 80 },
+      chapterId: contentOptionalUuid,
+      visibility: { type: "string", enum: ["host_only", "owner_role", "shared_roles", "public_table"] },
+      pages: {
+        type: "array",
+        maxItems: 80,
+        items: {
+          type: "object",
+          additionalProperties: false,
+          properties: {
+            pageLabel: { type: "string", maxLength: 80 },
+            title: { type: "string", maxLength: 200 },
+            body: { type: "string", maxLength: 12000 },
+            sequence: { type: "integer", minimum: 1, maximum: 999 }
+          }
+        }
+      },
+      linkedClueIds: { type: "array", maxItems: 48, items: uuid },
+      linkedRoleSlotIds: { type: "array", maxItems: 48, items: uuid },
+      sequence: { type: "integer", minimum: 1, maximum: 999 },
+      metadata: contentMetadataObject
+    }
+  }
+};
+
+export const patchMaterialBookletSchema = {
+  params: bibleBookletIdParams,
+  body: postMaterialBookletSchema.body
+};
 
 export const patchCoreTrickSchema = {
   params: worldIdParams,
@@ -183,6 +386,19 @@ export const patchRoleArchiveSchema = {
       arc: contentMetadataObject,
       lies: { type: "array", maxItems: 12, items: { type: "string", maxLength: 2000 } },
       actTasks: { type: "array", maxItems: 24, items: contentMetadataObject },
+      appearanceStates: {
+        type: "array",
+        maxItems: 48,
+        items: {
+          type: "object",
+          additionalProperties: false,
+          properties: {
+            phaseLabel: { type: "string", maxLength: 80 },
+            appearance: { type: "string", maxLength: 2000 },
+            notes: { type: "string", maxLength: 2000 }
+          }
+        }
+      },
       metadata: contentMetadataObject
     }
   }
@@ -336,20 +552,56 @@ export const startMiniGameSchema = {
     additionalProperties: false,
     required: ["answer"],
     properties: {
-      gameType: { type: "string", enum: ["zhimu_lock"] },
+      gameType: { type: "string", enum: ["zhimu_lock", "zhimu_sequence", "zhimu_guess"] },
       title: { type: "string", maxLength: 120 },
       prompt: { type: "string", maxLength: 500 },
       hint: { type: "string", maxLength: 500 },
       answer: { type: "string", minLength: 1, maxLength: 32 },
       length: { type: "integer", minimum: 1, maximum: 12 },
       maxAttempts: { type: "integer", minimum: 1, maximum: 12 },
-      max_attempts: { type: "integer", minimum: 1, maximum: 12 }
+      max_attempts: { type: "integer", minimum: 1, maximum: 12 },
+      protocolVersion: { type: "integer", enum: [1] },
+      pluginKey: { type: "string", enum: ["zhimu_lock", "zhimu_sequence", "zhimu_guess"] },
+      timeoutSeconds: { type: "integer", minimum: 0, maximum: 86400 },
+      allowRecovery: { type: "boolean" },
+      successText: { type: "string", maxLength: 1000 },
+      failureText: { type: "string", maxLength: 1000 },
+      recapLabel: { type: "string", maxLength: 160 }
     }
   }
 };
 
 export const forceCompleteMiniGameSchema = {
   params: paramsSchema({ roomId: uuid, gameId: uuid })
+};
+
+export const recoverMiniGameSchema = {
+  params: paramsSchema({ roomId: uuid, gameId: uuid }),
+  body: {
+    type: "object",
+    additionalProperties: false,
+    required: ["expectedRevision"],
+    properties: {
+      expectedRevision: { type: "integer", minimum: 1 },
+      bonusAttempts: { type: "integer", minimum: 1, maximum: 12 },
+      timeoutSeconds: { type: "integer", minimum: 0, maximum: 86400 }
+    }
+  }
+};
+
+export const settleMiniGameSchema = {
+  params: paramsSchema({ roomId: uuid, gameId: uuid }),
+  body: {
+    type: "object",
+    additionalProperties: false,
+    required: ["expectedRevision", "outcome"],
+    properties: {
+      expectedRevision: { type: "integer", minimum: 1 },
+      outcome: { type: "string", enum: ["success", "failed", "skipped"] },
+      publicSummary: { type: "string", maxLength: 1000 },
+      recapData: { type: "object", maxProperties: 20, additionalProperties: true }
+    }
+  }
 };
 
 export const roomRuleIdParams = paramsSchema({ roomId: uuid, ruleId: uuid });

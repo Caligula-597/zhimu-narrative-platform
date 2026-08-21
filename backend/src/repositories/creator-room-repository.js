@@ -109,7 +109,7 @@ export async function findCreatorRoomByCreationKey({ worldId, actorId, idempoten
 export async function listCreatorRoomsForActor({ worldId, actorId }) {
   const result = await query(
     `SELECT world_member.role AS membership_role,
-            room.id, room.name, room.invite_code, room.status,
+            room.id, room.name, room.invite_code, room.status, room.started_at, room.completed_at,
             room.public_listing, room.created_at, room.host_user_id, room.release_id,
             world.content_revision AS current_content_revision,
             release.release_number, release.label AS release_label,

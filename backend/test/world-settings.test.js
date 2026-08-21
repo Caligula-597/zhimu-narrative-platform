@@ -70,6 +70,48 @@ test("host can patch room runtime settings", async (context) => {
   assert.equal(patch.statusCode, 200);
   assert.equal(patch.json().settings.hostVoiceListen, true);
 
+  const initialPresentation = await app.inject({
+    method: "PATCH",
+    url: `/api/rooms/${fixtureRoomId}/settings`,
+    headers: { "x-user-id": hostUserId },
+    payload: {
+      settings: {
+        runtimePresentation: {
+          activeSegmentKey: "opening",
+          activeLocationId: "lobby",
+          revealedLocationIds: ["lobby"],
+          mapVisible: true,
+          activeEncounter: {
+            locationId: "lobby",
+            npcIds: ["guard"],
+            status: "active",
+            startedAt: "2026-08-10T13:00:00.000Z"
+          },
+          updatedAt: "2026-08-10T13:00:00.000Z"
+        }
+      }
+    }
+  });
+  assert.equal(initialPresentation.statusCode, 200, initialPresentation.body);
+
+  const partialPresentation = await app.inject({
+    method: "PATCH",
+    url: `/api/rooms/${fixtureRoomId}/settings`,
+    headers: { "x-user-id": hostUserId },
+    payload: {
+      settings: {
+        runtimePresentation: {
+          mapVisible: false,
+          updatedAt: "2026-08-10T13:01:00.000Z"
+        }
+      }
+    }
+  });
+  assert.equal(partialPresentation.statusCode, 200, partialPresentation.body);
+  assert.equal(partialPresentation.json().settings.runtimePresentation.mapVisible, false);
+  assert.equal(partialPresentation.json().settings.runtimePresentation.activeLocationId, "lobby");
+  assert.deepEqual(partialPresentation.json().settings.runtimePresentation.activeEncounter.npcIds, ["guard"]);
+
   const audit = await query(
     `SELECT 1 FROM host_audit_log WHERE room_id = $1 AND action = 'room_settings_updated'`,
     [fixtureRoomId]

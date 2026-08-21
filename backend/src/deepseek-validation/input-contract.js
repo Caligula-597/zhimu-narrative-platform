@@ -141,7 +141,7 @@ export function normalizeStoryBrief(input = {}) {
   const conflicts = cleanText(input.conflicts || input.requirements, 3000);
   return {
     title: cleanText(input.title, 120) || "未命名剧本杀",
-    premise: cleanText(input.premise, 4000),
+    premise: cleanText(input.premise, 12000),
     conflicts,
     wordsPerChapter,
     style: cleanText(input.style, 800) || "悬疑调查，信息逐步揭示，适合线上长线剧本杀",

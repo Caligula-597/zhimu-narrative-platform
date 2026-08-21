@@ -7,11 +7,19 @@ import {
 } from "../../../shared/sse-lifecycle.js";
 import {
   refreshHostClueMatrix,
+  refreshHostDiscoveryProgress,
   refreshHostEvents,
   refreshHostPlayers,
-  refreshHostRoom
+  refreshHostPaceClock,
+  refreshHostRoom,
+  refreshHostVoiceSession
 } from "./data.js";
 import { applyHostMiniGameEvent } from "./host-mini-game-controller.js";
+import {
+  applySyncStatus,
+  markSyncError,
+  markSyncReconciled
+} from "../../../shared/sync-diagnostics.js";
 
 let lifecycle = null;
 let streamKey = "";
@@ -86,11 +94,13 @@ async function handleRoomEvent(type, data) {
   switch (type) {
     case "room.player_joined":
       await refreshHostPlayers(false, true);
+      await refreshHostVoiceSession();
       await refreshOpenPlayerOperation(data.roleSlotId);
       showToast("有新玩家加入房间", 2800);
       break;
     case "room.player_kicked":
       await refreshHostPlayers(false, true);
+      await refreshHostVoiceSession();
       markOpenPlayerRemoved(data.roleSlotId);
       showToast("已移出玩家", 2800);
       break;
@@ -151,6 +161,36 @@ async function handleRoomEvent(type, data) {
       await refreshHostRoom(false);
       showToast(`运行内容已切换到 R${Number(data.releaseNumber) || "?"}`, 3200);
       break;
+    case "room.discovery_updated":
+      await refreshHostDiscoveryProgress({ render: false });
+      await refreshOpenPlayerOperation(data.roleSlotId);
+      render();
+      break;
+    case "room.pace_clock_updated":
+      await refreshHostPaceClock({ render: false });
+      render();
+      break;
+    case "room.conclusion_updated":
+      await refreshHostRoom(false);
+      break;
+    case "room.item_action_updated":
+      await refreshHostRoom(false);
+      break;
+    case "room.session_started":
+      if (state.room) {
+        state.room = {
+          ...state.room,
+          status: data.status || "active",
+          started_at: data.startedAt || state.room.started_at
+        };
+      }
+      await refreshHostVoiceSession({ render: false });
+      showToast("场次已正式开始 · 玩家密谈权限已开放", 3200);
+      render();
+      break;
+    case "room.presentation_updated":
+      await refreshHostRoom(false);
+      break;
     case "room.mechanism_state_updated":
       await refreshHostRoom(false);
       if (data.status === "completed") showToast("剧情机制已完成结算", 2800);
@@ -163,12 +203,15 @@ async function handleRoomEvent(type, data) {
     case "room.private_action_submitted":
     case "room.private_action_updated":
     case "room.role_state_updated":
+    case "room.relationship_updated":
     case "room.player_task_completed":
     case "room.testimony_submitted":
     case "room.segment_remedy_applied":
     case "room.physical_token_activated":
     case "room.physical_token_event":
     case "room.voice_message_created":
+    case "room.voice_room_created":
+    case "room.voice_room_members_updated":
     case "room.host_nudge":
     case "room.host_log_created":
     case "room.host_player_notes_updated":
@@ -200,8 +243,16 @@ export function connectRoomEvents({ force = false } = {}) {
     onEvent: handleRoomEvent,
     refresh: refreshDirectorPoll,
     shouldPoll: () => state.view === "console" && getRoomId() === roomId,
-    onStatus: (status) => {
+    onStatus: (status, meta) => {
       state.roomEventsStatus = status;
+      state.roomSyncDiagnostics = applySyncStatus(state.roomSyncDiagnostics, status, meta);
+      if (state.view === "console") render();
+    },
+    onReconciled: (meta) => {
+      state.roomSyncDiagnostics = markSyncReconciled(state.roomSyncDiagnostics, {
+        ...meta,
+        cursor: api.getHostRoomEventCursor(roomId, state.user?.id)
+      });
       if (state.view === "console") render();
     },
     onConnectionChange: (connected) => {
@@ -217,6 +268,7 @@ export function connectRoomEvents({ force = false } = {}) {
       render();
     },
     onError: (error, meta) => {
+      state.roomSyncDiagnostics = markSyncError(state.roomSyncDiagnostics, error, meta);
       state.apiError = meta?.phase === "stream" ? `实时同步异常：${error.message}` : state.apiError;
     }
   });

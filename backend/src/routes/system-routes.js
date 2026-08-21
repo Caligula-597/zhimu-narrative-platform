@@ -6,6 +6,7 @@ import { requireMetricsToken } from "../ops-auth.js";
 import { getRoomEventBusStatus, getSseConnectionMetrics } from "../room-event-bus.js";
 import { getPlatformEventBusStatus } from "../platform-event-bus.js";
 import { getEventOutboxStatus } from "../event-outbox-dispatcher.js";
+import { getSseConnectionGuardStats, resolveSseConnectionLimits } from "../sse-connection-guard.js";
 import {
   allowCspReportFromClient,
   normalizeCspReport,
@@ -108,6 +109,8 @@ export async function registerSystemRoutes(app) {
         },
         sseStats: sse,
         platformSseStats: { connections: platformBus.broadcastConnections },
+        sseAdmissionStats: getSseConnectionGuardStats(),
+        sseLimits: resolveSseConnectionLimits(),
         eventOutboxStats: eventOutbox,
         uptimeSeconds: Math.floor((Date.now() - processStartedAt) / 1000),
         readyOk: allReady ? 1 : 0

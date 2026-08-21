@@ -11,6 +11,7 @@ import * as U from "../components/emptyState.js";
 import * as S from "../components/ui-semantics.js";
 import { overviewHeroTitle, formatCloudPanelError } from "../utils/user-messages.js";
 import { callView } from "../runtime/view-registry.js";
+import { describeSyncDiagnostics } from "../../shared/sync-diagnostics.js";
   const R = getRuntime();
   const escapeHtml = F.escapeHtml || ((v = "") => String(v));
   const formatTime = F.formatTime || (() => "");
@@ -33,7 +34,6 @@ import { callView } from "../runtime/view-registry.js";
   const taskAction = U.taskAction || (() => "");
   const capability = U.capability || (() => "");
   const check = U.check || (() => "");
-  const voiceOption = U.voiceOption || (() => "");
   const showError = S.showError;
   const closeModal = M.closeModal || (() => {});
   const openModal = M.openModal || (() => {});
@@ -142,7 +142,10 @@ export function overview() {
   const { cloudWorlds, cloudRules, cloudWorldLogs, cloudCreatorChecks, cloudCreatorDashboard } = worldStore.get();
   const { cloudAssets, storageUsage } = assetStore.get();
   const { apiError } = userStore.get();
-  const { cloudHost, cloudHostEvents, cloudHostStuckCount, cloudRecaps, cloudCheckpoints } = roomStore.get();
+  const {
+    cloudHost, cloudHostEvents, cloudHostStuckCount, cloudRecaps, cloudCheckpoints,
+    roomSyncDiagnostics
+  } = roomStore.get();
   const studio = cloudStudio;
   const listedWorld = (cloudWorlds || []).find((world) => world.id === zhimuApi.context.worldId);
   const world = studio?.world || listedWorld;
@@ -158,6 +161,7 @@ export function overview() {
   const sectionCount = studio?.sections?.length ?? 0;
   const rooms = studio?.rooms || [], hasRooms = rooms.length > 0;
   const room = activeRuntimeRoom(), hasActiveRoom = Boolean(room);
+  const roomSyncDetail = describeSyncDiagnostics(roomSyncDiagnostics);
   const enabledRules = (cloudRules || []).filter(rule => rule.enabled).length;
   const pendingEvents = hasActiveRoom ? (cloudHostEvents || []).length : 0;
   const runtimeProgress = hasActiveRoom ? overviewRuntimeProgress() : { percent: 0, label: "当前未选中运行房" };
@@ -295,7 +299,6 @@ export function overview() {
           <p class="invite-hint">发给玩家：<a href="${escapeHtml(playJoinUrl)}" target="_blank" rel="noopener">${escapeHtml(playJoinUrl)}</a></p>
         </div>` : hasRooms && !hasActiveRoom ? `
         <p class="invite-hint">已建立 ${rooms.length} 个平行房。请点下方「管理运行房」选中房间，即可查看并复制邀请码。</p>` : "";
-  const showCatalogPromo = !loading && !studio && Boolean(window.zhimuSessionAuth?.isAuthenticated?.());
   const firstRunChooser = window.zhimuFirstRun?.renderFirstRunChooser?.() || "";
   const onboardingStrip = firstRunChooser ? "" : (window.zhimuOnboarding?.renderOnboardingStrip?.() || "");
   return `
@@ -303,7 +306,6 @@ export function overview() {
     ${firstRunChooser}
     ${onboardingStrip}
     ${studioEmptyBanner}
-    ${showCatalogPromo ? U.catalogPromoSection?.() || "" : ""}
     <section class="hero">
       <article class="hero-card">
         <p class="eyebrow">CURRENT WORLD · ONLINE</p>
@@ -316,7 +318,7 @@ export function overview() {
         <div class="chapter"><p class="section-kicker">${statusKicker}</p><strong>${statusTitle}</strong></div>
         <div class="progress"><i style="width:${hasActiveRoom ? runtimeProgress.percent : 0}%"></i></div>
         <div class="status-meta"><span>${hasActiveRoom ? runtimeProgress.label : hasRooms ? "已建立运行房，请进入房间后查看玩家进度" : "当前仅有创作内容，没有玩家运行状态"}</span><span>${hasActiveRoom ? runtimeProgress.percent : 0}%</span></div>
-        <div class="pulse-line"><i></i><span>${hasActiveRoom ? "运行实例已连接" : hasRooms ? "选择一个运行房以读取运行状态" : "完成检查后可建立测试房"}</span></div>
+        <div class="pulse-line"><i></i><span>${hasActiveRoom ? escapeHtml(roomSyncDetail) : hasRooms ? "选择一个运行房以读取运行状态" : "完成检查后可建立测试房"}</span></div>
         ${inviteStrip}
       </article>
     </section>

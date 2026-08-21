@@ -6,7 +6,7 @@ import { throwErr } from "./api-errors.js";
 import { fetchUserKind } from "./capabilities.js";
 import { isUserEmailVerified, isEmailVerificationRequired } from "./email-verification-policy.js";
 import { assertAiCredits } from "./credits.js";
-import { deepseekConfig } from "./deepseek.js";
+import { deepseekConfig } from "./deepseek-config.js";
 import { platformLlmRuntime, bindLlmRuntime } from "./llm-runtime.js";
 import { canEncryptSecrets, decryptSecret, encryptSecret, maskApiKeyHint } from "./secret-crypto.js";
 import { parseSafeOutboundHttpsUrl } from "./outbound-url-policy.js";

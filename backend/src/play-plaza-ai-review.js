@@ -1,4 +1,5 @@
-import { deepseekConfig, requestDeepseekJson } from "./deepseek.js";
+import { requestDeepseekJson } from "./deepseek-client.js";
+import { deepseekConfig } from "./deepseek-config.js";
 import { scanPlaySocialContent } from "./play-content-moderation.js";
 
 function resolvePlazaReviewMode() {

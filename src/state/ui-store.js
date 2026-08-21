@@ -22,6 +22,7 @@ export const uiStore = createStore({
   accountViewLoading: false,
   accountViewError: "",
   accountHubLoadId: 0,
+  boardGameRequestedTab: "",
   opsStatus: null,
   opsPlanRequests: null,
   opsAuditLog: null,

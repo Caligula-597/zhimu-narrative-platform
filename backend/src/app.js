@@ -136,7 +136,7 @@ function isUploadRoute(url, method) {
 
 function isAiRoute(url, method) {
   if (method !== "POST") return false;
-  return url.includes("/story-assistant/") || url.includes("/deepseek/");
+  return url.includes("/story-assistant/") || url.includes("/deepseek/") || url.includes("/world-engine/");
 }
 
 function shouldSkipReadRateLimit(url) {
@@ -160,7 +160,6 @@ function shouldSkipRateLimit(url) {
     url === "/api/platform/catalog-preview" ||
     url === "/api/platform/official-example" ||
     url === "/api/platform/import-guide" ||
-    url === "/api/platform/world-templates" ||
     url === "/api/health/live"
   );
 }

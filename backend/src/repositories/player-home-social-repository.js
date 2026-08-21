@@ -1,5 +1,31 @@
 /** Player-owned notes, clues, social presence, deductions and private actions. */
 import { query } from "../db.js";
+import { selectVisibleMaterialBooklets } from "../material-booklet-visibility.js";
+
+async function loadMaterialBookletsForRole({ roomId, roleSlotId, runQuery }) {
+  const [bookletsResult, grantsResult] = await Promise.all([
+    runQuery(
+      `SELECT b.id, b.kind, b.title, b.summary, b.pages, b.phase_label,
+              b.visibility, b.owner_role_slot_id, b.linked_role_slot_ids, b.sequence
+       FROM world_material_booklets b
+       JOIN rooms room ON room.world_id = b.world_id
+       WHERE room.id = $1
+       ORDER BY b.sequence, b.created_at`,
+      [roomId]
+    ),
+    runQuery(
+      `SELECT booklet_id, granted_at
+       FROM room_material_booklet_grants
+       WHERE room_id = $1 AND role_slot_id = $2`,
+      [roomId, roleSlotId]
+    )
+  ]);
+  return selectVisibleMaterialBooklets(
+    bookletsResult.rows,
+    roleSlotId,
+    grantsResult.rows
+  );
+}
 
 export async function loadPlayerHomeSocial({ roomId, roleSlotId, runQuery = query }) {
   const snapshot = await runQuery(
@@ -48,6 +74,8 @@ export async function loadPlayerHomeSocial({ roomId, roleSlotId, runQuery = quer
            FROM (
              SELECT c.id, c.name, c.public_text, co.acquired_at, co.read_at,
                     co.shared_with_room, co.shared_with_roles, co.player_note, co.shared_at,
+                    COALESCE(c.metadata->>'segmentKey', c.metadata->>'segment_key') AS segment_key,
+                    COALESCE(c.metadata->>'locationId', c.metadata->>'location_id') AS location_id,
                     true AS is_owner, co.role_slot_id AS owner_role_slot_id,
                     rs.name AS owner_role_name, COALESCE((
                       SELECT profile.display_name FROM user_portal_profiles profile
@@ -70,6 +98,8 @@ export async function loadPlayerHomeSocial({ roomId, roleSlotId, runQuery = quer
            FROM (
              SELECT c.id, c.name, c.public_text, co.acquired_at, co.shared_at,
                     co.player_note, co.shared_with_room, co.shared_with_roles,
+                    COALESCE(c.metadata->>'segmentKey', c.metadata->>'segment_key') AS segment_key,
+                    COALESCE(c.metadata->>'locationId', c.metadata->>'location_id') AS location_id,
                     false AS is_owner, co.role_slot_id AS owner_role_slot_id,
                     rs.name AS owner_role_name, COALESCE((
                       SELECT profile.display_name FROM user_portal_profiles profile
@@ -122,6 +152,7 @@ export async function loadPlayerHomeSocial({ roomId, roleSlotId, runQuery = quer
   );
 
   const row = snapshot.rows[0] ?? {};
+  const materialBooklets = await loadMaterialBookletsForRole({ roomId, roleSlotId, runQuery });
   return {
     notes: row.notes ?? [],
     clues: row.owned_clues ?? [],
@@ -129,6 +160,7 @@ export async function loadPlayerHomeSocial({ roomId, roleSlotId, runQuery = quer
     roomMembers: row.members ?? [],
     suspicions: row.suspicions ?? [],
     testimonies: row.testimonies ?? [],
-    privateActions: row.private_actions ?? []
+    privateActions: row.private_actions ?? [],
+    materialBooklets
   };
 }

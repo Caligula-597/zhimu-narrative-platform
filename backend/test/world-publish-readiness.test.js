@@ -24,6 +24,14 @@ function minimalSnapshot(overrides = {}) {
         segment_key: "ch1",
         title: "序章",
         sequence: 1,
+        story: {
+          beatPlan: {
+            goal: "确认第一幕冲突",
+            playerContent: "阅读证词并交换公开信息",
+            dmTasks: "引导玩家比较两份证词",
+            advanceCondition: "全员完成第一幕讨论"
+          }
+        },
         operations: {
           schemaVersion: 1,
           flow: "主持流程",
@@ -88,6 +96,21 @@ test("evaluateWorldPublishReadiness flags unreachable clues", () => {
   assert.ok(result.checks.some((item) => item.id === "clues.cl1.unreachable"));
 });
 
+test("publish readiness blocks clues without a deliberate player path", () => {
+  const critical = minimalSnapshot();
+  critical.clues = [{ id: "cl1", name: "关键证据", metadata: { importance: "key" } }];
+  critical.investigationPoints = [];
+  const criticalResult = evaluateWorldPublishReadiness(critical);
+  assert.ok(criticalResult.checks.some((item) => item.id === "clues.cl1.critical_path_missing"));
+  assert.equal(criticalResult.summary.readyForPlaytest, false);
+
+  const ordinary = minimalSnapshot();
+  ordinary.clues = [{ id: "cl1", name: "气氛纸条", metadata: { allowUnbound: true } }];
+  ordinary.investigationPoints = [];
+  const ordinaryResult = evaluateWorldPublishReadiness(ordinary);
+  assert.ok(!ordinaryResult.checks.some((item) => item.id === "clues.cl1.path_decision_missing"));
+});
+
 test("evaluateWorldPublishReadiness flags segment gaps", () => {
   const result = evaluateWorldPublishReadiness(
     minimalSnapshot({
@@ -97,4 +120,26 @@ test("evaluateWorldPublishReadiness flags segment gaps", () => {
   assert.ok(result.checks.some((item) => item.id === "segments.ch1.chapter_unlinked"));
   assert.ok(result.checks.some((item) => item.id === "segments.ch1.section_unlinked"));
   assert.ok(result.checks.some((item) => item.id === "segments.other.runbook_missing"));
+});
+
+test("evaluateWorldPublishReadiness warns about incomplete beat plans without blocking playtest", () => {
+  const snapshot = minimalSnapshot();
+  snapshot.segments[0].story.beatPlan = {
+    goal: "确认第一幕冲突",
+    playerContent: "阅读证词"
+  };
+  const result = evaluateWorldPublishReadiness(snapshot);
+  const warning = result.checks.find((item) => item.id === "segments.ch1.beat_plan_incomplete");
+  assert.equal(warning?.level, "warning");
+  assert.match(warning?.detail || "", /主持任务/);
+  assert.match(warning?.detail || "", /推进条件/);
+  assert.equal(result.summary.readyForPlaytest, true);
+});
+
+test("evaluateWorldPublishReadiness reports a missing beat plan as one actionable warning", () => {
+  const snapshot = minimalSnapshot();
+  delete snapshot.segments[0].story;
+  const result = evaluateWorldPublishReadiness(snapshot);
+  assert.ok(result.checks.some((item) => item.id === "segments.ch1.beat_plan_missing"));
+  assert.ok(!result.checks.some((item) => item.id === "segments.ch1.beat_plan_incomplete"));
 });

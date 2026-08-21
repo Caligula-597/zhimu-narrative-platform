@@ -1,0 +1,59 @@
+name: Production Object Backup
+
+on:
+  schedule:
+    - cron: "17 */6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: production-object-backup
+  cancel-in-progress: false
+
+jobs:
+  backup:
+    if: ${{ github.event_name == 'workflow_dispatch' || vars.OBJECT_BACKUP_ENABLED == 'true' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    environment: production-backup
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: "24.13.0"
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+      - run: npm ci
+        working-directory: backend
+      - name: Back up every production object to an independent endpoint
+        env:
+          R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+          R2_BUCKET: ${{ secrets.R2_BUCKET }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          BACKUP_S3_ENDPOINT: ${{ secrets.BACKUP_S3_ENDPOINT }}
+          BACKUP_S3_REGION: ${{ secrets.BACKUP_S3_REGION }}
+          BACKUP_S3_BUCKET: ${{ secrets.BACKUP_S3_BUCKET }}
+          BACKUP_S3_ACCESS_KEY_ID: ${{ secrets.BACKUP_S3_ACCESS_KEY_ID }}
+          BACKUP_S3_SECRET_ACCESS_KEY: ${{ secrets.BACKUP_S3_SECRET_ACCESS_KEY }}
+          BACKUP_S3_FORCE_PATH_STYLE: ${{ secrets.BACKUP_S3_FORCE_PATH_STYLE }}
+          BACKUP_S3_SERVER_SIDE_ENCRYPTION: ${{ secrets.BACKUP_S3_SERVER_SIDE_ENCRYPTION }}
+          BACKUP_S3_KMS_KEY_ID: ${{ secrets.BACKUP_S3_KMS_KEY_ID }}
+        run: >-
+          node scripts/backup-object-storage.mjs
+          --source-environment=production
+          --confirm-write-backup
+          --confirm-source-bucket="$R2_BUCKET"
+          --confirm-backup-bucket="$BACKUP_S3_BUCKET"
+          --run-id="objects-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          --out=../artifacts/recovery/object-backup.json
+        working-directory: backend
+      - name: Upload secret-free execution evidence
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: object-backup-evidence-${{ github.run_id }}
+          path: artifacts/recovery/object-backup.json
+          if-no-files-found: error
+          retention-days: 90

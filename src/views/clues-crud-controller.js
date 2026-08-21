@@ -1,7 +1,7 @@
 import * as zhimuApi from "../api/index.js";
 import { showToast } from "../components/toast.js";
 import { loadCloudData } from "../runtime/runtime-facade.js";
-import { studioStore, uiStore } from "../state/index.js";
+import { studioStore, uiStore, worldStore } from "../state/index.js";
 import * as F from "../utils/format.js";
 import * as M from "../components/modal.js";
 import * as S from "../components/ui-semantics.js";
@@ -46,6 +46,46 @@ export async function confirmDeleteClue(clueId) {
     } catch (error) {
       showError(error);
     }
+  }
+
+export function batchBindCluePaths() {
+    const ids = uiStore.get().cluesBulkSelection || [];
+    if (!ids.length) return showToast("请先勾选要绑定路径的线索");
+    const segments = worldStore.get().cloudSegments || [];
+    const segmentOptions = M.studioOptionsHtml([
+      { id: "", name: "不绑定剧情段落" },
+      ...segments.map((segment) => ({
+        id: segment.segmentKey || segment.segment_key,
+        name: `${segment.segmentKey || segment.segment_key} · ${segment.title || "未命名段落"}`
+      }))
+    ]);
+    studioModal(
+      `批量绑定 ${ids.length} 条线索`,
+      `<p>一次事务更新全部线索；任一引用无效时整批回滚。</p>
+       <label>剧情段落</label><select class="field" data-clue-bulk-segment>${segmentOptions}</select>
+       <label class="check-label"><input type="checkbox" data-clue-bulk-unbound><span>明确允许游离（会清空剧情段落）</span></label>`,
+      "保存批量绑定",
+      async () => {
+        const segmentKey = document.querySelector("[data-clue-bulk-segment]")?.value || null;
+        const allowUnbound = Boolean(document.querySelector("[data-clue-bulk-unbound]")?.checked);
+        if (!allowUnbound && !segmentKey) {
+          return showToast("请选择剧情段落，或明确允许游离");
+        }
+        try {
+          await zhimuApi.bindCluePaths({
+            clueIds: ids,
+            segmentKey: allowUnbound ? null : segmentKey,
+            allowUnbound
+          });
+          uiStore.set({ cluesBulkSelection: [] });
+          closeModal();
+          await loadCloudData();
+          showToast(`已更新 ${ids.length} 条线索的玩家发现路径`);
+        } catch (error) {
+          showError(error);
+        }
+      }
+    );
   }
 
   export async function batchDeleteClues() {

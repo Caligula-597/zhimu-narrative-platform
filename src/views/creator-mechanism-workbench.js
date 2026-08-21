@@ -1,16 +1,23 @@
 import "./creator-mechanism-workbench.css";
-import { escapeHtml } from "../utils/format.js";
-import { setHtml } from "../../shared/safe-dom.js";
 import {
-  MECHANISM_DESIGN_QUESTIONS,
-  mechanismDesignCoverage,
-  normalizeMechanismDesign,
-  validateMechanismDesignConfirmation,
-} from "../../shared/mechanism-design.js";
-import {
-  MECHANISM_INTERACTION_CARDS,
-  mechanismInteractionCard,
-} from "../../shared/mechanism-interactions.js";
+  MECHANISM_KIT_TEMPLATES,
+  applyMechanismKitToDesign,
+  getMechanismKit,
+} from "../../shared/mechanism-catalog.js";
+
+const CAPABILITY_LABELS = Object.freeze({
+  ready: "可直接落地",
+  partial: "方向可用，运行时部分接好",
+});
+
+function kitCardHtml(kit, activeKey) {
+  const active = kit.key === activeKey;
+  return `<button type="button" class="mechanism-kit-card ${active ? "active" : ""}" data-mechanism-kit="${escapeHtml(kit.key)}" aria-pressed="${active ? "true" : "false"}">
+    <div class="mechanism-kit-card-top"><strong>${escapeHtml(kit.label)}</strong><span>${escapeHtml(CAPABILITY_LABELS[kit.capability] || kit.capability)}</span></div>
+    <p>${escapeHtml(kit.summary)}</p>
+    <small>${escapeHtml(kit.family)} · ${escapeHtml(kit.genres.join(" / "))}</small>
+  </button>`;
+}
 
 function fieldHtml(question, value, invalidKeys) {
   const invalid = invalidKeys.has(question.key);
@@ -45,13 +52,22 @@ function renderFrame(
         <p>玩家必须把全部额度分配完毕；玩家之间互不可见，主持端只汇总各项总额。</p>
       </div>`
       : "";
+  const activeKit = getMechanismKit(design.templateKey);
+  const kitHint = activeKit
+    ? `<p class="mechanism-kit-active-hint">已选用方向「${escapeHtml(activeKit.label)}」。可继续改七问与线上表现；这只是起点，不是成品机制。</p>`
+    : `<p class="mechanism-kit-active-hint">先选一个可复用方向，再改成这部作品的具体版本。</p>`;
   setHtml(
     root,
     `<section class="creator-mechanism-workbench" data-workspace-editor aria-label="机制设计工作台" aria-busy="${saving ? "true" : "false"}">
   <div class="mechanism-workbench-head">
-    <div><p>MECHANISM WORKBENCH</p><h2>机制设计工作台</h2><span>先把玩家反复做什么说清楚，再交给AI扩写章节。</span></div>
+    <div><p>MECHANISM WORKBENCH</p><h2>机制设计工作台</h2><span>先从可复用方向起步，再把玩家反复做什么写清楚，最后交给AI扩写章节。</span></div>
     <div class="mechanism-coverage"><strong>${coverage.filled}/${coverage.total}</strong><small>机制七问</small></div>
   </div>
+  <section class="mechanism-design-section">
+    <div class="mechanism-design-section-head"><div><span>00</span><h3>选用机制方向</h3></div><p>覆盖搜证、经济、竞价、毁证、换身、物料册、小游戏与双主持等常见剧本杀模式，供后续作品复用。</p></div>
+    ${kitHint}
+    <div class="mechanism-kit-grid">${MECHANISM_KIT_TEMPLATES.map((kit) => kitCardHtml(kit, design.templateKey)).join("")}</div>
+  </section>
   <section class="mechanism-design-section">
     <div class="mechanism-design-section-head"><div><span>01</span><h3>选择线上表现形式</h3></div><p>它决定玩家端如何操作、主持端如何结算，不决定故事题材。</p></div>
     <div class="mechanism-design-card-grid">${MECHANISM_INTERACTION_CARDS.map(
@@ -129,6 +145,21 @@ export function openCreatorMechanismWorkbench({
         });
         dirty = true;
         discardArmed = false;
+        render();
+      });
+    });
+    root.querySelectorAll("[data-mechanism-kit]").forEach((button) => {
+      button.addEventListener("click", () => {
+        design = normalizeMechanismDesign(
+          applyMechanismKitToDesign(
+            readDesign(root, design),
+            button.dataset.mechanismKit,
+          ),
+        );
+        dirty = true;
+        discardArmed = false;
+        validationIssues = [];
+        saveError = "";
         render();
       });
     });

@@ -56,15 +56,6 @@ export const STORY_DIAGNOSTIC_STANDARDS = Object.freeze({
     weights: { causal: 0.3, information: 0.4, fairness: 0.3 },
     singlePointSeverity: "danger",
     earlyLeakSeverity: "warning"
-  },
-  sandbox: {
-    id: "sandbox",
-    label: "跑团沙盒",
-    description: "降低线性结构要求，重点检查状态推进、信息孤岛和主持单点依赖。",
-    minEvidence: 1,
-    weights: { causal: 0.38, information: 0.4, fairness: 0.22 },
-    singlePointSeverity: "warning",
-    earlyLeakSeverity: "warning"
   }
 });
 
@@ -710,7 +701,7 @@ export function evaluateStoryDiagnostics(snapshot = {}, { standard = "classic" }
       add({
         id: `causal.unmotivated.${eventRef.type}.${eventRef.id}`,
         category: "causal",
-        severity: profile.id === "sandbox" ? "warning" : "danger",
+        severity: "danger",
         title: `「${eventRef.label}」缺少显式前因`,
         detail: "该事件不是序列首项，但没有剧情边或规则触发指向它。",
         rationale: "仅有排列顺序不能说明角色动机或事件原因。",

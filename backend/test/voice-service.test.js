@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { query } from "../src/db.js";
 import { createVoiceRoomForActor, resolveVoiceRuntimePolicy } from "../src/voice-service.js";
-import { fixtureRoomId } from "./helpers/fixture-ids.js";
+import { fixtureRoomId, hostUserId } from "./helpers/fixture-ids.js";
 
 const playerUserId = "1d5e8155-a80f-4e7f-99f0-0ae317a35f35";
 
@@ -23,7 +23,7 @@ test("private voice rooms expire and concurrent creates cannot cross the room qu
     membership: { member_type: "player" },
     name: `${prefix}${suffix}`,
     roomType: "invite_private",
-    inviteUserIds: [],
+    inviteUserIds: [hostUserId],
     activeRoomLimit,
     privateRoomLifetimeHours: 24
   });

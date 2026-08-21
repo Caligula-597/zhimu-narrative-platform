@@ -1,8 +1,10 @@
 import { requireActor } from "../request-actor.js";
+import { withRoomIdempotency } from "../idempotency-helpers.js";
 import {
   appendVoiceRoomMembers,
   createVoiceRoomForActor,
   issueVoiceRoomToken,
+  loadVoiceSession,
   loadVoiceRoomMessages,
   sendVoiceRoomMessage
 } from "../voice-service.js";
@@ -10,12 +12,20 @@ import { requireRoomRole } from "./route-guards.js";
 import {
   appendVoiceMembersSchema,
   createVoiceRoomSchema,
+  roomIdParams,
   sendVoiceMessageSchema,
   voiceRoomIdParams,
   voiceRoomInRoomParams
 } from "./schemas.js";
 
 export async function registerVoiceRoutes(app) {
+  app.get("/api/rooms/:roomId/voice-session", { schema: { params: roomIdParams } }, async (request) => {
+    const actorId = requireActor(request);
+    const { roomId } = request.params;
+    await requireRoomRole(actorId, roomId);
+    return loadVoiceSession(actorId, roomId);
+  });
+
   app.get("/api/voice-rooms/:voiceRoomId/messages", { schema: { params: voiceRoomIdParams } }, async (request) => {
     const actorId = requireActor(request);
     return loadVoiceRoomMessages(actorId, request.params.voiceRoomId);
@@ -25,12 +35,14 @@ export async function registerVoiceRoutes(app) {
     const actorId = requireActor(request);
     const { roomId } = request.params;
     const membership = await requireRoomRole(actorId, roomId);
-    const room = await createVoiceRoomForActor({
-      actorId,
-      roomId,
-      membership,
-      ...request.body
-    });
+    const room = await withRoomIdempotency(roomId, request, "voice.room_create", () => (
+      createVoiceRoomForActor({
+        actorId,
+        roomId,
+        membership,
+        ...request.body
+      })
+    ));
     return reply.code(201).send(room);
   });
 

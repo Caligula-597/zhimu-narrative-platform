@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   DEFAULT_WEB_VITAL_APP,
+  initWebVitalsReporting,
   rateWebVital,
   reportWebVital,
   WEB_VITAL_APPS,
@@ -40,4 +41,70 @@ test("public telemetry contract includes the Guardian fallback app", () => {
   assert.equal(DEFAULT_WEB_VITAL_APP, "unknown");
   assert.ok(WEB_VITAL_APPS.includes(DEFAULT_WEB_VITAL_APP));
   assert.deepEqual(WEB_VITAL_RATINGS, ["good", "needs-improvement", "poor", "unknown"]);
+});
+
+test("browser observers flush one summary per metric instead of one beacon per interaction", () => {
+  const originalWindow = globalThis.window;
+  const originalDocument = globalThis.document;
+  const originalObserver = globalThis.PerformanceObserver;
+  const observers = [];
+  const listeners = new Map();
+
+  class FakePerformanceObserver {
+    constructor(callback) {
+      this.callback = callback;
+      observers.push(this);
+    }
+
+    observe(options) {
+      this.type = options.type;
+    }
+
+    disconnect() {}
+  }
+
+  globalThis.window = {
+    addEventListener: (type, listener) => listeners.set(`window:${type}`, listener),
+    removeEventListener: (type) => listeners.delete(`window:${type}`)
+  };
+  globalThis.document = {
+    visibilityState: "visible",
+    addEventListener: (type, listener) => listeners.set(`document:${type}`, listener),
+    removeEventListener: (type) => listeners.delete(`document:${type}`)
+  };
+  globalThis.PerformanceObserver = FakePerformanceObserver;
+
+  try {
+    const metrics = [];
+    const dispose = initWebVitalsReporting({ onMetric: (metric) => metrics.push(metric) });
+    const observer = (type) => observers.find((item) => item.type === type);
+    observer("largest-contentful-paint").callback({
+      getEntries: () => [{ startTime: 900 }, { startTime: 1250 }]
+    });
+    observer("layout-shift").callback({
+      getEntries: () => [{ value: 0.04, hadRecentInput: false }, { value: 0.5, hadRecentInput: true }]
+    });
+    observer("event").callback({
+      getEntries: () => [
+        { duration: 60, interactionId: 1 },
+        { duration: 140, interactionId: 2 },
+        { duration: 80, interactionId: 3 }
+      ]
+    });
+
+    assert.equal(metrics.length, 0);
+    dispose();
+    assert.deepEqual(metrics.map((metric) => metric.name), ["LCP", "CLS", "INP"]);
+    assert.equal(metrics.find((metric) => metric.name === "LCP").value, 1250);
+    assert.equal(metrics.find((metric) => metric.name === "CLS").value, 0.04);
+    assert.equal(metrics.find((metric) => metric.name === "INP").value, 140);
+    assert.equal(listeners.size, 0);
+  } finally {
+    if (originalWindow === undefined) delete globalThis.window;
+    else globalThis.window = originalWindow;
+    if (originalDocument === undefined) delete globalThis.document;
+    else globalThis.document = originalDocument;
+    if (originalObserver === undefined) delete globalThis.PerformanceObserver;
+    else globalThis.PerformanceObserver = originalObserver;
+  }
 });

@@ -9,6 +9,7 @@ const definitions = {
       "section-next",
       "pick-section",
       "pick-clue",
+      "pick-booklet",
       "goto-section",
       "show-auth",
       "toggle-auth-mode",
@@ -83,7 +84,8 @@ const definitions = {
       "submit-private-action",
       "read-clue",
       "investigate",
-      "mini-game-submit"
+      "mini-game-submit",
+      "submit-item-action"
     ]),
     load: () => import("./game-action-controller.js"),
     handler: "handlePlayGameAction"
@@ -98,6 +100,15 @@ const definitions = {
     ]),
     load: () => import("./clue-action-controller.js"),
     handler: "handlePlayClueAction"
+  },
+  tabletop: {
+    actions: new Set([
+      "tabletop-discovery-skip",
+      "tabletop-draw-clue",
+      "tabletop-reshuffle-clues"
+    ]),
+    load: () => import("./tabletop-action-controller.js"),
+    handler: "handlePlayTabletopAction"
   },
   tab: {
     actions: new Set(["switch-tab"]),
@@ -125,6 +136,10 @@ const definitions = {
   content: {
     actions: new Set([
       "open-recap-detail",
+      "open-library-recap",
+      "export-library-recap",
+      "hide-library-recap",
+      "set-recap-retention",
       "reload-recap",
       "dismiss-host-nudge",
       "retry-exploration",

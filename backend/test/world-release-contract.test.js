@@ -122,6 +122,13 @@ test("release snapshot summary counts every authored runtime collection", () => 
     () => assertWorldReleaseSnapshot(validSnapshot({ mechanismPackage: [] })),
     /mechanismPackage must be an object/
   );
+  assert.doesNotThrow(() => assertWorldReleaseSnapshot(validSnapshot({
+    experienceConfiguration: { communicationTemplates: [] }
+  })));
+  assert.throws(
+    () => assertWorldReleaseSnapshot(validSnapshot({ experienceConfiguration: [] })),
+    /experienceConfiguration must be an object/
+  );
 });
 
 test("release preparation blocks readiness errors and accepts warning-only content", () => {

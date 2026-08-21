@@ -4,6 +4,7 @@ import {
   creatorTerms,
   legacyWorldModeForNarrativeProfile,
   narrativeProfileFromSettings,
+  narrativeProfileFromWorld,
   normalizeNarrativeProfile,
   normalizeNarrativeSettings,
   normalizeNarrativeSettingsPatch
@@ -68,6 +69,25 @@ test("invalid profile values fall back to the selected creation type defaults", 
 test("legacy terminology imports retain their existing labels", () => {
   assert.equal(creatorTerms("murder_mystery").clue, "线索");
   assert.equal(creatorTerms("tabletop_rpg").clue, "HO");
+  assert.equal(creatorTerms("board_game").role, "玩家席位");
+  assert.equal(creatorTerms("board_game").act, "阶段");
   assert.equal(creatorTerms("interactive_story").host, "导演");
   assert.equal(legacyCreatorTerms("tabletop_rpg").host, "KP");
+});
+
+test("board-game profile is first-class while keeping legacy mode compatibility", () => {
+  const profile = normalizeNarrativeProfile({ creationType: "board_game" });
+  assert.equal(profile.creationType, "board_game");
+  assert.equal(profile.roleMode, "player_created");
+  assert.equal(profile.ruleset.mode, "custom");
+  assert.equal(legacyWorldModeForNarrativeProfile(profile), "campaign");
+});
+
+test("lightweight world-list rows retain their projected product type", () => {
+  assert.equal(narrativeProfileFromWorld({ creation_type: "tabletop_rpg" }).creationType, "tabletop_rpg");
+  assert.equal(narrativeProfileFromWorld({ creationType: "board_game" }).creationType, "board_game");
+  assert.equal(narrativeProfileFromWorld({
+    creation_type: "board_game",
+    settings: { narrativeProfile: { creationType: "tabletop_rpg" } }
+  }).creationType, "tabletop_rpg");
 });

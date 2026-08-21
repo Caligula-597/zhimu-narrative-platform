@@ -1,5 +1,6 @@
 /** App bootstrap: routing, render shell, startup. View logic lives in src/views/*. */
 import { showToast, updateNotifyBadge } from "./src/components/toast.js";
+import * as zhimuApi from "./src/api/index.js";
 import { getViewMeta, resolveViewFn } from "./src/bootstrap/view-resolver.js";
 import { initEvents } from "./src/bootstrap/events.js";
 import { startApplication } from "./src/bootstrap/startup.js";
@@ -10,8 +11,10 @@ import {
 } from "./src/runtime/navigation-access.js";
 import { getRuntime, registerRuntime } from "./src/runtime/runtime-facade.js";
 import { callView } from "./src/runtime/view-registry.js";
-import { uiStore, studioStore, userStore } from "./src/state/index.js";
+import { uiStore, studioStore, userStore, worldStore } from "./src/state/index.js";
 import { createContentRenderer, renderPageUpdated, renderStudioLoading, renderViewError, renderViewLoading } from "./src/bootstrap/render-shell.js";
+import { narrativeProfileFromWorld } from "./shared/narrative-profile.js";
+import { productAllowsShellView, productHomeView } from "./shared/product-capabilities.js";
 const appEntry = (function (window) {
   const startupMissing = window.zhimuDependencyGuard?.assertAppReady?.() || [];
   if (startupMissing.length) return { render: () => {}, go: () => {} };
@@ -20,10 +23,27 @@ const appEntry = (function (window) {
 
   const setContentHtml = createContentRenderer(content, () => R.bindDynamic());
 
+  function activeProductProfile() {
+    const activeWorldId = zhimuApi.context.worldId;
+    const { cloudStudio } = studioStore.get();
+    const { cloudWorkspacePreview, cloudWorlds } = worldStore.get();
+    const studioWorld = cloudStudio?.world?.id === activeWorldId ? cloudStudio.world : null;
+    const previewWorld = cloudWorkspacePreview?.world?.id === activeWorldId ? cloudWorkspacePreview.world : null;
+    const listedWorld = (cloudWorlds || []).find((world) => world.id === activeWorldId);
+    const world = studioWorld || previewWorld || listedWorld;
+    return world ? narrativeProfileFromWorld(world) : null;
+  }
+
   function render() {
     const currentView = uiStore.get().view;
     if (!getViewMeta(currentView)) { uiStore.set({ view: "creatorCockpit" }); return render(); }
-    const [eyebrow, title] = getViewMeta(uiStore.get().view);
+    const productProfile = activeProductProfile();
+    if (productProfile && !productAllowsShellView(productProfile.creationType, currentView)) {
+      uiStore.set({ view: productHomeView(productProfile.creationType) });
+      return render();
+    }
+    const creationType = productProfile?.creationType;
+    const [eyebrow, title] = getViewMeta(uiStore.get().view, creationType);
     // Detailed views already provide a useful no-world empty state. Do not
     // repeatedly request a Studio snapshot when a brand-new account has no
     // active world; Promise.resolve(null) would otherwise schedule render()
@@ -43,11 +63,17 @@ const appEntry = (function (window) {
           if (uiStore.get().view === loadingView) render();
         });
     }
+    window.zhimuNavShell?.syncProductShell?.();
     window.zhimuNavShell?.syncWorldSwitcher?.();
     window.zhimuNavShell?.syncNavAdvanced?.(uiStore.get().view);
     document.querySelector("#page-eyebrow").textContent = eyebrow;
     document.querySelector("#page-title").textContent = title;
-    document.querySelectorAll(".nav-item").forEach((item) => item.classList.toggle("active", item.dataset.view === uiStore.get().view));
+    document.querySelectorAll(".nav-item").forEach((item) => {
+      const active = item.dataset.view === uiStore.get().view;
+      item.classList.toggle("active", active);
+      if (active) item.setAttribute("aria-current", "page");
+      else item.removeAttribute("aria-current");
+    });
     updateNotifyBadge();
     const loader = window.zhimuViewLoader;
     if (loader && !loader.isViewReady?.(uiStore.get().view)) {
@@ -109,6 +135,10 @@ const appEntry = (function (window) {
       return;
     }
     if (!getViewMeta(view)) view = "overview";
+    const productProfile = activeProductProfile();
+    if (productProfile && !productAllowsShellView(productProfile.creationType, view)) {
+      view = productHomeView(productProfile.creationType);
+    }
     const access = navigationAccess(view, {
       authenticated: Boolean(window.zhimuAuthSession?.isLoggedIn?.()),
       authStatus: window.zhimuAuthSession?.getAuthStatus?.()?.status || ""
@@ -129,6 +159,7 @@ const appEntry = (function (window) {
       if (view === "account") window.zhimuAccountHub?.beginAccountHubLoad?.();
       if (view === "creatorCockpit") callView("creatorCockpit", "refreshCockpitData");
       render();
+      queueMicrotask(() => document.querySelector("#page-title")?.focus());
       return;
     }
     if (view === "account") render();

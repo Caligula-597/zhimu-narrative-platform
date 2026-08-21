@@ -43,3 +43,28 @@ test("failed optimistic section completion restores prior state", async () => {
   assert.equal(section.completed, false);
   assert.ok(calls.some((call) => call[0] === "toast" && call[1] === "操作失败"));
 });
+
+test("mini-game submission carries revision and refreshes after a conflict", async () => {
+  const conflict = Object.assign(new Error("stale"), { code: "MINI_GAME_VERSION_CONFLICT" });
+  let payload;
+  const button = {
+    closest: () => ({
+      querySelector: () => ({ value: "2468" })
+    })
+  };
+  const { controller, state, calls } = setup({
+    submitMiniGame: async (next) => {
+      payload = next;
+      throw conflict;
+    }
+  });
+  state.currentGame = {
+    instanceId: "game-1",
+    gameType: "zhimu_lock",
+    revision: 8,
+    status: "playing"
+  };
+  await controller.handleMiniGameSubmit(button);
+  assert.equal(payload.expectedRevision, 8);
+  assert.ok(calls.some((call) => call[0] === "refresh" && call[1].partial));
+});

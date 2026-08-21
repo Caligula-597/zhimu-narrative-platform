@@ -4,16 +4,82 @@ import {
   getRoomRecap,
   listRoomRecaps
 } from "../recap-service.js";
+import {
+  getRoomConclusion,
+  publishEndingAndPrepareRecap,
+} from "../room-conclusion-service.js";
+import {
+  getRecapLibraryEntry,
+  hideRecapLibraryEntry,
+  listRecapLibrary,
+  updateRecapLibraryPreferences,
+} from "../recap-library-service.js";
 import { withRoomIdempotency } from "../idempotency-helpers.js";
 import { requireActor } from "../request-actor.js";
+import { requireRoomRole } from "./route-guards.js";
+import { requireHostMembership } from "./host-route-guards.js";
+import {
+  prepareRoomConclusionSchema,
+  roomConclusionSchema,
+} from "./schemas/room-conclusion.js";
 import {
   createRecapSchema,
   latestRecapSchema,
   listRecapsSchema,
-  recapDetailSchema
+  recapDetailSchema,
+  recapLibraryEntrySchema,
+  recapLibraryListSchema,
+  recapLibraryPreferencesSchema,
 } from "./schemas/recap.js";
 
 export async function registerRecapRoutes(app) {
+  app.get("/api/account/recaps", { schema: recapLibraryListSchema }, async (request) => {
+    const actorId = requireActor(request);
+    return listRecapLibrary({ actorId, ...request.query });
+  });
+
+  app.get("/api/account/recaps/:recapId", { schema: recapLibraryEntrySchema }, async (request) => {
+    const actorId = requireActor(request);
+    return getRecapLibraryEntry({ actorId, recapId: request.params.recapId });
+  });
+
+  app.delete("/api/account/recaps/:recapId", { schema: recapLibraryEntrySchema }, async (request) => {
+    const actorId = requireActor(request);
+    return hideRecapLibraryEntry({ actorId, recapId: request.params.recapId });
+  });
+
+  app.put("/api/account/recaps/preferences/:roomId", { schema: recapLibraryPreferencesSchema }, async (request) => {
+    const actorId = requireActor(request);
+    return updateRecapLibraryPreferences({
+      actorId,
+      roomId: request.params.roomId,
+      retentionDays: request.body.retentionDays,
+    });
+  });
+
+  app.get("/api/rooms/:roomId/conclusion", { schema: roomConclusionSchema }, async (request) => {
+    const actorId = requireActor(request);
+    const { roomId } = request.params;
+    const membership = await requireRoomRole(actorId, roomId);
+    const audience = ["host", "cohost"].includes(membership.member_type) ? "host" : "player";
+    return getRoomConclusion(roomId, { audience });
+  });
+
+  app.post("/api/rooms/:roomId/host/conclusion", { schema: prepareRoomConclusionSchema }, async (request) => {
+    const actorId = requireActor(request);
+    const { roomId } = request.params;
+    await requireHostMembership(actorId, roomId);
+    return publishEndingAndPrepareRecap({
+      roomId,
+      actorId,
+      endingId: request.body.endingId,
+      idempotencyKey: request.body.idempotencyKey,
+      title: request.body.title,
+      description: request.body.description,
+      logger: request.log,
+    });
+  });
+
   app.get("/api/rooms/:roomId/recaps", { schema: listRecapsSchema }, async (request) => {
     const actorId = requireActor(request);
     return listRoomRecaps({ actorId, roomId: request.params.roomId });

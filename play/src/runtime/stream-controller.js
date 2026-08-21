@@ -1,3 +1,9 @@
+import {
+  applySyncStatus,
+  markSyncError,
+  markSyncReconciled
+} from "../../../shared/sync-diagnostics.js";
+
 export function createPlayStreamController({
   state, render, getSessionToken, clearSession, connectRoomEvents,
   disconnectRoomEvents, connectPlatformEvents, disconnectPlatformEvents,
@@ -5,7 +11,7 @@ export function createPlayStreamController({
   setToast, patchGameHostBanner, normalizeMiniGame, getGamePatchCtx,
   patchSyncChromeOrRender, bumpTabPulse, loadPlazaPosts, loadPlazaThread,
   loadFriends, loadDmConversations, loadDmThread, pauseVoiceSession,
-  persistRoom, isUuid
+  persistRoom, isUuid, getRoomEventCursor = () => null
 }) {
   let roomEventCtx;
   let platformEventCtx;
@@ -67,7 +73,28 @@ export function createPlayStreamController({
       render();
     },
     getHostConfirmWaiting: () => Boolean(state.home?.hostConfirm?.waitingForYou),
-    setStreamStatus: (status) => updateStreamState("roomEventsStatus", status),
+    setStreamStatus: (status, meta) => {
+      const previous = state.roomSyncDiagnostics;
+      const next = applySyncStatus(previous, status, meta);
+      if (state.roomEventsStatus === status
+        && previous?.reason === next.reason
+        && previous?.retryAt === next.retryAt
+        && previous?.catchUpPending === next.catchUpPending) return;
+      state.roomEventsStatus = status;
+      state.roomSyncDiagnostics = next;
+      patchSyncChromeOrRender();
+    },
+    setStreamReconciled: (meta) => {
+      state.roomSyncDiagnostics = markSyncReconciled(state.roomSyncDiagnostics, {
+        ...meta,
+        cursor: getRoomEventCursor(state.roomId, state.user?.id)
+      });
+      patchSyncChromeOrRender();
+    },
+    onStreamError: (error, meta) => {
+      state.roomSyncDiagnostics = markSyncError(state.roomSyncDiagnostics, error, meta);
+      patchSyncChromeOrRender();
+    },
     setConnected: (connected) => updateStreamState("roomEventsConnected", connected)
   };
 
@@ -124,8 +151,54 @@ export function createPlayStreamController({
     syncPlatformStream({ force });
   }
 
+  let connectivityTarget = null;
+  let offlineListener = null;
+  let onlineListener = null;
+
+  function bindBrowserConnectivity(target = globalThis) {
+    if (!target?.addEventListener || connectivityTarget) return () => {};
+    connectivityTarget = target;
+    offlineListener = () => {
+      disconnectRoomEvents(roomEventCtx);
+      state.roomEventsConnected = false;
+      state.roomEventsStatus = "reconnecting";
+      state.roomSyncDiagnostics = applySyncStatus(state.roomSyncDiagnostics, "reconnecting", {
+        reason: "offline"
+      });
+      patchSyncChromeOrRender();
+    };
+    onlineListener = async () => {
+      state.roomSyncDiagnostics = applySyncStatus(state.roomSyncDiagnostics, "reconnecting", {
+        reason: "browser_resume"
+      });
+      patchSyncChromeOrRender();
+      syncRoomStream({ force: true });
+      if (state.view !== "game" || !state.roomId || !isUuid(state.roomId)) return;
+      try {
+        await pullRoomData({ partial: true });
+        state.roomSyncDiagnostics = markSyncReconciled(state.roomSyncDiagnostics, {
+          cursor: getRoomEventCursor(state.roomId, state.user?.id),
+          reason: "catch_up_complete",
+          transport: "poll"
+        });
+        patchSyncChromeOrRender();
+      } catch {
+        // The forced stream reconnect and its retry policy remain active.
+      }
+    };
+    target.addEventListener("offline", offlineListener);
+    target.addEventListener("online", onlineListener);
+    return () => {
+      target.removeEventListener?.("offline", offlineListener);
+      target.removeEventListener?.("online", onlineListener);
+      connectivityTarget = null;
+      offlineListener = null;
+      onlineListener = null;
+    };
+  }
+
   return {
     roomEventCtx, platformEventCtx, syncPlatformStream, syncRoomStream,
-    handleAuthLost, handleKicked
+    handleAuthLost, handleKicked, bindBrowserConnectivity
   };
 }

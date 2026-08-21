@@ -16,11 +16,12 @@ const dispatchers = [
   () => window.zhimuActionsWorkspace?.handleWorkspaceAction,
   () => window.zhimuActionsCreatorWorkspaces?.handleCreatorWorkspacesAction,
   () => window.zhimuActionsArchive?.handleArchiveAction,
-  () => window.zhimuActionsPlayer?.handlePlayerAction,
   () => window.zhimuActionsStudio?.handleStudioAction,
   () => window.zhimuActionsWriter?.handleWriterAction,
   () => window.zhimuActionsRules?.handleRulesAction,
   () => window.zhimuActionsMiniGames?.handleMiniGamesAction,
+  () => window.zhimuActionsTabletopMap?.handleTabletopMapAction,
+  () => window.zhimuActionsBoardGame?.handleBoardGameAction,
   () => window.zhimuActionsAssets?.handleAssetsAction,
   () => window.zhimuActionsOps?.handleOpsAction,
   () => window.zhimuActionsClues?.handleCluesAction
@@ -38,10 +39,11 @@ export function bindDynamic() {
     callView("clues", "bindClueEditor");
   }
   if (view === "miniGames") callView("miniGames", "bindMiniGameEditor");
+  if (view === "tabletopMap") callView("tabletopMap", "bindTabletopMapEditor");
+  if (view === "boardGame") callView("boardGame", "bindBoardGameEditor");
   if (view === "rules") callView("rules", "bindRuleEditor");
   if (view === "rooms") callView("rooms", "bindRoomWorkspace");
   if (view === "account") callView("accountHub", "bindAccountHubView");
-  if (view === "player") callView("player", "bindPlayerReader");
   if (view === "structure") callView("creatorWorkspaces", "bindSegmentRefTypeSelect");
   if (view === "constitution") callView("creativeConstitution", "bindCreativeConstitutionForm");
   if (view === "playtest") callView("aiPlaytestLab", "bindAiPlaytestForm");

@@ -1,6 +1,8 @@
 import { narrativeProfileFromSettings } from "../../shared/narrative-profile.js";
 import { buildWorldSnapshot } from "./world-snapshot-service.js";
 import { WORLD_RELEASE_SNAPSHOT_VERSION } from "./world-release-contract.js";
+import { normalizeCommunicationTemplates } from "../../shared/communication-templates.js";
+import { normalizeMiniGameTemplates } from "../../shared/mini-game-protocol.js";
 
 const WORLD_RELEASE_SUPPORT_SQL = `
   SELECT
@@ -105,6 +107,10 @@ export async function buildWorldReleaseCandidate(worldId, sourceRevision, client
     rules: core.rules,
     segments: core.segments,
     mechanismPackage: core.mechanismPackage,
+    experienceConfiguration: {
+      communicationTemplates: normalizeCommunicationTemplates(core.world.settings?.communicationTemplates),
+      miniGameTemplates: normalizeMiniGameTemplates(core.world.settings?.miniGameTemplates),
+    },
     segmentRefs: support.segment_refs ?? [],
     truthClaims: support.truth_claims ?? [],
     roleRelationships: support.role_relationships ?? [],

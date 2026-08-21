@@ -18,6 +18,7 @@ export function createPortalEventLifecycle({
   onConnectionChange = () => {},
   onConnected = () => {},
   onDisconnected = () => {},
+  onReconciled = () => {},
   ...lifecycleOptions
 }) {
   if (typeof connect !== "function") throw new TypeError("portal event lifecycle requires connect");
@@ -40,7 +41,8 @@ export function createPortalEventLifecycle({
     onDisconnected: async () => {
       onConnectionChange(false);
       await onDisconnected();
-    }
+    },
+    onReconciled
   });
 }
 
@@ -52,12 +54,14 @@ export function createSseLifecycle({
   onStatus = () => {},
   onConnected = () => {},
   onDisconnected = () => {},
+  onReconciled = () => {},
   onAuthLost = () => {},
   onError = () => {},
   pollMs = 15000,
   pollMaxMs = Math.max(pollMs, pollMs * 8),
   connectedReconcileMs = 30000,
   connectedReconcileMaxMs = Math.max(connectedReconcileMs, connectedReconcileMs * 4),
+  handshakeTimeoutMs = 10000,
   reconnectBaseMs = 1000,
   reconnectMaxMs = 30000,
   eventTarget = globalThis,
@@ -66,14 +70,15 @@ export function createSseLifecycle({
   let active = false;
   let connected = false;
   let abortController = null;
+  let handshakeTimer = null;
   let reconnectTimer = null;
   let pollPromise = null;
   let reconcilePromise = null;
   let reconnectAttempt = 0;
   let generation = 0;
 
-  function setStatus(status) {
-    onStatus(status);
+  function setStatus(status, meta = {}) {
+    onStatus(status, meta);
   }
 
   function clearReconnectTimer() {
@@ -82,12 +87,19 @@ export function createSseLifecycle({
     reconnectTimer = null;
   }
 
+  function clearHandshakeTimer() {
+    if (!handshakeTimer) return;
+    clearTimeout(handshakeTimer);
+    handshakeTimer = null;
+  }
+
   async function performPoll(reason = "poll") {
     if (!active || connected || typeof poll !== "function") return;
     const task = Promise.resolve(poll(reason));
     pollPromise = task;
     try {
       await task;
+      await onReconciled({ reason, transport: "poll", at: new Date().toISOString() });
     } finally {
       if (pollPromise === task) pollPromise = null;
     }
@@ -104,7 +116,7 @@ export function createSseLifecycle({
 
   function startPolling() {
     if (!active || connected || typeof poll !== "function") return;
-    setStatus("polling");
+    setStatus("polling", { reason: "poll" });
     if (!fallbackPoller.isActive()) fallbackPoller.start({ immediate: false });
   }
 
@@ -115,7 +127,16 @@ export function createSseLifecycle({
   function runReconcile(reason = "connected", payload) {
     if (!active || !connected || typeof reconcile !== "function") return Promise.resolve();
     if (reconcilePromise) return reconcilePromise;
-    const task = Promise.resolve(reconcile(reason, payload)).finally(() => {
+    const task = Promise.resolve(reconcile(reason, payload)).then(async (result) => {
+      await onReconciled({
+        reason: reason === "connected" ? "catch_up_complete" : reason.replaceAll("-", "_"),
+        transport: "stream",
+        payload,
+        result,
+        at: new Date().toISOString()
+      });
+      return result;
+    }).finally(() => {
       if (reconcilePromise === task) reconcilePromise = null;
     });
     reconcilePromise = task;
@@ -147,35 +168,53 @@ export function createSseLifecycle({
     connectedPoller.stop();
   }
 
-  function scheduleReconnect(connect) {
+  function scheduleReconnect(connect, reason = "stream_closed") {
     if (!active || reconnectTimer) return;
-    setStatus("reconnecting");
     const exponential = Math.min(reconnectMaxMs, reconnectBaseMs * (2 ** reconnectAttempt));
     const delay = Math.max(250, Math.round(exponential * (0.75 + random() * 0.5)));
     reconnectAttempt += 1;
+    setStatus("reconnecting", {
+      reason,
+      attempt: reconnectAttempt,
+      delayMs: delay,
+      retryAt: new Date(Date.now() + delay).toISOString()
+    });
     reconnectTimer = setTimeout(() => {
       reconnectTimer = null;
-      connect();
+      connect("retry");
     }, delay);
   }
 
-  function connect() {
+  function connect(reason = "connecting") {
     if (!active) return;
     clearReconnectTimer();
     abortController?.abort();
     abortController = new AbortController();
     const signal = abortController.signal;
     const currentGeneration = generation;
-    setStatus("reconnecting");
+    let handshakeTimedOut = false;
+    setStatus("reconnecting", { reason, attempt: reconnectAttempt + 1 });
+    let disconnectReason = "stream_closed";
+
+    clearHandshakeTimer();
+    const resolvedHandshakeTimeoutMs = Number(handshakeTimeoutMs);
+    if (Number.isFinite(resolvedHandshakeTimeoutMs) && resolvedHandshakeTimeoutMs > 0) {
+      handshakeTimer = setTimeout(() => {
+        if (!active || connected || currentGeneration !== generation || signal.aborted) return;
+        handshakeTimedOut = true;
+        if (abortController?.signal === signal) abortController.abort();
+      }, resolvedHandshakeTimeoutMs);
+    }
 
     Promise.resolve().then(() => open({
       signal,
       onConnected: async (payload) => {
         if (!active || signal.aborted || currentGeneration !== generation) return;
+        clearHandshakeTimer();
         connected = true;
         reconnectAttempt = 0;
         stopPolling();
-        setStatus("connected");
+        setStatus("connected", { reason: "stream_connected", catchUpPending: true });
         if (pollPromise) await pollPromise.catch(() => {});
         await runReconcile("connected", payload).catch((error) => {
           onError(error, { phase: "reconcile", reason: "connected" });
@@ -184,14 +223,21 @@ export function createSseLifecycle({
         await onConnected(payload);
       }
     })).catch(async (error) => {
-      if (signal.aborted || currentGeneration !== generation) return;
-      onError(error, { phase: "stream" });
+      if ((signal.aborted && !handshakeTimedOut) || currentGeneration !== generation) return;
+      const reportedError = handshakeTimedOut
+        ? Object.assign(new Error("SSE handshake timed out"), { code: "SSE_HANDSHAKE_TIMEOUT" })
+        : error;
+      onError(reportedError, handshakeTimedOut
+        ? { phase: "handshake", timeoutMs: resolvedHandshakeTimeoutMs }
+        : { phase: "stream" });
+      disconnectReason = handshakeTimedOut ? "handshake_timeout" : "stream_error";
       if (error?.status === 401 && !error?.staleCredential) {
         active = false;
         await onAuthLost(error);
       }
     }).finally(async () => {
-      if (signal.aborted || currentGeneration !== generation) return;
+      clearHandshakeTimer();
+      if ((signal.aborted && !handshakeTimedOut) || currentGeneration !== generation) return;
       connected = false;
       stopConnectedReconciliation();
       abortController = null;
@@ -207,7 +253,7 @@ export function createSseLifecycle({
       }
       startPolling();
       void fallbackPoller.runNow("disconnected");
-      scheduleReconnect(connect);
+      scheduleReconnect(connect, disconnectReason);
     });
   }
 
@@ -215,7 +261,7 @@ export function createSseLifecycle({
     if (!active || connected) return;
     if (eventTarget?.document?.visibilityState === "hidden") return;
     reconnectAttempt = 0;
-    connect();
+    connect("browser_resume");
   }
 
   function start() {
@@ -225,7 +271,7 @@ export function createSseLifecycle({
     eventTarget?.addEventListener?.("online", handleRecoverySignal);
     eventTarget?.document?.addEventListener?.("visibilitychange", handleRecoverySignal);
     startPolling();
-    connect();
+    connect("initial_connect");
   }
 
   function stop() {
@@ -233,6 +279,7 @@ export function createSseLifecycle({
     connected = false;
     generation += 1;
     clearReconnectTimer();
+    clearHandshakeTimer();
     stopPolling();
     stopConnectedReconciliation();
     abortController?.abort();

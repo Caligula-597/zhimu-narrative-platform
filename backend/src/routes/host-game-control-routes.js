@@ -2,7 +2,10 @@ import {
   forceCompleteHostMiniGame,
   listHostMiniGames,
   previewHostRoomRules,
+  recoverHostMiniGame,
+  settleHostMiniGame,
   startHostMiniGame,
+  startHostRoomSession,
   triggerHostManualRule,
   updateHostRoomSettings
 } from "../host-game-control-service.js";
@@ -10,14 +13,28 @@ import { withRoomIdempotency } from "../idempotency-helpers.js";
 import { requireActor } from "../request-actor.js";
 import {
   forceCompleteMiniGameSchema,
+  recoverMiniGameSchema,
   roomIdParams,
   roomRulesPreviewSchema,
+  settleMiniGameSchema,
   startMiniGameSchema,
   triggerManualRuleSchema,
   updateRoomSettingsSchema
 } from "./schemas.js";
 
 export async function registerHostGameControlRoutes(app) {
+  app.post(
+    "/api/rooms/:roomId/host/start",
+    { schema: { params: roomIdParams } },
+    async (request) => {
+      const actorId = requireActor(request);
+      const { roomId } = request.params;
+      return withRoomIdempotency(roomId, request, "host.room_start", () => (
+        startHostRoomSession({ actorId, roomId })
+      ));
+    }
+  );
+
   app.get(
     "/api/rooms/:roomId/host/mini-games",
     { schema: { params: roomIdParams } },
@@ -48,6 +65,30 @@ export async function registerHostGameControlRoutes(app) {
       const actorId = requireActor(request);
       const { roomId, gameId } = request.params;
       return forceCompleteHostMiniGame({ actorId, roomId, gameId });
+    }
+  );
+
+  app.post(
+    "/api/rooms/:roomId/host/mini-games/:gameId/recover",
+    { schema: recoverMiniGameSchema },
+    async (request) => {
+      const actorId = requireActor(request);
+      const { roomId, gameId } = request.params;
+      return withRoomIdempotency(roomId, request, "host.mini_game_recover", () => (
+        recoverHostMiniGame({ actorId, roomId, gameId, body: request.body })
+      ));
+    }
+  );
+
+  app.post(
+    "/api/rooms/:roomId/host/mini-games/:gameId/settle",
+    { schema: settleMiniGameSchema },
+    async (request) => {
+      const actorId = requireActor(request);
+      const { roomId, gameId } = request.params;
+      return withRoomIdempotency(roomId, request, "host.mini_game_settle", () => (
+        settleHostMiniGame({ actorId, roomId, gameId, body: request.body })
+      ));
     }
   );
 

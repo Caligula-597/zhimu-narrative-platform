@@ -1,7 +1,6 @@
 import { nonEmptyText, paramsSchema, uuid } from "./primitives.js";
 import { roomIdParams } from "./player.js";
 import { worldIdParams } from "./world.js";
-import { worldSettingsSchema } from "./world-settings.js";
 
 const physicalTokenContentType = {
   type: "string",
@@ -120,85 +119,6 @@ export const activatePhysicalTokenSchema = {
     properties: {
       tokenCode: { type: "string", minLength: 12, maxLength: 32 },
       externalProof: externalActivationProofSchema
-    }
-  }
-};
-
-const wizardRoleSchema = {
-  type: "object",
-  additionalProperties: false,
-  required: ["name"],
-  properties: {
-    name: { type: "string", minLength: 1, maxLength: 120 },
-    goal: { type: "string", maxLength: 500 },
-    publicProfile: { type: "string", maxLength: 4000 },
-    privateProfile: { type: "string", maxLength: 8000 },
-    scriptBody: { type: "string", maxLength: 100_000 },
-    sectionTitle: { type: "string", maxLength: 200 },
-    sectionBody: { type: "string", maxLength: 100_000 },
-    sequence: { type: "integer", minimum: 1, maximum: 999 }
-  }
-};
-
-export const bootstrapWorldWizardSchema = {
-  body: {
-    type: "object",
-    additionalProperties: false,
-    required: ["name", "roles"],
-    properties: {
-      name: { type: "string", minLength: 1, maxLength: 120 },
-      summary: { type: "string", maxLength: 4000 },
-      settings: worldSettingsSchema,
-      chapter: {
-        type: "object",
-        additionalProperties: false,
-        properties: {
-          title: { type: "string", minLength: 1, maxLength: 200 },
-          summary: { type: "string", maxLength: 4000 }
-        }
-      },
-      sectionDefaults: {
-        type: "object",
-        additionalProperties: false,
-        properties: {
-          title: { type: "string", maxLength: 200 },
-          body: { type: "string", maxLength: 100_000 }
-        }
-      },
-      roles: { type: "array", minItems: 1, maxItems: 24, items: wizardRoleSchema },
-      automationTemplates: {
-        type: "object",
-        additionalProperties: false,
-        properties: {
-          reading: { type: "boolean" },
-          clue: { type: "boolean" },
-          chapter: { type: "boolean" },
-          hint: { type: "boolean" }
-        }
-      },
-      includeStarterGraph: { type: "boolean" },
-      createTestRoom: { type: "boolean" },
-      roomName: { type: "string", minLength: 1, maxLength: 120 },
-      inviteCode: { type: "string", minLength: 4, maxLength: 32 },
-      sectionPublicationStatus: { type: "string", enum: ["draft", "testing", "published"] }
-    }
-  }
-};
-
-export const worldTemplateIdParams = paramsSchema({
-  templateId: { type: "string", minLength: 1, maxLength: 64 }
-});
-
-export const createWorldFromTemplateSchema = {
-  params: worldTemplateIdParams,
-  body: {
-    type: "object",
-    additionalProperties: true,
-    properties: {
-      name: { type: "string", minLength: 1, maxLength: 120 },
-      summary: { type: "string", maxLength: 4000 },
-      createTestRoom: { type: "boolean" },
-      includeStarterGraph: { type: "boolean" }
     }
   }
 };
@@ -376,6 +296,7 @@ export const submitTestimonySchema = {
     properties: {
       actKey: { type: "string", maxLength: 40 },
       act_key: { type: "string", maxLength: 40 },
+      templateKey: { type: "string", const: "testimony" },
       body: { type: "string", minLength: 1, maxLength: 4000 }
     }
   }

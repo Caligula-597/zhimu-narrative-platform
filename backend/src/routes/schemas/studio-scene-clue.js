@@ -9,6 +9,26 @@ const clueKind = { type: "string", enum: ["general", "deep", "verify", "misdirec
 export const sceneIdParams = paramsSchema({ worldId: uuid, sceneId: uuid });
 export const clueIdParams = paramsSchema({ worldId: uuid, clueId: uuid });
 
+export const bindCluePathsSchema = {
+  params: worldIdParams,
+  body: {
+    type: "object",
+    additionalProperties: false,
+    required: ["clueIds", "segmentKey", "allowUnbound"],
+    properties: {
+      clueIds: {
+        type: "array",
+        minItems: 1,
+        maxItems: 200,
+        uniqueItems: true,
+        items: uuid
+      },
+      segmentKey: { anyOf: [{ type: "string", minLength: 1, maxLength: 120 }, { type: "null" }] },
+      allowUnbound: { type: "boolean" }
+    }
+  }
+};
+
 export const createSceneSchema = {
   params: worldIdParams,
   body: {

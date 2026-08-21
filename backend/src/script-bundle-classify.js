@@ -93,11 +93,15 @@ export function classifyBundleEntry(relativePath) {
     return { ...base, category: "asset", assetName: stem, confidence: "medium" };
   }
 
-  if ([".pdf", ".docx", ".txt", ".md", ".markdown"].includes(ext)) {
+  if ([".docx"].includes(ext)) {
     if (parts.length <= 2 && /^[\u4e00-\u9fa5A-Za-z0-9·・._ -]{2,24}$/.test(stem)) {
       return { ...base, category: "role_script", roleName: stem, confidence: "low" };
     }
     return { ...base, category: "unknown", title: stem, confidence: "low" };
+  }
+
+  if ([".mp3", ".wav", ".ogg", ".m4a"].includes(ext)) {
+    return { ...base, category: "asset", assetName: stem, confidence: "medium" };
   }
 
   return { ...base, category: "skip" };

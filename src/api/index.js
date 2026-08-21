@@ -13,10 +13,9 @@
  *   studio.js  — scenes/clues/items/investigation-points/story-graph
  *   room.js    — room creation, settings, SSE event stream
  *   host.js    — in-room host operations
- *   player.js  — exploration, clues, notebook, room join
- *   voice.js   — voice rooms and messages
+ *   player.js  — Creator-to-Player invite handoff
  *   recap.js   — checkpoints and recaps
- *   ai.js      — DeepSeek pipeline, story assistant, full-mystery generation
+ *   ai.js      — murder-mystery draft analysis/import and playtest
  *   content.js — documents, story manuscript, rules, content packages
  *   assets.js  — storage, asset CRUD, upload
  *   ops.js     — operator status, audit log, plan management
@@ -38,7 +37,6 @@ export {
   opsRequest,
   DEEPSEEK_TIMEOUT_MS,
   DEEPSEEK_CHAPTER_NARRATIVE_TIMEOUT_MS,
-  PIPELINE_IMPORT_TIMEOUT_MS,
   deepseekRequest,
   request,
   selectWorld,
@@ -124,9 +122,6 @@ export {
   deleteWorld,
   getWorldRooms,
   createWorld,
-  bootstrapWorldFromWizard,
-  getWorldTemplates,
-  createWorldFromTemplate,
   getWorldCollaborators,
   getWorldMembers,
   getWorldMemberInvites,
@@ -161,6 +156,10 @@ export {
   createForeshadowBeat,
   patchForeshadowBeat,
   deleteForeshadowBeat,
+  getMaterialBooklets,
+  createMaterialBooklet,
+  patchMaterialBooklet,
+  deleteMaterialBooklet,
   getTimelineEvents,
   createTimelineEvent,
   patchTimelineEvent,
@@ -200,6 +199,7 @@ export {
   updateScene,
   createClue,
   updateClue,
+  bindCluePaths,
   createItem,
   updateItem,
   deleteItem,
@@ -235,6 +235,8 @@ export {
   getHostPlayers,
   getHostPlayerDetail,
   hostGrantClue,
+  listHostMaterialBooklets,
+  hostGrantBooklet,
   hostGrantItem,
   hostUnlockSection,
   hostUnlockScene,
@@ -265,34 +267,9 @@ export {
 
 /* ── Player ── */
 export {
-  getPlayerHome,
   getRoomInvite,
-  joinRoom,
-  completeSection,
-  startSection,
-  addNotebookEntry,
-  deleteNotebookEntry,
-  getExploration,
-  investigate,
-  readClue,
-  shareClueToRoom,
-  shareClueToRoles,
-  updateCluePlayerNote,
-  getPlayerVotes,
-  submitVoteBallot,
-  getPrivateActions,
-  createPrivateAction,
-  updateSuspicion
+  joinRoom
 } from "./player.js";
-
-/* ── Voice ── */
-export {
-  getVoiceMessages,
-  getVoiceRoomToken,
-  sendVoiceMessage,
-  createVoiceRoom,
-  inviteVoiceRoomMembers
-} from "./voice.js";
 
 /* ── Recap & checkpoints ── */
 export {
@@ -310,34 +287,18 @@ export {
 /* ── AI / story assistant ── */
 export {
   analyzeStoryDraft,
-  assembleStorySpine,
   importStoryDraft,
   getDeepseekStatus,
   runAiPlaytest,
-  proposeWithDeepseek,
-  importDeepseekProposal,
-  deepseekPipelineSpec,
-  deepseekPipelineOutline,
-  deepseekPipelineStructure,
-  deepseekPipelineRoleMatrix,
-  deepseekPipelineSection,
-  deepseekPipelineManuscriptSynopsis,
-  importDeepseekPipeline,
-  deepseekPipelineEvaluate,
-  deepseekPipelineNarrativeChapter,
-  deepseekPipelineNarrativeRolesMeta,
-  deepseekPipelineNarrativeRoleScript,
-  deepseekPipelineNarrativeRoles,
-  deepseekPipelineNarrativeExtractStructure,
-  deepseekPipelineMatrixTruth,
-  deepseekPipelineMatrixCharacters,
-  deepseekPipelineMatrixInfoMatrix,
-  deepseekPipelineMatrixHostRunbook,
-  deepseekPipelineMatrixPlayerScript,
-  deepseekPipelineMatrixEvaluate,
-  deepseekPipelineMatrixSyncPreview,
-  proposeFullMysteryWithDeepseek,
-  importFullMysteryWithDeepseek
+  getWorldEngine,
+  seedWorldEngine,
+  searchWorldEngineEvents,
+  commitWorldEngineEvents,
+  lowerWorldEngineType,
+  searchWorldEngineEpistemic,
+  commitWorldEngineEpistemic,
+  renderWorldEngineScript,
+  repairWorldEngineScript
 } from "./ai.js";
 
 /* ── Content (documents / manuscript / rules / packages) ── */

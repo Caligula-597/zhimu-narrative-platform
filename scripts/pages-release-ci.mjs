@@ -21,7 +21,8 @@ const commonEnv = {
   ...process.env,
   VITE_API_ORIGIN: "https://app.getzhimu.com",
   VITE_APP_ORIGIN: "https://app.getzhimu.com",
-  VITE_PLAY_ORIGIN: "https://play.getzhimu.com"
+  VITE_PLAY_ORIGIN: "https://play.getzhimu.com",
+  REQUIRE_PAGES_FRONTEND_SYNC: "true"
 };
 const targets = [
   {

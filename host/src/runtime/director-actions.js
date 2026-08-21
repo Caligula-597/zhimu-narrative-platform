@@ -1,8 +1,19 @@
 import { api, getPlayerJoinUrl } from "../api.js";
 import { formatApiError } from "../errors.js";
 import { state } from "../state.js";
+import {
+  applyRuntimeTabletopCheckOutcome,
+  createRuntimeTabletopCheck,
+  resolveRuntimeTabletopCheck
+} from "../../../shared/tabletop-flow.js";
 import { loadHostData, refreshHostAuditLog, refreshHostClueMatrix, refreshHostEvents, refreshHostPlayers, refreshHostRoom } from "./data.js";
-import { resetPaceTimer, switchPaceMode, togglePaceTimer } from "./host-pace-timer.js";
+import {
+  extendPaceTimer,
+  resetPaceTimer,
+  setPaceTimerVisibility,
+  switchPaceMode,
+  togglePaceTimer
+} from "./host-pace-timer.js";
 import {
   batchHostEventsAction,
   syncHostEventSelectAll,
@@ -17,7 +28,14 @@ import {
   copyPlayLink,
   openRoomInviteModal
 } from "./invite.js";
+import {
+  buildRuntimePresentationPatch,
+  hasRuntimePresentationMutation,
+  matchesRuntimeControl
+} from "./runtime-presentation-control.js";
 export function createDirectorActionHandler({ render, showToast }) {
+  let runtimePresentationQueue = Promise.resolve();
+
   async function runCommand(command, successMessage, fallbackMessage, { refresh = true } = {}) {
     try {
       await command();
@@ -28,7 +46,26 @@ export function createDirectorActionHandler({ render, showToast }) {
     }
   }
 
-  return function handleDirectorAction(action, el) {
+  function saveRuntimePresentation(patchOrFactory, successMessage) {
+    const queued = runtimePresentationQueue.then(() => {
+      const presentation = state.currentState?.presentation || {};
+      const patch = typeof patchOrFactory === "function"
+        ? patchOrFactory(presentation)
+        : patchOrFactory;
+      if (!hasRuntimePresentationMutation(patch)) return false;
+      return runCommand(
+        () => api.updateHostRoomSettings({
+          runtimePresentation: buildRuntimePresentationPatch(patch)
+        }),
+        successMessage,
+        "同步运行流程失败"
+      );
+    });
+    runtimePresentationQueue = queued.catch(() => {});
+    return queued;
+  }
+
+  return async function handleDirectorAction(action, el) {
     switch (action) {
       case "rules-preview": refreshRulesPreview(); return true;
       case "rule-manual-trigger": triggerManualRuleFromDirector(el?.dataset?.rule); return true;
@@ -72,6 +109,32 @@ export function createDirectorActionHandler({ render, showToast }) {
           "处理失败"
         );
         return true;
+      case "host-resolve-item-action":
+        void runCommand(
+          () => api.resolveHostItemAction(el?.dataset?.itemActionId, {
+            expectedRevision: Number(el?.dataset?.revision),
+            decision: el?.dataset?.decision
+          }),
+          el?.dataset?.decision === "approve" ? "物品动作已批准并结算" : "物品动作已拒绝",
+          "处理物品动作失败"
+        );
+        return true;
+      case "host-update-relationship": {
+        const row = el?.closest?.("[data-host-relationship]");
+        const value = (field) => row?.querySelector?.(`[data-relationship-field="${field}"]`)?.value;
+        void runCommand(
+          () => api.updateHostRelationship(el?.dataset?.relationshipId, {
+            expectedRevision: Number(el?.dataset?.revision),
+            currentStrength: Number(value("strength") || 0),
+            status: value("status") || "unknown",
+            disclosure: value("disclosure") || "hidden",
+            publicNote: value("publicNote")?.trim?.() || ""
+          }),
+          "关系变化已同步",
+          "更新关系失败"
+        );
+        return true;
+      }
       case "host-load-run-report":
         void runCommand(
           async () => {
@@ -86,18 +149,283 @@ export function createDirectorActionHandler({ render, showToast }) {
       case "host-select-act":
         state.hostSelectedActKey = el?.dataset?.actKey || "";
         render();
+        {
+          const selectedActKey = state.hostSelectedActKey;
+          saveRuntimePresentation((presentation) => {
+            const map = presentation.map || {};
+            const matchedLocation = map.host?.locations?.find(
+              (location) => location.segmentKey && location.segmentKey === selectedActKey
+            );
+            const revealed = new Set(map.revealedLocationIds || []);
+            if (matchedLocation?.id) revealed.add(matchedLocation.id);
+            return {
+              activeSegmentKey: selectedActKey,
+              activeCheck: null,
+              activeEncounter: null,
+              ...(matchedLocation?.id ? {
+                activeLocationId: matchedLocation.id,
+                revealedLocationIds: [...revealed]
+              } : {})
+            };
+          }, "当前幕已同步到玩家端");
+        }
         return true;
+      case "host-tabletop-select-location": {
+        const locationId = el?.dataset?.locationId || "";
+        saveRuntimePresentation((presentation) => {
+          const revealed = new Set(presentation.map?.revealedLocationIds || []);
+          if (locationId) revealed.add(locationId);
+          return {
+            activeLocationId: locationId,
+            activeCheck: null,
+            activeEncounter: null,
+            revealedLocationIds: [...revealed]
+          };
+        }, "当前地点已同步到玩家端");
+        return true;
+      }
+      case "host-tabletop-toggle-map":
+        saveRuntimePresentation((presentation) => ({
+          mapVisible: !presentation.map?.visible
+        }), state.currentState?.presentation?.map?.visible ? "玩家地图已隐藏" : "玩家地图已公开");
+        return true;
+      case "host-tabletop-toggle-location": {
+        const locationId = el?.dataset?.locationId || "";
+        const map = state.currentState?.presentation?.map;
+        if (!locationId || locationId === map?.activeLocationId) {
+          showToast("当前地点必须保持公开");
+          return true;
+        }
+        saveRuntimePresentation((presentation) => {
+          const revealed = new Set(presentation.map?.revealedLocationIds || []);
+          if (revealed.has(locationId) && locationId !== presentation.map?.activeLocationId) revealed.delete(locationId);
+          else revealed.add(locationId);
+          return { revealedLocationIds: [...revealed] };
+        }, "地点可见范围已同步");
+        return true;
+      }
+      case "host-tabletop-start-encounter": {
+        const map = state.currentState?.presentation?.map;
+        const location = map?.host?.locations?.find((item) => item.id === map.activeLocationId);
+        const npcIds = [...new Set((location?.encounterNpcIds || []).map(String).filter(Boolean))];
+        if (!location || !npcIds.length) {
+          showToast("当前地点没有可触发的遭遇，请回到创作端配置 NPC");
+          return true;
+        }
+        const locationId = location.id;
+        saveRuntimePresentation((presentation) => {
+          const currentMap = presentation.map || {};
+          const currentLocation = currentMap.host?.locations?.find((item) => item.id === locationId);
+          const currentNpcIds = [...new Set((currentLocation?.encounterNpcIds || []).map(String).filter(Boolean))];
+          if (currentMap.activeLocationId !== locationId || !currentLocation || !currentNpcIds.length) return null;
+          const revealed = new Set(currentMap.revealedLocationIds || []);
+          revealed.add(locationId);
+          return {
+            activeEncounter: {
+              locationId,
+              npcIds: currentNpcIds,
+              status: "active",
+              startedAt: new Date().toISOString()
+            },
+            activeCheck: null,
+            mapVisible: true,
+            revealedLocationIds: [...revealed]
+          };
+        }, "地点遭遇已触发并同步到玩家端");
+        return true;
+      }
+      case "host-tabletop-end-encounter": {
+        const activeEncounter = state.currentState?.presentation?.map?.activeEncounter;
+        if (!activeEncounter) {
+          showToast("当前没有进行中的遭遇");
+          return true;
+        }
+        saveRuntimePresentation((presentation) => matchesRuntimeControl(
+          presentation.map?.activeEncounter,
+          activeEncounter,
+          ["locationId", "startedAt"]
+        ) ? { activeEncounter: null } : null, "地点遭遇已结束");
+        return true;
+      }
+      case "host-tabletop-start-check": {
+        const map = state.currentState?.presentation?.map;
+        const location = map?.host?.locations?.find((item) => item.id === map.activeLocationId);
+        const template = location?.checks?.find((check) => check.id === el?.dataset?.checkId);
+        if (!template) {
+          showToast("没有找到这项判定，请回到创作端检查地点配置");
+          return true;
+        }
+        const checkId = template.id;
+        const locationId = location.id;
+        saveRuntimePresentation((presentation) => {
+          const currentMap = presentation.map || {};
+          if (currentMap.activeLocationId !== locationId) return null;
+          const currentLocation = currentMap.host?.locations?.find((item) => item.id === locationId);
+          const currentTemplate = currentLocation?.checks?.find((check) => check.id === checkId);
+          if (!currentTemplate) return null;
+          return {
+            activeCheck: createRuntimeTabletopCheck(currentTemplate, {
+              locationId,
+              dice: currentMap.dice || map.dice
+            })
+          };
+        }, "判定已发到玩家端");
+        return true;
+      }
+      case "host-tabletop-start-custom-check": {
+        const map = state.currentState?.presentation?.map;
+        const panel = el?.closest?.("[data-host-tabletop-check-builder]");
+        const label = panel?.querySelector?.("[data-host-check-label]")?.value?.trim() || "临场判定";
+        const target = Number(panel?.querySelector?.("[data-host-check-target]")?.value ?? map?.dice?.defaultTarget ?? 12);
+        const bonus = Number(panel?.querySelector?.("[data-host-check-bonus]")?.value || 0);
+        const rollMode = panel?.querySelector?.("[data-host-check-mode]")?.value || "normal";
+        const locationId = map?.activeLocationId || "";
+        saveRuntimePresentation((presentation) => {
+          if ((presentation.map?.activeLocationId || "") !== locationId) return null;
+          return {
+            activeCheck: createRuntimeTabletopCheck({
+              id: "ad-hoc",
+              label,
+              instruction: `请描述如何完成「${label}」，主持人随后公开掷骰。`,
+              target,
+              bonus,
+              rollMode,
+              successText: "行动成功，故事获得预期进展。",
+              failureText: "行动未能如愿，但故事将带着代价继续。"
+            }, {
+              locationId,
+              dice: presentation.map?.dice || map?.dice
+            })
+          };
+        }, "临场判定已发到玩家端");
+        return true;
+      }
+      case "host-tabletop-roll-check": {
+        const activeCheck = state.currentState?.presentation?.map?.activeCheck;
+        if (!activeCheck) {
+          showToast("当前没有等待结算的判定");
+          return true;
+        }
+        saveRuntimePresentation((presentation) => {
+          const currentCheck = presentation.map?.activeCheck;
+          if (!matchesRuntimeControl(currentCheck, activeCheck, ["id", "locationId", "startedAt", "resolvedAt"])) return null;
+          return { activeCheck: resolveRuntimeTabletopCheck(currentCheck) };
+        }, "判定结果已公开");
+        return true;
+      }
+      case "host-tabletop-apply-check-outcome": {
+        const map = state.currentState?.presentation?.map;
+        if (!map?.activeCheck?.result || map.activeCheck.appliedAt) {
+          showToast(map?.activeCheck?.appliedAt ? "这次判定的数值变化已经应用" : "请先公开掷骰结果");
+          return true;
+        }
+        const activeCheck = map.activeCheck;
+        saveRuntimePresentation((presentation) => {
+          const currentMap = presentation.map || {};
+          const currentCheck = currentMap.activeCheck;
+          if (!matchesRuntimeControl(
+            currentCheck,
+            activeCheck,
+            ["id", "locationId", "startedAt", "resolvedAt"]
+          ) || currentCheck.appliedAt) return null;
+          const applied = applyRuntimeTabletopCheckOutcome(
+            currentCheck,
+            currentMap.host?.variables || map.host?.variables || []
+          );
+          return applied ? {
+            activeCheck: applied.activeCheck,
+            variableValues: applied.variableValues,
+            publishedEnding: null
+          } : null;
+        }, "数值变化已应用，结局候选已重新计算");
+        return true;
+      }
+      case "host-tabletop-publish-ending": {
+        const endingId = String(el?.dataset?.endingId || "");
+        const candidate = state.currentState?.presentation?.map?.host?.endingCandidates
+          ?.find((ending) => ending.id === endingId);
+        if (!candidate) {
+          showToast("该结局尚未满足条件，不能公开");
+          return true;
+        }
+        const idempotencyKey = `conclusion:${state.room?.id || "room"}:${endingId}`;
+        await runCommand(
+          () => api.prepareRoomConclusion({
+            endingId,
+            idempotencyKey,
+            title: `${candidate.name} · 复盘`
+          }, idempotencyKey),
+          `结局「${candidate.name}」已公开，复盘已进入准备流程`,
+          "公开结局或准备复盘失败"
+        );
+        return true;
+      }
+      case "host-tabletop-unpublish-ending": {
+        const publishedEnding = state.currentState?.presentation?.map?.publishedEnding;
+        if (!publishedEnding) {
+          showToast("当前没有已公开的结局导向");
+          return true;
+        }
+        saveRuntimePresentation((presentation) => matchesRuntimeControl(
+          presentation.map?.publishedEnding,
+          publishedEnding,
+          ["id", "publishedAt"]
+        ) ? { publishedEnding: null } : null, "结局导向已收回，仅主持端可见");
+        return true;
+      }
+      case "host-tabletop-clear-check": {
+        const activeCheck = state.currentState?.presentation?.map?.activeCheck;
+        if (!activeCheck) {
+          showToast("当前没有可收起的判定");
+          return true;
+        }
+        saveRuntimePresentation((presentation) => matchesRuntimeControl(
+          presentation.map?.activeCheck,
+          activeCheck,
+          ["id", "locationId", "startedAt", "resolvedAt"]
+        ) ? { activeCheck: null } : null, "判定已收起，可以继续推进");
+        return true;
+      }
       case "refresh-host-data": loadHostData(true, true); return true;
-      case "host-pace-toggle": togglePaceTimer(); return true;
-      case "host-pace-reset": resetPaceTimer(); return true;
+      case "host-pace-toggle": await togglePaceTimer(); return true;
+      case "host-pace-reset": await resetPaceTimer(); return true;
       case "host-pace-switch-mode":
-        switchPaceMode(el?.dataset?.mode || "count-up", Number(el?.dataset?.targetMs || 0));
+        await switchPaceMode(el?.dataset?.mode || "countup", Number(el?.dataset?.targetMs || 0));
+        return true;
+      case "host-pace-extend":
+        await extendPaceTimer(Number(el?.dataset?.extendMs || 0));
+        return true;
+      case "host-pace-visibility":
+        await setPaceTimerVisibility(el?.dataset?.visible === "1");
         return true;
       case "onboarding-go-player": {
         const code = state.room?.invite_code || "";
         window.open(getPlayerJoinUrl(code), "_blank", "noopener,noreferrer");
         return true;
       }
+      case "host-appoint-cohost": {
+        const panel = el?.closest?.("[data-host-cohost-panel]");
+        const raw = String(panel?.querySelector?.("[data-cohost-target]")?.value || "").trim();
+        if (!raw) {
+          showToast("请填写邮箱或用户 ID");
+          return true;
+        }
+        const uuidRe = /^[0-9a-fA-F]{8}-(?:[0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$/;
+        const payload = uuidRe.test(raw) ? { userId: raw } : { email: raw };
+        void runCommand(
+          () => api.appointHostCohost(payload),
+          "已任命协主持",
+          "任命协主持失败"
+        );
+        return true;
+      }
+      case "host-remove-cohost":
+        void runCommand(
+          () => api.removeHostCohost(el?.dataset?.userId),
+          "已移除协主持",
+          "移除协主持失败"
+        );
+        return true;
       default:
         return false;
     }

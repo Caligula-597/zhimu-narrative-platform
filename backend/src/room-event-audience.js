@@ -1,18 +1,22 @@
 const HOST_MEMBER_TYPES = new Set(["host", "cohost"]);
 const PUBLIC_PLAYER_EVENT_TYPES = new Set([
   "room.player_joined",
+  "room.session_started",
   "room.scene_unlocked",
   "room.game_started",
   "room.game_updated",
   "room.game_completed",
   "room.checkpoint_restored",
   "room.content_release_changed",
+  "room.presentation_updated",
   "room.vote_created",
   "room.vote_updated",
-  "room.segment_remedy_applied"
+  "room.segment_remedy_applied",
+  "room.test_capacity_probe"
 ]);
 const ROLE_TARGETED_EVENT_TYPES = new Set([
   "room.item_granted",
+  "room.item_action_updated",
   "room.section_unlocked",
   "room.section_relocked",
   "room.section_skipped",
@@ -24,6 +28,11 @@ const ROLE_TARGETED_EVENT_TYPES = new Set([
   "room.player_task_completed",
   "room.testimony_submitted",
   "room.physical_token_activated"
+]);
+const VOICE_AUDIENCE_EVENT_TYPES = new Set([
+  "room.voice_message_created",
+  "room.voice_room_created",
+  "room.voice_room_members_updated"
 ]);
 
 function includesId(values, target) {
@@ -56,6 +65,46 @@ export function projectRoomEventForAudience(event, audience = {}) {
       disconnectAfter: false
     };
   }
+  if (type === "room.presentation_updated") {
+    return {
+      event: {
+        type,
+        activeSegmentKey: event.activeSegmentKey,
+        activeLocationId: event.activeLocationId,
+        revealedLocationIds: Array.isArray(event.revealedLocationIds) ? event.revealedLocationIds : [],
+        mapVisible: Boolean(event.mapVisible),
+        checkStatus: event.checkStatus,
+        checkLabel: event.checkLabel,
+        encounterStatus: event.encounterStatus,
+        encounterLocationId: event.encounterLocationId,
+        updatedAt: event.updatedAt
+      },
+      disconnectAfter: false
+    };
+  }
+  if (type === "room.pace_clock_updated") {
+    return {
+      event: {
+        type,
+        revision: event.revision,
+        visibleToPlayers: Boolean(event.visibleToPlayers),
+        ...(event.visibleToPlayers ? { status: event.status } : {})
+      },
+      disconnectAfter: false
+    };
+  }
+  if (type === "room.conclusion_updated") {
+    return {
+      event: {
+        type,
+        status: event.status,
+        endingId: event.endingId || "",
+        recapId: event.recapId || "",
+        revision: event.revision
+      },
+      disconnectAfter: false
+    };
+  }
   if (PUBLIC_PLAYER_EVENT_TYPES.has(type)) return { event, disconnectAfter: false };
 
   if (type === "room.player_kicked") {
@@ -82,12 +131,20 @@ export function projectRoomEventForAudience(event, audience = {}) {
     return { event: visible ? event : null, disconnectAfter: false };
   }
   if (type === "room.private_action_submitted" || type === "room.private_action_updated") {
-    return { event: includesId(event.roleSlotIds, roleSlotId) ? event : null, disconnectAfter: false };
+    const visible = event.visibility === "public" || includesId(event.roleSlotIds, roleSlotId);
+    return { event: visible ? event : null, disconnectAfter: false };
+  }
+  if (type === "room.relationship_updated") {
+    const wasPublic = event.previousDisclosure === "public";
+    const wasInvolved = event.previousDisclosure === "involved" && includesId(event.roleSlotIds, roleSlotId);
+    const visible = event.disclosure === "public" || wasPublic || wasInvolved
+      || (event.disclosure === "involved" && includesId(event.roleSlotIds, roleSlotId));
+    return { event: visible ? event : null, disconnectAfter: false };
   }
   if (type === "room.physical_token_event") {
     return { event: event.visibility === "public" ? event : null, disconnectAfter: false };
   }
-  if (type === "room.voice_message_created") {
+  if (VOICE_AUDIENCE_EVENT_TYPES.has(type)) {
     const visible = event.audience === "room" || includesId(event.audienceUserIds, actorId);
     return { event: visible ? event : null, disconnectAfter: false };
   }

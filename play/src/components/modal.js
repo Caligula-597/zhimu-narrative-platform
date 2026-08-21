@@ -9,6 +9,7 @@ export function renderModal() {
   const { kind, title, message = "" } = modal;
 
   let body = "";
+  let voiceCreateInviteCount = 0;
   if (kind === "portal-profile") {
     body = renderPortalProfileEditor(state.portalProfile, {
       portal: "player",
@@ -87,9 +88,15 @@ export function renderModal() {
           : `<p class="hint muted">当前没有可加入的语音房。</p>`}
       </div>`;
   } else if (kind === "voice-create") {
-    const seats = state.home?.roomMembers || [];
+    const seats = (state.home?.voiceRoster || [])
+      .filter((member) => member.member_type === "player");
     const myUserId = state.user?.id;
     const selected = new Set(state.voiceInviteUserIds || []);
+    const selectableUserIds = new Set(seats
+      .filter((member) => member.user_id !== myUserId && member.role_slot_id !== state.home?.role?.id)
+      .map((member) => member.user_id));
+    voiceCreateInviteCount = [...selected]
+      .filter((userId) => selectableUserIds.has(userId)).length;
     body = `
       <p class="modal-lede">从已进入房间的角色中选择受邀者。你会自动加入密谈。</p>
       <label class="field-label">房间名称
@@ -100,8 +107,9 @@ export function renderModal() {
         ${seats.length
           ? seats
               .map((member) => {
-                const self = member.user_id === myUserId;
-                const disabled = self || !member.online;
+                const self =
+                  member.user_id === myUserId || member.role_slot_id === state.home?.role?.id;
+                const disabled = self;
                 const checked = selected.has(member.user_id);
                 return `
             <label class="member-pick ${disabled && !self ? "is-disabled" : ""}">
@@ -109,15 +117,17 @@ export function renderModal() {
               <span>
                 <strong>${escapeHtml(member.role_name || "未命名角色")}</strong>
                 ${member.display_name ? ` · ${escapeHtml(member.display_name)}` : ""}
-                ${self ? " · 当前角色" : member.online ? " · 可邀请" : " · 尚未入房"}
+                ${self ? " · 当前角色" : " · 可邀请"}
               </span>
             </label>`;
               })
               .join("")
           : `<p class="hint muted">当前房间尚未有角色成员。</p>`}
-      </div>`;
+      </div>
+      <p class="hint ${voiceCreateInviteCount ? "" : "accent-line"}">${voiceCreateInviteCount ? `已选择 ${voiceCreateInviteCount} 名同伴` : "至少选择一名其他玩家，不能创建只有自己的密谈。"}</p>`;
   } else if (kind === "voice-invite") {
-    const seats = state.home?.roomMembers || [];
+    const seats = (state.home?.voiceRoster || [])
+      .filter((member) => member.member_type === "player");
     const myUserId = state.user?.id;
     const selected = new Set(state.voiceInviteUserIds || []);
     body = `
@@ -125,8 +135,9 @@ export function renderModal() {
       <div class="member-picker">
         ${seats
           .map((member) => {
-            const self = member.user_id === myUserId;
-            const disabled = self || !member.online;
+            const self =
+              member.user_id === myUserId || member.role_slot_id === state.home?.role?.id;
+            const disabled = self;
             const checked = selected.has(member.user_id);
             return `
             <label class="member-pick ${disabled && !self ? "is-disabled" : ""}">
@@ -134,7 +145,7 @@ export function renderModal() {
               <span>
                 <strong>${escapeHtml(member.role_name || "未命名角色")}</strong>
                 ${member.display_name ? ` · ${escapeHtml(member.display_name)}` : ""}
-                ${self ? " · 当前角色" : member.online ? " · 可邀请" : " · 尚未入房"}
+                ${self ? " · 当前角色" : " · 可邀请"}
               </span>
             </label>`;
           })
@@ -156,11 +167,11 @@ export function renderModal() {
           : kind === "investigate"
             ? `<button class="btn primary" type="button" data-action="modal-close">知道了</button>`
             : kind === "voice-create"
-              ? `<button class="btn primary" type="button" data-action="modal-create-voice" ${state.busy ? "disabled" : ""}>创建并进入</button>`
+              ? `<button class="btn primary" type="button" data-action="modal-create-voice" ${state.busy || voiceCreateInviteCount === 0 ? "disabled" : ""}>创建并进入</button>`
               : kind === "voice-invite"
                 ? `<button class="btn primary" type="button" data-action="modal-voice-invite" ${state.busy ? "disabled" : ""}>发送邀请</button>`
                 : kind === "voice-pick"
-                  ? `<button class="btn quiet" type="button" data-action="voice-room-create">＋ 创建密谈</button>`
+                  ? `<button class="btn quiet" type="button" data-action="voice-room-create" ${state.home?.voicePolicy?.privateRoomsEnabled ? "" : `disabled title="${["completed", "archived"].includes(state.home?.voicePolicy?.roomStatus) ? "场次已结束，密谈已关闭" : "主持人正式开场后开放"}"`}>＋ ${state.home?.voicePolicy?.privateRoomsEnabled ? "创建密谈" : ["completed", "archived"].includes(state.home?.voicePolicy?.roomStatus) ? "密谈已关闭" : "开场后开放密谈"}</button>`
                   : `<button class="btn primary" type="button" data-action="modal-confirm" ${state.busy ? "disabled" : ""}>确认</button>`;
 
   if (kind === "portal-profile") {

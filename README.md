@@ -1,8 +1,5 @@
 # 织幕
 
-最后更新：2026-07-30
-工程事实基线：2026-07-24；产品与品牌维护入口更新：2026-07-30
-
 织幕是面向线上长线剧本杀与跑团的创作、主持和玩家协作平台。PostgreSQL 是业务数据真相源，Fastify 提供统一 `/api`，Creator、Host、Player 与官网分别按使用角色部署。
 
 ## 从这里开始
@@ -11,12 +8,11 @@
 - [产品与品牌维护总控台](./docs/PRODUCT_BRAND_MAINTENANCE_HUB_ZH.md)
 - [当前项目状态](./docs/PROJECT_STATUS.md)
 - [架构总览](./ARCHITECTURE.md)
-- [完整产品功能与创作流程](./docs/PRODUCT_FUNCTION_OVERVIEW_DETAILED_ZH.md)
 - [安全与测试](./SECURITY_AND_TESTING.md)
 - [运维文档索引](./docs/ops/README.md)
 - [机器生成的当前指标](./docs/GENERATED_PROJECT_STATUS.json)
 
-文档中的数字以生成基线和实际命令输出为准。带日期的 Alpha、演练、迁移和验收记录是历史证据，不代表当前实现；蓝图、草案、计划和 backlog 不代表已经上线。
+文档中的数字以生成状态和实际命令输出为准。带日期的运维演练与验收记录是证据快照，不代表当前实现。
 
 ## 产品与部署边界
 

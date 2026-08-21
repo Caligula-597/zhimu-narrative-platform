@@ -3,6 +3,7 @@ import { validateEventPayload } from "./event-schema-validator.js";
 const id = Object.freeze({ type: "string", minLength: 1, maxLength: 200 });
 const text = Object.freeze({ type: "string", minLength: 1, maxLength: 2000 });
 const shortText = Object.freeze({ type: "string", minLength: 1, maxLength: 80 });
+const optionalShortText = Object.freeze({ type: "string", minLength: 0, maxLength: 200 });
 const tokenCode = Object.freeze({ type: "string", minLength: 1, maxLength: 64 });
 const boolean = Object.freeze({ type: "boolean" });
 const number = Object.freeze({ type: "number" });
@@ -67,6 +68,20 @@ export const ROOM_EVENT_SCHEMAS = Object.freeze({
     audience: enumString(["room", "restricted"]),
     audienceUserIds: idList
   }),
+  "room.voice_room_created": schema(["voiceRoomId", "voiceRoomName", "createdByUserId", "audience", "audienceUserIds"], {
+    voiceRoomId: id,
+    voiceRoomName: text,
+    createdByUserId: id,
+    audience: enumString(["room", "restricted"]),
+    audienceUserIds: idList
+  }),
+  "room.voice_room_members_updated": schema(["voiceRoomId", "voiceRoomName", "invitedByUserId", "audience", "audienceUserIds"], {
+    voiceRoomId: id,
+    voiceRoomName: text,
+    invitedByUserId: id,
+    audience: enumString(["restricted"]),
+    audienceUserIds: idList
+  }),
   "room.physical_token_event": schema(["tokenId", "tokenCode", "message"], {
     tokenId: id,
     tokenCode,
@@ -127,6 +142,19 @@ export const ROOM_EVENT_SCHEMAS = Object.freeze({
     source,
     itemName: text
   }),
+  "room.item_action_updated": schema(["actionId", "roleSlotId", "status", "revision"], {
+    actionId: id,
+    roleSlotId: id,
+    status: shortText,
+    revision: number
+  }),
+  "room.relationship_updated": schema(["relationshipId", "roleSlotIds", "disclosure", "revision"], {
+    relationshipId: id,
+    roleSlotIds: idList,
+    disclosure: enumString(["hidden", "involved", "public"]),
+    previousDisclosure: enumString(["hidden", "involved", "public"]),
+    revision: number
+  }),
   "room.game_started": schema(["currentGame"], { currentGame: object }),
   "room.game_completed": schema(["currentGame"], { currentGame: object, forced: boolean, correct: boolean }),
   "room.game_updated": schema(["currentGame", "correct"], { currentGame: object, correct: boolean }),
@@ -153,7 +181,43 @@ export const ROOM_EVENT_SCHEMAS = Object.freeze({
     decisionKey: shortText,
     submissionCount: number
   }),
+  "room.presentation_updated": schema(
+    ["activeSegmentKey", "activeLocationId", "revealedLocationIds", "mapVisible", "checkStatus", "checkLabel", "updatedAt"],
+    {
+      activeSegmentKey: optionalShortText,
+      activeLocationId: optionalShortText,
+      revealedLocationIds: idList,
+      mapVisible: boolean,
+      checkStatus: enumString(["cleared", "pending", "resolved"]),
+      checkLabel: optionalShortText,
+      encounterStatus: enumString(["cleared", "active"]),
+      encounterLocationId: optionalShortText,
+      updatedAt: text
+    }
+  ),
   "room.investigation_completed": schema(["pointId", "roleSlotId"], { pointId: id, roleSlotId: id }),
+  "room.discovery_updated": schema(
+    ["locationId", "roleSlotId", "action", "revision", "drawnCount", "remainingCount"],
+    {
+      locationId: id,
+      roleSlotId: id,
+      action: shortText,
+      revision: number,
+      drawnCount: number,
+      remainingCount: number
+    }
+  ),
+  "room.pace_clock_updated": schema(["revision", "status", "visibleToPlayers"], {
+    revision: number,
+    status: shortText,
+    visibleToPlayers: boolean
+  }),
+  "room.conclusion_updated": schema(["status", "endingId", "recapId", "revision"], {
+    status: shortText,
+    endingId: optionalShortText,
+    recapId: optionalShortText,
+    revision: number
+  }),
   "room.vote_created": schema(["voteId", "title", "status"], {
     voteId: id,
     title: text,
@@ -162,13 +226,15 @@ export const ROOM_EVENT_SCHEMAS = Object.freeze({
   "room.vote_updated": schema(["voteId", "action"], { voteId: id, action: shortText }),
   "room.private_action_submitted": schema(["actionId", "actionType"], {
     actionId: id,
-    actionType: enumString(["ask_host", "secret_action", "trade", "promise", "accusation_note"]),
-    roleSlotIds: idList
+    actionType: enumString(["ask_host", "secret_action", "trade", "promise", "accusation_note", "public_statement"]),
+    roleSlotIds: idList,
+    visibility: enumString(["actor_host", "actor_target_host", "host_only", "postgame", "public"])
   }),
   "room.private_action_updated": schema(["actionId", "status"], {
     actionId: id,
     status: enumString(["seen", "accepted", "rejected", "resolved", "cancelled"]),
-    roleSlotIds: idList
+    roleSlotIds: idList,
+    visibility: enumString(["actor_host", "actor_target_host", "host_only", "postgame", "public"])
   }),
   "room.role_state_updated": schema(["roleSlotId"], { roleSlotId: id }),
   "room.player_task_completed": schema(["taskId", "roleSlotId"], { taskId: id, roleSlotId: id }),

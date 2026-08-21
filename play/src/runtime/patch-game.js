@@ -2,13 +2,18 @@ import { setHtml } from "../../../shared/safe-dom.js";
 import { setToast } from "../state.js";
 import {
   gameTabPanelLabelId,
+  renderConclusionStatus,
   renderGameTabBar,
   renderGameTabBody,
   renderGameSidebar,
-  renderHostConfirmBannerHtml
+  renderHostConfirmBannerHtml,
+  renderTabletopLiveAlert
 } from "../views/game.js";
 import { renderMiniGamePanel } from "../components/mini-games.js";
 import { bindPlayReader } from "./reader.js";
+import { renderPlayerPaceClock } from "./player-pace-clock.js";
+import { markInputRefreshDeferred } from "../../../shared/sync-diagnostics.js";
+import { patchSyncStatusBanner } from "./sync-helpers.js";
 
 function activeInputIn(el) {
   const active = document.activeElement;
@@ -37,6 +42,15 @@ function patchGameChrome(state) {
   const banner = document.querySelector("[data-game-host-banner]");
   if (banner) setHtml(banner, renderHostConfirmBannerHtml());
 
+  const tabletopAlert = document.querySelector("[data-game-tabletop-alert]");
+  if (tabletopAlert) setHtml(tabletopAlert, renderTabletopLiveAlert());
+
+  const paceClock = document.querySelector("[data-game-pace-clock]");
+  if (paceClock) setHtml(paceClock, renderPlayerPaceClock(state.paceClock));
+
+  const conclusion = document.querySelector("[data-game-conclusion-status]");
+  if (conclusion) setHtml(conclusion, renderConclusionStatus());
+
   const miniGame = document.querySelector("[data-game-mini-game]");
   if (miniGame && !activeInputIn(miniGame)) setHtml(miniGame, renderMiniGamePanel(state.currentGame));
 
@@ -61,9 +75,14 @@ export function patchGameTabSwitch(state, ctx) {
   const tabBar = document.querySelector("[data-game-tab-bar]");
   if (!tabBody || !tabBar || state.view !== "game") return false;
 
+  const focusedPrimaryTab = document.activeElement?.closest?.('[role="tab"]')?.dataset?.primaryTab || "";
+
   setHtml(tabBar, renderGameTabBar());
   setHtml(tabBody, renderGameTabBody());
   tabBody.setAttribute("aria-labelledby", gameTabPanelLabelId(state.tab));
+  if (focusedPrimaryTab) {
+    tabBar.querySelector('[role="tab"][aria-selected="true"]')?.focus();
+  }
 
   if (state.tab === "sections") bindSectionsReader(state, ctx);
   return true;
@@ -79,7 +98,15 @@ export function patchGameView(state, ctx) {
 
   patchGameChrome(state);
 
-  if (isGameInputFocused()) return "chrome";
+  if (isGameInputFocused()) {
+    state.roomSyncDiagnostics = markInputRefreshDeferred(state.roomSyncDiagnostics, true);
+    patchSyncStatusBanner(state);
+    return "chrome";
+  }
+  if (state.roomSyncDiagnostics?.inputDeferred) {
+    state.roomSyncDiagnostics = markInputRefreshDeferred(state.roomSyncDiagnostics, false);
+    patchSyncStatusBanner(state);
+  }
 
   const tabBodyScroll = tabBody.scrollTop;
   const voiceLog = state.tab === "voice" ? document.querySelector("[data-voice-scroll]") : null;

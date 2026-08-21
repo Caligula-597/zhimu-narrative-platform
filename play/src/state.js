@@ -1,5 +1,6 @@
 import { patchPlayToast } from "./runtime/sync-helpers.js";
 import { createToastTimer } from "../../shared/toast.js";
+import { createSyncDiagnostics } from "../../shared/sync-diagnostics.js";
 
 const playToastTimer = createToastTimer(3200);
 
@@ -39,9 +40,16 @@ export const state = {
   roomId: storedRoomId,
   home: null,
   exploration: null,
+  discoverySessions: [],
+  discoverySyncError: "",
+  paceClock: null,
+  sessionConclusion: null,
+  itemActions: [],
+  relationships: [],
   tab: storedRoomId ? readStoredGameTab() : "home",
   sectionId: storedRoomId ? (localStorage.getItem(GAME_SECTION_KEY) || "") : "",
   clueId: "",
+  bookletId: "",
   inviteCode: "",
   joinPreview: null,
   publicRooms: null,
@@ -71,6 +79,9 @@ export const state = {
   pendingVerifyToken: "",
   recapLatest: null,
   recapDetail: null,
+  recapLibrary: [],
+  recapLibrarySelected: null,
+  recapLibraryError: "",
   recapLoading: false,
   satisfactionSubmitted: false,
   recapError: "",
@@ -101,6 +112,7 @@ export const state = {
   roomEventsConnected: false,
   platformEventsConnected: false,
   roomEventsStatus: "idle",
+  roomSyncDiagnostics: createSyncDiagnostics(),
   platformEventsStatus: "idle",
   explorationError: "",
   plazaError: "",
@@ -179,6 +191,16 @@ export function clearGameSession() {
 
 export function persistRoom(roomId, isUuid) {
   const next = roomId && isUuid(roomId) ? roomId : "";
+  if (next !== state.roomId) {
+    state.discoverySessions = [];
+    state.discoverySyncError = "";
+    state.paceClock = null;
+    state.sessionConclusion = null;
+    state.itemActions = [];
+    state.relationships = [];
+    state.recapLibrarySelected = null;
+    state.recapDetail = null;
+  }
   state.roomId = next;
   if (next) localStorage.setItem(ROOM_KEY, next);
   else {

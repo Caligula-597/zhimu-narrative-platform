@@ -1,44 +1,44 @@
 {
-  "generatedAt": "2026-08-08T08:57:08.774Z",
+  "generatedAt": "2026-08-21T07:29:38.173Z",
   "source": {
-    "gitCommit": "af96270",
+    "gitCommit": "508b5ce",
     "node": "v24.13.0",
     "note": "Counts describe source declarations and files, not a claim that every test was executed."
   },
   "backend": {
     "tests": {
-      "declarations": 1228,
+      "declarations": 1201,
       "files": 286
     },
-    "migrations": 109,
-    "latestMigration": "109_room_mechanism_structured_answers",
+    "migrations": 115,
+    "latestMigration": "115_case_play_extensions",
     "routes": {
-      "modules": 77,
+      "modules": 80,
       "directDatabaseCalls": 0
     },
     "schemas": {
-      "domainFiles": 35
+      "domainFiles": 42
     }
   },
   "frontend": {
-    "verifiedScriptModules": 67,
+    "verifiedScriptModules": 57,
     "entryLines": {
-      "creator": 47,
-      "host": 127,
-      "player": 424
+      "creator": 43,
+      "host": 141,
+      "player": 441
     },
     "tests": {
       "sharedAndTooling": {
-        "declarations": 311,
-        "files": 63
+        "declarations": 431,
+        "files": 90
       },
       "host": {
-        "declarations": 73,
-        "files": 16
+        "declarations": 83,
+        "files": 21
       },
       "player": {
-        "declarations": 87,
-        "files": 22
+        "declarations": 116,
+        "files": 35
       }
     }
   },
@@ -47,19 +47,18 @@
     "note": "Validated by npm run check:world-writes; run the command for pass/fail evidence."
   },
   "documentation": {
-    "trackedFiles": 158,
+    "trackedFiles": 131,
     "byArea": {
+      "创意提案-织幕": 15,
       "软著材料": 4,
-      "优化计划": 11,
       "backend": 3,
-      "docs": 117,
+      "docs": 99,
       "e2e": 1,
-      "examples": 6,
+      "fixtures": 1,
       "host": 1,
       "play": 1,
-      "root": 12,
-      "site": 1,
-      "web": 1
+      "root": 5,
+      "site": 1
     }
   }
 }

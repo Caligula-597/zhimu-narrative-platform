@@ -78,3 +78,20 @@ test("Creator room Release changes stay inline and preserve preview-before-apply
   assert.match(actions, /case "room-release-preview"/);
   assert.match(actions, /case "room-release-apply"/);
 });
+
+test("Creator, Host, and Player render the shared current beat contract", () => {
+  const creator = source("src/views/rooms.js");
+  const host = source("host/src/views/console.js");
+  const player = source("play/src/views/game-home-views.js");
+  assert.match(creator, /currentBeat\.position/);
+  assert.match(creator, /currentBeat\?\.host\?\.dmTasks/);
+  assert.match(creator, /currentBeat\?\.host\?\.advanceCondition/);
+  assert.match(host, /runtimeState\.currentBeat/);
+  assert.match(host, /roomContentBindingPresentation\(runtimeState\.contentBinding\|\|room\.contentBinding\)/);
+  assert.match(host, /currentBeat\?\.host\?\.advanceCondition/);
+  assert.match(host, /currentBeatKey:\s*currentBeat\?\.key/);
+  assert.match(player, /currentBeat\?\.player\?\.content/);
+  assert.match(player, /currentBeat\?\.player\?\.tasks/);
+  assert.match(player, /currentBeat\?\.player\?\.tips/);
+  assert.doesNotMatch(player, /currentBeat\?\.host/);
+});

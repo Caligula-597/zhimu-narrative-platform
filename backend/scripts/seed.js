@@ -155,9 +155,11 @@ try {
   );
 
   await client.query(
-    `INSERT INTO rooms (id, world_id, host_user_id, name, invite_code, status)
-     VALUES ($1, $2, $3, $4, $5, 'testing')
-     ON CONFLICT (invite_code) DO UPDATE SET name = EXCLUDED.name, status = EXCLUDED.status, world_id = EXCLUDED.world_id`,
+    `INSERT INTO rooms (id, world_id, host_user_id, name, invite_code, status, started_at)
+     VALUES ($1, $2, $3, $4, $5, 'testing', now())
+     ON CONFLICT (invite_code) DO UPDATE
+     SET name = EXCLUDED.name, status = EXCLUDED.status, world_id = EXCLUDED.world_id,
+         started_at = COALESCE(rooms.started_at, EXCLUDED.started_at)`,
     [FIXTURE.roomId, FIXTURE.worldId, FIXTURE.hostUserId, FIXTURE.roomName, FIXTURE.inviteCode]
   );
   await client.query(

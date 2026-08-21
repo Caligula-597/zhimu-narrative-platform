@@ -12,11 +12,18 @@ import { loadPlayerHomeTasks, resolvePlayerHomeProgress } from "../services/play
 
 const EMPTY_SOCIAL = Object.freeze({
   notes: [], clues: [], sharedClues: [], roomMembers: [],
-  suspicions: [], testimonies: [], privateActions: []
+  suspicions: [], testimonies: [], privateActions: [], materialBooklets: []
 });
 const EMPTY_SESSION = Object.freeze({
   voiceRooms: [], inventory: [], hostConfirm: null, currentGame: null,
-  activeVotes: [], roleState: null
+  activeVotes: [], roleState: null,
+  voiceRoster: [],
+  voicePolicy: {
+    mainRoomId: null,
+    privateRoomsEnabled: false,
+    startedAt: null,
+    roomStatus: null
+  }
 });
 
 function projectFrozenClue(provider, clue) {
@@ -27,6 +34,8 @@ function projectFrozenClue(provider, clue) {
     ...clue,
     name: authored.name,
     public_text: authored.public_text ?? "",
+    segment_key: authored.metadata?.segmentKey ?? authored.metadata?.segment_key ?? null,
+    location_id: authored.metadata?.locationId ?? authored.metadata?.location_id ?? null,
     owner_role_name: ownerRole?.name ?? clue.owner_role_name
   };
 }
@@ -56,6 +65,11 @@ function projectFrozenPlayerSocial(provider, social) {
 function projectFrozenPlayerSession(provider, session) {
   return {
     ...session,
+    voiceRoster: (session.voiceRoster || []).map((member) => {
+      if (!member.role_slot_id) return member;
+      const role = provider.find("roles", member.role_slot_id);
+      return role ? { ...member, role_name: role.name } : member;
+    }),
     inventory: session.inventory
       .map((entry) => {
         const item = provider.find("items", entry.item_id);
@@ -89,7 +103,8 @@ export async function loadPlayerHomeCore({ roomId, roleSlotId }) {
     ...EMPTY_SESSION,
     currentActKey: progress.currentActKey,
     tasks: progress.tasks,
-    segments: content.segments
+    segments: content.segments,
+    communicationTemplates: content.communicationTemplates
   };
 }
 
@@ -113,6 +128,7 @@ export async function loadAuthorizedPlayerHomeCore({ roomId, actorId }) {
     currentActKey: progress.currentActKey,
     tasks: progress.tasks,
     segments: content.segments,
+    communicationTemplates: content.communicationTemplates,
     contentRevision: content.contentRevision
   };
 }
@@ -179,6 +195,7 @@ export async function loadPlayerHomePayload({ roomId, roleSlotId, actorId }) {
     ...projectedSession,
     currentActKey: progress.currentActKey,
     tasks: progress.tasks,
-    segments: content.segments
+    segments: content.segments,
+    communicationTemplates: content.communicationTemplates
   };
 }

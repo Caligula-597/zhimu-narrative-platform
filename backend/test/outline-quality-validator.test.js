@@ -8,7 +8,7 @@ import {
   validateOutlineBatchDiversity,
   validateStoryOutline,
   validateStorySpec
-} from "../src/deepseek.js";
+} from "../src/deepseek-validators.js";
 import {
   buildStoryOutlineAssemblyMessages,
   buildStoryOutlineAssemblyMechanicalPatchPlan,

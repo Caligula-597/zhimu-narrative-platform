@@ -89,6 +89,7 @@ export async function handlePlayGameAction({
       return true;
     case "submit-private-action":
       await submitPrivateAction({
+        button,
         state,
         api,
         render,
@@ -107,8 +108,34 @@ export async function handlePlayGameAction({
     case "mini-game-submit":
       await handleMiniGameSubmit(button);
       return true;
+    case "submit-item-action":
+      await submitItemAction({ button, state, api, render, setToast, formatApiError, pullRoomData });
+      return true;
     default:
       return false;
+  }
+}
+
+async function submitItemAction({ button, state, api, render, setToast, formatApiError, pullRoomData }) {
+  const card = button.closest("[data-item-action-card]");
+  const targetType = button.dataset.targetType || "none";
+  const targetId = card?.querySelector("[data-item-action-target]")?.value || null;
+  const combineItemId = card?.querySelector("[data-item-action-combine]")?.value || null;
+  if ((targetType !== "none" && !targetId) || (card?.querySelector("[data-item-action-combine]") && !combineItemId)) {
+    setToast("请选择动作需要的目标或组合物", render, { patch: true });
+    return;
+  }
+  try {
+    const result = await api.submitItemAction(state.roomId, button.dataset.itemId, {
+      actionKey: button.dataset.actionKey,
+      targetType,
+      targetId,
+      combineItemId,
+    });
+    await pullRoomData({ partial: true });
+    setToast(result.itemAction?.status === "pending" ? "动作已提交，等待主持人确认" : (result.itemAction?.resultText || "物品动作已完成"), render, { patch: true });
+  } catch (error) {
+    setToast(formatApiError(error, "物品动作失败"), render, { patch: true });
   }
 }
 
@@ -306,6 +333,7 @@ async function submitVote({
 }
 
 async function submitPrivateAction({
+  button,
   state,
   api,
   render,
@@ -314,20 +342,17 @@ async function submitPrivateAction({
   pullRoomData,
   documentRef,
 }) {
-  const titleElement = documentRef.querySelector("[data-private-action-title]");
-  const bodyElement = documentRef.querySelector("[data-private-action-body]");
-  const title = titleElement?.value?.trim();
+  const templateKey = button?.dataset?.templateKey;
+  const form = button?.closest?.("[data-communication-form]");
+  const bodyElement = form?.querySelector("[data-private-action-body]");
   const body = bodyElement?.value?.trim() || "";
-  const actionType =
-    documentRef.querySelector("[data-private-action-type]")?.value ||
-    "ask_host";
-  if (!title) {
-    setToast("请填写标题", render, { patch: true });
+  if (!templateKey || !body) {
+    setToast("请填写提交内容", render, { patch: true });
     return;
   }
   try {
-    await api.createPrivateAction(state.roomId, { actionType, title, body });
-    if (titleElement) titleElement.value = "";
+    const actionType = templateKey === "public_statement" ? "public_statement" : templateKey;
+    await api.createPrivateAction(state.roomId, { actionType, title: templateKey, body, templateKey });
     if (bodyElement) bodyElement.value = "";
     await pullRoomData({ partial: true });
     setToast("已提交给主持人", render, { patch: true });

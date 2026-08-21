@@ -3,7 +3,8 @@
  * CI / local Railway deploy: prefer `railway up` (Project Token), else GraphQL redeploy (Account Token).
  *
  * Env (GitHub Secrets or .env.railway.setup):
- *   RAILWAY_TOKEN            — Project Token → railway up
+ *   RAILWAY_PROJECT_TOKEN    — Project Token → railway up
+ *   RAILWAY_TOKEN            — Account/API token fallback
  *   RAILWAY_ACCOUNT_TOKEN    — Account Token → serviceInstanceDeployV2 (GitHub-connected source)
  *   RAILWAY_SERVICE_ID       — default: zhimu-narrative-platform fullstack service
  *   RAILWAY_ENVIRONMENT_ID   — production environment
@@ -14,13 +15,14 @@ import path from "node:path";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { deployService, updateServiceInstance, listRecentDeployments, fetchDeployment, fetchBuildLogs, fetchRuntimeLogs } from "./railway-api.mjs";
+import { loadExpectedCreatorManifest, probeCreatorFrontendSync } from "./production-frontend-sync.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const setupPath = path.join(root, ".env.railway.setup");
 
 const DEFAULTS = {
-  serviceId: "fc78dfb7-98dc-4ca5-8a9e-4cb9a9db80b1",
-  environmentId: "e3b187d0-75ba-49a3-ba92-16168dd5fb68"
+  serviceId: "3eeeaee1-11d8-4572-8c95-b912add196d7",
+  environmentId: "0a020c66-c4c7-4433-9012-dd45a7b6c575"
 };
 
 const FULLSTACK_DOCKERFILE = "deploy/Dockerfile.fullstack";
@@ -47,9 +49,19 @@ function deployToken(env) {
   return env.RAILWAY_ACCOUNT_TOKEN?.trim() || env.RAILWAY_TOKEN?.trim() || "";
 }
 
+function resolveServiceId(env) {
+  return env.RAILWAY_SERVICE_ID?.trim()
+    || env.RAILWAY_API_SERVICE_ID?.trim()
+    || DEFAULTS.serviceId;
+}
+
+function resolveEnvironmentId(env) {
+  return env.RAILWAY_ENVIRONMENT_ID?.trim() || DEFAULTS.environmentId;
+}
+
 function tryCliDeploy(env) {
   const token = env.RAILWAY_PROJECT_TOKEN?.trim();
-  const serviceId = env.RAILWAY_SERVICE_ID?.trim() || DEFAULTS.serviceId;
+  const serviceId = resolveServiceId(env);
   if (!token) return { ok: false, reason: "no-project-token" };
 
   const whoami = spawnSync("railway", ["whoami"], {
@@ -80,11 +92,30 @@ function resolveDeployCommitSha(env) {
   return null;
 }
 
+function buildExpectedProductionCreator(env) {
+  if (env.REQUIRE_CREATOR_FRONTEND_SYNC !== "true") return;
+  console.log("[railway-deploy-ci] Build expected Creator assets with Railway production flags…");
+  const build = spawnSync("npm", ["run", "build"], {
+    stdio: "inherit",
+    shell: process.platform === "win32",
+    cwd: root,
+    env: {
+      ...env,
+      VITE_API_BASE: "/api",
+      VITE_REQUIRE_AUTH: "true",
+      VITE_DEMO_MODE: "false"
+    }
+  });
+  if (build.status !== 0) {
+    throw new Error("Failed to build the expected production Creator assets");
+  }
+}
+
 async function ensureFullstackDockerBuild(env) {
   const token = deployToken(env);
   if (!token) return;
-  const serviceId = env.RAILWAY_SERVICE_ID?.trim() || DEFAULTS.serviceId;
-  const environmentId = env.RAILWAY_ENVIRONMENT_ID?.trim() || DEFAULTS.environmentId;
+  const serviceId = resolveServiceId(env);
+  const environmentId = resolveEnvironmentId(env);
   console.log("[railway-deploy-ci] Ensure fullstack Dockerfile via railway.toml…");
   try {
     await updateServiceInstance(token, {
@@ -108,8 +139,8 @@ async function tryGraphqlRedeploy(env) {
 
   await ensureFullstackDockerBuild(env);
 
-  const serviceId = env.RAILWAY_SERVICE_ID?.trim() || DEFAULTS.serviceId;
-  const environmentId = env.RAILWAY_ENVIRONMENT_ID?.trim() || DEFAULTS.environmentId;
+  const serviceId = resolveServiceId(env);
+  const environmentId = resolveEnvironmentId(env);
   const commitSha = resolveDeployCommitSha(env);
 
   console.log(`[railway-deploy-ci] GraphQL serviceInstanceDeployV2${commitSha ? ` commit ${commitSha.slice(0, 7)}` : ""} …`);
@@ -117,7 +148,10 @@ async function tryGraphqlRedeploy(env) {
   return { ok: true, method: "graphql-deploy" };
 }
 
-async function waitForDeployment(token, serviceId, base, { sinceMs = Date.now() - 60_000 } = {}) {
+async function waitForDeployment(token, serviceId, base, {
+  sinceMs = Date.now() - 60_000,
+  expectedManifest = null
+} = {}) {
   let trackedId = null;
   for (let i = 1; i <= 60; i += 1) {
     const recent = await listRecentDeployments(token, serviceId, 6);
@@ -145,8 +179,14 @@ async function waitForDeployment(token, serviceId, base, { sinceMs = Date.now() 
         && configRes.ok
         && configBody.oauthDiagnostics === undefined
         && configBody.requireEmailVerification === true) {
-        console.log(`[railway-deploy-ci] Release verified at ${base}`);
-        return true;
+        try {
+          const frontend = await probeCreatorFrontendSync(base, { expectedManifest });
+          console.log(`[railway-deploy-ci] Creator synced: ${frontend.manifest.entryScript}`);
+          console.log(`[railway-deploy-ci] Release verified at ${base}`);
+          return true;
+        } catch (error) {
+          console.log(`[railway-deploy-ci] Creator frontend still stale: ${error.message}`);
+        }
       }
       console.log("[railway-deploy-ci] Service up but release probe still stale — waiting…");
     } else if (status === "FAILED" || status === "CRASHED") {
@@ -177,14 +217,19 @@ async function waitForDeployment(token, serviceId, base, { sinceMs = Date.now() 
   return false;
 }
 
-async function waitForRelease(base, env, { sinceMs } = {}) {
+async function waitForRelease(base, env, { sinceMs, expectedManifest = null } = {}) {
   const token = deployToken(env);
-  const serviceId = env.RAILWAY_SERVICE_ID?.trim() || DEFAULTS.serviceId;
-  if (token) return waitForDeployment(token, serviceId, base, { sinceMs: sinceMs ?? Date.now() - 60_000 });
-  return waitForReleaseLegacy(base);
+  const serviceId = resolveServiceId(env);
+  if (token) {
+    return waitForDeployment(token, serviceId, base, {
+      sinceMs: sinceMs ?? Date.now() - 60_000,
+      expectedManifest
+    });
+  }
+  return waitForReleaseLegacy(base, expectedManifest);
 }
 
-async function waitForReleaseLegacy(base) {
+async function waitForReleaseLegacy(base, expectedManifest = null) {
   for (let i = 1; i <= 40; i += 1) {
     try {
       const readyRes = await fetch(`${base}/api/health/ready`, { signal: AbortSignal.timeout(12_000) });
@@ -200,8 +245,14 @@ async function waitForReleaseLegacy(base) {
       if (configRes.ok
         && configBody.oauthDiagnostics === undefined
         && configBody.requireEmailVerification === true) {
-        console.log(`[railway-deploy-ci] Release verified at ${base} (no oauthDiagnostics)`);
-        return true;
+        try {
+          const frontend = await probeCreatorFrontendSync(base, { expectedManifest });
+          console.log(`[railway-deploy-ci] Creator synced: ${frontend.manifest.entryScript}`);
+          console.log(`[railway-deploy-ci] Release verified at ${base} (no oauthDiagnostics)`);
+          return true;
+        } catch (error) {
+          console.log(`[railway-deploy-ci] Creator frontend still stale: ${error.message}`);
+        }
       }
       console.log(`[railway-deploy-ci] Waiting for new build to roll out (${i}/40)…`);
     } catch (error) {
@@ -215,7 +266,15 @@ async function waitForReleaseLegacy(base) {
 
 async function main() {
   const env = loadSetup();
-  const base = (env.RAILWAY_PUBLIC_URL || "https://app.getzhimu.com").replace(/\/$/, "");
+  const base = (env.RAILWAY_PUBLIC_URL || env.APP_PUBLIC_URL || "https://app.getzhimu.com").replace(/\/$/, "");
+  buildExpectedProductionCreator(env);
+  const expectedManifest = loadExpectedCreatorManifest({
+    root,
+    required: env.REQUIRE_CREATOR_FRONTEND_SYNC === "true"
+  });
+  if (expectedManifest) {
+    console.log(`[railway-deploy-ci] Expected Creator entry: ${expectedManifest.entryScript}`);
+  }
   const deployStartedAt = Date.now();
 
   let result = tryCliDeploy(env);
@@ -248,7 +307,10 @@ async function main() {
   }
 
   console.log(`[railway-deploy-ci] Deploy triggered via ${result.method}`);
-  const released = await waitForRelease(base, env, { sinceMs: deployStartedAt - 60_000 });
+  const released = await waitForRelease(base, env, {
+    sinceMs: deployStartedAt - 60_000,
+    expectedManifest
+  });
   if (!released) process.exit(1);
 }
 

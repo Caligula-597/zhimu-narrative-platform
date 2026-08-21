@@ -2,15 +2,19 @@ import { query } from "../db.js";
 
 export async function listVisibleWorlds(actorId, includeArchived) {
   const result = await query(
-    `SELECT DISTINCT ON (id) id, name, summary, status, catalog_public, catalog_review_status, catalog_review_submitted_at, catalog_review_note, membership_role, updated_at
+    `SELECT DISTINCT ON (id) id, name, summary, status, catalog_public, catalog_review_status, catalog_review_submitted_at, catalog_review_note, creation_type, membership_role, updated_at
      FROM (
-       SELECT w.id, w.name, w.summary, w.status, w.catalog_public, w.catalog_review_status, w.catalog_review_submitted_at, w.catalog_review_note, wm.role::text AS membership_role, w.updated_at,
+       SELECT w.id, w.name, w.summary, w.status, w.catalog_public, w.catalog_review_status, w.catalog_review_submitted_at, w.catalog_review_note,
+              COALESCE(NULLIF(w.settings->'narrativeProfile'->>'creationType', ''), NULLIF(w.settings->>'creationType', ''), CASE WHEN w.settings->>'worldMode' = 'campaign' THEN 'tabletop_rpg' ELSE 'murder_mystery' END) AS creation_type,
+              wm.role::text AS membership_role, w.updated_at,
               CASE wm.role WHEN 'owner' THEN 5 WHEN 'editor' THEN 4 WHEN 'reviewer' THEN 3 WHEN 'host' THEN 2 WHEN 'viewer' THEN 1 ELSE 0 END AS role_rank
        FROM worlds w
        JOIN world_members wm ON wm.world_id = w.id
        WHERE wm.user_id = $1 AND ($2::boolean OR w.status <> 'archived')
        UNION ALL
-       SELECT w.id, w.name, w.summary, w.status, w.catalog_public, w.catalog_review_status, w.catalog_review_submitted_at, w.catalog_review_note, 'player' AS membership_role, w.updated_at, 0 AS role_rank
+       SELECT w.id, w.name, w.summary, w.status, w.catalog_public, w.catalog_review_status, w.catalog_review_submitted_at, w.catalog_review_note,
+              COALESCE(NULLIF(w.settings->'narrativeProfile'->>'creationType', ''), NULLIF(w.settings->>'creationType', ''), CASE WHEN w.settings->>'worldMode' = 'campaign' THEN 'tabletop_rpg' ELSE 'murder_mystery' END) AS creation_type,
+              'player' AS membership_role, w.updated_at, 0 AS role_rank
        FROM worlds w
        JOIN rooms r ON r.world_id = w.id
        JOIN room_members rm ON rm.room_id = r.id
@@ -35,6 +39,7 @@ export async function listPublicCatalogWorlds({ tagSql = "", tagParams = [] } = 
      JOIN users u ON u.id = w.owner_user_id
      WHERE w.catalog_public = true
        AND w.status <> 'archived'
+       AND COALESCE(NULLIF(w.settings->'narrativeProfile'->>'creationType', ''), NULLIF(w.settings->>'creationType', ''), CASE WHEN w.settings->>'worldMode' = 'campaign' THEN 'tabletop_rpg' ELSE 'murder_mystery' END) = 'murder_mystery'
        AND EXISTS (SELECT 1 FROM role_slots rs WHERE rs.world_id = w.id)${whereTags}
      ORDER BY w.updated_at DESC`,
     tagParams

@@ -29,7 +29,7 @@ npm run bootstrap:local
 npm run start
 ```
 
-`bootstrap:local` = migrate + seed + exploration 探索链。详见 [ALPHA_ASSESSMENT.md](../ALPHA_ASSESSMENT.md) 与 [DATABASE_SCHEMA.md](../DATABASE_SCHEMA.md)。
+`bootstrap:local` = migrate + seed + exploration 探索链。数据结构详见 [DATABASE_SCHEMA.md](../DATABASE_SCHEMA.md)。
 
 ### 连不上后端？
 
@@ -56,7 +56,7 @@ npm run start
 
 ## 已实现 API（代表性入口）
 
-以下是常用入口，不再作为完整路由清单。完整契约以 `/documentation`、领域 schema 和 [CODEBASE_FUNCTION_MAP_ZH.md](../docs/CODEBASE_FUNCTION_MAP_ZH.md) 为准；不要在文档中手工维护 route registration 总数。
+以下是常用入口，不再作为完整路由清单。完整契约以 `/documentation` 和领域 schema 为准；不要在文档中手工维护 route registration 总数。
 
 - `GET /api/health`
 - `POST /api/auth/register`
@@ -101,13 +101,13 @@ DEEPSEEK_MODEL=deepseek-v4-flash
 DEEPSEEK_TIMEOUT_MS=120000
 ```
 
-AI 只生成待复核的结构化提案，不会直接修改正式剧情。作者确认后，提案才会追加为章节、场景、调查点、线索与剧情连线。
+当前只保留有明确产品入口的辅助能力：连接状态、桌游设计候选和 AI 试玩。普通稿件的分析与导入不依赖生成流水线。
 
 - `GET /api/worlds/:worldId/story-assistant/deepseek/status`
-- `POST /api/worlds/:worldId/story-assistant/deepseek/propose`
-- `POST /api/worlds/:worldId/story-assistant/deepseek/import`
-- `POST /api/worlds/:worldId/story-assistant/deepseek/full-mystery/propose`
-- `POST /api/worlds/:worldId/story-assistant/deepseek/full-mystery/import`
+- `POST /api/worlds/:worldId/story-assistant/deepseek/board-game/design-draft`
+- `POST /api/worlds/:worldId/story-assistant/ai-playtest/run`
+- `POST /api/worlds/:worldId/story-assistant/analyze`
+- `POST /api/worlds/:worldId/story-assistant/import`
 - `GET /api/worlds/:worldId/creator-checks`
 - `POST /api/worlds/:worldId/content-versions`
 - `POST /api/worlds/:worldId/content-versions/:versionId/restore`
@@ -214,7 +214,7 @@ npm run test:ui:load   # 按 index.html 顺序执行前端脚本，捕获 Syntax
 npm run test:smoke
 ```
 
-完整功能说明见项目根目录 [FEATURE_CATALOG.md](../FEATURE_CATALOG.md)（含 P0-1～P2 变更 §12–§26）。
+当前产品状态与工程入口见 [PROJECT_STATUS.md](../docs/PROJECT_STATUS.md) 和仓库根目录 [README.md](../README.md)。
 
 ### 测试规模与证据口径
 

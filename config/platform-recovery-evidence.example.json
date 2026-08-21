@@ -1,0 +1,65 @@
+{
+  "schemaVersion": 1,
+  "candidate": {
+    "environment": "staging",
+    "revision": "REPLACE_WITH_40_CHARACTER_CANDIDATE_SHA",
+    "deploymentId": "REPLACE_WITH_CANDIDATE_DEPLOYMENT_ID"
+  },
+  "applicationRollback": {
+    "status": "pending",
+    "drill": "railway-exact-image-rollback",
+    "restoredImageAndVariables": false,
+    "startedAt": "REPLACE_WITH_ISO_TIMESTAMP",
+    "finishedAt": "REPLACE_WITH_ISO_TIMESTAMP",
+    "failedDeploymentId": "REPLACE_WITH_CANDIDATE_DEPLOYMENT_ID",
+    "failedRevision": "REPLACE_WITH_40_CHARACTER_CANDIDATE_SHA",
+    "restoredDeploymentId": "REPLACE_WITH_PREVIOUS_STABLE_DEPLOYMENT_ID",
+    "restoredRevision": "REPLACE_WITH_40_CHARACTER_STABLE_SHA",
+    "healthChecks": [
+      { "id": "live", "passed": false },
+      { "id": "ready", "passed": false },
+      { "id": "login", "passed": false },
+      { "id": "creator-read", "passed": false },
+      { "id": "player-home", "passed": false },
+      { "id": "host-console", "passed": false },
+      { "id": "sse", "passed": false }
+    ]
+  },
+  "databaseRestore": {
+    "status": "pending",
+    "startedAt": "REPLACE_WITH_ISO_TIMESTAMP",
+    "finishedAt": "REPLACE_WITH_ISO_TIMESTAMP",
+    "backupId": "REPLACE_WITH_BACKUP_ID",
+    "restoreInstanceId": "REPLACE_WITH_ISOLATED_RESTORE_INSTANCE_ID",
+    "tableCount": 0,
+    "rowCountChecks": 0,
+    "encrypted": false,
+    "fullReadBackVerified": false,
+    "backupStorageEndpoint": "REPLACE_WITH_BACKUP_ENDPOINT_HOSTNAME",
+    "backupStorageBucket": "REPLACE_WITH_BACKUP_BUCKET",
+    "pointInTimeRecoveryEnabled": false,
+    "providerWorstCaseRpoSeconds": 0,
+    "integrityChecks": []
+  },
+  "r2Restore": {
+    "replace": "Paste the complete output from backend/scripts/r2-cross-bucket-restore-drill.mjs here"
+  },
+  "objectStorageBackup": {
+    "replace": "Paste the complete output from backend/scripts/backup-object-storage.mjs here"
+  },
+  "objectStorageRestore": {
+    "replace": "Paste the complete output from backend/scripts/restore-object-storage-backup.mjs here"
+  },
+  "recoveryObjective": {
+    "incidentAt": "REPLACE_WITH_ISO_TIMESTAMP",
+    "latestDurableDataAt": "REPLACE_WITH_ISO_TIMESTAMP",
+    "serviceRestoredAt": "REPLACE_WITH_ISO_TIMESTAMP",
+    "targetRpoSeconds": 0,
+    "targetRtoSeconds": 0
+  },
+  "approval": {
+    "executedBy": "REPLACE_WITH_OPERATOR",
+    "approvedBy": "REPLACE_WITH_RELEASE_OWNER",
+    "approvedAt": "REPLACE_WITH_ISO_TIMESTAMP"
+  }
+}

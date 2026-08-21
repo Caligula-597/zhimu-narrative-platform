@@ -57,12 +57,8 @@ if (!skipTests) {
   run("backend npm test", process.platform === "win32" ? "npm.cmd" : "npm", ["test"], { cwd: backend });
   run("innerHTML audit", process.platform === "win32" ? "npm.cmd" : "npm", ["run", "audit:innerhtml"], { cwd: root });
   run("frontend maintenance contracts", process.platform === "win32" ? "npm.cmd" : "npm", ["run", "check:frontend-maintenance"], { cwd: root });
-  run("shared tests", process.platform === "win32" ? "npm.cmd" : "npm", ["run", "test:shared"], { cwd: root });
-  run("secure random identifier tests", process.platform === "win32" ? "npm.cmd" : "npm", ["run", "test:secure-random"], { cwd: root });
+  run("all root tests", process.platform === "win32" ? "npm.cmd" : "npm", ["run", "test:root"], { cwd: root });
   run("main production build", process.platform === "win32" ? "npm.cmd" : "npm", ["run", "build"], { cwd: root });
-  run("format helper tests", process.execPath, ["--test", path.join("scripts", "format-helpers.test.mjs")], { cwd: root });
-  run("runtime store tests", process.platform === "win32" ? "npm.cmd" : "npm", ["run", "test:runtime-stores"], { cwd: root });
-  run("pipeline session tests", process.execPath, ["--test", path.join("scripts", "pipeline-wizard-session.test.mjs")], { cwd: root });
   run("test:play", process.platform === "win32" ? "npm.cmd" : "npm", ["run", "test:play"], { cwd: root });
   run("test:host", process.platform === "win32" ? "npm.cmd" : "npm", ["run", "test:host"], { cwd: root });
 }

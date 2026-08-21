@@ -110,6 +110,25 @@ export function createHostOperationController({ render, showToast }) {
     reloadPlayer: loadPlayerDetail
   });
 
+  async function loadMaterialBooklets(operationId) {
+    const operation = currentOperation(operationId);
+    if (!operation || operation.kind !== HOST_OPERATION_KINDS.GRANT_BOOKLET) return;
+    try {
+      const payload = await api.listHostMaterialBooklets();
+      const current = currentOperation(operationId);
+      if (!current) return;
+      state.hostMaterialBooklets = payload?.booklets || [];
+      if (!current.draft.bookletId && state.hostMaterialBooklets[0]?.id) {
+        current.draft.bookletId = String(state.hostMaterialBooklets[0].id);
+      }
+      render();
+    } catch (error) {
+      const current = currentOperation(operationId);
+      if (!current) return;
+      showToast(formatApiError(error, "无法加载物料册"));
+    }
+  }
+
   function open(kind, options = {}) {
     if (hostOperationIsSubmitting(state.hostOperation)) {
       showToast("当前操作仍在提交，请等待服务端返回");
@@ -131,6 +150,9 @@ export function createHostOperationController({ render, showToast }) {
     afterRender(revealWorkspace);
     if (kind === HOST_OPERATION_KINDS.PLAYER) {
       void loadPlayerDetail(state.hostOperation.id);
+    }
+    if (kind === HOST_OPERATION_KINDS.GRANT_BOOKLET) {
+      void loadMaterialBooklets(state.hostOperation.id);
     }
   }
 
@@ -211,6 +233,11 @@ export function createHostOperationController({ render, showToast }) {
           actKey: element?.dataset?.actKey || "",
           clueId: element?.dataset?.clueId || "",
           roleKey: element?.dataset?.roleKey || ""
+        });
+        return true;
+      case "host-manual-grant-booklet":
+        open(HOST_OPERATION_KINDS.GRANT_BOOKLET, {
+          bookletId: element?.dataset?.bookletId || ""
         });
         return true;
       case "host-manual-grant-item":

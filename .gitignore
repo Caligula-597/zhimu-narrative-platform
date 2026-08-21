@@ -17,17 +17,24 @@ config/ops-bridge.env.generated
 test-results/
 playwright-report/
 backend/test-output.txt
-backend/chi_sim.traineddata
+*.traineddata
 backend/.test-*.log
 *.log
 .DS_Store
 artifacts/
 .tools/
 docs/ops/email-previews/
+output/
+tmp/
+
+# Third-party reference scripts and scans stay local for editorial study only.
+案例/
 
 # Unapproved author fixtures stay local until editorial/legal review.
 examples/pending-review/**
 !examples/pending-review/generate-forty-outlines.mjs
+!examples/pending-review/未归还/
+!examples/pending-review/未归还/**
 
 # Local document rendering and packaged legal-delivery artefacts are generated
 # from tracked sources. Keep bulky previews, caches and potentially sensitive

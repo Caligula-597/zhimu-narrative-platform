@@ -13,9 +13,10 @@ import { setHtml } from "../../shared/safe-dom.js";
 import {
   legacyWorldModeForNarrativeProfile,
   narrativeProfileFromSettings,
-  normalizeCreationType,
   normalizeNarrativeProfile
 } from "../../shared/narrative-profile.js";
+import { productDomainDefinition } from "../../shared/product-domains/registry.js";
+import { normalizeCommunicationTemplates } from "../../shared/communication-templates.js";
   const escapeHtml = F.escapeHtml || ((v = "") => String(v));
   const formatTime = F.formatTime || (() => "");
   const formatRelativeTime = F.formatRelativeTime || (() => "");
@@ -67,18 +68,15 @@ import {
     const settings = world?.settings || {};
     const profile = settings.commercialProfile || {};
     const narrativeProfile = narrativeProfileFromSettings(settings);
+    const product = productDomainDefinition(narrativeProfile.creationType);
     const disabled = canEdit ? "" : "disabled";
     const selected = (value, expected) => value === expected ? "selected" : "";
     const longFields = new Set(["copyrightSource"]);
     const field = (key, label, placeholder = "", type = "text") => `<label>${escapeHtml(label)}</label><input class="field" type="${type}" data-commercial-field="${key}" value="${escapeHtml(profile[key] || "")}" placeholder="${escapeHtml(placeholder)}" maxlength="${longFields.has(key) ? 2000 : 300}" ${disabled}>`;
     return `<section class="form-group" style="margin-top:14px;padding-top:14px;border-top:1px solid var(--line, #ece7df)">
       <div class="section-head"><div><h4 style="margin:0">创作类型与商业备案资料</h4><p class="muted-note" style="margin:4px 0 0">用于术语切换、交付归档和线下备案准备；不会自动向主管部门提交。</p></div></div>
-      <label>创作类型</label>
-      <select class="field" id="settings-creation-type" ${disabled}>
-        <option value="murder_mystery" ${selected(narrativeProfile.creationType, "murder_mystery")}>剧本杀（角色本 / 公共幕 / 线索 / 主持人）</option>
-        <option value="tabletop_rpg" ${selected(narrativeProfile.creationType, "tabletop_rpg")}>桌面角色扮演（HO / 模组 / KP）</option>
-        <option value="interactive_story" ${selected(narrativeProfile.creationType, "interactive_story")}>互动叙事（角色 / 章节 / 场景）</option>
-      </select>
+      <label>产品类型</label>
+      <div class="field" aria-readonly="true"><strong>${escapeHtml(product.label)}</strong> · 创建后不可更改，避免跨产品复用内容</div>
       <label>运行形态</label>
       <select class="field" id="settings-run-format" ${disabled}>
         <option value="single_session" ${selected(narrativeProfile.runFormat, "single_session")}>单局 / One-shot</option>
@@ -95,7 +93,7 @@ import {
       ${field("copyrightSource", "著作权来源", "原创、授权改编或版权方及授权范围")}
       ${field("registrationNumber", "备案编号 / 剧本编号（选填）", "尚未备案可留空")}
       ${field("theme", "主题", "如悬疑、情感、历史")}
-      ${field("category", "类型 / 品类", "如本格、还原、阵营、跑团模组")}
+      ${field("category", "类型 / 品类", "如本格、还原、阵营、情感")}
       ${field("versionLabel", "对外版本", "如 1.0、发行修订版")}
       <label>建议适龄范围</label>
       <select class="field" data-commercial-field="ageRating" ${disabled}>
@@ -118,6 +116,21 @@ import {
     </section>`;
   }
 
+  function communicationTemplatesPanel(world, canEdit) {
+    const templates = normalizeCommunicationTemplates(world?.settings?.communicationTemplates);
+    const disabled = canEdit ? "" : "disabled";
+    return `<section class="form-group communication-template-settings" style="margin-top:14px;padding-top:14px;border-top:1px solid var(--line, #ece7df)">
+      <div class="section-head"><div><h4 style="margin:0">玩家交流动作</h4><p class="muted-note" style="margin:4px 0 0">统一配置玩家看到的入口名称、隐私提示和正式开场后的截止时间。0 表示不设截止。</p></div></div>
+      <div class="communication-template-grid">${templates.map((template) => `<article class="communication-template-editor" data-communication-template="${escapeHtml(template.kind)}">
+        <label class="check-label"><input type="checkbox" data-communication-field="enabled" ${template.enabled ? "checked" : ""} ${disabled}><span><strong>${escapeHtml(template.kind)}</strong><small>启用这个玩家入口</small></span></label>
+        <label>玩家端标题</label><input class="field" data-communication-field="title" maxlength="120" value="${escapeHtml(template.title)}" ${disabled}>
+        <label>隐私说明</label><textarea class="field" data-communication-field="privacyNotice" rows="2" maxlength="500" ${disabled}>${escapeHtml(template.privacyNotice)}</textarea>
+        <label>输入提示</label><input class="field" data-communication-field="placeholder" maxlength="300" value="${escapeHtml(template.placeholder)}" ${disabled}>
+        <label>开场后截止（分钟）</label><input class="field" type="number" min="0" max="1440" data-communication-field="deadlineMinutes" value="${template.deadlineMinutes}" ${disabled}>
+      </article>`).join("")}</div>
+    </section>`;
+  }
+
 export function settings(){
  const worldId=zhimuApi.context.worldId;
  const studioWorld=studioStore.get().cloudStudio?.world;
@@ -131,7 +144,7 @@ export function settings(){
  const canAudit=["owner","editor","host"].includes(world?.membership_role);
  const editHint=canEditWorld?"":"<p class=\"muted-note\">仅主创作者或编辑协作者可修改剧本名称与简介。</p>";
  return `${deleteWorldPanel(world)}
- <section class="rules-layout"><article class="card"><div class="section-head"><div><h3>剧本信息</h3><p>名称与简介会展示在侧栏、总览与玩家入口${roleLabel?` · 你在本剧本的身份：<strong>${escapeHtml(roleLabel)}</strong>`:""}</p></div></div><div class="form-group"><label>剧本名称</label><input class="field" id="settings-world-name" value="${escapeHtml(world?.name||"")}" ${canEditWorld?"":"readonly"} placeholder="例如：午夜列车"><label>剧本简介</label><textarea class="field" id="settings-world-summary" rows="3" ${canEditWorld?"":"readonly"} placeholder="一句话介绍题材与氛围">${escapeHtml(world?.summary||"")}</textarea><label>真相结论（局后复盘）</label><textarea class="field" id="settings-recap-truth" rows="4" ${canEditWorld?"":"readonly"} placeholder="本局结束后向玩家展示的真相总结；留空则根据结局规则与推进记录自动生成">${escapeHtml(world?.settings?.recapTruthSummary||"")}</textarea><p class="muted-note">章节与场景的「复盘公开摘要」请在剧情编排台选中节点编辑。</p><label>角色席位数</label><input class="field" value="${String(studioStore.get().cloudStudio?.roles?.length||0)}" readonly>${commercialProfilePanel(world, canEditWorld)}${worldCoverPanel(world, canEditWorld)}${editHint}${owner?catalogReviewPanel(world):""}<button class="primary-btn" style="margin-top:14px" data-action="save-world-settings" ${canEditWorld?"":"disabled"}>保存剧本信息</button></div></article>
+ <section class="rules-layout"><article class="card"><div class="section-head"><div><h3>剧本信息</h3><p>名称与简介会展示在侧栏、总览与玩家入口${roleLabel?` · 你在本剧本的身份：<strong>${escapeHtml(roleLabel)}</strong>`:""}</p></div></div><div class="form-group"><label>剧本名称</label><input class="field" id="settings-world-name" value="${escapeHtml(world?.name||"")}" ${canEditWorld?"":"readonly"} placeholder="例如：午夜列车"><label>剧本简介</label><textarea class="field" id="settings-world-summary" rows="3" ${canEditWorld?"":"readonly"} placeholder="一句话介绍题材与氛围">${escapeHtml(world?.summary||"")}</textarea><label>真相结论（局后复盘）</label><textarea class="field" id="settings-recap-truth" rows="4" ${canEditWorld?"":"readonly"} placeholder="本局结束后向玩家展示的真相总结；留空则根据结局规则与推进记录自动生成">${escapeHtml(world?.settings?.recapTruthSummary||"")}</textarea><p class="muted-note">章节与场景的「复盘公开摘要」请在剧情编排台选中节点编辑。</p><label>角色席位数</label><input class="field" value="${String(studioStore.get().cloudStudio?.roles?.length||0)}" readonly>${commercialProfilePanel(world, canEditWorld)}${communicationTemplatesPanel(world, canEditWorld)}${worldCoverPanel(world, canEditWorld)}${editHint}${owner?catalogReviewPanel(world):""}<button class="primary-btn" style="margin-top:14px" data-action="save-world-settings" ${canEditWorld?"":"disabled"}>保存剧本信息</button></div></article>
  <article class="card"><div class="section-head"><div><h3>运行房选项</h3><p>${room?`当前平行房：${escapeHtml(room.name)}`:"请先在总览中选择平行运行房"}</p></div></div><div class="form-group"><label class="check-label"><input type="checkbox" id="settings-host-voice-listen" ${roomSettings.hostVoiceListen?"checked":""} ${room?"":"disabled"}><span><strong>主持人可旁听私密语音房</strong><small>开启后，主持人在未受邀的情况下仍可进入私密语音房旁听（不可发言）。</small></span></label><button class="primary-btn" style="margin-top:14px" data-action="save-room-settings" ${room?"":"disabled"}>保存运行房选项</button></div></article>
  ${canEditWorld?`<article class="card"><div class="section-head"><div><h3>内容标签</h3><p>公开剧本库 faceted 筛选（人数、难度等），上架后玩家可按标签浏览。</p></div><button class="secondary-btn" data-action="open-world-tags">编辑标签</button></div></article>
  <article class="card"><div class="section-head"><div><h3>主持运行段落</h3><p>把章节、核心事实与人物关系整理成主持人可执行的一幕，不替换角色私人剧情。</p></div><div class="row"><button class="secondary-btn" data-go="structure">运行段落工作台</button><button class="secondary-btn" data-go="truth">谜底与关系</button></div></div></article>
@@ -147,23 +160,31 @@ export function settings(){
  const name=document.getElementById("settings-world-name")?.value?.trim();
  const summary=document.getElementById("settings-world-summary")?.value?.trim()||"";
  const recapTruthSummary=document.getElementById("settings-recap-truth")?.value?.trim()||"";
- const creationType=normalizeCreationType(document.getElementById("settings-creation-type")?.value);
  const studioWorld=studioStore.get().cloudStudio?.world;
  const listedWorld=(worldStore.get().cloudWorlds||[]).find((world)=>world.id===worldId);
  const currentSettings=(studioWorld?.id===worldId?studioWorld:listedWorld)?.settings||{};
  const existingProfile=narrativeProfileFromSettings(currentSettings);
- const ruleset=creationType===existingProfile.creationType?existingProfile.ruleset:undefined;
  const narrativeProfile=normalizeNarrativeProfile({
   ...existingProfile,
-  creationType,
+  creationType:existingProfile.creationType,
   runFormat:document.getElementById("settings-run-format")?.value||existingProfile.runFormat,
   roleMode:document.getElementById("settings-role-mode")?.value||existingProfile.roleMode,
-  ruleset
+  ruleset:existingProfile.ruleset
  });
  const commercialProfile={};
  document.querySelectorAll("[data-commercial-field]").forEach((input)=>{
   commercialProfile[input.dataset.commercialField]=input.value?.trim?.()||"";
  });
+ const communicationTemplates=normalizeCommunicationTemplates(
+  [...document.querySelectorAll("[data-communication-template]")].map((editor)=>({
+   kind:editor.dataset.communicationTemplate,
+   enabled:Boolean(editor.querySelector('[data-communication-field="enabled"]')?.checked),
+   title:editor.querySelector('[data-communication-field="title"]')?.value,
+   privacyNotice:editor.querySelector('[data-communication-field="privacyNotice"]')?.value,
+   placeholder:editor.querySelector('[data-communication-field="placeholder"]')?.value,
+   deadlineMinutes:Number(editor.querySelector('[data-communication-field="deadlineMinutes"]')?.value||0)
+  }))
+ );
  if(!name)return showToast("请填写剧本名称");
  const revision=window.zhimuWorldRevision?.currentRevision?.(worldId);
  try{
@@ -172,7 +193,8 @@ export function settings(){
    creationType:narrativeProfile.creationType,
    worldMode:legacyWorldModeForNarrativeProfile(narrativeProfile),
    narrativeProfile,
-   commercialProfile
+   commercialProfile,
+   communicationTemplates
   };
   const updated=await zhimuApi.patchWorld({name,summary,settings:nextSettings},worldId,{revision});
   const cloudStudio=studioStore.get().cloudStudio;

@@ -9,6 +9,3 @@ export const FIXTURE = {
   roomName: "集成测试 · 运行房",
   inviteCode: "TEST-FIXTURE-DEMO"
 };
-
-/** @deprecated Legacy platform demo removed from product. */
-export const REMOVED_FOG_WORLD_ID = "08646748-e4ae-446a-a5e7-ce59ca23ffc3";

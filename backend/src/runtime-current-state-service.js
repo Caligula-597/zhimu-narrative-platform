@@ -6,6 +6,13 @@ import {
 import { loadRuntimeStateFacts } from "./repositories/runtime-current-state-repository.js";
 import { projectRoomMechanismState } from "./repositories/room-mechanism-runtime-repository.js";
 import { projectPlayerMechanismRuntime } from "../../shared/mechanism-runtime.js";
+import {
+  normalizeBeatPlan,
+  normalizeSegmentKey,
+  normalizeSegmentOperations,
+  resolveSectionSegmentKey,
+} from "../../shared/segment-contract.js";
+import { projectRuntimePresentation } from "../../shared/runtime-presentation.js";
 
 function action(key, label, priority, target, reason) {
   return { key, label, priority, target, reason };
@@ -163,6 +170,8 @@ function mechanismState(provider, facts) {
   const packageValue = provider.snapshot?.mechanismPackage ?? null;
   if (!packageValue) return null;
   const persisted = projectRoomMechanismState(facts.mechanism_state);
+  const role = provider.collection("roles").find((entry) => String(entry.id ?? "") === String(facts.roleSlotId ?? ""));
+  const mechanismRoleKey = String(role?.settings?.deepseekRoleKey ?? role?.settings?.packageSourceId ?? "");
   return projectPlayerMechanismRuntime(
     persisted?.runtime ?? null,
     packageValue,
@@ -172,8 +181,179 @@ function mechanismState(provider, facts) {
       updatedAt: persisted?.updatedAt ?? null,
       roundStartedAt: persisted?.roundStartedAt ?? null,
       ownSubmissions: facts.mechanism_submissions ?? [],
+      roleKey: mechanismRoleKey,
     },
   );
+}
+
+function orderedSegments(provider) {
+  return provider
+    .collection("segments")
+    .slice()
+    .sort(
+      (left, right) =>
+        Number(left.sequence ?? 0) - Number(right.sequence ?? 0),
+    );
+}
+
+function sectionSegment(segments, section) {
+  if (!section) return null;
+  const key = resolveSectionSegmentKey(section, section.sequence || 1);
+  return (
+    segments.find(
+      (segment) =>
+        normalizeSegmentKey(
+          segment.segment_key ?? segment.segmentKey,
+          segment.sequence || 1,
+        ) === key,
+    ) ??
+    segments.find(
+      (segment) =>
+        section.chapter_id &&
+        String(segment.chapter_id ?? "") === String(section.chapter_id),
+    ) ??
+    null
+  );
+}
+
+function progressTimestamp(value) {
+  const parsed = Date.parse(value ?? "");
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function latestProgressSection(provider, facts) {
+  const rows = Array.isArray(facts.player_progress)
+    ? facts.player_progress
+    : [];
+  const ordered = rows.slice().sort((left, right) => {
+    const leftActive = left.started_at && !left.completed_at ? 1 : 0;
+    const rightActive = right.started_at && !right.completed_at ? 1 : 0;
+    if (leftActive !== rightActive) return rightActive - leftActive;
+    return (
+      progressTimestamp(right.completed_at ?? right.started_at) -
+      progressTimestamp(left.completed_at ?? left.started_at)
+    );
+  });
+  return provider.find("sections", ordered[0]?.script_section_id) ?? null;
+}
+
+function nextKnowledgeSection(provider, knowledge) {
+  const section = Array.isArray(knowledge?.sections)
+    ? knowledge.sections.find((item) => !item.completed)
+    : null;
+  return provider.find("sections", section?.id) ?? null;
+}
+
+function liveNextSection(provider, facts, roleSlotId) {
+  if (!facts.live_next_section_title) return null;
+  return (
+    provider
+      .collection("sections")
+      .find(
+        (section) =>
+          String(section.role_slot_id ?? "") === String(roleSlotId ?? "") &&
+          section.title === facts.live_next_section_title,
+      ) ?? null
+  );
+}
+
+function currentSegment({
+  provider,
+  facts,
+  knowledge,
+  mechanism,
+  roleSlotId,
+}) {
+  const segments = orderedSegments(provider);
+  if (!segments.length) return { segment: null, segments, source: "none" };
+
+  const controlledKey = String(provider.roomSettings?.runtimePresentation?.activeSegmentKey || "").trim();
+  if (controlledKey) {
+    const controlled = segments.find((item) => normalizeSegmentKey(
+      item.segment_key ?? item.segmentKey,
+      item.sequence || 1,
+    ) === controlledKey);
+    if (controlled) return { segment: controlled, segments, source: "host_control" };
+  }
+
+  const roundSequence = Number(mechanism?.currentRound?.sequence);
+  if (Number.isInteger(roundSequence) && roundSequence > 0) {
+    const segment =
+      segments.find((item) => Number(item.sequence) === roundSequence) ??
+      segments[roundSequence - 1];
+    if (segment) return { segment, segments, source: "mechanism_round" };
+  }
+
+  const progressSegment = sectionSegment(
+    segments,
+    latestProgressSection(provider, facts),
+  );
+  if (progressSegment) {
+    return { segment: progressSegment, segments, source: "reading_progress" };
+  }
+
+  const nextSection =
+    nextKnowledgeSection(provider, knowledge) ??
+    liveNextSection(provider, facts, roleSlotId);
+  const nextSegment = sectionSegment(segments, nextSection);
+  if (nextSegment) {
+    return { segment: nextSegment, segments, source: "next_section" };
+  }
+
+  return { segment: segments[0], segments, source: "segment_order" };
+}
+
+function currentBeatProjection({
+  provider,
+  facts,
+  knowledge,
+  mechanism,
+  roleSlotId,
+  audience,
+}) {
+  const { segment, segments, source } = currentSegment({
+    provider,
+    facts,
+    knowledge,
+    mechanism,
+    roleSlotId,
+  });
+  if (!segment) return null;
+  const beat = normalizeBeatPlan(segment.story?.beatPlan ?? {});
+  const operations = normalizeSegmentOperations(segment.operations ?? {});
+  const position = Math.max(segments.indexOf(segment) + 1, 1);
+  const key = normalizeSegmentKey(
+    segment.segment_key ?? segment.segmentKey,
+    segment.sequence || position,
+  );
+  return {
+    id: segment.id,
+    key,
+    title: String(segment.title || operations.title || key),
+    sequence: Math.max(1, Number(segment.sequence) || position),
+    position,
+    total: segments.length,
+    source,
+    player: {
+      content: beat.playerContent,
+      tips: operations.playerTips,
+      tasks: operations.playerTasks,
+    },
+    host:
+      audience === "player"
+        ? null
+        : {
+            goal: beat.goal,
+            flow: operations.flow,
+            hostTruth: operations.hostTruth,
+            dmTasks: beat.dmTasks,
+            openClues: beat.openClues,
+            privateChatHints: beat.privateChatHints,
+            advanceCondition: beat.advanceCondition,
+            fallbacks: operations.fallbacks,
+            estimatedMinutes: beat.estimatedMinutes,
+          },
+  };
 }
 
 function hostState({ provider, facts, stuckCount = 0 }) {
@@ -374,11 +554,28 @@ export async function buildRuntimeCurrentState({
       : audience === "host"
         ? hostState({ provider, facts, stuckCount })
         : creatorState({ provider, facts });
+  const currentBeat = currentBeatProjection({
+    provider,
+    facts,
+    knowledge,
+    mechanism,
+    roleSlotId,
+    audience,
+  });
+  const presentation = projectRuntimePresentation({
+    world: provider.snapshot?.world ?? null,
+    roomSettings: provider.roomSettings,
+    currentBeat,
+    audience,
+  });
 
   return {
     audience,
     roomId,
     worldId: provider.worldId,
+    contentBinding: provider.contentBinding,
+    currentBeat,
+    presentation,
     phase: audienceState.phase,
     suggestedActions: audienceState.suggestions,
     blockers: audienceState.blockers,

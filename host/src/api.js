@@ -7,6 +7,7 @@ import {
 } from "../../shared/api-client.js";
 import { defaultSessionTokenStore } from "../../shared/session-token.js";
 import { scopedSseCursorKey } from "../../shared/sse-client.js";
+import { readSseCursor } from "../../shared/sync-diagnostics.js";
 import { playerJoinUrl } from "../../shared/portal-links.js";
 
 export { getSessionToken, setSessionToken };
@@ -28,6 +29,10 @@ const API_BASE = resolveVitePortalApiBase({
 
 function sseCursorKey(roomId, userId) {
   return scopedSseCursorKey("zhimuHostSseCursor", roomId, userId);
+}
+
+export function getHostRoomEventCursor(roomId, userId, storage = globalThis.localStorage) {
+  return readSseCursor(storage, sseCursorKey(roomId, userId));
 }
 
 const portal = createPortalApiClient({
@@ -70,6 +75,7 @@ export function clearSession() {
 }
 
 export const api = {
+  getHostRoomEventCursor,
   authConfig: () => request("/auth/config"),
   me: () => request("/auth/me"),
   logout: () => request("/auth/logout", { method: "POST", body: {} }),
@@ -129,6 +135,18 @@ export const api = {
   getRules: (worldId = getWorldId()) => request(`/worlds/${worldId}/rules`),
   getRuntimeContent: () => request(roomPath("/runtime-content")),
   getHostCurrentState: () => request(roomPath("/host/current-state")),
+  getVoiceSession: () => request(roomPath("/voice-session")),
+  getVoiceRoomToken: (voiceRoomId) =>
+    request(roomPath(`/voice-rooms/${voiceRoomId}/token`), { method: "POST", body: {} }),
+  startHostSession: () => request(roomPath("/host/start"), {
+    method: "POST",
+    body: {},
+    idempotent: true
+  }),
+  updateHostRoomSettings: (settings) => request(roomPath("/settings"), {
+    method: "PATCH",
+    body: { settings }
+  }),
   getHostMechanismRuntime: () => request(`${roomPath("/host/mechanism-runtime")}?includeHistory=true&historyLimit=20`),
   initializeHostMechanismRuntime: () => request(roomPath("/host/mechanism-runtime/initialize"), {
     method: "POST",
@@ -156,6 +174,19 @@ export const api = {
   getHostPlayerDetail: (roleSlotId) => request(roomPath(`/host/players/${roleSlotId}`)),
   getHostEvents: () => request(roomPath("/host-events")),
   getHostClueMatrix: () => request(roomPath("/host/clue-matrix")),
+  getHostDiscoveryProgress: () => request(roomPath("/host/discovery-progress")),
+  getHostPaceClock: () => request(roomPath("/host/pace-clock")),
+  updateHostPaceClock: (payload) => request(roomPath("/host/pace-clock/actions"), {
+    method: "POST",
+    body: payload
+  }),
+  getRoomConclusion: () => request(roomPath("/conclusion")),
+  prepareRoomConclusion: (payload, idempotencyKey) => request(roomPath("/host/conclusion"), {
+    method: "POST",
+    body: payload,
+    idempotent: true,
+    idempotencyKey
+  }),
   getHostAuditLog: (limit = 50) => request(`${roomPath("/host/audit-log")}?limit=${limit}`),
   getHostVotes: () => request(roomPath("/host/votes")),
   hostCreateVote: (payload, roomId = getRoomId(), idempotencyKey = "") =>
@@ -168,11 +199,22 @@ export const api = {
   hostUpdateVoteStatus: (voteId, status) =>
     request(roomPath(`/host/votes/${voteId}`), { method: "PATCH", body: { status } }),
   getHostPrivateActions: () => request(roomPath("/host/private-actions")),
+  getHostItemActions: () => request(roomPath("/host/item-actions")),
+  resolveHostItemAction: (actionId, payload) =>
+    request(roomPath(`/host/item-actions/${actionId}/resolve`), {
+      method: "POST",
+      body: payload,
+      idempotent: true
+    }),
   getHostMiniGames: () => request(roomPath("/host/mini-games")),
   startHostMiniGame: (payload) =>
     request(roomPath("/host/mini-games"), { method: "POST", body: payload, idempotent: true }),
   forceCompleteHostMiniGame: (gameId) =>
     request(roomPath(`/host/mini-games/${gameId}/force-complete`), { method: "POST", body: {}, idempotent: true }),
+  recoverHostMiniGame: (gameId, payload) =>
+    request(roomPath(`/host/mini-games/${gameId}/recover`), { method: "POST", body: payload, idempotent: true }),
+  settleHostMiniGame: (gameId, payload) =>
+    request(roomPath(`/host/mini-games/${gameId}/settle`), { method: "POST", body: payload, idempotent: true }),
   hostUpdatePrivateAction: (actionId, payload) =>
     request(roomPath(`/host/private-actions/${actionId}`), { method: "PATCH", body: payload }),
   getRoomRunReport: () => request(roomPath("/run-report")),
@@ -180,6 +222,8 @@ export const api = {
   triggerManualRule: (ruleId) => request(roomPath(`/rules/${ruleId}/trigger`), { method: "POST", idempotent: true }),
 
   hostGrantClue: (payload) => request(roomPath("/host/grant-clue"), { method: "POST", body: payload, idempotent: true }),
+  listHostMaterialBooklets: () => request(roomPath("/host/material-booklets")),
+  hostGrantBooklet: (payload) => request(roomPath("/host/grant-booklet"), { method: "POST", body: payload, idempotent: true }),
   hostRevokeClue: (payload) => request(roomPath("/host/revoke-clue"), { method: "POST", body: payload, idempotent: true }),
   hostResendClue: (payload) => request(roomPath("/host/resend-clue"), { method: "POST", body: payload, idempotent: true }),
   hostGrantItem: (payload) => request(roomPath("/host/grant-item"), { method: "POST", body: payload, idempotent: true }),
@@ -196,6 +240,11 @@ export const api = {
     request(roomPath(`/host/players/${roleSlotId}/notes`), { method: "PUT", body: { notes }, idempotent: true }),
   hostKickPlayer: (roleSlotId) =>
     request(roomPath(`/host/players/${roleSlotId}/kick`), { method: "POST", idempotent: true }),
+  getHostCohosts: () => request(roomPath("/host/cohosts")),
+  appointHostCohost: (payload) =>
+    request(roomPath("/host/cohosts"), { method: "POST", body: payload, idempotent: true }),
+  removeHostCohost: (userId) =>
+    request(roomPath(`/host/cohosts/${userId}`), { method: "DELETE", idempotent: true }),
   hostClueNote: (clueId, payload) =>
     request(roomPath(`/host/clues/${clueId}/notes`), { method: "PUT", body: payload, idempotent: true }),
 
@@ -243,6 +292,9 @@ export const api = {
   getHostTestimonies: () => request(roomPath("/host/testimonies")),
   reviewHostTestimony: (testimonyId, payload) =>
     request(roomPath(`/host/testimonies/${testimonyId}`), { method: "PATCH", body: payload }),
+  getHostRelationships: () => request(roomPath("/host/relationships")),
+  updateHostRelationship: (relationshipId, payload) =>
+    request(roomPath(`/host/relationships/${relationshipId}`), { method: "PATCH", body: payload, idempotent: true }),
   getHostSegmentRemedies: (segmentKey) => {
     const qs = segmentKey ? `?segmentKey=${encodeURIComponent(segmentKey)}` : "";
     return request(roomPath(`/host/segment-remedies${qs}`));

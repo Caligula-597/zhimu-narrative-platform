@@ -58,12 +58,12 @@ npm run test:e2e
 
 | Spec | 覆盖 |
 |---|---|
-| `creator-wizard-smoke` | 五步向导、测试房、邀请码 |
+| `creator-wizard-smoke` | 三类产品选择、单次命名、空白桌游组件工坊 |
 | `creator-role-archive` | 角色私人档案懒加载、展开、编辑、新增分幕与保存 |
 | `host-director-smoke` | 待办、等待提示、nudge 弹窗 |
 | `player-host-progress` | 玩家阅读进度同步到主持台 |
 | `runtime-main-path` | 主持发线索、开放场景与玩家探索主链路 |
-| `full-chain` | fixture 全链路与向导到玩家阅读 |
+| `full-chain` | fixture 玩家全链路与极简创建到桌游原型 |
 | `archive-recap-smoke` | 存档与复盘 |
 | `trusted-types-enforce` | Creator、Host、Play 强制模式启动与原始 sink 拒绝 |
 | `play-portal-smoke` | 邀请码、移动导航、广场 deep-link |

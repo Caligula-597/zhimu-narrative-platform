@@ -1,7 +1,12 @@
 /**
  * Pre-publish / playtest readiness evaluation for a world snapshot.
  */
-import { normalizeSegmentOperations, resolveChapterSegmentKey, resolveSectionSegmentKey } from "./segment-contract.js";
+import {
+  normalizeBeatPlan,
+  normalizeSegmentOperations,
+  resolveChapterSegmentKey,
+  resolveSectionSegmentKey
+} from "./segment-contract.js";
 
 function add(checks, { id, level, title, detail, target = null }) {
   checks.push({ id, level, title, detail, ...(target ? { target } : {}) });
@@ -121,7 +126,31 @@ export function evaluateWorldPublishReadiness(snapshot) {
   });
   for (const segment of segments) {
     const key = segment.segment_key || segment.segmentKey;
+    const beatPlan = normalizeBeatPlan(segment.story?.beatPlan ?? {});
     const operations = normalizeSegmentOperations(segment.operations ?? {});
+    const missingBeatFields = [
+      ["goal", "本幕目标"],
+      ["playerContent", "玩家可读摘要"],
+      ["dmTasks", "主持任务"],
+      ["advanceCondition", "推进条件"]
+    ].filter(([field]) => !beatPlan[field]);
+    if (missingBeatFields.length === 4) {
+      add(checks, {
+        id: `segments.${key}.beat_plan_missing`,
+        level: "warning",
+        title: `${segment.title || key || "Segment"} 缺少本幕流程`,
+        detail: "建议补齐本幕目标、玩家可读摘要、主持任务和推进条件，保证三端知道当前要做什么。",
+        target: { kind: "segments", segmentKey: key }
+      });
+    } else if (missingBeatFields.length) {
+      add(checks, {
+        id: `segments.${key}.beat_plan_incomplete`,
+        level: "warning",
+        title: `${segment.title || key || "Segment"} 本幕流程不完整`,
+        detail: `建议补齐：${missingBeatFields.map(([, label]) => label).join("、")}。`,
+        target: { kind: "segments", segmentKey: key }
+      });
+    }
     if (!operations.flow && !operations.hostTruth) {
       add(checks, {
         id: `segments.${key}.runbook_missing`,
@@ -201,7 +230,44 @@ export function evaluateWorldPublishReadiness(snapshot) {
       .filter((action) => action.type === "grant_clue")
       .map((action) => action.clueId)
   ]);
+  const investigationPointClueIds = new Set(
+    points.map((point) => point.clue_id).filter(Boolean)
+  );
+  const criticalImportance = new Set([
+    "key",
+    "prerequisite",
+    "truth_piece",
+    "finale_key"
+  ]);
   for (const clue of clues) {
+    const metadata = clue.metadata && typeof clue.metadata === "object"
+      ? clue.metadata
+      : {};
+    const hasPath = Boolean(
+      investigationPointClueIds.has(clue.id) ||
+      metadata.locationId ||
+      metadata.location_id ||
+      metadata.segmentKey ||
+      metadata.segment_key
+    );
+    const isCritical = criticalImportance.has(metadata.importance);
+    if (!hasPath && isCritical) {
+      add(checks, {
+        id: `clues.${clue.id}.critical_path_missing`,
+        level: "error",
+        title: `${clue.name} 缺少玩家发现路径`,
+        detail: "关键线索必须绑定地图地点、调查点或剧情段落，不能仅依赖主持人临场补救。",
+        target: { kind: "clues", clueId: clue.id }
+      });
+    } else if (!hasPath && metadata.allowUnbound !== true) {
+      add(checks, {
+        id: `clues.${clue.id}.path_decision_missing`,
+        level: "error",
+        title: `${clue.name} 尚未决定出现路径`,
+        detail: "请绑定地图地点、调查点或剧情段落；若它是刻意游离的补充线索，请明确勾选“允许游离”。",
+        target: { kind: "clues", clueId: clue.id }
+      });
+    }
     if (!grantedClueIds.has(clue.id)) {
       add(checks, {
         id: `clues.${clue.id}.unreachable`,

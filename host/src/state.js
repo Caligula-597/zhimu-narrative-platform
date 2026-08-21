@@ -1,3 +1,5 @@
+import { createSyncDiagnostics } from "../../shared/sync-diagnostics.js";
+
 export const state = {
   view: "landing",
   user: null,
@@ -34,14 +36,28 @@ export const state = {
   cloudHostStuckCount: 0,
   cloudHostEvents: [],
   cloudHostClueMatrix: null,
+  cloudHostDiscoveryProgress: null,
   cloudHostAuditLog: [],
   cloudHostTestimonies: [],
   cloudHostSegmentRemedies: [],
   cloudHostVotes: [],
   cloudHostPrivateActions: [],
+  cloudHostItemActions: [],
+  cloudHostRelationships: [],
+  cloudHostCohosts: [],
+  cloudHostCohostCanManage: false,
   cloudHostMiniGames: [],
   cloudRunReport: null,
   cloudHostMechanismRuntime: null,
+  voiceSession: null,
+  hostVoiceRoomId: "",
+  hostVoiceLiveStatus: "idle",
+  hostVoiceMicEnabled: false,
+  hostVoiceParticipants: [],
+  hostVoicePlaybackBlocked: false,
+  hostVoiceLiveError: "",
+  hostVoiceBusy: false,
+  hostVoiceStartConfirmUntil: 0,
   hostMechanismBusy: "",
   hostMechanismError: "",
   cloudRulesPreview: null,
@@ -51,6 +67,7 @@ export const state = {
   hostRoomCreateWorkspace: null,
   hostSelectedActKey: "",
   hostOperation: null,
+  hostMaterialBooklets: [],
   hostArchiveWorkspace: null,
   hostRuleWorkspace: null,
   hostRuleListBusy: "",
@@ -61,7 +78,9 @@ export const state = {
 
   roomEventsConnected: false,
   roomEventsStatus: "idle",
+  roomSyncDiagnostics: createSyncDiagnostics(),
 
-  /** 节奏计时器状态 — 保存在 localStorage，仅主持人本地使用，不同步给玩家 */
-  paceTimer: null
+  /** 房间级节奏时钟与一次性收束状态，均以服务端版本为准。 */
+  paceTimer: null,
+  sessionConclusion: null
 };

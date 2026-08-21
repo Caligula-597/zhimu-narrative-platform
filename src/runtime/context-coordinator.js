@@ -39,9 +39,7 @@ import { invalidateStudioSnapshot } from "./studio-loader.js";
       cloudRecaps: [],
       cloudRecapLatest: null,
       cloudRecapDetail: null,
-      activeRecapId: null,
-      cloudPlayer: null,
-      cloudExploration: null
+      activeRecapId: null
     });
     assetStore.set({ cloudAssets: [], storageUsage: null });
     userStore.set({ apiError: "" });

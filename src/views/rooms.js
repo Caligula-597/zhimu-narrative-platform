@@ -6,6 +6,7 @@ import { registerView } from "../runtime/view-registry.js";
 import { studioStore, worldStore } from "../state/index.js";
 import { escapeHtml } from "../utils/format.js";
 import { roomContentBindingPresentation } from "../../shared/room-content-binding.js";
+import { normalizeRuntimeCurrentState } from "../../shared/runtime-current-state.js";
 import {
   availableRoomReleaseTargets,
   bindRoomReleaseTargetFields,
@@ -84,9 +85,21 @@ function roomRow(room, state) {
     : `<button class="text-btn" data-action="room-listing-on" data-room-id="${escapeHtml(room.id)}" ${busy ? "disabled" : ""}>公开到大厅</button>`;
   const seatHint = room.role_slot_count != null ? ` · ${Number(room.role_slot_count)} 个席位` : "";
   const binding = roomContentBindingPresentation(room.contentBinding);
-  const runtimeState = state.runtimeStates[room.id];
+  const runtimeState = state.runtimeStates[room.id]
+    ? normalizeRuntimeCurrentState(state.runtimeStates[room.id], {
+        audience: "creator"
+      })
+    : null;
+  const currentBeat = runtimeState?.currentBeat;
+  const currentBeatDetail = currentBeat?.host?.dmTasks
+    || currentBeat?.host?.goal
+    || currentBeat?.player?.content
+    || runtimeState?.phase?.detail
+    || "";
+  const currentBeatAdvance = currentBeat?.host?.advanceCondition || "";
+  const currentBeatMinutes = currentBeat?.host?.estimatedMinutes;
   const runtimeLine = runtimeState
-    ? `<p class="muted-note"><strong>${escapeHtml(runtimeState.phase?.label || "状态待确认")}</strong> · ${escapeHtml(runtimeState.phase?.detail || "")} · 游标 ${Number(runtimeState.syncState?.serverCursor) || 0}</p>`
+    ? `<div class="muted-note room-current-beat"><p><strong>${escapeHtml(currentBeat ? `第 ${currentBeat.position}/${currentBeat.total} 段 · ${currentBeat.title}` : runtimeState.phase?.label || "状态待确认")}</strong> · ${escapeHtml(runtimeState.phase?.label || "状态待确认")} · 游标 ${Number(runtimeState.syncState?.serverCursor) || 0}</p>${currentBeatDetail ? `<p>${escapeHtml(currentBeatDetail)}</p>` : ""}${currentBeatAdvance ? `<p><b>推进条件：</b>${escapeHtml(currentBeatAdvance)}${currentBeatMinutes != null ? ` · 预计 ${Number(currentBeatMinutes)} 分钟` : ""}</p>` : ""}</div>`
     : "";
   const releaseTargets = availableRoomReleaseTargets(room, state.releases);
   const releaseAction = releaseTargets.length

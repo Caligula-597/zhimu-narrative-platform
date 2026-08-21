@@ -3,6 +3,7 @@ import {
   isMechanismInteractionKind,
   mechanismInteractionCard,
 } from "./mechanism-interactions.js";
+import { isMechanismKitKey } from "./mechanism-catalog.js";
 
 export const MECHANISM_DESIGN_VERSION = 1;
 export const MECHANISM_DESIGN_STATUSES = Object.freeze(["draft", "confirmed"]);
@@ -73,6 +74,9 @@ export function normalizeMechanismDesign(value = {}) {
     : "draft";
   return {
     version: MECHANISM_DESIGN_VERSION,
+    templateKey: isMechanismKitKey(source.templateKey)
+      ? String(source.templateKey).trim()
+      : "",
     interactionKind,
     allocationTotal: boundedInteger(source.allocationTotal, 100, 1, 10_000),
     allocationUnitLabel: cleanText(source.allocationUnitLabel, 40) || "点",

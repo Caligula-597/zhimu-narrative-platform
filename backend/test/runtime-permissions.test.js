@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { randomUUID } from "node:crypto";
 import { queryFixtureRoleId } from "./helpers/fixture-helpers.js";
 import test from "node:test";
 import { createApp } from "../src/app.js";
@@ -7,6 +8,25 @@ import { fixtureWorldName, fixtureRoomId } from "./helpers/fixture-ids.js";
 
 const hostUserId = "154aa8a9-9cd2-4098-90f4-c75e56c0cc53";
 const playerUserId = "1d5e8155-a80f-4e7f-99f0-0ae317a35f35";
+
+async function addTemporaryVoiceInvitee(context) {
+  const userId = randomUUID();
+  await query(
+    `INSERT INTO users (id, email, display_name, user_kind, email_verified_at)
+     VALUES ($1, $2, '临时语音玩家', 'registered', now())`,
+    [userId, `voice-${userId}@zhimu.local`]
+  );
+  await query(
+    `INSERT INTO room_members (room_id, user_id, member_type) VALUES ($1, $2, 'player')`,
+    [fixtureRoomId, userId]
+  );
+  context.after(async () => {
+    await query(`DELETE FROM voice_room_members WHERE user_id = $1`, [userId]);
+    await query(`DELETE FROM room_members WHERE room_id = $1 AND user_id = $2`, [fixtureRoomId, userId]);
+    await query(`DELETE FROM users WHERE id = $1`, [userId]);
+  });
+  return userId;
+}
 
 test("invite code lookup returns room roles without exposing other runtime state", async (context) => {
   const app = await createApp({ logger: false, allowDemoUserHeader: true });
@@ -64,13 +84,14 @@ test("player cannot read host progress for a running room", async (context) => {
 });
 
 test("private voice rooms are isolated from active room members who were not invited", async (context) => {
+  const temporaryInviteeId = await addTemporaryVoiceInvitee(context);
   const app = await createApp({ logger: false, allowDemoUserHeader: true });
   context.after(() => app.close());
   const room = await app.inject({
     method: "POST",
     url: `/api/rooms/${fixtureRoomId}/voice-rooms`,
     headers: { "x-user-id": playerUserId },
-    payload: { name: `权限隔离测试 ${Date.now()}`, roomType: "invite_private", inviteUserIds: [] }
+    payload: { name: `权限隔离测试 ${Date.now()}`, roomType: "invite_private", inviteUserIds: [temporaryInviteeId] }
   });
   assert.equal(room.statusCode, 201);
   context.after(() => query(`DELETE FROM voice_rooms WHERE id = $1`, [room.json().id]));

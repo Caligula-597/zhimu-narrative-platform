@@ -1,4 +1,6 @@
 import { throwErr } from "./api-errors.js";
+import { listMaterialBooklets } from "./creator-bible.js";
+import { query } from "./db.js";
 import { grantItemToInventory } from "./inventory-helpers.js";
 import { evaluateRoomRulesWithClient } from "./rule-engine.js";
 import { transactionWithEvents } from "./transaction-events.js";
@@ -7,10 +9,12 @@ import {
   appendHostContentAudit,
   appendHostContentTimeline,
   configureHostContentActionTransaction,
+  findBookletInRoomWorld,
   findClueInRoomWorld,
   findRoleIdsInRoomWorld,
   findSceneInRoomWorld,
   findSectionInRoomRole,
+  grantBookletToRoles,
   grantClueToRoles,
   hasActiveHostMembership,
   relockSection,
@@ -178,6 +182,106 @@ export async function grantClueFromHost({ roomId, actorId, targets, clueId, mess
       metadata: { requestedRoleSlotIds: targets, grantedRoleSlotIds }
     });
     return { ok: true, granted: grantedRoleSlotIds.length };
+  });
+}
+
+export async function listMaterialBookletsForHost({ roomId, actorId }) {
+  const membership = await query(
+    `SELECT 1
+     FROM room_members
+     WHERE room_id = $1 AND user_id = $2 AND status = 'active'
+       AND member_type IN ('host', 'cohost')`,
+    [roomId, actorId]
+  );
+  if (!membership.rowCount) throwErr("HOST_ROLE_REQUIRED");
+  const room = await query(`SELECT world_id FROM rooms WHERE id = $1`, [roomId]);
+  if (!room.rowCount) throwErr("ROOM_NOT_FOUND");
+  return listMaterialBooklets(room.rows[0].world_id);
+}
+
+export async function grantMaterialBookletFromHost({
+  roomId,
+  actorId,
+  targets,
+  bookletId,
+  message
+}) {
+  return transactionWithEvents(async (client, queueEvent) => {
+    await configureHostContentActionTransaction(client);
+    await assertHostAccess(client, roomId, actorId);
+    const provider = await loadActionContent(client, roomId);
+    const booklet = await findBookletInRoomWorld(client, { roomId, bookletId });
+    if (!booklet) throwErr("BOOKLET_WORLD_MISMATCH");
+    await assertRolesInRoomWorld(client, roomId, targets, provider);
+
+    const grantedRoleSlotIds = await grantBookletToRoles(client, {
+      roomId,
+      roleSlotIds: targets,
+      bookletId,
+      actorId,
+      message: message || ""
+    });
+
+    const linkedClueIds = Array.isArray(booklet.linked_clue_ids) ? booklet.linked_clue_ids : [];
+    const linkedClueGrants = [];
+    for (const clueId of linkedClueIds) {
+      const clue = await findRuntimeClue(client, provider, { roomId, clueId });
+      if (!clue) continue;
+      const clueGrantedRoleSlotIds = await grantClueToRoles(client, {
+        roomId,
+        roleSlotIds: targets,
+        clueId
+      });
+      linkedClueGrants.push({ clueId, grantedRoleSlotIds: clueGrantedRoleSlotIds });
+      for (const roleSlotId of clueGrantedRoleSlotIds) {
+        queueEvent(roomId, "room.clue_granted", {
+          clueId,
+          roleSlotId,
+          clueName: clue.name,
+          source: "host_booklet_grant"
+        });
+      }
+    }
+
+    for (const roleSlotId of grantedRoleSlotIds) {
+      queueEvent(roomId, "room.booklet_granted", {
+        bookletId,
+        roleSlotId,
+        bookletTitle: booklet.title,
+        source: "host_manual"
+      });
+    }
+
+    if (grantedRoleSlotIds.length) {
+      await appendHostContentTimeline(client, {
+        roomId,
+        actorId,
+        eventType: "host_grant_booklet",
+        message: message || `主持人发放物料册「${booklet.title || "未命名"}」给 ${grantedRoleSlotIds.length} 名玩家`,
+        metadata: {
+          roleSlotIds: grantedRoleSlotIds,
+          bookletId,
+          linkedClueIds
+        }
+      });
+    }
+    await appendHostContentAudit(client, {
+      roomId,
+      actorId,
+      action: "host_grant_booklet",
+      targetType: "material_booklet",
+      targetId: bookletId,
+      metadata: {
+        requestedRoleSlotIds: targets,
+        grantedRoleSlotIds,
+        linkedClueGrants
+      }
+    });
+    return {
+      ok: true,
+      granted: grantedRoleSlotIds.length,
+      linkedClueGrants
+    };
   });
 }
 

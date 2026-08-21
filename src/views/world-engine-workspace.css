@@ -1,0 +1,14 @@
+.world-engine-workspace { --engine: #24594f; }
+.world-engine-source { display: grid; gap: 18px; padding-top: 12px; }
+.world-engine-seed { display: grid; gap: 10px; border: 1px solid rgba(36, 89, 79, .2); border-radius: 12px; padding: 12px; }
+.world-engine-venue { display: flex; gap: 8px; align-items: flex-start; }
+.world-engine-venue small { display: block; color: var(--ink-soft); }
+.world-engine-cards, .world-engine-render-row { display: grid; gap: 10px; }
+.world-engine-card, .world-engine-script {
+  padding: 12px;
+  border: 1px solid rgba(36, 89, 79, .16);
+  border-radius: 10px;
+  background: #f7fbf9;
+}
+.world-engine-script pre { white-space: pre-wrap; font: inherit; }
+.world-engine-audits { color: #8a3b2b; font-size: 12px; }

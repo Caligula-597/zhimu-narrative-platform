@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { createApp } from "../src/app.js";
-import { clearTestResetCapture, peekTestResetUrl } from "../src/email.js";
+import { clearTestEmailCapture, peekTestResetUrl } from "../src/email.js";
 
 const originalResendKey = process.env.RESEND_API_KEY;
 const originalMailFrom = process.env.MAIL_FROM;
@@ -13,7 +13,7 @@ function withResendEnv(fn) {
   process.env.APP_PUBLIC_URL = "http://localhost:4173";
   process.env.PASSWORD_RESET_EMAIL_STUB = "1";
   return fn().finally(() => {
-    clearTestResetCapture();
+    clearTestEmailCapture();
     delete process.env.PASSWORD_RESET_EMAIL_STUB;
     if (originalResendKey === undefined) delete process.env.RESEND_API_KEY;
     else process.env.RESEND_API_KEY = originalResendKey;

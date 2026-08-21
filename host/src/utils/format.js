@@ -26,6 +26,7 @@ export function hostAuditActionLabel(action = "") {
   const labels = {
     manual_rule_triggered: "手动触发规则",
     host_grant_clue: "手动发线索",
+    host_grant_booklet: "发放物料册",
     host_grant_item: "手动发物品",
     host_event_delayed: "延迟待确认事件",
     host_kick_player: "踢出玩家",
@@ -49,6 +50,7 @@ export function hostOperationLabel(type = "", message = "") {
     reading_completed: "阅读完成",
     investigation_completed: "调查完成",
     host_grant_clue: "主持发线索",
+    host_grant_booklet: "发放物料册",
     host_unlock_section: "解锁分幕",
     scene_unlocked: "开放场景",
     host_event_executed: "主持确认",

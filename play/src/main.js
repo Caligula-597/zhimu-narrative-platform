@@ -1,12 +1,7 @@
 import "./styles.css";
 import {
-  api,
-  clearSession,
-  getAppOrigin,
-  getPlayOrigin,
-  getSessionToken,
-  setSessionToken,
-  subscribeSessionToken
+  api, clearSession, getAppOrigin, getPlayOrigin, getSessionToken,
+  setSessionToken, subscribeSessionToken
 } from "./api.js";
 import { ALLOWED_OAUTH_PROVIDERS, isSafeOAuthRedirectUrl, isUuid, normalizeInviteCode, asArray } from "../../shared/security.js";
 import { connectRoomEvents, disconnectRoomEvents } from "./room-events.js";
@@ -15,22 +10,11 @@ import { formatApiError } from "./errors.js";
 import { renderApp } from "./render.js";
 import { closeModalState, openModalState } from "./components/modal.js";
 import {
-  connectVoiceLive,
-  disconnectVoiceLive,
-  ensureDefaultVoiceRoom,
-  joinVoiceRoom,
-  openCreateVoiceRoomModal,
-  openInviteVoiceRoomModal,
-  openVoiceRoomPicker,
-  pauseVoiceSession,
-  refreshVoiceMessages,
-  resetVoiceOnLeave,
-  sendVoiceChatMessage,
-  setVoiceRenderCallback,
-  submitCreateVoiceRoom,
-  submitVoiceInvite,
-  toggleVoiceMicLive,
-  unlockVoicePlayback
+  connectVoiceLive, disconnectVoiceLive, ensureDefaultVoiceRoom, joinVoiceRoom,
+  openCreateVoiceRoomModal, openInviteVoiceRoomModal, openVoiceRoomPicker,
+  pauseVoiceSession, privateVoiceRoomsEnabled, privateVoiceRoomsUnavailableMessage,
+  refreshVoiceMessages, resetVoiceOnLeave, sendVoiceChatMessage, setVoiceRenderCallback,
+  submitCreateVoiceRoom, submitVoiceInvite, toggleVoiceMicLive, unlockVoicePlayback
 } from "./runtime/voice.js";
 import { bindPlayReader } from "./runtime/reader.js";
 import { patchGameView, patchGameHostBanner, patchGameTabSwitch, patchGameSectionsTab, isGameInputFocused } from "./runtime/patch-game.js";
@@ -70,6 +54,7 @@ import { createPlayStreamController } from "./runtime/stream-controller.js";
 import { createRoomLifecycleController } from "./runtime/room-lifecycle-controller.js";
 import { createRecapNotebookController } from "./runtime/recap-notebook-controller.js";
 import { createLazyPlayerProfileController } from "./runtime/lazy-profile-controller.js";
+import { bindPlayRuntimeEdges } from "./runtime/runtime-edge-bindings.js";
 
 const app = document.getElementById("app");
 
@@ -91,8 +76,6 @@ const { render } = createPlayViewController({
   setToast,
   syncPlayUrl
 });
-
-setVoiceRenderCallback(render);
 
 const {
   cleanAuthUrl,
@@ -155,12 +138,43 @@ const {
   patchSyncChrome, setToast
 });
 
+async function syncPlayerDiscovery({ action, locationId, expectedRevision } = {}) {
+  if (!state.roomId || !locationId) return null;
+  try {
+    const session = await api.discoveryAction(state.roomId, locationId, {
+      action,
+      expectedRevision: Number(expectedRevision) || 0,
+    });
+    const sessions = Array.isArray(state.discoverySessions) ? state.discoverySessions : [];
+    state.discoverySessions = [
+      ...sessions.filter((candidate) => String(candidate.locationId) !== String(session.locationId)),
+      session,
+    ];
+    state.discoverySyncError = "";
+    render();
+    return session;
+  } catch (error) {
+    try {
+      const latest = await api.discoverySessions(state.roomId);
+      state.discoverySessions = Array.isArray(latest?.sessions) ? latest.sessions : state.discoverySessions;
+    } catch {
+      // Preserve the last confirmed projection while the regular room refresh retries.
+    }
+    state.discoverySyncError = formatApiError(error, "地点探索进度同步失败");
+    setToast(state.discoverySyncError, render);
+    throw error;
+  }
+}
+
 const {
   loadRecapSummary,
   loadRecapDetail,
   loadMyTimeline,
   handleAddNotebookEntry,
-  handleDeleteNotebookEntry
+  handleDeleteNotebookEntry,
+  hideRecapLibraryEntry,
+  updateRecapRetention,
+  exportRecapLibraryEntry
 } = createRecapNotebookController({
   api, state, render, setBusy, setToast, formatApiError, pullRoomData
 });
@@ -170,7 +184,8 @@ const {
   platformEventCtx,
   syncPlatformStream,
   syncRoomStream,
-  handleAuthLost
+  handleAuthLost,
+  bindBrowserConnectivity
 } = createPlayStreamController({
   state, render, getSessionToken, clearSession, connectRoomEvents,
   disconnectRoomEvents, connectPlatformEvents, disconnectPlatformEvents,
@@ -178,8 +193,10 @@ const {
   setToast, patchGameHostBanner, normalizeMiniGame,
   getGamePatchCtx: () => gamePatchCtx, patchSyncChromeOrRender, bumpTabPulse,
   loadPlazaPosts, loadPlazaThread, loadFriends, loadDmConversations,
-  loadDmThread, pauseVoiceSession, persistRoom, isUuid
+  loadDmThread, pauseVoiceSession, persistRoom, isUuid,
+  getRoomEventCursor: api.getRoomEventCursor
 });
+bindBrowserConnectivity(window);
 
 const {
   goToLanding,
@@ -313,6 +330,8 @@ app.addEventListener("click", async (event) => {
     setBusy,
     setToast,
     formatApiError,
+    privateVoiceRoomsEnabled,
+    privateVoiceRoomsUnavailableMessage,
     openVoiceRoomPicker,
     openCreateVoiceRoomModal,
     openInviteVoiceRoomModal,
@@ -382,6 +401,12 @@ app.addEventListener("click", async (event) => {
     closeModalState,
     pullRoomData
   })) return;
+  if (await handleLazyPlayActionController("tabletop", {
+    action,
+    button,
+    render,
+    syncDiscovery: syncPlayerDiscovery
+  })) return;
   if (await handleLazyPlayActionController("tab", {
     action, button, state, render, gamePatchCtx, flushPendingRoomRefresh,
     defaultGameTabFor, tabGroupFor, clearTabPulse, primaryTabFor,
@@ -398,7 +423,8 @@ app.addEventListener("click", async (event) => {
   await handleLazyPlayActionController("content", {
     action, button, state, api, render, setBusy, setToast, formatApiError,
     loadRecapDetail, loadRecapSummary, patchGameHostBanner,
-    handleAddNotebookEntry, handleDeleteNotebookEntry
+    handleAddNotebookEntry, handleDeleteNotebookEntry,
+    hideRecapLibraryEntry, updateRecapRetention, exportRecapLibraryEntry
   });
 });
 
@@ -406,18 +432,9 @@ app.addEventListener("change", async (event) => {
   await profile.handleChange(event.target);
 });
 
-let externalSessionGeneration = 0;
-subscribeSessionToken(async (change) => {
-  if (change.source !== "storage" && change.source !== "rejected") return;
-  const generation = ++externalSessionGeneration;
-  if (!change.token) {
-    handleAuthLost();
-    return;
-  }
-  await loadSessionUser();
-  if (generation !== externalSessionGeneration || !state.user) return;
-  syncRoomStream({ force: true });
-  render();
+bindPlayRuntimeEdges({
+  app, windowRef: window, state, render, syncPlayerDiscovery, setVoiceRenderCallback,
+  subscribeSessionToken, loadSessionUser, handleAuthLost, syncRoomStream,
 });
 
 bootstrap();

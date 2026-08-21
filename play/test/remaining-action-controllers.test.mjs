@@ -61,6 +61,44 @@ test("tab action updates tab, clears pulse and renders fallback body", async () 
   assert.equal(rendered, 1);
 });
 
+test("opening voice reconciles the latest host session policy before drawing controls", async () => {
+  const state = {
+    view: "game",
+    tab: "home",
+    roomId: "room-1",
+    home: { voicePolicy: { privateRoomsEnabled: false } }
+  };
+  const calls = [];
+  const handled = await handlePlayTabAction({
+    action: "switch-tab",
+    button: { dataset: { tab: "voice" } },
+    state,
+    render: noop,
+    gamePatchCtx: {},
+    flushPendingRoomRefresh: asyncNoop,
+    defaultGameTabFor: () => "voice",
+    tabGroupFor: () => ["voice"],
+    clearTabPulse: noop,
+    primaryTabFor: () => "voice",
+    patchGameTabSwitch: () => true,
+    syncPlayUrl: noop,
+    ensureDefaultVoiceRoom: () => { state.voiceRoomId = "voice-main"; },
+    refreshVoiceMessages: async () => { calls.push("messages"); },
+    loadRecapSummary: asyncNoop,
+    loadMyTimeline: asyncNoop,
+    bindPlayReader: noop,
+    pullRoomData: async () => {
+      calls.push("room");
+      state.home.voicePolicy = { privateRoomsEnabled: true, roomStatus: "active" };
+    },
+    setToast: noop
+  });
+
+  assert.equal(handled, true);
+  assert.deepEqual(calls, ["room", "messages"]);
+  assert.equal(state.home.voicePolicy.privateRoomsEnabled, true);
+});
+
 test("remaining controllers leave unknown actions unhandled", async () => {
   assert.equal(await handlePlayContentAction({ action: "unknown" }), false);
   assert.equal(await handlePlaySessionAction({ action: "unknown" }), false);

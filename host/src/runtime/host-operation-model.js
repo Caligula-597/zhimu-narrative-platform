@@ -4,6 +4,7 @@ import { secureRandomId } from "../../../shared/secure-random.js";
 export const HOST_OPERATION_KINDS = Object.freeze({
   PLAYER: "player",
   GRANT_CLUE: "grant-clue",
+  GRANT_BOOKLET: "grant-booklet",
   GRANT_ITEM: "grant-item",
   UNLOCK_SECTION: "unlock-section",
   UNLOCK_SCENE: "unlock-scene",
@@ -14,6 +15,7 @@ export const HOST_OPERATION_KINDS = Object.freeze({
 
 export const HOST_OPERATION_TABS = Object.freeze([
   { kind: HOST_OPERATION_KINDS.GRANT_CLUE, label: "发线索" },
+  { kind: HOST_OPERATION_KINDS.GRANT_BOOKLET, label: "发物料册" },
   { kind: HOST_OPERATION_KINDS.GRANT_ITEM, label: "发物品" },
   { kind: HOST_OPERATION_KINDS.UNLOCK_SECTION, label: "解锁分幕" },
   { kind: HOST_OPERATION_KINDS.UNLOCK_SCENE, label: "开放场景" },
@@ -111,6 +113,15 @@ function defaultDraft(kind, stateRef, options, runbooks) {
           .slice(0, HOST_OPERATION_LIMITS.CLUE_TARGETS),
         message: actKey ? "主持人按当前幕手册发放线索" : "主持人手动发放线索"
       };
+    case HOST_OPERATION_KINDS.GRANT_BOOKLET: {
+      const booklets = stateRef.hostMaterialBooklets || [];
+      return {
+        bookletId: String(options.bookletId || booklets[0]?.id || ""),
+        roleSlotIds: (targetRoleIds.length ? targetRoleIds : players.slice(0, 1).map((player) => String(player.role_slot_id)))
+          .slice(0, HOST_OPERATION_LIMITS.CLUE_TARGETS),
+        message: "主持人发放物料册"
+      };
+    }
     case HOST_OPERATION_KINDS.GRANT_ITEM:
       return {
         roleSlotId: String(players[0]?.role_slot_id || ""),

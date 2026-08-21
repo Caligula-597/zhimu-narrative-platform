@@ -2,7 +2,7 @@ import { createRefreshCoalescer } from "./sync-helpers.js";
 
 const SOCIAL_FIELDS = [
   "notes", "clues", "sharedClues", "roomMembers",
-  "suspicions", "testimonies", "privateActions"
+  "suspicions", "testimonies", "privateActions", "materialBooklets"
 ];
 
 export function createPlayerHomeController({
@@ -25,11 +25,36 @@ export function createPlayerHomeController({
   async function pullRoomData({ partial = false } = {}) {
     if (!state.roomId || !isUuid(state.roomId)) return;
     const currentGeneration = ++generation;
-    const [homeCore, explorationResult] = await Promise.all([
+    const [homeCore, explorationResult, discoveryResult, paceClockResult, conclusionResult, itemActionsResult, relationshipsResult] = await Promise.all([
       loadPlayerHomeCoreCompat(state.roomId),
       api.exploration(state.roomId)
         .then((data) => ({ ok: true, data }))
-        .catch((error) => ({ ok: false, error }))
+        .catch((error) => ({ ok: false, error })),
+      typeof api.discoverySessions === "function"
+        ? api.discoverySessions(state.roomId)
+            .then((data) => ({ ok: true, data }))
+            .catch((error) => ({ ok: false, error }))
+        : Promise.resolve({ ok: true, data: { sessions: [] } }),
+      typeof api.paceClock === "function"
+        ? api.paceClock(state.roomId)
+            .then((data) => ({ ok: true, data }))
+            .catch((error) => ({ ok: false, error }))
+        : Promise.resolve({ ok: true, data: { clock: null } }),
+      typeof api.roomConclusion === "function"
+        ? api.roomConclusion(state.roomId)
+            .then((data) => ({ ok: true, data }))
+            .catch((error) => ({ ok: false, error }))
+        : Promise.resolve({ ok: true, data: { conclusion: null } }),
+      typeof api.itemActions === "function"
+        ? api.itemActions(state.roomId)
+            .then((data) => ({ ok: true, data }))
+            .catch((error) => ({ ok: false, error }))
+        : Promise.resolve({ ok: true, data: { itemActions: [] } }),
+      typeof api.relationships === "function"
+        ? api.relationships(state.roomId)
+            .then((data) => ({ ok: true, data }))
+            .catch((error) => ({ ok: false, error }))
+        : Promise.resolve({ ok: true, data: { relationships: [] } })
     ]);
     if (currentGeneration !== generation) return;
 
@@ -38,6 +63,11 @@ export function createPlayerHomeController({
       ?? homeCore.roomRunningState?.current_game ?? homeCore.room_running_state?.current_game;
     if (homeGame !== undefined) state.currentGame = normalizeMiniGame(homeGame);
     applyExplorationResult(explorationResult);
+    applyDiscoveryResult(discoveryResult);
+    applyPaceClockResult(paceClockResult);
+    applyConclusionResult(conclusionResult);
+    applyItemActionsResult(itemActionsResult);
+    applyRelationshipsResult(relationshipsResult);
     selectAvailableSection();
     await refreshVoiceIfActive();
 
@@ -71,6 +101,37 @@ export function createPlayerHomeController({
     } else {
       state.explorationError = formatApiError(result.error, "探索数据刷新失败");
     }
+  }
+
+  function applyDiscoveryResult(result) {
+    if (result.ok) {
+      state.discoverySessions = Array.isArray(result.data?.sessions) ? result.data.sessions : [];
+      state.discoverySyncError = "";
+      return;
+    }
+    state.discoverySyncError = formatApiError(result.error, "地点探索进度同步失败");
+  }
+
+  function applyPaceClockResult(result) {
+    if (!result.ok) return;
+    state.paceClock = result.data?.clock
+      ? { ...result.data.clock, _receivedAt: Date.now() }
+      : null;
+  }
+
+  function applyConclusionResult(result) {
+    if (!result.ok) return;
+    state.sessionConclusion = result.data?.conclusion || null;
+  }
+
+  function applyItemActionsResult(result) {
+    if (!result.ok) return;
+    state.itemActions = Array.isArray(result.data?.itemActions) ? result.data.itemActions : [];
+  }
+
+  function applyRelationshipsResult(result) {
+    if (!result.ok) return;
+    state.relationships = Array.isArray(result.data?.relationships) ? result.data.relationships : [];
   }
 
   function selectAvailableSection() {
@@ -165,5 +226,14 @@ function mergeCoreWithPreviousSocial(homeCore, previousHome) {
   const previousSocial = Object.fromEntries(
     SOCIAL_FIELDS.map((field) => [field, previousHome[field] || []])
   );
-  return { ...homeCore, ...previousSocial };
+  return {
+    ...homeCore,
+    ...previousSocial,
+    // Voice availability is runtime state, not an append-only social slice.
+    // Prefer every fresh core value so host start/end policy changes become
+    // visible immediately after SSE or reconnect refreshes.
+    voiceRooms: homeCore.voiceRooms ?? previousHome.voiceRooms ?? [],
+    voiceRoster: homeCore.voiceRoster ?? previousHome.voiceRoster ?? [],
+    voicePolicy: homeCore.voicePolicy ?? previousHome.voicePolicy ?? null
+  };
 }

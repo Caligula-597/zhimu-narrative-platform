@@ -62,6 +62,7 @@ export async function registerStaticFrontend(app) {
       && !url.startsWith("/metrics")
     ) {
       reply.header("cache-control", staticCacheControl(url, reply.statusCode));
+      reply.header("x-robots-tag", "noindex, nofollow, noarchive");
     }
     return payload;
   });

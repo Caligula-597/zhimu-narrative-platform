@@ -6,7 +6,8 @@ import { normalizeError } from "../components/status-ui.js";
 import { loadCloudData, render } from "../runtime/runtime-facade.js";
 import { studioStore } from "../state/index.js";
 import { escapeHtml } from "../utils/format.js";
-import { creatorTerms, normalizeCreationType } from "../../shared/creator-terminology.js";
+import { creatorTerms } from "../../shared/creator-terminology.js";
+import { narrativeProfileFromSettings } from "../../shared/narrative-profile.js";
 import {
   beginWriterToolSession,
   clearWriterToolSession,
@@ -20,19 +21,15 @@ import {
   writerToolGuidanceHtml
 } from "./writer-tool-layout.js";
 
-const CREATION_TYPES = [
-  { id: "murder_mystery", name: "剧本杀 · 角色本 / 公共幕 / 线索" },
-  { id: "tabletop_rpg", name: "跑团 · PC / 章节 / HO / KP 信息" },
-  { id: "interactive_story", name: "互动叙事 · 角色 / 章节 / 信息卡" }
-];
+const DOCUMENT_PRODUCT = "murder_mystery";
 const MAX_DOCUMENT_FILE_BYTES = 5 * 1024 * 1024;
 
 function optionsHtml(items, selectedId) {
   return items.map((item) => `<option value="${escapeHtml(item.id)}" ${item.id === selectedId ? "selected" : ""}>${escapeHtml(item.name)}</option>`).join("");
 }
 
-function documentTargetOptions(data, selectedId, creationType) {
-  const terms = creatorTerms(creationType || data.world?.settings?.creationType);
+function documentTargetOptions(data, selectedId) {
+  const terms = creatorTerms(DOCUMENT_PRODUCT);
   const items = [
     { id: "structured", name: `智能结构导入 · 新建草稿${terms.roleShort}/${terms.act}/${terms.scene}/${terms.clue}` },
     { id: "manuscript", name: "完整剧情母稿" },
@@ -51,6 +48,33 @@ function extractionLabel(extraction, contentMode) {
   return "";
 }
 
+function proseDiagnosticsHtml(report) {
+  if (!report) return "";
+  const issueRows = (report.issues || []).slice(0, 6).map((issue) =>
+    `<article class="revision-row ${issue.severity === "high" ? "must_fix" : "should_fix"}"><div class="revision-head"><span class="cloud-pill">${issue.severity === "high" ? "重点复核" : "抽查"}</span><b>${escapeHtml(issue.sectionTitle || (issue.paragraph ? `第 ${issue.paragraph} 段` : "全文"))}</b></div>${issue.excerpt ? `<p><strong>原文</strong> ${escapeHtml(issue.excerpt)}</p>` : ""}<p><strong>依据</strong> ${escapeHtml(issue.message || "")}</p><p><strong>建议</strong> ${escapeHtml(issue.action || "")}</p></article>`
+  ).join("");
+  const rhythmRows = (report.rhythm?.observations || []).slice(0, 8).map((item) => {
+    const examples = (item.samples || []).length
+      ? `<p><strong>样本</strong> ${escapeHtml(item.samples.join(" ｜ "))}</p>`
+      : "";
+    return `<article class="revision-row should_fix"><div class="revision-head"><span class="cloud-pill">统计观察</span><b>${escapeHtml(item.message || item.code || "叙事呼吸")}</b></div><p><strong>分布</strong> ${escapeHtml(item.evidence || "")}</p>${examples}<p><strong>人工复核</strong> ${escapeHtml(item.reviewQuestion || "")}</p></article>`;
+  }).join("");
+  const summary = report.summary || {};
+  const reviewRequired = report.review?.required === true;
+  const reviewLabel = reviewRequired ? "需要作者复核" : "未记录异常";
+  const reviewReason = report.review?.reason
+    ? `<p class="prose-diagnostics-reason"><strong>${reviewLabel}</strong> · ${escapeHtml(report.review.reason)}</p>`
+    : "";
+  const sample = report.rhythm?.sample || {};
+  const stats = [
+    `硬边界 ${Number(summary.hardBoundaryIssues || 0)}`,
+    `叙事呼吸观察 ${Number(summary.rhythmObservations || 0)}`,
+    `正文段 ${Number(sample.paragraphs || 0)}`,
+    `对白轮次 ${Number(sample.dialogueTurns || 0)}`
+  ].map((item) => `<span>${escapeHtml(item)}</span>`).join("");
+  return `<section class="prose-diagnostics ${reviewRequired ? "needs-review" : "observed"}"><div class="section-head"><div><p class="section-kicker">上传稿件 · 可解释文本诊断</p><h4>硬边界与 Narrative Rhythm / 叙事呼吸</h4><p>只展示原文证据和统计分布，不计算文学分数。</p></div><span class="cloud-pill">${reviewLabel}</span></div>${reviewReason}<div class="proposal-stats">${stats}</div>${issueRows ? `<div class="revision-list"><h4>硬边界与可定位问题</h4>${issueRows}</div>` : ""}${rhythmRows ? `<div class="revision-list"><h4>Narrative Rhythm / 叙事呼吸</h4>${rhythmRows}</div>` : `<p class="muted-note">当前样本未触发已登记的统计异常；这不等于系统对文学质量作出通过判断。</p>`}<p class="muted-note">${escapeHtml(report.disclaimer || "")}</p></section>`;
+}
+
 function documentPreviewHtml(parsed, creationType) {
   if (!parsed) return `<div class="writer-tool-empty-preview"><strong>等待解析</strong><p>解析结果会先显示在这里；复核结构、分段和警告后才能导入。</p></div>`;
   const warnings = (parsed.warnings || []).map((warning) => `<p class="tutorial-tip"><span>${escapeHtml(warning)}</span></p>`).join("");
@@ -64,13 +88,14 @@ function documentPreviewHtml(parsed, creationType) {
   const candidates = structure?.candidates || [];
   const structurePreview = candidates.length ? `<section class="document-structure-preview"><h4>结构识别 · ${escapeHtml(structureSummary)}</h4>${candidates.slice(0, 12).map((item) => `<article><strong>${escapeHtml(item.title)}</strong><span>${escapeHtml(item.type)} · ${escapeHtml(item.confidence)}${item.parentActTitle ? ` · ${escapeHtml(item.parentActTitle)}` : ""}</span></article>`).join("")}${Number(structure.candidateCount || 0) > 12 ? `<p class="muted-note">另有 ${Number(structure.candidateCount) - 12} 项，导入后可在对应工作区逐项复核。</p>` : ""}</section>` : "";
   const summary = parsed.contentMode === "pages" ? `${Number(parsed.pageCount || 0)} 页图片分幕` : `${Number(parsed.characterCount || 0)} 字符 · ${Number(parsed.sectionCount || 0)} 个分段`;
-  return `<section class="assistant-preview document-workspace-preview"><div class="section-head"><div><h3>${escapeHtml(parsed.filename || "解析结果")}</h3><p>${summary}${modeLabel ? ` · ${escapeHtml(modeLabel)}` : ""}</p></div><span class="cloud-pill">仅预览</span></div>${warnings}${structurePreview}${previewImage}<div class="document-section-preview">${sections}</div></section>`;
+  return `<section class="assistant-preview document-workspace-preview"><div class="section-head"><div><h3>${escapeHtml(parsed.filename || "解析结果")}</h3><p>${summary}${modeLabel ? ` · ${escapeHtml(modeLabel)}` : ""}</p></div><span class="cloud-pill">仅预览</span></div>${warnings}${proseDiagnosticsHtml(parsed.proseDiagnostics)}${structurePreview}${previewImage}<div class="document-section-preview">${sections}</div></section>`;
 }
 
 function canImportDocument(session) {
   if (!session.parsed || !session.draft.rightsConfirmed || session.previewFingerprint !== session.sourceFingerprint) return false;
   const target = session.draft.target;
   if (session.parsed.contentMode === "pages") return target !== "manuscript" && target !== "structured" && Boolean(session.file && session.fileBase64);
+  if (session.parsed.proseDiagnostics?.review?.required === true && !session.draft.proseReviewConfirmed) return false;
   if (target === "structured") return Boolean(session.parsed.structure?.candidateCount);
   return true;
 }
@@ -78,7 +103,7 @@ function canImportDocument(session) {
 function documentSourceFingerprint(session) {
   const source = session.draft.source;
   const sourceId = source === "feishu" ? session.draft.feishuUrl.trim() : fileFingerprint(session.file);
-  return [source, sourceId, session.fileRevision || 0, session.draft.creationType, session.draft.allowOcr].join("|");
+  return [DOCUMENT_PRODUCT, source, sourceId, session.fileRevision || 0, session.draft.allowOcr].join("|");
 }
 
 function documentContextHtml(data, session) {
@@ -102,15 +127,17 @@ function documentContextHtml(data, session) {
 
 function documentEditorHtml(data, session) {
   const fileMode = session.draft.source === "file";
+  const needsProseReview = session.parsed?.contentMode === "text" && session.parsed.proseDiagnostics?.review?.required === true;
   const body = `<div class="writer-transfer-form">
-    <label><span>创作类型</span><select class="field" data-document-field="creationType">${optionsHtml(CREATION_TYPES, session.draft.creationType)}</select></label>
+    <div class="field" aria-readonly="true"><strong>项目类型</strong> · 剧本杀稿件</div>
     <label><span>稿件来源</span><select class="field" data-document-field="source"><option value="file" ${fileMode ? "selected" : ""}>本地文件</option><option value="feishu" ${!fileMode ? "selected" : ""}>飞书云文档</option></select></label>
-    ${fileMode ? `<label><span>选择文档</span><input class="field" type="file" accept=".txt,.md,.markdown,.docx,.pdf,.jpg,.jpeg,.png,.webp" data-document-file><small>${session.file ? `当前：${escapeHtml(session.file.name)}；重新选择会立即使旧预览失效。` : "支持 TXT、Markdown、DOCX、PDF 和常见图片。"}</small></label>` : `<label><span>飞书文档链接</span><input class="field" type="url" inputmode="url" value="${escapeHtml(session.draft.feishuUrl)}" placeholder="https://...feishu.cn/docx/..." data-document-field="feishuUrl"><small>需给平台文档应用授予只读权限；平台不保存飞书访问凭据。</small></label>`}
-    <label><span>写入目标</span><select class="field" data-document-field="target">${documentTargetOptions(data, session.draft.target, session.draft.creationType)}</select></label>
-    ${fileMode ? `<label class="checkbox-line"><input type="checkbox" data-document-check="allowOcr" ${session.draft.allowOcr ? "checked" : ""}> 图片型 PDF 尝试 OCR 为文字（较慢，需复核）</label><label><span>PDF 图片导入布局</span><select class="field" data-document-field="pageLayout"><option value="single_section" ${session.draft.pageLayout === "single_section" ? "selected" : ""}>整份 PDF 合并为一个分幕</option><option value="one_section_per_page" ${session.draft.pageLayout === "one_section_per_page" ? "selected" : ""}>每页单独一个分幕</option></select></label>` : ""}
+    ${fileMode ? `<label><span>选择文档</span><input class="field" type="file" accept=".docx,.zip" data-document-file><small>${session.file ? `当前：${escapeHtml(session.file.name)}；重新选择会立即使旧预览失效。` : "稿件解析仅支持 Word .docx；也可上传含 .docx 的 ZIP。图片与音频请走素材库。"}</small></label>` : `<label><span>飞书文档链接</span><input class="field" type="url" inputmode="url" value="${escapeHtml(session.draft.feishuUrl)}" placeholder="https://...feishu.cn/docx/..." data-document-field="feishuUrl"><small>需给平台文档应用授予只读权限；平台不保存飞书访问凭据。</small></label>`}
+    <label><span>写入目标</span><select class="field" data-document-field="target">${documentTargetOptions(data, session.draft.target)}</select></label>
+    ${fileMode ? "" : ""}
     <label class="checkbox-line writer-rights-check"><input type="checkbox" data-document-check="rightsConfirmed" ${session.draft.rightsConfirmed ? "checked" : ""}> 我确认拥有该稿件或已取得处理与导入授权</label>
     <div class="writer-transfer-inline-actions"><button type="button" class="secondary-btn" data-action="writer-document-parse">${session.savingAction === "parse" ? "正在解析…" : "解析并生成预览"}</button></div>
-    ${documentPreviewHtml(session.parsed, session.draft.creationType)}
+    ${documentPreviewHtml(session.parsed, DOCUMENT_PRODUCT)}
+    ${needsProseReview ? `<label class="checkbox-line prose-diagnostics-review-check"><input type="checkbox" data-document-check="proseReviewConfirmed" ${session.draft.proseReviewConfirmed ? "checked" : ""}> 我已阅读硬边界证据与叙事呼吸统计观察，并由自己判断是否继续导入</label><p class="muted-note">未确认前不会写入。系统没有给出文学分数，也不替作者判定稿件好坏。</p>` : ""}
   </div>`;
   return renderWorkspaceEditor({
     title: "文档导入工作台",
@@ -144,16 +171,19 @@ function invalidateDocumentPreview(session) {
 export function openDocumentWorkspace() {
   const data = studioStore.get().cloudStudio;
   if (!data?.world) return showToast("请先选择一个剧本");
+  if (narrativeProfileFromSettings(data.world.settings || {}).creationType !== DOCUMENT_PRODUCT) {
+    return showToast("稿件解析只属于剧本杀工作区，当前项目不能调用");
+  }
   if (!canEditWorldContent(data.world)) return showToast("当前身份不能导入或修改稿件");
   const session = beginWriterToolSession("document", data, {
     draft: {
-      creationType: normalizeCreationType(data.world?.settings?.creationType),
       source: "file",
       target: "structured",
       feishuUrl: "",
       allowOcr: false,
       pageLayout: "single_section",
-      rightsConfirmed: false
+      rightsConfirmed: false,
+      proseReviewConfirmed: false
     },
     file: null,
     fileRevision: 0,
@@ -197,7 +227,7 @@ export function bindDocumentWorkspace(data, session) {
         session.file = null;
         session.fileBase64 = "";
       }
-      if (field === "source" || field === "creationType" || field === "feishuUrl") {
+      if (field === "source" || field === "feishuUrl") {
         session.sourceFingerprint = documentSourceFingerprint(session);
         invalidateDocumentPreview(session);
       }
@@ -231,7 +261,10 @@ export function bindDocumentWorkspace(data, session) {
 function editableDocumentSession() {
   const data = studioStore.get().cloudStudio;
   const session = getWriterToolSession(data);
-  if (!session || session.type !== "document" || !canEditWorldContent(data?.world)) return null;
+  if (
+    !session || session.type !== "document" || !canEditWorldContent(data?.world)
+    || narrativeProfileFromSettings(data?.world?.settings || {}).creationType !== DOCUMENT_PRODUCT
+  ) return null;
   return session;
 }
 
@@ -251,7 +284,7 @@ export async function parseDocumentWorkspace() {
     if (session.draft.source === "feishu") {
       parsed = await zhimuApi.parseFeishuDocument({
         url: session.draft.feishuUrl.trim(),
-        creationType: session.draft.creationType,
+        creationType: DOCUMENT_PRODUCT,
         rightsConfirmed: true
       });
     } else {
@@ -263,12 +296,13 @@ export async function parseDocumentWorkspace() {
         contentBase64: session.fileBase64,
         allowOcr: session.draft.allowOcr,
         parseMode: session.draft.allowOcr ? "text" : "auto",
-        creationType: session.draft.creationType,
+        creationType: DOCUMENT_PRODUCT,
         rightsConfirmed: true
       });
     }
     if (!writerToolSessionIsCurrent(session) || requestFingerprint !== documentSourceFingerprint(session)) return;
     session.parsed = parsed;
+    session.draft.proseReviewConfirmed = false;
     session.previewFingerprint = requestFingerprint;
     showToast(parsed.contentMode === "pages" ? "识别为图片文档，请选择角色并复核页面" : "结构识别完成，请复核后再导入");
   } catch (error) {
@@ -308,7 +342,7 @@ export async function importDocumentWorkspace() {
       const result = await zhimuApi.importParsedDocument({
         target: resolvedTarget,
         roleSlotId: resolvedTarget === "role_script" ? target : null,
-        creationType: session.draft.creationType,
+        creationType: DOCUMENT_PRODUCT,
         rightsConfirmed: true,
         document: {
           filename: session.parsed.filename,

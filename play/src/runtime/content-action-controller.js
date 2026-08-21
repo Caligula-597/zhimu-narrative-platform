@@ -1,12 +1,28 @@
 export async function handlePlayContentAction({
   action, button, state, api, render, setBusy, setToast, formatApiError,
   loadRecapDetail, loadRecapSummary, patchGameHostBanner,
-  handleAddNotebookEntry, handleDeleteNotebookEntry
+  handleAddNotebookEntry, handleDeleteNotebookEntry,
+  hideRecapLibraryEntry, updateRecapRetention, exportRecapLibraryEntry
 }) {
   switch (action) {
     case "open-recap-detail":
       await loadRecapDetail();
       return true;
+    case "open-library-recap":
+      await loadRecapDetail(button.dataset.recapId);
+      return true;
+    case "export-library-recap":
+      await exportRecapLibraryEntry(button.dataset.recapId);
+      return true;
+    case "hide-library-recap":
+      await hideRecapLibraryEntry(button.dataset.recapId);
+      return true;
+    case "set-recap-retention": {
+      const card = button.closest("[data-recap-library-card]");
+      const days = Number(card?.querySelector("[data-recap-retention]")?.value);
+      await updateRecapRetention(button.dataset.roomId, days);
+      return true;
+    }
     case "reload-recap":
       await loadRecapSummary();
       return true;

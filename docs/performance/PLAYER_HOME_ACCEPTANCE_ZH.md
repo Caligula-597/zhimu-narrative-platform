@@ -6,7 +6,17 @@
 
 ```bash
 cd backend
-PLAYER_HOME_BEARER_TOKENS='token-a,token-b,token-c' npm run perf:player-home -- --url=https://staging.example.com --room-id=... --concurrency=20 --requests=200 --out=../artifacts/performance/player-home-c20.json
+PLAYER_HOME_BEARER_TOKENS='token-a,token-b,token-c' npm run perf:player-home -- \
+  --url=https://staging.example.com \
+  --room-id=... \
+  --concurrency=20 \
+  --requests=200 \
+  --evidence-mode=staging \
+  --environment=staging \
+  --confirm-host=staging.example.com \
+  --deployment-id=... \
+  --deployment-revision=0123456789abcdef0123456789abcdef01234567 \
+  --out=../artifacts/performance/player-home-c20.json
 ```
 
 首屏 core 单独验收可增加：`--path=/api/rooms/<roomId>/player-home/core`。
@@ -43,3 +53,5 @@ PLAYER_HOME_BEARER_TOKENS='token-a,token-b,token-c' npm run perf:player-home -- 
 - 真实 SQL 已在迁移 90/90、`ready=true` 的数据库上用只读空身份完成语法和返回字段核验；查询预算与映射回归 11/11 通过。
 
 本轮没有生成新的 P95/P99 数字：本机 Docker daemon 未启动，staging 未配置 `PLAYER_HOME_BEARER_TOKENS` 和专用房间。安全门禁因此阻止远程 demo-header 压测；不得把当前远程数据库当作未授权压测目标。补齐隔离 staging 和多个短期 Bearer 后，仍需按本文命令采集 20/50/100 并发 JSON 与 `pg_stat_statements`。
+
+SSE 长连接容量使用独立的 [SSE 真实容量验收](./SSE_CAPACITY_ACCEPTANCE_ZH.md)。HTTP P95/P99 与 SSE 连接稳定性必须分别采样，不能互相替代。

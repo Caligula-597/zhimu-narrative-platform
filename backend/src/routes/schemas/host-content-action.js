@@ -24,6 +24,32 @@ export const hostGrantClueSchema = {
   }
 };
 
+export const hostGrantBookletSchema = {
+  params: roomIdParams,
+  body: {
+    type: "object",
+    additionalProperties: false,
+    required: ["bookletId"],
+    anyOf: [{ required: ["roleSlotId"] }, { required: ["roleSlotIds"] }],
+    properties: {
+      roleSlotId: uuid,
+      roleSlotIds: {
+        type: "array",
+        items: uuid,
+        minItems: 1,
+        maxItems: 20,
+        uniqueItems: true
+      },
+      bookletId: uuid,
+      message: { type: "string", maxLength: 500 }
+    }
+  }
+};
+
+export const hostListMaterialBookletsSchema = {
+  params: roomIdParams
+};
+
 export const hostGrantItemSchema = {
   params: roomIdParams,
   body: {

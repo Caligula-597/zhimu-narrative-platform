@@ -8,7 +8,7 @@ export const allowedContentTypes = new Map([
   ["audio/mpeg", { kind: "audio", maxBytes: 30 * 1024 * 1024 }],
   ["audio/ogg", { kind: "audio", maxBytes: 30 * 1024 * 1024 }],
   ["audio/wav", { kind: "audio", maxBytes: 30 * 1024 * 1024 }],
-  ["application/pdf", { kind: "document", maxBytes: 20 * 1024 * 1024 }],
+  ["audio/mp4", { kind: "audio", maxBytes: 30 * 1024 * 1024 }],
   ["application/vnd.openxmlformats-officedocument.wordprocessingml.document", { kind: "document", maxBytes: 20 * 1024 * 1024 }]
 ]);
 

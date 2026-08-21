@@ -17,7 +17,6 @@ test("studio create scene rejects empty name via schema", async (context) => {
   });
   assert.equal(response.statusCode, 400);
 });
-
 test("creator create role rejects missing sequence", async (context) => {
   const app = await createApp({ logger: false, allowDemoUserHeader: true });
   context.after(() => app.close());
@@ -109,45 +108,4 @@ test("story edge rejects invalid relationType", async (context) => {
     }
   });
   assert.equal(response.statusCode, 400);
-});
-
-test("pipeline evaluate accepts narrative-first payload without spec or proposal", async (context) => {
-  const app = await createApp({ logger: false, allowDemoUserHeader: true });
-  context.after(() => app.close());
-  const response = await app.inject({
-    method: "POST",
-    url: `/api/worlds/${fixtureWorldId}/story-assistant/deepseek/pipeline/evaluate`,
-    headers: { "x-user-id": hostUserId },
-    payload: {
-      setting: { theme: "测试", playerCount: 4, chapterCount: 3, wordsPerChapter: 8000 },
-      synopsis: { body: "纲要正文" },
-      config: { chapterKeys: ["ch1", "ch2", "ch3"], playerCount: 4, chapterCount: 3 },
-      rolesMeta: { roles: [{ key: "role-1", name: "角色A", publicProfile: "公开", privateProfile: "秘密" }] },
-      sections: { "role-1": { ch1: { title: "分幕", body: "中".repeat(500) } } },
-      narrativeChapters: [{ chapterKey: "ch1", title: "第一章", narrativeBody: "中".repeat(3000) }]
-    }
-  });
-  const body = response.json();
-  assert.notEqual(body.code, "VALIDATION_ERROR", body.error || response.body);
-});
-
-test("pipeline evaluate accepts explicit null proposal from narrative-first session", async (context) => {
-  const app = await createApp({ logger: false, allowDemoUserHeader: true });
-  context.after(() => app.close());
-  const response = await app.inject({
-    method: "POST",
-    url: `/api/worlds/${fixtureWorldId}/story-assistant/deepseek/pipeline/evaluate`,
-    headers: { "x-user-id": hostUserId },
-    payload: {
-      setting: { theme: "测试", playerCount: 4, chapterCount: 3, wordsPerChapter: 8000 },
-      synopsis: { body: "纲要正文" },
-      config: { chapterKeys: ["ch1"], playerCount: 4 },
-      rolesMeta: { roles: [{ key: "role-1", name: "角色A", publicProfile: "公开", privateProfile: "秘密" }] },
-      sections: { "role-1": { ch1: { title: "分幕", body: "中".repeat(500) } } },
-      narrativeChapters: [{ chapterKey: "ch1", title: "第一章", narrativeBody: "中".repeat(3000) }],
-      proposal: null
-    }
-  });
-  assert.notEqual(response.statusCode, 400, response.body);
-  assert.notEqual(response.json().code, "FST_ERR_VALIDATION", response.body);
 });

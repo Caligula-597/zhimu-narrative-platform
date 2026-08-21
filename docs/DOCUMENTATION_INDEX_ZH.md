@@ -1,9 +1,6 @@
 # 织幕文档总索引
 
-最后更新：2026-07-30
-工程事实基线：2026-07-24；产品与品牌维护入口更新：2026-07-30
-
-> 本页由 `npm run docs:index` 从 Git 跟踪的 Markdown 生成，确保每份现有文档都有归属。它解决“去哪找”和“能否作为当前真相”两个问题，不会把历史记录改写成今天的结论。
+> 本页由 `npm run docs:index` 从当前工作区实际存在的 Markdown 生成。已在工作区删除但尚未提交的文件不会重新进入索引。
 
 ## 使用规则
 
@@ -23,7 +20,7 @@ README → PRODUCT_BRAND_MAINTENANCE_HUB（产品与品牌）
        → GENERATED_PROJECT_STATUS.json（易漂移数字）
 ```
 
-## 当前事实与工程入口（24）
+## 当前事实与工程入口（23）
 
 可用于当前开发、验收和发布判断；变化时必须同步代码证据。
 
@@ -35,7 +32,6 @@ README → PRODUCT_BRAND_MAINTENANCE_HUB（产品与品牌）
 | [织幕 · 数据库结构索引](../DATABASE_SCHEMA.md) | `DATABASE_SCHEMA.md` |
 | [架构与端口审视](./ARCHITECTURE_PORT_AUDIT_ZH.md) | `docs/ARCHITECTURE_PORT_AUDIT_ZH.md` |
 | [三端登录状态故障矩阵](./AUTH_FAILURE_MATRIX_ZH.md) | `docs/AUTH_FAILURE_MATRIX_ZH.md` |
-| [织幕代码功能地图与接线盘点](./CODEBASE_FUNCTION_MAP_ZH.md) | `docs/CODEBASE_FUNCTION_MAP_ZH.md` |
 | [织幕文档总索引](./DOCUMENTATION_INDEX_ZH.md) | `docs/DOCUMENTATION_INDEX_ZH.md` |
 | [领域边界与迁移门禁](./DOMAIN_BOUNDARIES_ZH.md) | `docs/DOMAIN_BOUNDARIES_ZH.md` |
 | [前端说明](./FRONTEND_README_ZH.md) | `docs/FRONTEND_README_ZH.md` |
@@ -54,74 +50,63 @@ README → PRODUCT_BRAND_MAINTENANCE_HUB（产品与品牌）
 | [安全与测试收口](../SECURITY_AND_TESTING.md) | `SECURITY_AND_TESTING.md` |
 | [织幕 · 官网（营销站）](../site/README.md) | `site/README.md` |
 
-## 产品、流程与用户指南（32）
+## 产品、流程与用户指南（39）
 
 描述产品意图、工作流和用户操作；部分页面同时包含待实现设计。
 
 | 文档 | 路径 |
 |---|---|
-| [创作驾驶舱故事总览 V1](./创作驾驶舱故事总览-V1.md) | `docs/创作驾驶舱故事总览-V1.md` |
+| [槐荫路旧邮电所人物登场册](../创意提案-织幕/重生成样稿-槐荫路最后一封信/玩家层/00_人物登场册.md) | `创意提案-织幕/重生成样稿-槐荫路最后一封信/玩家层/00_人物登场册.md` |
+| [江雁回](../创意提案-织幕/重生成样稿-槐荫路最后一封信/玩家层/01_江雁回.md) | `创意提案-织幕/重生成样稿-槐荫路最后一封信/玩家层/01_江雁回.md` |
+| [罗启川](../创意提案-织幕/重生成样稿-槐荫路最后一封信/玩家层/02_罗启川.md) | `创意提案-织幕/重生成样稿-槐荫路最后一封信/玩家层/02_罗启川.md` |
+| [陈停云](../创意提案-织幕/重生成样稿-槐荫路最后一封信/玩家层/03_陈停云.md) | `创意提案-织幕/重生成样稿-槐荫路最后一封信/玩家层/03_陈停云.md` |
+| [袁素](../创意提案-织幕/重生成样稿-槐荫路最后一封信/玩家层/04_袁素.md) | `创意提案-织幕/重生成样稿-槐荫路最后一封信/玩家层/04_袁素.md` |
+| [沈砚秋](../创意提案-织幕/重生成样稿-槐荫路最后一封信/玩家层/05_沈砚秋.md) | `创意提案-织幕/重生成样稿-槐荫路最后一封信/玩家层/05_沈砚秋.md` |
+| [唐竞](../创意提案-织幕/重生成样稿-槐荫路最后一封信/玩家层/06_唐竞.md) | `创意提案-织幕/重生成样稿-槐荫路最后一封信/玩家层/06_唐竞.md` |
+| [一致性与越界复核](../创意提案-织幕/重生成样稿-槐荫路最后一封信/质检/05_一致性与越界复核.md) | `创意提案-织幕/重生成样稿-槐荫路最后一封信/质检/05_一致性与越界复核.md` |
+| [主持人手册](../创意提案-织幕/重生成样稿-槐荫路最后一封信/主持层/03_主持人手册.md) | `创意提案-织幕/重生成样稿-槐荫路最后一封信/主持层/03_主持人手册.md` |
+| [线索与道具全文](../创意提案-织幕/重生成样稿-槐荫路最后一封信/主持层/04_线索与道具全文.md) | `创意提案-织幕/重生成样稿-槐荫路最后一封信/主持层/04_线索与道具全文.md` |
+| [创作合同（作者层，禁止向玩家发放）](../创意提案-织幕/重生成样稿-槐荫路最后一封信/作者层/00_创作合同.md) | `创意提案-织幕/重生成样稿-槐荫路最后一封信/作者层/00_创作合同.md` |
+| [唯一真相与双时间线（作者层，禁止向玩家发放）](../创意提案-织幕/重生成样稿-槐荫路最后一封信/作者层/01_唯一真相与双时间线.md) | `创意提案-织幕/重生成样稿-槐荫路最后一封信/作者层/01_唯一真相与双时间线.md` |
+| [关系图与知识矩阵（作者层，禁止向玩家发放）](../创意提案-织幕/重生成样稿-槐荫路最后一封信/作者层/02_关系图与知识矩阵.md) | `创意提案-织幕/重生成样稿-槐荫路最后一封信/作者层/02_关系图与知识矩阵.md` |
+| [人物行为与叙事差异（作者层，禁止向玩家发放）](../创意提案-织幕/重生成样稿-槐荫路最后一封信/作者层/03_人物行为与叙事差异.md) | `创意提案-织幕/重生成样稿-槐荫路最后一封信/作者层/03_人物行为与叙事差异.md` |
+| [《槐荫路最后一封信》](../创意提案-织幕/重生成样稿-槐荫路最后一封信/README.md) | `创意提案-织幕/重生成样稿-槐荫路最后一封信/README.md` |
 | [织幕创作者机制设计与多审查工作台 V1](./创作者机制设计与多审查工作台-V1.md) | `docs/创作者机制设计与多审查工作台-V1.md` |
 | [机制运行包与主持端联动实施基线 V1](./机制运行包与主持端联动实施基线-V1.md) | `docs/机制运行包与主持端联动实施基线-V1.md` |
-| [AI 大纲生成 V2.4：语义宪章、分支执行与生成前创作合同](./AI_OUTLINE_STREAMING_PIPELINE_ZH.md) | `docs/AI_OUTLINE_STREAMING_PIPELINE_ZH.md` |
-| [AI 剧本创作 · UI 验收（五步流程）](./AI_PIPELINE_UI_ZH.md) | `docs/AI_PIPELINE_UI_ZH.md` |
+| [AI 剧本杀生成架构 V6.0（历史冻结）](./AI_GENERATION_ARCHITECTURE_V6_ZH.md) | `docs/AI_GENERATION_ARCHITECTURE_V6_ZH.md` |
+| [AI 剧本杀生成架构 V9.0（冻结）](./AI_GENERATION_ARCHITECTURE_V9_ZH.md) | `docs/AI_GENERATION_ARCHITECTURE_V9_ZH.md` |
 | [商业作者工作流与稿件安全](./COMMERCIAL_CREATOR_WORKFLOW_ZH.md) | `docs/COMMERCIAL_CREATOR_WORKFLOW_ZH.md` |
 | [内容平台路由边界](./CONTENT_PLATFORM_ROUTE_BOUNDARIES_ZH.md) | `docs/CONTENT_PLATFORM_ROUTE_BOUNDARIES_ZH.md` |
-| [创作端业务边界与 UI 重设计草案](./CREATOR_APP_BUSINESS_BOUNDARY_AND_UI_REDESIGN_ZH.md) | `docs/CREATOR_APP_BUSINESS_BOUNDARY_AND_UI_REDESIGN_ZH.md` |
 | [织幕 · 创作者步骤指引](./CREATOR_GUIDE.md) | `docs/CREATOR_GUIDE.md` |
 | [创作端结构化对象 · 产品位置与 API 映射](./CREATOR_OBJECT_PRODUCT_MAP_ZH.md) | `docs/CREATOR_OBJECT_PRODUCT_MAP_ZH.md` |
-| [创作者 UI 核心设计：按真实剧本创作流程搭建](./CREATOR_UI_CORE_DESIGN_FROM_AUTHOR_WORKFLOW_ZH.md) | `docs/CREATOR_UI_CORE_DESIGN_FROM_AUTHOR_WORKFLOW_ZH.md` |
 | [系统设计](./DESIGN_ZH.md) | `docs/DESIGN_ZH.md` |
 | [织幕 · 如何跑第一场（用户手册）](./FIRST_SESSION_GUIDE_ZH.md) | `docs/FIRST_SESSION_GUIDE_ZH.md` |
 | [织幕 · 身份与权限底座](./IDENTITY_AND_PERMISSIONS.md) | `docs/IDENTITY_AND_PERMISSIONS.md` |
 | [上线优先级](./LAUNCH_PRIORITIES_ZH.md) | `docs/LAUNCH_PRIORITIES_ZH.md` |
-| [Matrix 2.0 — 五层信息结构](./MATRIX_2_0_ZH.md) | `docs/MATRIX_2_0_ZH.md` |
 | [MVP 跑局验收清单](./MVP_RUN_ACCEPTANCE_ZH.md) | `docs/MVP_RUN_ACCEPTANCE_ZH.md` |
-| [织幕待处理问题清单](./performance/PENDING_ISSUES_ZH.md) | `docs/performance/PENDING_ISSUES_ZH.md` |
 | [Player 首页性能验收](./performance/PLAYER_HOME_ACCEPTANCE_ZH.md) | `docs/performance/PLAYER_HOME_ACCEPTANCE_ZH.md` |
 | [性能问题文档](./performance/README.md) | `docs/performance/README.md` |
+| [SSE 真实容量验收](./performance/SSE_CAPACITY_ACCEPTANCE_ZH.md) | `docs/performance/SSE_CAPACITY_ACCEPTANCE_ZH.md` |
 | [实体卡（Physical Token）后端 API](./PHYSICAL_TOKENS_API.md) | `docs/PHYSICAL_TOKENS_API.md` |
-| [织幕三端产品功能总览与完整创作流程](./PRODUCT_FUNCTION_OVERVIEW_DETAILED_ZH.md) | `docs/PRODUCT_FUNCTION_OVERVIEW_DETAILED_ZH.md` |
-| [`灵感.doc` 产品输入追踪表](./PRODUCT_INPUT_TRACEABILITY_ZH.md) | `docs/PRODUCT_INPUT_TRACEABILITY_ZH.md` |
 | [生产级 SaaS 评估](./PRODUCTION_SAAS_ASSESSMENT_ZH.md) | `docs/PRODUCTION_SAAS_ASSESSMENT_ZH.md` |
-| [织幕 · AI 创作流水线（五步 · 面向普通创作者）](./PROMPT_ENGINEERING.md) | `docs/PROMPT_ENGINEERING.md` |
-| [织幕 · 简历项目说明](./RESUME_PROJECT_ZH.md) | `docs/RESUME_PROJECT_ZH.md` |
 | [Segment 契约](./SEGMENT_CONTRACT_ZH.md) | `docs/SEGMENT_CONTRACT_ZH.md` |
-| [技术栈与内容平台愿景适配评估](./TECH_STACK_CONTENT_PLATFORM_FIT_ZH.md) | `docs/TECH_STACK_CONTENT_PLATFORM_FIT_ZH.md` |
+| [三产品线工具边界与桌游原型契约](./THREE_PRODUCT_TOOL_BOUNDARIES_ZH.md) | `docs/THREE_PRODUCT_TOOL_BOUNDARIES_ZH.md` |
 | [可信 Beta 收口](./TRUSTED_BETA_ZH.md) | `docs/TRUSTED_BETA_ZH.md` |
-| [织幕统一叙事产品蓝图：Creator / Host / Player 三端与剧本杀 / 跑团双模式](./UNIFIED_NARRATIVE_PRODUCT_BLUEPRINT_ZH.md) | `docs/UNIFIED_NARRATIVE_PRODUCT_BLUEPRINT_ZH.md` |
 | [织幕 · 错误提示与排查手册](./USER_ERROR_GUIDE.md) | `docs/USER_ERROR_GUIDE.md` |
 | [世界、示例与测试桩](./WORLDS_AND_FIXTURES_ZH.md) | `docs/WORLDS_AND_FIXTURES_ZH.md` |
+| [结构化案例包（可导入体验）](../fixtures/cases/README.md) | `fixtures/cases/README.md` |
 
-## 方案、路线图与决策记录（23）
+## 方案、路线图与决策记录（5）
 
 用于讨论和排期，不应被当成已上线承诺。
 
 | 文档 | 路径 |
 |---|---|
-| [01 · 现状评估](../优化计划/01-现状评估.md) | `优化计划/01-现状评估.md` |
-| [02 · 优化方案](../优化计划/02-优化方案.md) | `优化计划/02-优化方案.md` |
-| [03 · 产品与宣传方案](../优化计划/03-产品与宣传.md) | `优化计划/03-产品与宣传.md` |
-| [04 · 执行路线图](../优化计划/04-执行路线图.md) | `优化计划/04-执行路线图.md` |
-| [05 · 主应用模块化迁移详细设计（A1）](../优化计划/05-主应用迁移设计.md) | `优化计划/05-主应用迁移设计.md` |
-| [06 · 上市与运维准备路线图](../优化计划/06-上市与运维准备路线图.md) | `优化计划/06-上市与运维准备路线图.md` |
-| [06 · A1 收尾 + A2 状态分片 + A4 共享层 整合设计](../优化计划/06-A1A2A4整合设计.md) | `优化计划/06-A1A2A4整合设计.md` |
-| [zhimuViews 懒加载 Registry 设计](../优化计划/07-zhimuViews懒加载Registry设计.md) | `优化计划/07-zhimuViews懒加载Registry设计.md` |
-| [L1 验收更新](../优化计划/08-L1验收更新.md) | `优化计划/08-L1验收更新.md` |
-| [公开 Beta 与商业试点优化计划](../优化计划/09-公开Beta与商业试点优化计划.md) | `优化计划/09-公开Beta与商业试点优化计划.md` |
-| [织幕优化计划](../优化计划/README.md) | `优化计划/README.md` |
 | [Beta 范围](./BETA_SCOPE_ZH.md) | `docs/BETA_SCOPE_ZH.md` |
-| [剧本杀内容平台愿景与差距评估](./CONTENT_PLATFORM_VISION_GAP_ZH.md) | `docs/CONTENT_PLATFORM_VISION_GAP_ZH.md` |
-| [织幕 · 需你拍板的设计清单](./DESIGN_DECISIONS_NEEDED_ZH.md) | `docs/DESIGN_DECISIONS_NEEDED_ZH.md` |
 | [织幕 · 工程核心原则](./ENGINEERING_PRINCIPLES_ZH.md) | `docs/ENGINEERING_PRINCIPLES_ZH.md` |
-| [矩阵瀑布流示例剧本 · 进行中（Gen5.1 / Matrix 2.0）](./MATRIX_PILOT_BACKLOG.md) | `docs/MATRIX_PILOT_BACKLOG.md` |
-| [矩阵提示词 · 多方位测试计划（Gen5.1 重启）](./MATRIX_PROMPT_TEST_PLAN_ZH.md) | `docs/MATRIX_PROMPT_TEST_PLAN_ZH.md` |
 | [织幕积分与套餐定价（草案 · 2026-07-06）](./PRICING_CREDITS_ZH.md) | `docs/PRICING_CREDITS_ZH.md` |
 | [定价与权益草案（内测 · 未对外售卖）](./PRICING_DRAFT_ZH.md) | `docs/PRICING_DRAFT_ZH.md` |
-| [三端前端功能清单与后端能力对照](./PRODUCT_VISION_UI_BACKEND_GAP_ZH.md) | `docs/PRODUCT_VISION_UI_BACKEND_GAP_ZH.md` |
 | [上市路线图（后端优先 · 分 Part 推进）](./ROADMAP_LAUNCH_ZH.md) | `docs/ROADMAP_LAUNCH_ZH.md` |
-| [织幕统一叙事功能 · 模块化实施计划](./UNIFIED_NARRATIVE_IMPLEMENTATION_PLAN_ZH.md) | `docs/UNIFIED_NARRATIVE_IMPLEMENTATION_PLAN_ZH.md` |
-| [织幕前端模块化计划](../FRONTEND_MODULE_PLAN.md) | `FRONTEND_MODULE_PLAN.md` |
 
 ## 运维、安全与交付手册（46）
 
@@ -132,6 +117,7 @@ README → PRODUCT_BRAND_MAINTENANCE_HUB（产品与品牌）
 | [云端免费版接入清单](../CLOUD_SETUP_CHECKLIST.md) | `CLOUD_SETUP_CHECKLIST.md` |
 | [后端运维基准](./BACKEND_OPS_BENCHMARK.md) | `docs/BACKEND_OPS_BENCHMARK.md` |
 | [后端运维](./BACKEND_OPS.md) | `docs/BACKEND_OPS.md` |
+| [商用容量与平台恢复验收](./operations/COMMERCIAL_CAPACITY_RECOVERY_ZH.md) | `docs/operations/COMMERCIAL_CAPACITY_RECOVERY_ZH.md` |
 | [发布恢复与回滚流程](./operations/RELEASE_ROLLBACK_ZH.md) | `docs/operations/RELEASE_ROLLBACK_ZH.md` |
 | [本地运维与排障](./OPS.md) | `docs/OPS.md` |
 | [告警与 On-call](./ops/ALERTING.md) | `docs/ops/ALERTING.md` |
@@ -157,17 +143,16 @@ README → PRODUCT_BRAND_MAINTENANCE_HUB（产品与品牌）
 | [值班联系人登记表（模板 · B0-05）](./ops/ONCALL_CONTACTS.template.md) | `docs/ops/ONCALL_CONTACTS.template.md` |
 | [监控告警值班说明 · L2-08](./ops/ONCALL_DUTY_ZH.md) | `docs/ops/ONCALL_DUTY_ZH.md` |
 | [P1-07 三端共享层验收 · A4 Phase 6 · 2026-07-03](./ops/P1-07_SHARED_LAYER_ACCEPTANCE.md) | `docs/ops/P1-07_SHARED_LAYER_ACCEPTANCE.md` |
-| [试点案例 · 匿名摘要（L2 可信故事）](./ops/PILOT_CASE_STUDY_ZH.md) | `docs/ops/PILOT_CASE_STUDY_ZH.md` |
 | [商业试点 · 客户交付包（B1-05）](./ops/PILOT_DELIVERY_PACK_ZH.md) | `docs/ops/PILOT_DELIVERY_PACK_ZH.md` |
 | [商业试点 · 人工订单/开通记录（B1-03）](./ops/PILOT_ORDER_LOG.md) | `docs/ops/PILOT_ORDER_LOG.md` |
 | [内测试点团队追踪（P1-08）](./ops/PILOT_TRACKER.md) | `docs/ops/PILOT_TRACKER.md` |
 | [套餐升级申请 · 运营处理](./ops/PLAN_UPGRADE_SOP_ZH.md) | `docs/ops/PLAN_UPGRADE_SOP_ZH.md` |
 | [玩家广场 / 私信内容审核与账号防刷](./ops/PLAY_CONTENT_MODERATION.md) | `docs/ops/PLAY_CONTENT_MODERATION.md` |
 | [R2 附件恢复策略（B0-04）](./ops/R2_RESTORE_SOP_ZH.md) | `docs/ops/R2_RESTORE_SOP_ZH.md` |
-| [⚠️ 已过时（DEPRECATED）](./ops/RAILWAY_WEB.md) | `docs/ops/RAILWAY_WEB.md` |
 | [织幕 · Railway 部署（单服务 fullstack）](./ops/RAILWAY.md) | `docs/ops/RAILWAY.md` |
 | [运维文档索引](./ops/README.md) | `docs/ops/README.md` |
 | [远程与局域网测试](./ops/REMOTE_TESTING.md) | `docs/ops/REMOTE_TESTING.md` |
+| [织幕全平台搜索发现与收录 SOP](./ops/SEARCH_DISCOVERY_ZH.md) | `docs/ops/SEARCH_DISCOVERY_ZH.md` |
 | [边缘安全、密钥与追踪](./ops/SECURITY_EDGE.md) | `docs/ops/SECURITY_EDGE.md` |
 | [SLA 草案（对外可解释 · 对内可执行）](./ops/SLA_DRAFT_ZH.md) | `docs/ops/SLA_DRAFT_ZH.md` |
 | [分域部署](./ops/SPLIT_DOMAINS.md) | `docs/ops/SPLIT_DOMAINS.md` |
@@ -176,16 +161,12 @@ README → PRODUCT_BRAND_MAINTENANCE_HUB（产品与品牌）
 | [OpenTelemetry tracing](./ops/TRACING.md) | `docs/ops/TRACING.md` |
 | [上传 AV strict](./ops/UPLOAD_SCAN.md) | `docs/ops/UPLOAD_SCAN.md` |
 
-## 历史验收、演练与迁移记录（17）
+## 历史验收、演练与迁移记录（9）
 
 按发生时事实保留，不用今天的数据回写过去的证据。
 
 | 文档 | 路径 |
 |---|---|
-| [织幕 Alpha · 客观评估（2026-06-03）](../ALPHA_ASSESSMENT.md) | `ALPHA_ASSESSMENT.md` |
-| [织幕 Alpha 功能矩阵](../ALPHA_FEATURE_MATRIX.md) | `ALPHA_FEATURE_MATRIX.md` |
-| [官网第一版设计验收](../design-qa.md) | `design-qa.md` |
-| [织幕竞品定位与宣发简报（2026-07-30）](./COMPETITIVE_PROMOTION_BRIEF_2026-07-30_ZH.md) | `docs/COMPETITIVE_PROMOTION_BRIEF_2026-07-30_ZH.md` |
 | [备份恢复演练记录 · 2026-07-03](./ops/BACKUP_DRILL_2026-07-03.md) | `docs/ops/BACKUP_DRILL_2026-07-03.md` |
 | [备份恢复演练记录 · 2026-07-04](./ops/BACKUP_DRILL_2026-07-04.md) | `docs/ops/BACKUP_DRILL_2026-07-04.md` |
 | [备份恢复演练记录 · 2026-07-06](./ops/BACKUP_DRILL_2026-07-06.md) | `docs/ops/BACKUP_DRILL_2026-07-06.md` |
@@ -195,10 +176,6 @@ README → PRODUCT_BRAND_MAINTENANCE_HUB（产品与品牌）
 | [监控告警值班演练 · 2026-07-04](./ops/MONITORING_ONCALL_DRILL_2026-07-04.md) | `docs/ops/MONITORING_ONCALL_DRILL_2026-07-04.md` |
 | [权限矩阵抽查记录 · L1-05 · 2026-07-03](./ops/PERMISSION_MATRIX_AUDIT_2026-07-03.md) | `docs/ops/PERMISSION_MATRIX_AUDIT_2026-07-03.md` |
 | [Staging 隔离演练记录 · L1-07 · 2026-07-03](./ops/STAGING_ISOLATION_DRILL_2026-07-03.md) | `docs/ops/STAGING_ISOLATION_DRILL_2026-07-03.md` |
-| [织幕产品体验与视觉审计（2026-07-30）](./PRODUCT_EXPERIENCE_AUDIT_2026-07-30_ZH.md) | `docs/PRODUCT_EXPERIENCE_AUDIT_2026-07-30_ZH.md` |
-| [织幕 · 完整功能目录（历史长表）](../FEATURE_CATALOG.md) | `FEATURE_CATALOG.md` |
-| [织幕 · 功能实现状态总览（历史长表）](../IMPLEMENTATION_STATUS.md) | `IMPLEMENTATION_STATUS.md` |
-| [织幕 · Release Notes](../RELEASE_NOTES.md) | `RELEASE_NOTES.md` |
 
 ## 法务、软著与对外草案（7）
 
@@ -214,7 +191,7 @@ README → PRODUCT_BRAND_MAINTENANCE_HUB（产品与品牌）
 | [织幕隐私政策（草案）](./legal/PRIVACY_ZH.md) | `docs/legal/PRIVACY_ZH.md` |
 | [织幕用户服务协议（草案）](./legal/USER_TERMS_ZH.md) | `docs/legal/USER_TERMS_ZH.md` |
 
-## 组件与目录说明（9）
+## 组件与目录说明（2）
 
 面向具体子应用、部署兼容层或示例目录。
 
@@ -222,13 +199,6 @@ README → PRODUCT_BRAND_MAINTENANCE_HUB（产品与品牌）
 |---|---|
 | [勿将本目录作为 Railway Root Directory](../backend/RAILWAY_README.md) | `backend/RAILWAY_README.md` |
 | [E2E / 浏览器测试](../e2e/README.md) | `e2e/README.md` |
-| [文风预设目录（v5.3）](../examples/pending-review/雾港回声/LITERARY_STYLES_ZH.md) | `examples/pending-review/雾港回声/LITERARY_STYLES_ZH.md` |
-| [矩阵 · 小说优先流水线（v5.3）](../examples/pending-review/雾港回声/NOVEL_FIRST_ZH.md) | `examples/pending-review/雾港回声/NOVEL_FIRST_ZH.md` |
-| [矩阵瀑布流 · 提示词说明（当前版）](../examples/pending-review/雾港回声/PROMPTS_ZH.md) | `examples/pending-review/雾港回声/PROMPTS_ZH.md` |
-| [矩阵瀑布流 · 打分标准（v5.4）](../examples/pending-review/雾港回声/SCORING_ZH.md) | `examples/pending-review/雾港回声/SCORING_ZH.md` |
-| [矩阵写作风格标准（v5.4 · 多人私人本）](../examples/pending-review/雾港回声/STYLE_WRITING_ZH.md) | `examples/pending-review/雾港回声/STYLE_WRITING_ZH.md` |
-| [待审核示例剧本（本地）](../examples/pending-review/README.md) | `examples/pending-review/README.md` |
-| [Legacy dual-service Web deploy (deprecated)](../web/README.md) | `web/README.md` |
 
 ## 维护责任
 

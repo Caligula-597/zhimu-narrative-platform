@@ -1,105 +1,18 @@
-/** View-level code splitting for the legacy window.* frontend. */
+/** View-level code splitting. Product modules own deliberately disjoint manifests. */
+import { PRODUCT_VIEW_MODULES } from "../products/product-registry.js";
+import { SHARED_INFRASTRUCTURE_VIEW_MODULES } from "../products/shared-infrastructure/view-manifest.js";
+
 (function (window) {
-  const loaded = new Set(["creatorCockpit"]);
+  const loaded = new Set();
   const loading = new Map();
 
-  const creatorWorkspaceModules = [
-    () => import("./world-revision.js"),
-    () => import("../views/creator-workspaces.js"),
-    () => import("./actions-creator-workspaces.js")
-  ];
-
-  const truthWorkspaceModules = [
-    ...creatorWorkspaceModules,
-    () => import("./actions-bible.js")
-  ];
-
   const modulesByView = {
-    overview: [
-      () => import("../views/overview.js"),
-      ...creatorWorkspaceModules
-    ],
-    constitution: [
-      () => import("./world-revision.js"),
-      () => import("../views/creative-constitution.js"),
-      () => import("./actions-creative-constitution.js")
-    ],
-    diagnostics: [
-      () => import("../views/story-diagnostics.js"),
-      () => import("./actions-story-diagnostics.js")
-    ],
-    playtest: [
-      () => import("../views/ai-playtest-lab.js"),
-      () => import("./actions-ai-playtest.js")
-    ],
-    production: creatorWorkspaceModules,
-    structure: creatorWorkspaceModules,
-    truth: truthWorkspaceModules,
-    publish: creatorWorkspaceModules,
-    insights: creatorWorkspaceModules,
-    writer: [
-      () => import("../views/pipeline-wizard-session.js"),
-      () => import("../views/pipeline-wizard-brief.js"),
-      () => import("../views/pipeline-wizard-html.js"),
-      () => import("../views/pipeline-wizard-dom.js"),
-      () => import("../views/pipeline-wizard-open.js"),
-      () => import("../views/pipeline-wizard.js"),
-      () => import("./world-revision.js"),
-      () => import("../views/writer.js"),
-      () => import("./actions-bible.js"),
-      () => import("./actions-writer.js")
-    ],
-    studio: [
-      () => import("../utils/studio-scene-tree.js"),
-      () => import("./world-revision.js"),
-      () => import("../views/studio.js"),
-      () => import("./actions-studio.js")
-    ],
-    clues: [
-      () => import("./world-revision.js"),
-      () => import("../views/clues.js"),
-      () => import("./actions-clues.js")
-    ],
-    rules: [
-      () => import("./world-revision.js"),
-      () => import("../../rule-visual.js"),
-      () => import("../views/rules.js"),
-      () => import("./actions-rules.js")
-    ],
-    miniGames: [
-      () => import("./world-revision.js"),
-      () => import("../views/mini-games.js"),
-      () => import("./actions-mini-games.js")
-    ],
-    rooms: [
-      () => import("../views/rooms.js")
-    ],
-    archive: [
-      () => import("../views/archive.js"),
-      () => import("./actions-archive.js")
-    ],
-    settings: [
-      () => import("./world-revision.js"),
-      () => import("../views/settings.js")
-    ],
-    account: [
-      () => import("../views/account.css"),
-      () => import("../views/assets.js"),
-      () => import("../views/account.js"),
-      () => import("../views/account-hub.js"),
-      () => import("./actions-assets.js")
-    ],
-    ops: [
-      () => import("../views/ops.css"),
-      () => import("../views/ops.js"),
-      () => import("./actions-ops.js")
-    ]
+    ...PRODUCT_VIEW_MODULES,
+    ...SHARED_INFRASTRUCTURE_VIEW_MODULES
   };
 
   async function loadModuleList(view, modules) {
-    for (const loadModule of modules) {
-      await loadModule();
-    }
+    await Promise.all(modules.map((loadModule) => loadModule()));
     loaded.add(view);
   }
 

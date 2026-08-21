@@ -3,6 +3,7 @@
  */
 import { throwErr } from "./api-errors.js";
 import { query } from "./db.js";
+import { narrativeProfileFromSettings } from "../../shared/narrative-profile.js";
 
 const REVIEW_LIST_SQL = `
   SELECT w.id, w.name, w.summary, w.status,
@@ -48,7 +49,7 @@ export async function getCatalogReviewWorld(worldId) {
   const result = await query(
     `SELECT w.id, w.name, w.summary, w.status,
             w.catalog_public, w.catalog_review_status,
-            w.catalog_review_submitted_at, w.catalog_review_note
+            w.catalog_review_submitted_at, w.catalog_review_note, w.settings
      FROM worlds w
      WHERE w.id = $1`,
     [worldId]
@@ -59,6 +60,12 @@ export async function getCatalogReviewWorld(worldId) {
 
 export async function approveCatalogReview(worldId) {
   const world = await getCatalogReviewWorld(worldId);
+  const creationType = narrativeProfileFromSettings(world.settings || {}).creationType;
+  if (creationType !== "murder_mystery") {
+    throwErr("WORLD_PRODUCT_MISMATCH", "当前公开体验审核流程只属于剧本杀项目", {
+      expected: ["murder_mystery"], actual: creationType
+    });
+  }
   if (world.catalog_review_status !== "pending") {
     throwErr("CATALOG_REVIEW_NOT_PENDING", "仅「审核中」的申请可通过");
   }

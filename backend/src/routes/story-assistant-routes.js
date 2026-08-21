@@ -1,4 +1,4 @@
-import { sendErr, throwErr } from "../api-errors.js";
+import { sendErr } from "../api-errors.js";
 import { requireActor } from "../request-actor.js";
 import { requireWorldRole } from "./route-guards.js";
 import { createLlmContextPreHandler } from "./llm-route-hook.js";
@@ -13,82 +13,22 @@ import {
 } from "../ai-playtest-simulator.js";
 import { createWorldQualityReport } from "../content-platform-insight-service.js";
 import { buildWorldArchiveSnapshot } from "../world-snapshot-service.js";
-import { assembleStorySpine } from "../story-spine-assembler.js";
-import {
-  createDeepseekManuscriptSynopsis,
-  createDeepseekMysteryPackage,
-  createDeepseekRoleMatrix,
-  createDeepseekRoleSection,
-  createDeepseekStoryEvaluation,
-  createDeepseekStoryOutline,
-  createDeepseekStoryProposal,
-  createDeepseekStorySpec,
-  createDeepseekChapterNarrative,
-  createDeepseekRolesFromNarrative,
-  createDeepseekRolesMetaFromNarrative,
-  createDeepseekRoleScriptFromNarrative,
-  createDeepseekStructureFromNarrative,
-  deepseekConfig,
-  normalizeStoryBrief
-} from "../deepseek.js";
-import {
-  createPipelineMatrixEvaluation
-} from "../pipeline-matrix-deepseek.js";
+import { deepseekConfig } from "../deepseek-config.js";
 import { runRevisionMutation } from "../world-revision.js";
-import {
-  importStoryAssistantDrafts
-} from "../story-manuscript-service.js";
+import { importStoryAssistantDrafts } from "../story-manuscript-service.js";
 import {
   classifyStoryDraft,
-  importDeepseekMysteryPackageWithClient,
-  importDeepseekPipelinePackageWithClient,
-  importDeepseekProposalWithClient,
   storyDraftEdges,
   storyDraftSuggestions
-} from "./world-helpers.js";
+} from "./world-story-service.js";
 import {
-  deepseekImportSchema,
   aiPlaytestRunSchema,
-  deepseekMysteryImportSchema,
-  deepseekMysteryProposeSchema,
-  deepseekPipelineEvaluateSchema,
-  deepseekPipelineNarrativeChapterSchema,
-  deepseekPipelineNarrativeExtractSchema,
-  deepseekPipelineNarrativeRolesSchema,
-  deepseekPipelineNarrativeRolesMetaSchema,
-  deepseekPipelineNarrativeRoleScriptSchema,
-  deepseekPipelineImportSchema,
-  deepseekPipelineManuscriptSchema,
-  deepseekPipelineOutlineSchema,
-  deepseekPipelineRoleMatrixSchema,
-  deepseekPipelineSectionSchema,
-  deepseekPipelineSpecSchema,
-  deepseekPipelineStructureSchema,
-  deepseekProposeSchema,
   storyAssistantAnalyzeSchema,
-  storySpineAssembleSchema,
   storyAssistantImportSchema
 } from "./schemas.js";
-import { registerStoryAssistantMatrixRoutes } from "./story-assistant-matrix-routes.js";
-import { findWorldForMember } from "../repositories/world-repository.js";
-import { applyCreatorContextToPipelineInput } from "../pipeline-creator-context.js";
+import { registerWorldEngineRoutes } from "./world-engine-routes.js";
 
 const llmPreHandler = createLlmContextPreHandler(sendErr);
-
-async function runCreatorPipelineStep(request, handler) {
-  const actorId = requireActor(request);
-  const { worldId } = request.params;
-  await requireWorldRole(actorId, worldId);
-  const world = await findWorldForMember(worldId, actorId);
-  const input = applyCreatorContextToPipelineInput(
-    request.body ?? {},
-    world?.settings,
-  );
-  const result = await handler(input);
-  return result && typeof result === "object" && !Array.isArray(result)
-    ? { ...result, creatorContext: input.creatorContext }
-    : result;
-}
 
 export async function registerStoryAssistantRoutes(app) {
   app.post("/api/worlds/:worldId/story-assistant/analyze", { schema: storyAssistantAnalyzeSchema }, async (request, reply) => {
@@ -100,20 +40,6 @@ export async function registerStoryAssistantRoutes(app) {
     const nodes = classifyStoryDraft(text);
     return { nodes, edges: storyDraftEdges(nodes), suggestions: storyDraftSuggestions(nodes) };
   });
-
-  app.post(
-    "/api/worlds/:worldId/story-assistant/story-spine/assemble",
-    { schema: storySpineAssembleSchema, preHandler: llmPreHandler },
-    async (request) => {
-      const actorId = requireActor(request);
-      const { worldId } = request.params;
-      await requireWorldRole(actorId, worldId);
-      const snapshot = await buildWorldArchiveSnapshot(worldId);
-      return assembleStorySpine(snapshot, request.body?.creatorInput ?? {}, {
-        requestId: request.id
-      });
-    }
-  );
 
   app.get("/api/worlds/:worldId/story-assistant/deepseek/status", { preHandler: llmPreHandler }, async (request) => {
     const actorId = requireActor(request);
@@ -158,136 +84,6 @@ export async function registerStoryAssistantRoutes(app) {
     }
   );
 
-  app.post("/api/worlds/:worldId/story-assistant/deepseek/propose", { schema: deepseekProposeSchema, preHandler: llmPreHandler }, async (request) => {
-    const actorId = requireActor(request);
-    const { worldId } = request.params;
-    await requireWorldRole(actorId, worldId);
-    return createDeepseekStoryProposal(request.body ?? {});
-  });
-
-  app.post("/api/worlds/:worldId/story-assistant/deepseek/import", { schema: deepseekImportSchema }, async (request, reply) => {
-    const actorId = requireActor(request);
-    const { worldId } = request.params;
-    await requireWorldRole(actorId, worldId);
-    return runRevisionMutation(request, reply, worldId, async (client) => {
-      return (await importDeepseekProposalWithClient(client, worldId, request.body?.proposal)).summary;
-    }, { sendErr, statusCode: 201 });
-  });
-
-  app.post("/api/worlds/:worldId/story-assistant/deepseek/full-mystery/propose", { schema: deepseekMysteryProposeSchema, preHandler: llmPreHandler }, async (request) => {
-    const actorId = requireActor(request);
-    const { worldId } = request.params;
-    await requireWorldRole(actorId, worldId);
-    return createDeepseekMysteryPackage(request.body ?? {});
-  });
-
-  app.post("/api/worlds/:worldId/story-assistant/deepseek/full-mystery/import", { schema: deepseekMysteryImportSchema }, async (request, reply) => {
-    const actorId = requireActor(request);
-    const { worldId } = request.params;
-    await requireWorldRole(actorId, worldId);
-    const mystery = request.body?.mystery;
-    if (!mystery?.proposal || !mystery?.package) return sendErr(reply, "DEEPSEEK_PACKAGE_REQUIRED");
-    return runRevisionMutation(request, reply, worldId, async (client) => {
-      return importDeepseekMysteryPackageWithClient(client, worldId, mystery);
-    }, { sendErr, statusCode: 201 });
-  });
-
-  app.post("/api/worlds/:worldId/story-assistant/deepseek/pipeline/spec", { schema: deepseekPipelineSpecSchema, preHandler: llmPreHandler }, async (request) => {
-    return runCreatorPipelineStep(request, createDeepseekStorySpec);
-  });
-
-  app.post("/api/worlds/:worldId/story-assistant/deepseek/pipeline/outline", { schema: deepseekPipelineOutlineSchema, preHandler: llmPreHandler }, async (request) => {
-    return runCreatorPipelineStep(request, createDeepseekStoryOutline);
-  });
-
-  app.post("/api/worlds/:worldId/story-assistant/deepseek/pipeline/structure", { schema: deepseekPipelineStructureSchema, preHandler: llmPreHandler }, async (request) => {
-    return runCreatorPipelineStep(request, (body) =>
-      createDeepseekStoryProposal({ ...body, skipOutline: true }),
-    );
-  });
-
-  app.post("/api/worlds/:worldId/story-assistant/deepseek/pipeline/role-matrix", { schema: deepseekPipelineRoleMatrixSchema, preHandler: llmPreHandler }, async (request) => {
-    return runCreatorPipelineStep(request, createDeepseekRoleMatrix);
-  });
-
-  app.post("/api/worlds/:worldId/story-assistant/deepseek/pipeline/section", { schema: deepseekPipelineSectionSchema, preHandler: llmPreHandler }, async (request) => {
-    return runCreatorPipelineStep(request, createDeepseekRoleSection);
-  });
-
-  app.post("/api/worlds/:worldId/story-assistant/deepseek/pipeline/manuscript-synopsis", { schema: deepseekPipelineManuscriptSchema, preHandler: llmPreHandler }, async (request) => {
-    return runCreatorPipelineStep(request, createDeepseekManuscriptSynopsis);
-  });
-
-  app.post("/api/worlds/:worldId/story-assistant/deepseek/pipeline/import", { schema: deepseekPipelineImportSchema }, async (request, reply) => {
-    const actorId = requireActor(request);
-    const { worldId } = request.params;
-    await requireWorldRole(actorId, worldId);
-    const pipeline = request.body?.pipeline;
-    if (!pipeline?.proposal) return sendErr(reply, "DEEPSEEK_PACKAGE_REQUIRED");
-    return runRevisionMutation(request, reply, worldId, async (client) => {
-      return importDeepseekPipelinePackageWithClient(client, worldId, pipeline);
-    }, { sendErr, statusCode: 201 });
-  });
-
-  app.post("/api/worlds/:worldId/story-assistant/deepseek/pipeline/evaluate", { schema: deepseekPipelineEvaluateSchema, preHandler: llmPreHandler }, async (request) => {
-    const actorId = requireActor(request);
-    const { worldId } = request.params;
-    await requireWorldRole(actorId, worldId);
-    const world = await findWorldForMember(worldId, actorId);
-    const body = applyCreatorContextToPipelineInput(
-      request.body ?? {},
-      world?.settings,
-    );
-    if (body.truthBible && body.infoMatrix) {
-      return createPipelineMatrixEvaluation(body);
-    }
-    const narrativeChapters = Array.isArray(body.narrativeChapters) ? body.narrativeChapters : [];
-    const hasSections = body.sections && typeof body.sections === "object" && Object.keys(body.sections).length > 0;
-    const hasScripts = body.scripts && typeof body.scripts === "object" && Object.keys(body.scripts).length > 0;
-    if (!narrativeChapters.length && !hasSections && !hasScripts) {
-      throwErr("VALIDATION_ERROR", "评判需要矩阵产物或旧版总剧情/私人本，请先完成上游步骤");
-    }
-    const firstSection = body.sampleSection || Object.entries(body.sections || {}).flatMap(([roleKey, chapters]) =>
-      Object.entries(chapters || {}).map(([chapterKey, section]) => ({ ...section, roleKey, chapterKey }))
-    )[0];
-    return createDeepseekStoryEvaluation({
-      setting: body.setting,
-      synopsis: body.synopsis,
-      config: body.config,
-      brief: normalizeStoryBrief(body),
-      evaluationFocus: body.evaluationFocus,
-      spec: body.spec || body.config,
-      narrativeChapters: body.narrativeChapters,
-      proposal: body.proposal,
-      roleMatrix: body.roleMatrix || body.rolesMeta,
-      rolesMeta: body.rolesMeta,
-      sections: body.sections,
-      sampleSection: firstSection
-    });
-  });
-
-  app.post("/api/worlds/:worldId/story-assistant/deepseek/pipeline/narrative/chapter", { schema: deepseekPipelineNarrativeChapterSchema, preHandler: llmPreHandler }, async (request) => {
-    return runCreatorPipelineStep(request, createDeepseekChapterNarrative);
-  });
-
-  app.post("/api/worlds/:worldId/story-assistant/deepseek/pipeline/narrative/roles-meta", { schema: deepseekPipelineNarrativeRolesMetaSchema, preHandler: llmPreHandler }, async (request) => {
-    return runCreatorPipelineStep(request, createDeepseekRolesMetaFromNarrative);
-  });
-
-  app.post("/api/worlds/:worldId/story-assistant/deepseek/pipeline/narrative/role-script", { schema: deepseekPipelineNarrativeRoleScriptSchema, preHandler: llmPreHandler }, async (request) => {
-    return runCreatorPipelineStep(request, createDeepseekRoleScriptFromNarrative);
-  });
-
-  app.post("/api/worlds/:worldId/story-assistant/deepseek/pipeline/narrative/roles", { schema: deepseekPipelineNarrativeRolesSchema, preHandler: llmPreHandler }, async (request) => {
-    return runCreatorPipelineStep(request, createDeepseekRolesFromNarrative);
-  });
-
-  app.post("/api/worlds/:worldId/story-assistant/deepseek/pipeline/narrative/extract-structure", { schema: deepseekPipelineNarrativeExtractSchema, preHandler: llmPreHandler }, async (request) => {
-    return runCreatorPipelineStep(request, createDeepseekStructureFromNarrative);
-  });
-
-  registerStoryAssistantMatrixRoutes(app, { preHandler: llmPreHandler });
-
   app.post("/api/worlds/:worldId/story-assistant/import", { schema: storyAssistantImportSchema }, async (request, reply) => {
     const actorId = requireActor(request);
     const { worldId } = request.params;
@@ -305,4 +101,5 @@ export async function registerStoryAssistantRoutes(app) {
     );
   });
 
+  await registerWorldEngineRoutes(app);
 }

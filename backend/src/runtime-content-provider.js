@@ -3,6 +3,8 @@ import { projectRoomContentBinding } from "../../shared/room-content-binding.js"
 import { buildWorldSnapshot } from "./routes/world-chapter-service.js";
 import { loadRuntimeContentRecord } from "./repositories/runtime-content-repository.js";
 import { assertWorldReleaseSnapshot } from "./world-release-contract.js";
+import { normalizeCommunicationTemplates } from "../../shared/communication-templates.js";
+import { normalizeMiniGameTemplates } from "../../shared/mini-game-protocol.js";
 
 const RUNTIME_COLLECTIONS = Object.freeze([
   "chapters",
@@ -33,6 +35,10 @@ function liveSnapshotMetadata(record, snapshot) {
     schemaVersion: null,
     sourceRevision: Number(record.current_content_revision ?? 1),
     narrativeProfile: snapshot.world?.settings?.narrativeProfile ?? null,
+    experienceConfiguration: {
+      communicationTemplates: normalizeCommunicationTemplates(snapshot.world?.settings?.communicationTemplates),
+      miniGameTemplates: normalizeMiniGameTemplates(snapshot.world?.settings?.miniGameTemplates),
+    },
     ...snapshot
   };
 }
@@ -43,10 +49,17 @@ function runtimeContent(snapshot, provider) {
     sourceRevision: Number(snapshot.sourceRevision ?? provider.sourceRevision),
     narrativeProfile: snapshot.narrativeProfile ?? null,
     world: snapshot.world ?? null,
-    mechanismPackage: snapshot.mechanismPackage ?? null
+    mechanismPackage: snapshot.mechanismPackage ?? null,
+    experienceConfiguration: snapshot.experienceConfiguration ?? null
   };
   for (const field of RUNTIME_COLLECTIONS) content[field] = provider.collection(field);
   return content;
+}
+
+export function projectRuntimeCommunicationTemplates(provider) {
+  const source = provider?.snapshot?.experienceConfiguration?.communicationTemplates
+    ?? provider?.snapshot?.world?.settings?.communicationTemplates;
+  return normalizeCommunicationTemplates(source);
 }
 
 export function createRuntimeContentProvider(record, { liveSnapshot = null } = {}) {
@@ -77,6 +90,9 @@ export function createRuntimeContentProvider(record, { liveSnapshot = null } = {
 
   const provider = {
     room: publicRoom(record),
+    roomSettings: record.room_settings && typeof record.room_settings === "object"
+      ? record.room_settings
+      : {},
     worldId: record.world_id,
     runtimeSource,
     isFrozen: released,

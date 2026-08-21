@@ -3,8 +3,10 @@ import { query } from "../db.js";
 import { withRoomContentBinding } from "../room-content-binding.js";
 import {
   createRuntimeContentProvider,
-  projectPlayerRuntimeContent
+  projectPlayerRuntimeContent,
+  projectRuntimeCommunicationTemplates
 } from "../runtime-content-provider.js";
+import { normalizeCommunicationTemplates } from "../../../shared/communication-templates.js";
 
 const stableContentCache = new Map();
 const STABLE_CACHE_MAX = Number(process.env.PLAYER_HOME_STABLE_CACHE_MAX || 500);
@@ -17,8 +19,14 @@ async function loadStablePlayerContent({ worldId, roleSlotId, contentRevision })
     `SELECT
        (SELECT jsonb_build_object(
           'id', rs.id, 'name', rs.name, 'public_profile', rs.public_profile,
-          'private_profile', rs.private_profile
-        ) FROM role_slots rs WHERE rs.id = $2 AND rs.world_id = $1) AS role,
+          'private_profile', rs.private_profile,
+          'appearance_states', COALESCE(archive.appearance_states, '[]'::jsonb),
+          'external_goal', COALESCE(archive.external_goal, ''),
+          'secret', COALESCE(archive.secret, '')
+        ) FROM role_slots rs
+        LEFT JOIN world_role_archives archive
+          ON archive.role_slot_id = rs.id AND archive.world_id = rs.world_id
+        WHERE rs.id = $2 AND rs.world_id = $1) AS role,
        COALESCE((
          SELECT jsonb_agg(to_jsonb(segment_row) - 'created_at' ORDER BY segment_row.sequence, segment_row.created_at)
          FROM (
@@ -55,6 +63,7 @@ export async function loadAuthorizedPlayerHomeContent({ roomId, actorId }) {
        SELECT rm.role_slot_id, r.id AS room_id, r.name AS room_name,
               r.invite_code, r.status AS room_status, r.world_id, r.release_id,
               w.content_revision,
+              w.settings AS world_settings,
               release.release_number, release.label AS release_label,
               release.source_content_revision AS release_source_revision,
               release.snapshot AS release_snapshot,
@@ -70,6 +79,7 @@ export async function loadAuthorizedPlayerHomeContent({ roomId, actorId }) {
        m.role_slot_id,
        m.world_id,
        m.content_revision,
+       m.world_settings,
        m.release_id,
        m.release_number,
        m.release_label,
@@ -169,6 +179,9 @@ export async function loadAuthorizedPlayerHomeContent({ roomId, actorId }) {
     role: stable.role,
     sections: provider ? stable.sections : (row.sections ?? []),
     segments: stable.segments,
+    communicationTemplates: provider
+      ? projectRuntimeCommunicationTemplates(provider)
+      : normalizeCommunicationTemplates(row.world_settings?.communicationTemplates),
     runtimeProvider: provider
   };
 }
@@ -183,6 +196,7 @@ export async function loadPlayerHomeContent({ roomId, roleSlotId }) {
          room_binding.release_id,
          room_binding.world_id,
          world.content_revision AS current_content_revision,
+         world.settings AS world_settings,
          release.release_number,
          release.label AS release_label,
          release.source_content_revision AS release_source_revision,
@@ -190,8 +204,14 @@ export async function loadPlayerHomeContent({ roomId, roleSlotId }) {
          release.created_at AS release_created_at,
          (SELECT jsonb_build_object(
             'id', rs.id, 'name', rs.name, 'public_profile', rs.public_profile,
-            'private_profile', rs.private_profile
-          ) FROM role_slots rs WHERE rs.id = $2) AS role,
+            'private_profile', rs.private_profile,
+            'appearance_states', COALESCE(archive.appearance_states, '[]'::jsonb),
+            'external_goal', COALESCE(archive.external_goal, ''),
+            'secret', COALESCE(archive.secret, '')
+          ) FROM role_slots rs
+          LEFT JOIN world_role_archives archive
+            ON archive.role_slot_id = rs.id AND archive.world_id = rs.world_id
+          WHERE rs.id = $2) AS role,
          COALESCE((
            SELECT jsonb_agg(to_jsonb(segment_row) - 'created_at' ORDER BY segment_row.sequence, segment_row.created_at)
            FROM (
@@ -289,6 +309,9 @@ export async function loadPlayerHomeContent({ roomId, roleSlotId }) {
     role: runtime?.role ?? row.role,
     sections: runtime?.sections ?? sections.rows,
     segments: runtime?.segments ?? row.segments ?? [],
+    communicationTemplates: provider
+      ? projectRuntimeCommunicationTemplates(provider)
+      : normalizeCommunicationTemplates(row.world_settings?.communicationTemplates),
     runtimeProvider: provider
   };
 }

@@ -5,10 +5,14 @@ const browsers = (process.env.PLAYWRIGHT_BROWSERS || "chromium,firefox,webkit")
 const executablePath = process.env.PLAYWRIGHT_EXECUTABLE_PATH || undefined;
 
 const appTestIgnore = [
+  "**/capture-site-screenshots.spec.js",
   "**/empty-account-auth.spec.js",
+  "**/empty-account-golden-path.spec.js",
   "**/play-portal-smoke.spec.js",
   "**/play-official-example.spec.js",
-  "**/play-sync-chrome.spec.js"
+  "**/play-sync-chrome.spec.js",
+  "**/product-domain-isolation.spec.js",
+  "**/tabletop-map-zoom.spec.js"
 ];
 
 /** @type {import('@playwright/test').PlaywrightTestConfig} */

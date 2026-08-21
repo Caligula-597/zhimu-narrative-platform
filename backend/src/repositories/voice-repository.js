@@ -7,7 +7,9 @@ export async function findVoiceRoomAccess(actorId, voiceRoomId, executor = query
               SELECT profile.display_name FROM user_portal_profiles profile
               WHERE profile.user_id = u.id
                 AND profile.portal = CASE WHEN rm.member_type IN ('host', 'cohost') THEN 'host' ELSE 'player' END
+              LIMIT 1
             ), u.display_name) AS display_name,
+            r.status AS room_status, r.started_at AS room_started_at,
             COALESCE((r.settings->>'hostVoiceListen')::boolean, false) AS host_voice_listen,
             EXISTS (
               SELECT 1 FROM voice_room_members vrm
@@ -51,13 +53,86 @@ export async function configureVoiceTransaction(client) {
 
 export async function lockRoomForVoiceMutation(client, roomId) {
   const result = await client.query(
-    `SELECT id
+    `SELECT id, status, started_at
      FROM rooms
      WHERE id = $1
      FOR UPDATE`,
     [roomId]
   );
-  return result.rowCount > 0;
+  return result.rows[0] ?? null;
+}
+
+export async function loadVoiceSessionForActor(actorId, roomId, executor = query) {
+  const result = await executor(
+    `SELECT room.id, room.status, room.started_at,
+            COALESCE((
+              SELECT jsonb_agg(to_jsonb(voice_row) - 'created_at' ORDER BY voice_row.created_at)
+              FROM (
+                SELECT voice.id, voice.name, voice.room_type, voice.status, voice.created_at
+                FROM voice_rooms voice
+                WHERE voice.room_id = room.id
+                  AND voice.status = 'active'
+                  AND (voice.expires_at IS NULL OR voice.expires_at > now())
+                  AND (
+                    voice.room_type = 'public'
+                    OR (
+                      room.started_at IS NOT NULL
+                      AND room.status NOT IN ('completed', 'archived')
+                      AND EXISTS (
+                      SELECT 1 FROM voice_room_members voice_member
+                      WHERE voice_member.voice_room_id = voice.id
+                        AND voice_member.user_id = $1
+                      )
+                    )
+                  )
+              ) voice_row
+            ), '[]'::jsonb) AS voice_rooms,
+            COALESCE((
+              SELECT jsonb_agg(jsonb_build_object(
+                'user_id', member.user_id,
+                'member_type', member.member_type,
+                'role_slot_id', member.role_slot_id,
+                'role_name', role_slot.name,
+                'display_name', COALESCE((
+                  SELECT profile.display_name
+                  FROM user_portal_profiles profile
+                  WHERE profile.user_id = member.user_id
+                    AND profile.portal = CASE
+                      WHEN member.member_type IN ('host', 'cohost') THEN 'host'
+                      ELSE 'player'
+                    END
+                  LIMIT 1
+                ), member_user.display_name)
+              ) ORDER BY
+                CASE WHEN member.member_type IN ('host', 'cohost') THEN 0 ELSE 1 END,
+                member.joined_at)
+              FROM room_members member
+              JOIN users member_user ON member_user.id = member.user_id
+              LEFT JOIN role_slots role_slot ON role_slot.id = member.role_slot_id
+              WHERE member.room_id = room.id AND member.status = 'active'
+            ), '[]'::jsonb) AS voice_roster
+     FROM rooms room
+     JOIN room_members actor
+       ON actor.room_id = room.id
+      AND actor.user_id = $1
+      AND actor.status = 'active'
+     WHERE room.id = $2`,
+    [actorId, roomId]
+  );
+  const row = result.rows[0];
+  if (!row) return null;
+  const voiceRooms = row.voice_rooms ?? [];
+  return {
+    voiceRooms,
+    voiceRoster: row.voice_roster ?? [],
+    voicePolicy: {
+      mainRoomId: voiceRooms.find((voiceRoom) => voiceRoom.room_type === "public")?.id ?? null,
+      privateRoomsEnabled: Boolean(row.started_at)
+        && !["completed", "archived"].includes(row.status),
+      startedAt: row.started_at ?? null,
+      roomStatus: row.status
+    }
+  };
 }
 
 export async function countActiveVoiceRooms(client, roomId) {
@@ -128,6 +203,20 @@ export async function insertVoiceMessageWithAudience(client, { voiceRoomId, acto
        WHERE vr.id = $1
          AND vr.status = 'active'
          AND (vr.expires_at IS NULL OR vr.expires_at > now())
+         AND EXISTS (
+           SELECT 1 FROM room_members sender_room_member
+           WHERE sender_room_member.room_id = vr.room_id
+             AND sender_room_member.user_id = $2
+             AND sender_room_member.status = 'active'
+         )
+         AND (
+           vr.room_type = 'public'
+           OR EXISTS (
+             SELECT 1 FROM voice_room_members sender_voice_member
+             WHERE sender_voice_member.voice_room_id = vr.id
+               AND sender_voice_member.user_id = $2
+           )
+         )
        RETURNING id, body, created_at, voice_room_id
      )
      SELECT inserted.id, inserted.body, inserted.created_at, inserted.voice_room_id,
@@ -138,8 +227,14 @@ export async function insertVoiceMessageWithAudience(client, { voiceRoomId, acto
             ) AS audience_user_ids
      FROM inserted
      JOIN voice_rooms vr ON vr.id = inserted.voice_room_id
+     JOIN rooms runtime_room ON runtime_room.id = vr.room_id
      LEFT JOIN voice_room_members vrm
        ON vrm.voice_room_id = vr.id AND vr.room_type <> 'public'
+     WHERE vr.room_type = 'public'
+        OR (
+          runtime_room.started_at IS NOT NULL
+          AND runtime_room.status NOT IN ('completed', 'archived')
+        )
      GROUP BY inserted.id, inserted.body, inserted.created_at, inserted.voice_room_id,
               vr.room_id, vr.room_type`,
     [voiceRoomId, actorId, body]
@@ -154,6 +249,15 @@ export async function ensureVoiceProviderRoomKey(voiceRoomId, proposedKey, execu
      WHERE id = $1
        AND status = 'active'
        AND (expires_at IS NULL OR expires_at > now())
+       AND (
+         room_type = 'public'
+         OR EXISTS (
+           SELECT 1 FROM rooms runtime_room
+           WHERE runtime_room.id = voice_rooms.room_id
+             AND runtime_room.started_at IS NOT NULL
+             AND runtime_room.status NOT IN ('completed', 'archived')
+         )
+       )
      RETURNING provider_room_key`,
     [voiceRoomId, proposedKey]
   );

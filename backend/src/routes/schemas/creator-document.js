@@ -3,14 +3,14 @@ import { worldIdParams } from "./world.js";
 
 const optionalUuid = { anyOf: [uuid, { type: "null" }] };
 const publicationStatus = { type: "string", enum: ["draft", "testing", "published"] };
-const creationType = { type: "string", enum: ["murder_mystery", "tabletop_rpg", "interactive_story"] };
+const creationType = { type: "string", const: "murder_mystery" };
 
 export const parseDocumentSchema = {
   params: worldIdParams,
   body: {
     type: "object",
     additionalProperties: false,
-    required: ["filename"],
+    required: ["filename", "creationType"],
     properties: {
       filename: { type: "string", minLength: 1, maxLength: 255 },
       contentType: { type: "string", minLength: 3, maxLength: 120 },
@@ -30,7 +30,7 @@ export const parseFeishuDocumentSchema = {
   body: {
     type: "object",
     additionalProperties: false,
-    required: ["url"],
+    required: ["url", "creationType"],
     properties: {
       url: { type: "string", minLength: 20, maxLength: 2_000, format: "uri" },
       rightsConfirmed: { type: "boolean", const: true },
@@ -67,7 +67,7 @@ export const importDocumentSchema = {
   body: {
     type: "object",
     additionalProperties: false,
-    required: ["target", "document"],
+    required: ["target", "document", "creationType"],
     properties: {
       target: { type: "string", enum: ["manuscript", "role_script", "structured"] },
       roleSlotId: optionalUuid,

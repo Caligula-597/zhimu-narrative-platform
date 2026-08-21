@@ -241,16 +241,24 @@ export async function fetchRoomRecapRows(query, roomId) {
      LIMIT 1`,
     [roomId]
   ));
+  const miniGamesPromise = scheduleQuery(() => query(
+    `SELECT id, protocol_version, game_type, title, public_config, state, status,
+            deadline_at, revision, settlement, completed_at, created_at
+     FROM room_mini_games
+     WHERE room_id = $1
+     ORDER BY created_at ASC`,
+    [roomId]
+  ));
 
   const [
     players, clueRows, undiscoveredClues, hostEvents, ruleTriggers,
     investigations, notes, unlockedScenes, timelineLogs, readingCompletions,
-    chapterRows, sceneRows, worldClueRows, finalChapter
+    chapterRows, sceneRows, worldClueRows, finalChapter, miniGames
   ] = await Promise.all([
     playersPromise, clueRowsPromise, undiscoveredCluesPromise, hostEventsPromise,
     ruleTriggersPromise, investigationsPromise, notesPromise, unlockedScenesPromise,
     timelineLogsPromise, readingCompletionsPromise, chapterRowsPromise,
-    sceneRowsPromise, worldClueRowsPromise, finalChapterPromise
+    sceneRowsPromise, worldClueRowsPromise, finalChapterPromise, miniGamesPromise
   ]);
   return {
     room,
@@ -267,6 +275,7 @@ export async function fetchRoomRecapRows(query, roomId) {
     chapterRows,
     sceneRows,
     worldClueRows,
-    finalChapter
+    finalChapter,
+    miniGames
   };
 }

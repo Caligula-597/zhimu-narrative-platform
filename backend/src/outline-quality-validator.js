@@ -398,7 +398,7 @@ export function validateStoryOutlineV2(raw, spec, { brief = null } = {}) {
     issues.push(`sourceFidelity.briefTitle 必须保持原题“${text(brief.title, 120)}”`);
   }
   if (outline.sourceFidelity.premiseElements.length < 2) issues.push("sourceFidelity.premiseElements 至少需要两个原始创意锚点");
-  const sourcePremise = text(brief?.premise, 4000);
+  const sourcePremise = text(brief?.premise, 12000);
   for (const [index, element] of outline.sourceFidelity.premiseElements.entries()) {
     const label = `sourceFidelity.premiseElements[${index}]`;
     requireText(element.element, `${label}.element`, issues, 2);

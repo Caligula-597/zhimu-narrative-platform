@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 /** Verify production readiness and the OPS production-trust gates. */
+import { loadExpectedCreatorManifest, probeCreatorFrontendSync } from "./production-frontend-sync.mjs";
+
 const base = (process.env.CHECK_BASE_URL || process.env.APP_PUBLIC_URL || "http://127.0.0.1:4180").replace(
   /\/$/,
   ""
@@ -58,6 +60,20 @@ async function main() {
   }
   if (!res.ok || body.ready === false) {
     console.error("\nProduction readiness failed.");
+    process.exit(1);
+  }
+
+  try {
+    const expectedManifest = loadExpectedCreatorManifest({
+      required: process.env.REQUIRE_CREATOR_FRONTEND_SYNC === "true"
+    });
+    const frontend = await probeCreatorFrontendSync(base, { expectedManifest });
+    console.log(`\nCreator frontend: ${frontend.manifest.entryScript}`);
+    for (const asset of frontend.verifiedDynamicAssets) {
+      console.log(`  OK ${asset}`);
+    }
+  } catch (error) {
+    console.error(`\nCreator frontend sync failed: ${error.message}`);
     process.exit(1);
   }
 

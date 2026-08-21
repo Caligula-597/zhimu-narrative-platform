@@ -9,7 +9,6 @@ import { hashAuthToken } from "../src/auth-token.js";
 import { query } from "../src/db.js";
 import {
   clearTestEmailCapture,
-  clearTestResetCapture,
   peekTestResetUrl,
   peekTestVerifyUrl
 } from "../src/email.js";
@@ -57,7 +56,7 @@ async function register(app, { email, password = "old-pass-12345", displayName =
 }
 
 async function requestResetToken(app, email) {
-  clearTestResetCapture();
+  clearTestEmailCapture();
   const response = await app.inject({
     method: "POST",
     url: "/api/auth/forgot-password",

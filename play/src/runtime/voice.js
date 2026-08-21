@@ -57,20 +57,46 @@ export function ensureDefaultVoiceRoom() {
     return;
   }
   if (state.voiceRoomId && rooms.some((r) => r.id === state.voiceRoomId)) return;
-  const preferred = rooms.find((r) => r.room_type === "public") || rooms[0];
+  const preferred = rooms.find((r) => r.id === state.home?.voicePolicy?.mainRoomId)
+    || rooms.find((r) => r.room_type === "public")
+    || rooms[0];
   state.voiceRoomId = preferred.id;
   state.voiceRoomName = preferred.name;
 }
 
+export function privateVoiceRoomsEnabled() {
+  return Boolean(state.home?.voicePolicy?.privateRoomsEnabled);
+}
+
+export function privateVoiceRoomsUnavailableMessage() {
+  return ["completed", "archived"].includes(state.home?.voicePolicy?.roomStatus)
+    ? "场次已经结束，玩家密谈已关闭"
+    : "主持人正式开场后才会开放玩家密谈";
+}
+
 export function voiceHubParticipants() {
-  if (state.voiceParticipants?.length) return state.voiceParticipants;
-  return (state.home?.roomMembers || [])
-    .filter((member) => member.online)
-    .map((member) => ({
-      name: member.display_name || member.role_name || "?",
-      micEnabled: null,
-      isLocal: false
-    }));
+  const activeRoom = (state.home?.voiceRooms || []).find((room) => room.id === state.voiceRoomId);
+  const live = state.voiceParticipants || [];
+  if (activeRoom?.room_type !== "public") return live;
+  const liveByIdentity = new Map(live.map((participant) => [String(participant.identity), participant]));
+  const roster = (state.home?.voiceRoster || []).map((member) => {
+    const connected = liveByIdentity.get(String(member.user_id));
+    if (connected) liveByIdentity.delete(String(member.user_id));
+    const isHost = ["host", "cohost"].includes(member.member_type);
+    return {
+      identity: member.user_id,
+      name: member.display_name || member.role_name || (isHost ? "主持人" : "玩家"),
+      roleName: isHost ? (member.member_type === "cohost" ? "协主持" : "主持人") : member.role_name,
+      memberType: member.member_type,
+      connected: Boolean(connected),
+      micEnabled: connected?.micEnabled ?? null,
+      isLocal: Boolean(connected?.isLocal)
+    };
+  });
+  return roster.concat([...liveByIdentity.values()].map((participant) => ({
+    ...participant,
+    connected: true
+  })));
 }
 
 export async function refreshVoiceMessages(render, { silent = false } = {}) {
@@ -176,8 +202,16 @@ export function openInviteVoiceRoomModal(voiceRoomId, roomName, render) {
 }
 
 export async function submitCreateVoiceRoom({ render, setBusy, setToast } = {}) {
+  if (!privateVoiceRoomsEnabled()) {
+    setToast?.(privateVoiceRoomsUnavailableMessage(), render);
+    return;
+  }
   const name = (state.modalDraft || "").trim() || "临时密谈";
   const inviteUserIds = [...(state.voiceInviteUserIds || [])];
+  if (!inviteUserIds.length) {
+    setToast?.("请至少邀请一名其他玩家进入密谈", render);
+    return;
+  }
   setBusy(true, render);
   try {
     const created = await api.createVoiceRoom(state.roomId, {
@@ -206,10 +240,12 @@ export async function submitVoiceInvite({ render, setBusy, setToast } = {}) {
   }
   setBusy(true, render);
   try {
-    await api.inviteVoiceRoomMembers(voiceRoomId, inviteUserIds);
+    const result = await api.inviteVoiceRoomMembers(voiceRoomId, inviteUserIds);
     closeModalState();
     await pullAndResyncVoice({ render });
-    setToast?.("密谈成员已追加邀请", render);
+    setToast?.(result?.invited
+      ? `已邀请 ${result.invited} 名玩家进入密谈`
+      : "所选玩家已经在密谈中", render);
   } catch (error) {
     setToast?.(formatApiError(error, "邀请失败"), render);
   } finally {
@@ -219,7 +255,8 @@ export async function submitVoiceInvite({ render, setBusy, setToast } = {}) {
 
 async function pullAndResyncVoice({ render }) {
   if (!state.roomId) return;
-  state.home = await api.playerHome(state.roomId);
+  const voiceSession = await api.getVoiceSession(state.roomId);
+  state.home = { ...(state.home || {}), ...voiceSession };
   ensureDefaultVoiceRoom();
   render();
 }

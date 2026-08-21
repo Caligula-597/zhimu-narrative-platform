@@ -56,7 +56,7 @@ export async function registerPlayerProgressRoutes(app) {
     { schema: submitMiniGameSchema },
     async (request) => {
       const actorId = requireActor(request);
-      const { roomId, answer } = request.body;
+      const { roomId, answer, expectedRevision } = request.body;
       const gameId =
         request.body.instanceId ||
         request.body.instance_id ||
@@ -68,7 +68,7 @@ export async function registerPlayerProgressRoutes(app) {
         roomId,
         request,
         "player.mini_game_submit",
-        () => submitPlayerMiniGame({ roomId, gameId, actorId, answer }),
+        () => submitPlayerMiniGame({ roomId, gameId, actorId, answer, expectedRevision }),
       );
     },
   );

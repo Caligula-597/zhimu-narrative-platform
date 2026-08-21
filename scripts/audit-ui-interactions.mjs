@@ -49,6 +49,9 @@ function collectHandledActions(files, { directSelectors = false } = {}) {
     for (const match of source.matchAll(/\[([^\]]+)\]\.includes\(\s*action\s*\)/g)) {
       for (const literal of match[1].matchAll(/["']([^"']+)["']/g)) handled.add(literal[1]);
     }
+    for (const match of source.matchAll(/\bactions\s*:\s*new Set\(\s*\[([\s\S]*?)\]\s*\)/g)) {
+      for (const literal of match[1].matchAll(/["']([^"']+)["']/g)) handled.add(literal[1]);
+    }
     if (directSelectors) {
       for (const match of source.matchAll(/querySelector\(\s*["'`]\[data-action=[\\"']*([^\\"'\]]+)/g)) {
         handled.add(match[1]);

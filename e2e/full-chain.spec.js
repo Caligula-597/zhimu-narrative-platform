@@ -1,13 +1,13 @@
 import { test, expect } from "@playwright/test";
 import {
+  API_BASE,
   BASE_URL,
-  dismissModalIfOpen,
+  FIXTURE,
   goToView,
   gotoHostConsole,
   injectHostAppContext,
   injectHostContext,
   joinFixturePlayRoomViaUi,
-  joinPlayRoomViaUi,
   refreshHostRoomState,
   waitForCloudReady,
   waitForHostIdle,
@@ -79,36 +79,85 @@ test.describe("Beta 主线 · fixture 全链路", () => {
   });
 });
 
-test.describe("Beta 主线 · 向导创建到玩家阅读", () => {
+test.describe("Beta 主线 · 极简创建到桌游原型", () => {
   test.beforeEach(async ({ context, page }) => {
     await injectHostContext(context);
     await page.goto(BASE_URL);
     await waitForCloudReady(page);
   });
 
-  test("五 step 向导 → 邀请码 → 玩家入房读幕", async ({ browser, page }) => {
-    const playContext = await browser.newContext();
-    const playPage = await playContext.newPage();
+  test("选择桌游并命名 → 组件与席位写入后端 → 刷新仍可恢复", async ({ page }) => {
+    const worldName = `桌游原型 ${Date.now()}`;
+    await page.locator("#create-world-btn").click();
+    await expect(page.locator(".world-create-shell")).toBeVisible();
+    await page.locator('[data-world-create-type="board_game"]').click();
+    await page.locator("[data-world-create-name]").fill(worldName);
+    await page.getByRole("button", { name: "创建空白桌游" }).click();
+    await expect(page.locator(".board-game-workbench")).toBeVisible({ timeout: 30_000 });
+    await expect(page.locator(".board-component-row")).toHaveCount(0);
 
-    try {
-      // World creation is a shell-level action now; the former overview page
-      // is no longer exposed in navigation.
-      await page.locator("#create-world-btn").click();
-      await expect(page.locator(".wizard-shell")).toBeVisible();
-      for (let step = 0; step < 5; step += 1) {
-        await page.locator("[data-wizard-next]").click();
-      }
-      const inviteCode = page.locator("[data-wizard-invite-code]");
-      await expect(inviteCode).toBeVisible({ timeout: 90_000 });
-      const createdInviteCode = (await inviteCode.textContent())?.trim();
-      expect(createdInviteCode).toBeTruthy();
-      await dismissModalIfOpen(page);
+    await page.getByRole("button", { name: /自定义组件/ }).click();
+    await page.locator('[data-board-component-field="name"]').fill("双面身份标记");
+    await page.getByRole("button", { name: "＋ 添加状态" }).click();
+    await page.locator('[data-board-state-field="label"]').fill("朝向");
+    await page.locator('[data-board-state-field="initialValue"]').fill("隐藏面");
 
-      await joinPlayRoomViaUi(playPage, createdInviteCode);
-      await playPage.locator('[data-action="switch-tab"][data-tab="sections"]').click();
-      await expect(playPage.locator(".sections-layout, .reader").first()).toBeVisible({ timeout: 20_000 });
-    } finally {
-      await playContext.close();
-    }
+    await page.locator('[data-action="board-tab-select"][data-board-tab="seats"]').click();
+    const createSeatResponse = page.waitForResponse((response) => (
+      response.request().method() === "POST"
+      && /\/api\/worlds\/[^/]+\/roles$/.test(new URL(response.url()).pathname)
+    ));
+    await page.getByRole("button", { name: "＋ 增加 1 席" }).click();
+    expect((await createSeatResponse).ok()).toBeTruthy();
+    await expect(page.locator(".board-seat-row")).toHaveCount(1);
+
+    const seatName = page.locator("[data-board-seat-name]").first();
+    await seatName.fill("实测席位甲");
+    const renameSeatResponse = page.waitForResponse((response) => (
+      response.request().method() === "PUT"
+      && /\/api\/worlds\/[^/]+\/roles\/[^/]+$/.test(new URL(response.url()).pathname)
+    ));
+    await page.getByRole("button", { name: "同步名称" }).click();
+    expect((await renameSeatResponse).ok()).toBeTruthy();
+    await expect(page.locator("[data-board-seat-name]").first()).toHaveValue("实测席位甲");
+
+    await page.locator('[data-action="board-tab-select"][data-board-tab="components"]').click();
+    const saveResponse = page.waitForResponse((response) => (
+      response.request().method() === "PATCH"
+      && /\/api\/worlds\/[^/]+$/.test(new URL(response.url()).pathname)
+    ));
+    await page.locator("[data-board-save]").click();
+    expect((await saveResponse).ok()).toBeTruthy();
+    await expect(page.locator("#toast.show")).toContainText("桌游设计已保存");
+
+    const worldId = await page.evaluate(() => window.zhimuState?.cloudStudio?.world?.id);
+    expect(worldId).toBeTruthy();
+    const storedResponse = await page.request.get(`${API_BASE}/api/worlds/${worldId}/studio`, {
+      headers: { "x-user-id": FIXTURE.hostUserId }
+    });
+    expect(storedResponse.ok()).toBeTruthy();
+    const stored = await storedResponse.json();
+    expect(stored.world.name).toBe(worldName);
+    expect(stored.roles).toEqual(expect.arrayContaining([expect.objectContaining({ name: "实测席位甲" })]));
+    expect(stored.world.settings.boardGameDesign.components).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        name: "双面身份标记",
+        stateFields: expect.arrayContaining([expect.objectContaining({ label: "朝向", initialValue: "隐藏面" })])
+      })
+    ]));
+
+    await page.reload();
+    await waitForCloudReady(page);
+    await page.locator(".world-switcher").click();
+    const persistedWorld = page.locator(".world-library-card").filter({ hasText: worldName });
+    await expect(persistedWorld).toBeVisible();
+    await persistedWorld.getByRole("button", { name: "切换剧本" }).click();
+    await waitForCloudReady(page);
+    await goToView(page, "boardGame");
+    await expect(page.getByRole("heading", { name: worldName })).toBeVisible();
+    await expect(page.locator('[data-board-component-field="name"]')).toHaveValue("双面身份标记");
+    await expect(page.locator('[data-board-state-field="initialValue"]')).toHaveValue("隐藏面");
+    await page.locator('[data-action="board-tab-select"][data-board-tab="seats"]').click();
+    await expect(page.locator("[data-board-seat-name]").first()).toHaveValue("实测席位甲");
   });
 });

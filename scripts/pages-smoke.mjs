@@ -1,5 +1,13 @@
 #!/usr/bin/env node
 /** Smoke-check Cloudflare Pages domains and the shared API health endpoint. */
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import {
+  loadExpectedFrontendManifest,
+  probeFrontendSync
+} from "./production-frontend-sync.mjs";
+
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const args = process.argv.slice(2);
 const timeoutMs = Number(process.env.PAGES_SMOKE_TIMEOUT_MS || 15_000);
 const siteUrl = (process.env.SITE_PUBLIC_URL || "https://getzhimu.com").replace(/\/$/, "");
@@ -7,11 +15,12 @@ const playUrl = (process.env.PLAY_SITE_URL || "https://play.getzhimu.com").repla
 const hostUrl = (process.env.HOST_SITE_URL || "https://host.getzhimu.com").replace(/\/$/, "");
 const appUrl = (process.env.APP_PUBLIC_URL || "https://app.getzhimu.com").replace(/\/$/, "");
 const skipApi = args.includes("--skip-api");
+const requireFrontendSync = process.env.REQUIRE_PAGES_FRONTEND_SYNC === "true";
 
 const checks = [
-  { label: "site", url: siteUrl, expect: ["织幕", "剧本", "zhimu"] },
-  { label: "play", url: playUrl, expect: ["玩家", "邀请码", "织幕", "play"] },
-  { label: "host", url: hostUrl, expect: ["主持", "监控", "织幕", "host"] }
+  { label: "site", directory: "site", url: siteUrl, expect: ["织幕", "剧本", "zhimu"] },
+  { label: "play", directory: "play", url: playUrl, expect: ["玩家", "邀请码", "织幕", "play"] },
+  { label: "host", directory: "host", url: hostUrl, expect: ["主持", "监控", "织幕", "host"] }
 ];
 if (!skipApi) {
   checks.push({ label: "api/ready", url: `${appUrl}/api/health/ready`, json: true });
@@ -64,7 +73,17 @@ for (const check of checks) {
       fail(check.label, `content marker missing at ${check.url}`);
       continue;
     }
-    pass(check.label, `${response.status} ${check.url}`);
+    if (requireFrontendSync) {
+      const expectedManifest = loadExpectedFrontendManifest({
+        root,
+        directory: check.directory,
+        required: true
+      });
+      const frontend = await probeFrontendSync(check.url, { expectedManifest });
+      pass(check.label, `${response.status} ${check.url} · ${frontend.manifest.assets.join(", ")}`);
+    } else {
+      pass(check.label, `${response.status} ${check.url}`);
+    }
   } catch (error) {
     fail(check.label, error.message);
   }

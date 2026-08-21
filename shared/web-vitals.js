@@ -74,18 +74,38 @@ export function initWebVitalsReporting(options = {}) {
 
   const disposers = [];
   const path = () => globalThis.location?.pathname || "/";
+  let latestLcp = null;
+  let currentCls = 0;
+  let slowestInteraction = null;
+  let observesCls = false;
+  let flushed = false;
+
+  const flush = () => {
+    if (flushed) return;
+    flushed = true;
+    if (latestLcp) reportWebVital(latestLcp, options);
+    if (observesCls) {
+      reportWebVital({
+        name: "CLS",
+        value: currentCls,
+        id: `cls-${Date.now()}`,
+        path: path()
+      }, options);
+    }
+    if (slowestInteraction) reportWebVital(slowestInteraction, options);
+  };
 
   try {
     const lcpObserver = new PerformanceObserver((list) => {
       const entries = list.getEntries();
       const last = entries[entries.length - 1];
       if (!last) return;
-      reportWebVital({
+      latestLcp = {
         name: "LCP",
         value: last.startTime,
         id: `lcp-${Date.now()}`,
         path: path()
-      }, options);
+      };
     });
     lcpObserver.observe({ type: "largest-contentful-paint", buffered: true });
     disposers.push(() => lcpObserver.disconnect());
@@ -94,22 +114,14 @@ export function initWebVitalsReporting(options = {}) {
   }
 
   try {
-    let clsValue = 0;
     const clsObserver = new PerformanceObserver((list) => {
       for (const entry of list.getEntries()) {
-        if (!entry.hadRecentInput) clsValue += entry.value;
+        if (!entry.hadRecentInput) currentCls += entry.value;
       }
     });
     clsObserver.observe({ type: "layout-shift", buffered: true });
-    disposers.push(() => {
-      clsObserver.disconnect();
-      reportWebVital({
-        name: "CLS",
-        value: clsValue,
-        id: `cls-${Date.now()}`,
-        path: path()
-      }, options);
-    });
+    observesCls = true;
+    disposers.push(() => clsObserver.disconnect());
   } catch {
     // unsupported
   }
@@ -117,12 +129,14 @@ export function initWebVitalsReporting(options = {}) {
   try {
     const inpObserver = new PerformanceObserver((list) => {
       for (const entry of list.getEntries()) {
-        reportWebVital({
-          name: "INP",
-          value: entry.duration,
-          id: entry.interactionId ? String(entry.interactionId) : `inp-${Date.now()}`,
-          path: path()
-        }, options);
+        if (!slowestInteraction || entry.duration > slowestInteraction.value) {
+          slowestInteraction = {
+            name: "INP",
+            value: entry.duration,
+            id: entry.interactionId ? String(entry.interactionId) : `inp-${Date.now()}`,
+            path: path()
+          };
+        }
       }
     });
     inpObserver.observe({ type: "event", buffered: true, durationThreshold: 40 });
@@ -131,5 +145,16 @@ export function initWebVitalsReporting(options = {}) {
     // unsupported
   }
 
-  return () => disposers.forEach((dispose) => dispose());
+  const flushWhenHidden = () => {
+    if (document.visibilityState === "hidden") flush();
+  };
+  document.addEventListener("visibilitychange", flushWhenHidden);
+  window.addEventListener("pagehide", flush, { once: true });
+
+  return () => {
+    flush();
+    disposers.forEach((dispose) => dispose());
+    document.removeEventListener("visibilitychange", flushWhenHidden);
+    window.removeEventListener("pagehide", flush);
+  };
 }

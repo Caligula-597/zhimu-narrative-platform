@@ -8,6 +8,8 @@ import {
   validateCoreTrickRefs,
   validateForeshadowPatch,
   validateForeshadowRefs,
+  validateMaterialBookletPatch,
+  validateMaterialBookletRefs,
   validateTimelinePatch,
   validateTimelineRefs
 } from "./creator-bible-guards.js";
@@ -16,6 +18,7 @@ import {
   mergeRoleArchivePatch,
   normalizeCoreTrickBody,
   normalizeForeshadowBody,
+  normalizeMaterialBookletBody,
   normalizeRoleArchiveBody,
   normalizeTimelineEventBody
 } from "./creator-bible-contract.js";
@@ -57,6 +60,7 @@ function roleArchiveRow(row) {
     arc: row.arc || {},
     lies: row.lies || [],
     actTasks: row.act_tasks || [],
+    appearanceStates: row.appearance_states || [],
     metadata: row.metadata || {},
     updatedAt: row.updated_at
   };
@@ -109,6 +113,7 @@ export const BIBLE_SUMMARY_SQL = `
        (SELECT count(*)::int FROM world_role_archives WHERE world_id = $1) AS archives_total,
        (SELECT count(*) FILTER (WHERE external_goal <> '' OR secret <> '')::int FROM world_role_archives WHERE world_id = $1) AS archives_filled,
        (SELECT count(*)::int FROM world_foreshadow_beats WHERE world_id = $1) AS foreshadow_count,
+       (SELECT count(*)::int FROM world_material_booklets WHERE world_id = $1) AS material_booklet_count,
        (SELECT count(*)::int FROM world_timeline_events WHERE world_id = $1) AS timeline_count,
        (SELECT count(*)::int FROM world_truth_claims WHERE world_id = $1) AS claims_count,
        (SELECT count(*)::int FROM world_role_relationships WHERE world_id = $1) AS relationships_count,
@@ -150,6 +155,7 @@ export function bibleSummaryFromRow(row = {}) {
       roleArchivesFilled: row.archives_filled || 0,
       roleArcs: row.archives_total || 0,
       foreshadowBeats: row.foreshadow_count || 0,
+      materialBooklets: row.material_booklet_count || 0,
       segments: row.segments_total || 0,
       segmentsWithFlow: row.segments_with_flow || 0,
       cluesByKind: cluesMap
@@ -233,8 +239,8 @@ export async function upsertRoleArchive(worldId, roleSlotId, body, { patch = fal
   const result = await db(
     `INSERT INTO world_role_archives
       (world_id, role_slot_id, public_identity, hidden_identity, external_goal, internal_need,
-       secret, action_line, inner_conflict, voice_hints, arc, lies, act_tasks, metadata, updated_at)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11::jsonb, $12::jsonb, $13::jsonb, $14::jsonb, now())
+       secret, action_line, inner_conflict, voice_hints, arc, lies, act_tasks, appearance_states, metadata, updated_at)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11::jsonb, $12::jsonb, $13::jsonb, $14::jsonb, $15::jsonb, now())
      ON CONFLICT (role_slot_id) DO UPDATE SET
        world_id = EXCLUDED.world_id,
        public_identity = EXCLUDED.public_identity,
@@ -248,6 +254,7 @@ export async function upsertRoleArchive(worldId, roleSlotId, body, { patch = fal
        arc = EXCLUDED.arc,
        lies = EXCLUDED.lies,
        act_tasks = EXCLUDED.act_tasks,
+       appearance_states = EXCLUDED.appearance_states,
        metadata = EXCLUDED.metadata,
        updated_at = now()
      WHERE world_role_archives.world_id = EXCLUDED.world_id
@@ -266,6 +273,7 @@ export async function upsertRoleArchive(worldId, roleSlotId, body, { patch = fal
       JSON.stringify(payload.arc || {}),
       JSON.stringify(payload.lies || []),
       JSON.stringify(payload.actTasks || []),
+      JSON.stringify(payload.appearanceStates || []),
       JSON.stringify(payload.metadata || {})
     ]
   );
@@ -559,4 +567,116 @@ export async function seedBibleFromPipeline(client, worldId, pipeline, roleKeyTo
   }
 
   return stats;
+}
+
+function materialBookletRow(row) {
+  if (!row) return null;
+  return {
+    id: row.id,
+    worldId: row.world_id,
+    kind: row.kind,
+    title: row.title || "",
+    summary: row.summary || "",
+    ownerRoleSlotId: row.owner_role_slot_id || null,
+    phaseLabel: row.phase_label || "",
+    chapterId: row.chapter_id || null,
+    visibility: row.visibility || "host_only",
+    pages: Array.isArray(row.pages) ? row.pages : [],
+    linkedClueIds: Array.isArray(row.linked_clue_ids) ? row.linked_clue_ids : [],
+    linkedRoleSlotIds: Array.isArray(row.linked_role_slot_ids) ? row.linked_role_slot_ids : [],
+    sequence: row.sequence || 1,
+    metadata: row.metadata || {},
+    createdAt: row.created_at,
+    updatedAt: row.updated_at
+  };
+}
+
+export async function listMaterialBooklets(worldId) {
+  const result = await query(
+    `SELECT * FROM world_material_booklets WHERE world_id = $1 ORDER BY sequence, created_at`,
+    [worldId]
+  );
+  return result.rows.map(materialBookletRow);
+}
+
+export async function createMaterialBooklet(worldId, body, client = null) {
+  const db = run(client);
+  const payload = normalizeMaterialBookletBody(body);
+  await validateMaterialBookletRefs(worldId, payload, client);
+  const result = await db(
+    `INSERT INTO world_material_booklets
+      (world_id, kind, title, summary, owner_role_slot_id, phase_label, chapter_id, visibility,
+       pages, linked_clue_ids, linked_role_slot_ids, sequence, metadata)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9::jsonb,$10::uuid[],$11::uuid[],$12,$13::jsonb)
+     RETURNING *`,
+    [
+      worldId,
+      payload.kind,
+      payload.title || "",
+      payload.summary || "",
+      payload.ownerRoleSlotId || null,
+      payload.phaseLabel || "",
+      payload.chapterId || null,
+      payload.visibility,
+      JSON.stringify(payload.pages || []),
+      payload.linkedClueIds || [],
+      payload.linkedRoleSlotIds || [],
+      payload.sequence || 1,
+      JSON.stringify(payload.metadata || {})
+    ]
+  );
+  return materialBookletRow(result.rows[0]);
+}
+
+export async function updateMaterialBooklet(worldId, bookletId, patch, client = null) {
+  const db = run(client);
+  await validateMaterialBookletPatch(worldId, patch, client);
+  const result = await db(
+    `UPDATE world_material_booklets SET
+       kind = COALESCE($3, kind),
+       title = COALESCE($4, title),
+       summary = COALESCE($5, summary),
+       owner_role_slot_id = CASE WHEN $14 THEN $6 ELSE owner_role_slot_id END,
+       phase_label = COALESCE($7, phase_label),
+       chapter_id = CASE WHEN $15 THEN $8 ELSE chapter_id END,
+       visibility = COALESCE($9, visibility),
+       pages = COALESCE($10::jsonb, pages),
+       linked_clue_ids = CASE WHEN $16 THEN $11::uuid[] ELSE linked_clue_ids END,
+       linked_role_slot_ids = CASE WHEN $17 THEN $12::uuid[] ELSE linked_role_slot_ids END,
+       sequence = COALESCE($13, sequence),
+       metadata = COALESCE($18::jsonb, metadata),
+       updated_at = now()
+     WHERE id = $1 AND world_id = $2
+     RETURNING *`,
+    [
+      bookletId,
+      worldId,
+      patch.kind,
+      patch.title,
+      patch.summary,
+      patch.ownerRoleSlotId,
+      patch.phaseLabel,
+      patch.chapterId,
+      patch.visibility,
+      patch.pages !== undefined ? JSON.stringify(patch.pages) : null,
+      patch.linkedClueIds,
+      patch.linkedRoleSlotIds,
+      patch.sequence,
+      Object.hasOwn(patch, "ownerRoleSlotId"),
+      Object.hasOwn(patch, "chapterId"),
+      Object.hasOwn(patch, "linkedClueIds"),
+      Object.hasOwn(patch, "linkedRoleSlotIds"),
+      patch.metadata !== undefined ? JSON.stringify(patch.metadata) : null
+    ]
+  );
+  return materialBookletRow(result.rows[0]);
+}
+
+export async function deleteMaterialBooklet(worldId, bookletId, client = null) {
+  const db = run(client);
+  const result = await db(
+    `DELETE FROM world_material_booklets WHERE id = $1 AND world_id = $2 RETURNING id`,
+    [bookletId, worldId]
+  );
+  return result.rowCount > 0;
 }

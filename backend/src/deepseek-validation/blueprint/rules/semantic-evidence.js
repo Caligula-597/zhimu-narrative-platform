@@ -289,7 +289,7 @@ export function validateBlueprintSemanticEvidence(context) {
     ? value.sourceFidelity.premiseElements
     : []).entries()) {
     const premiseElement = cleanText(entry?.element, 160);
-    if (!premiseElement || (brief?.premise && !cleanText(brief.premise, 4000).includes(premiseElement))) {
+    if (!premiseElement || (brief?.premise && !cleanText(brief.premise, 12000).includes(premiseElement))) {
       issues.push(`蓝图 sourceFidelity.premiseElements[${index}].element 必须原样取自 brief.premise`);
     }
     if (cleanText(entry?.implementation, 1200).length < 20) {

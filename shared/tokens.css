@@ -5,7 +5,7 @@
 :root {
   --ink: #142321;
   --ink-soft: #425653;
-  --muted: #76827f;
+  --muted: #5f6d69;
   --paper: #f4f1e9;
   --paper-deep: #ebe5d8;
   --surface: #fffdf8;
@@ -14,9 +14,9 @@
   --green-2: #2b6b61;
   --sage: #dce7df;
   --sage-2: #eef4ef;
-  --brass: #a7783d;
+  --brass: #875b2c;
   --brass-soft: #f3ebe0;
-  --clay: #a85f54;
+  --clay: #985046;
   --plum: #62516a;
   --blue: #3f6070;
   --accent: var(--green-2);

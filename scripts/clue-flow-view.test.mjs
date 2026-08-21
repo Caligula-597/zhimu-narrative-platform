@@ -23,7 +23,12 @@ globalThis.document = {
 };
 
 const { worldStore } = await import("../src/state/index.js");
-const { clueDependencyEdges, clueGraph, clueGraphMetrics } = await import("../src/views/clue-flow-view.js");
+const {
+  clueDependencyEdges,
+  clueGraph,
+  clueGraphMetrics,
+  clueHasDiscoveryPath
+} = await import("../src/views/clue-flow-view.js");
 
 const clues = [
   { id: "clue-a", name: "A" },
@@ -77,18 +82,30 @@ test("small clue graphs use an adaptive canvas with a usable minimum", () => {
   assert.deepEqual(clueGraphMetrics(24, 4, 6), { width: 1460, height: 1032 });
 });
 
-test("investigation placement alone is not reported as a connected clue path", () => {
+test("clues without an authored discovery path remain visibly incomplete", () => {
   const html = clueGraph(clues, {
     clues,
     edges: [],
     chapters: [],
     scenes: [],
-    investigationPoints: [
-      { id: "point-a", scene_id: "scene-1", clue_id: "clue-a" },
-      { id: "point-b", scene_id: "scene-2", clue_id: "clue-b" }
-    ]
+    investigationPoints: []
   }, "");
 
   assert.match(html, /<b>2<\/b> 无路径线索/);
   assert.equal((html.match(/clue-flow-node[^\"]* orphan/g) || []).length, 2);
+});
+
+test("murder clue paths include investigation points, segments and deliberate roaming clues", () => {
+  assert.equal(clueHasDiscoveryPath(clues[0], {
+    investigationPoints: [{ clue_id: "clue-a" }]
+  }), true);
+  assert.equal(clueHasDiscoveryPath({ id: "legacy-location", metadata: { locationId: "library" } }, {
+    investigationPoints: []
+  }), false);
+  assert.equal(clueHasDiscoveryPath({ id: "segment", metadata: { segmentKey: "ch2" } }, {
+    investigationPoints: []
+  }), true);
+  assert.equal(clueHasDiscoveryPath({ id: "roaming", metadata: { allowUnbound: true } }, {
+    investigationPoints: []
+  }), true);
 });

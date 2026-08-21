@@ -86,7 +86,7 @@ npm run verify:full:fresh   # 或分项 smoke / E2E
 3. **领域逻辑** — `backend/src/*.js`，按域拆分，不单文件堆功能
 4. **测试** — `backend/test/*.test.js`，覆盖 happy path + 关键 4xx
 5. **前端接线** — 主应用 / play / site 只做真实 API 绑定
-6. **文档** — 更新 [IMPLEMENTATION_STATUS.md](../IMPLEMENTATION_STATUS.md) 或本任务相关 doc
+6. **文档** — 更新 [PROJECT_STATUS.md](./PROJECT_STATUS.md)、[PRODUCT_STATUS_ZH.md](./PRODUCT_STATUS_ZH.md) 或本任务相关文档
 
 ### 不做
 

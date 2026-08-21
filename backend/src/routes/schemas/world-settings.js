@@ -11,20 +11,19 @@ import {
   SUPERNATURAL_POLICIES,
 } from "../../../../shared/creative-constitution.js";
 import {
-  STORY_SPINE_STATUSES,
-  STORY_SPINE_VERSION,
-} from "../../../../shared/story-spine.js";
-import {
   MECHANISM_DESIGN_STATUSES,
   MECHANISM_DESIGN_VERSION,
 } from "../../../../shared/mechanism-design.js";
+import {
+  BOARD_GAME_COMPONENT_TYPES,
+  BOARD_GAME_DESIGN_VERSION,
+} from "../../../../shared/board-game-design.js";
 
 const constitutionTextListSchema = {
   type: "array",
   maxItems: 20,
   items: { type: "string", minLength: 1, maxLength: 600 },
 };
-
 export const creativeConstitutionSchema = {
   type: "object",
   additionalProperties: false,
@@ -85,187 +84,6 @@ export const creativeConstitutionSchema = {
     },
   },
 };
-
-const storySpineSourceRefsSchema = {
-  type: "array",
-  maxItems: 30,
-  items: { type: "string", minLength: 1, maxLength: 180 },
-};
-
-const storySpineStatusSchema = {
-  type: "string",
-  enum: [...STORY_SPINE_STATUSES],
-};
-
-const storySpineBlockSchema = {
-  type: "object",
-  additionalProperties: false,
-  required: ["text", "status", "sourceRefs"],
-  properties: {
-    text: { type: "string", maxLength: 12_000 },
-    status: storySpineStatusSchema,
-    sourceRefs: storySpineSourceRefsSchema,
-  },
-};
-
-export const storySpineSchema = {
-  type: "object",
-  additionalProperties: false,
-  required: [
-    "version",
-    "title",
-    "logline",
-    "overview",
-    "openingState",
-    "incitingIncident",
-    "centralConflict",
-    "playerPremise",
-    "mechanismLoop",
-    "truthAndReversal",
-    "roleFunctions",
-    "chapterArc",
-    "endingDirections",
-    "unresolvedQuestions",
-    "assumptions",
-    "provenance",
-  ],
-  properties: {
-    version: { type: "integer", const: STORY_SPINE_VERSION },
-    title: { type: "string", maxLength: 200 },
-    logline: storySpineBlockSchema,
-    overview: storySpineBlockSchema,
-    openingState: storySpineBlockSchema,
-    incitingIncident: storySpineBlockSchema,
-    centralConflict: storySpineBlockSchema,
-    playerPremise: storySpineBlockSchema,
-    mechanismLoop: storySpineBlockSchema,
-    truthAndReversal: storySpineBlockSchema,
-    roleFunctions: {
-      type: "array",
-      maxItems: 12,
-      items: {
-        type: "object",
-        additionalProperties: false,
-        required: [
-          "roleId",
-          "roleName",
-          "storyFunction",
-          "goal",
-          "pressure",
-          "status",
-          "sourceRefs",
-        ],
-        properties: {
-          roleId: { type: "string", minLength: 1, maxLength: 120 },
-          roleName: { type: "string", minLength: 1, maxLength: 120 },
-          storyFunction: { type: "string", maxLength: 2400 },
-          goal: { type: "string", maxLength: 2400 },
-          pressure: { type: "string", maxLength: 2400 },
-          status: storySpineStatusSchema,
-          sourceRefs: storySpineSourceRefsSchema,
-        },
-      },
-    },
-    chapterArc: {
-      type: "array",
-      maxItems: 12,
-      items: {
-        type: "object",
-        additionalProperties: false,
-        required: [
-          "chapterId",
-          "sequence",
-          "title",
-          "cause",
-          "playerAction",
-          "turn",
-          "consequence",
-          "status",
-          "sourceRefs",
-        ],
-        properties: {
-          chapterId: { type: "string", minLength: 1, maxLength: 120 },
-          sequence: { type: "integer", minimum: 1, maximum: 99 },
-          title: { type: "string", minLength: 1, maxLength: 200 },
-          cause: { type: "string", maxLength: 3000 },
-          playerAction: { type: "string", maxLength: 3000 },
-          turn: { type: "string", maxLength: 3000 },
-          consequence: { type: "string", maxLength: 3000 },
-          status: storySpineStatusSchema,
-          sourceRefs: storySpineSourceRefsSchema,
-        },
-      },
-    },
-    endingDirections: {
-      type: "array",
-      maxItems: 8,
-      items: {
-        type: "object",
-        additionalProperties: false,
-        required: [
-          "key",
-          "title",
-          "requirements",
-          "consequence",
-          "status",
-          "sourceRefs",
-        ],
-        properties: {
-          key: { type: "string", minLength: 1, maxLength: 100 },
-          title: { type: "string", minLength: 1, maxLength: 200 },
-          requirements: { type: "string", maxLength: 3000 },
-          consequence: { type: "string", maxLength: 3000 },
-          status: storySpineStatusSchema,
-          sourceRefs: storySpineSourceRefsSchema,
-        },
-      },
-    },
-    unresolvedQuestions: {
-      type: "array",
-      maxItems: 20,
-      items: {
-        type: "object",
-        additionalProperties: false,
-        required: ["key", "question", "whyItMatters", "sourceRefs"],
-        properties: {
-          key: { type: "string", minLength: 1, maxLength: 100 },
-          question: { type: "string", minLength: 1, maxLength: 3000 },
-          whyItMatters: { type: "string", maxLength: 3000 },
-          sourceRefs: storySpineSourceRefsSchema,
-        },
-      },
-    },
-    assumptions: {
-      type: "array",
-      maxItems: 20,
-      items: {
-        type: "object",
-        additionalProperties: false,
-        required: ["key", "text", "impact", "sourceRefs"],
-        properties: {
-          key: { type: "string", minLength: 1, maxLength: 100 },
-          text: { type: "string", minLength: 1, maxLength: 3000 },
-          impact: { type: "string", maxLength: 3000 },
-          sourceRefs: storySpineSourceRefsSchema,
-        },
-      },
-    },
-    provenance: {
-      type: "object",
-      additionalProperties: false,
-      required: ["promptVersion", "model", "generatedAt", "sourceRevision"],
-      properties: {
-        promptVersion: { type: "string", maxLength: 80 },
-        model: { type: "string", maxLength: 160 },
-        generatedAt: { type: "string", maxLength: 80 },
-        sourceRevision: {
-          anyOf: [{ type: "integer", minimum: 0 }, { type: "null" }],
-        },
-      },
-    },
-  },
-};
-
 export const commercialProfileSchema = {
   type: "object",
   additionalProperties: false,
@@ -370,6 +188,213 @@ export const mechanismDesignSchema = {
   },
 };
 
+const communicationTemplateSchema = {
+  type: "object",
+  additionalProperties: false,
+  required: ["version", "key", "kind", "enabled", "title", "privacyNotice", "placeholder", "deadlineMinutes"],
+  properties: {
+    version: { type: "integer", const: 1 },
+    key: { type: "string", enum: ["testimony", "public_statement", "secret_action", "ask_host"] },
+    kind: { type: "string", enum: ["testimony", "public_statement", "secret_action", "ask_host"] },
+    enabled: { type: "boolean" },
+    title: { type: "string", minLength: 1, maxLength: 120 },
+    privacyNotice: { type: "string", minLength: 1, maxLength: 500 },
+    placeholder: { type: "string", minLength: 1, maxLength: 300 },
+    deadlineMinutes: { type: "integer", minimum: 0, maximum: 1440 },
+  },
+};
+
+const miniGameTemplateSchema = {
+  type: "object",
+  additionalProperties: false,
+  required: [
+    "id", "protocolVersion", "pluginKey", "gameType", "title", "prompt", "hint",
+    "answer", "length", "maxAttempts", "timeoutSeconds", "allowRecovery",
+    "successText", "failureText", "recapLabel"
+  ],
+  properties: {
+    id: { type: "string", minLength: 1, maxLength: 80 },
+    protocolVersion: { type: "integer", const: 1 },
+    pluginKey: { type: "string", enum: ["zhimu_lock", "zhimu_sequence", "zhimu_guess"] },
+    gameType: { type: "string", enum: ["zhimu_lock", "zhimu_sequence", "zhimu_guess"] },
+    title: { type: "string", minLength: 1, maxLength: 120 },
+    prompt: { type: "string", minLength: 1, maxLength: 500 },
+    hint: { type: "string", maxLength: 500 },
+    answer: { type: "string", minLength: 1, maxLength: 32 },
+    length: { type: "integer", minimum: 1, maximum: 12 },
+    maxAttempts: { type: "integer", minimum: 1, maximum: 12 },
+    timeoutSeconds: { type: "integer", minimum: 0, maximum: 86400 },
+    allowRecovery: { type: "boolean" },
+    successText: { type: "string", minLength: 1, maxLength: 1000 },
+    failureText: { type: "string", minLength: 1, maxLength: 1000 },
+    recapLabel: { type: "string", minLength: 1, maxLength: 160 },
+    status: { type: "string", enum: ["test"] }
+  }
+};
+
+const boardGameStateFieldSchema = {
+  type: "object",
+  additionalProperties: false,
+  required: ["id", "label", "key", "initialValue"],
+  properties: {
+    id: { type: "string", minLength: 1, maxLength: 80 },
+    label: { type: "string", minLength: 1, maxLength: 80 },
+    key: { type: "string", minLength: 1, maxLength: 80 },
+    initialValue: { type: "string", maxLength: 300 },
+  },
+};
+
+const boardGameSeatSchema = {
+  type: "object",
+  additionalProperties: false,
+  required: ["id", "name", "sequence"],
+  properties: {
+    id: { type: "string", minLength: 1, maxLength: 80 },
+    name: { type: "string", minLength: 1, maxLength: 120 },
+    sequence: { type: "integer", minimum: 1, maximum: 99 },
+  },
+};
+
+const boardGameAssetSchema = {
+  type: "object",
+  additionalProperties: false,
+  required: ["id", "assetId", "fileName", "kind", "caption"],
+  properties: {
+    id: { type: "string", minLength: 1, maxLength: 80 },
+    assetId: { type: "string", maxLength: 120 },
+    fileName: { type: "string", minLength: 1, maxLength: 240 },
+    kind: { type: "string", enum: ["image", "document"] },
+    caption: { type: "string", maxLength: 1200 },
+  },
+};
+
+const boardGameEntrySchema = {
+  type: "object",
+  additionalProperties: false,
+  required: ["id", "name", "description", "quantity"],
+  properties: {
+    id: { type: "string", minLength: 1, maxLength: 80 },
+    name: { type: "string", minLength: 1, maxLength: 160 },
+    description: { type: "string", maxLength: 1600 },
+    quantity: { type: "integer", minimum: 1, maximum: 9999 },
+  },
+};
+
+const boardGameComponentSchema = {
+  type: "object",
+  additionalProperties: false,
+  required: ["id", "type", "name", "quantity", "description", "playerAction", "stateFields", "assets", "entries", "notes"],
+  properties: {
+    id: { type: "string", minLength: 1, maxLength: 80 },
+    type: { type: "string", enum: [...BOARD_GAME_COMPONENT_TYPES] },
+    name: { type: "string", minLength: 1, maxLength: 120 },
+    quantity: { type: "integer", minimum: 1, maximum: 9999 },
+    description: { type: "string", maxLength: 1600 },
+    playerAction: { type: "string", maxLength: 1600 },
+    stateFields: { type: "array", maxItems: 40, items: boardGameStateFieldSchema },
+    assets: { type: "array", maxItems: 100, items: boardGameAssetSchema },
+    entries: { type: "array", maxItems: 2000, items: boardGameEntrySchema },
+    notes: { type: "string", maxLength: 2400 },
+  },
+};
+
+const boardGameVariableSchema = {
+  type: "object",
+  additionalProperties: false,
+  required: ["id", "label", "scope", "initialValue", "min", "max"],
+  properties: {
+    id: { type: "string", minLength: 1, maxLength: 80 },
+    label: { type: "string", minLength: 1, maxLength: 100 },
+    scope: { type: "string", enum: ["global", "player", "component"] },
+    initialValue: { type: "number", minimum: -1000000000, maximum: 1000000000 },
+    min: { type: "number", minimum: -1000000000, maximum: 1000000000 },
+    max: { type: "number", minimum: -1000000000, maximum: 1000000000 },
+  },
+};
+
+const boardGameConditionSchema = {
+  type: "object",
+  additionalProperties: false,
+  required: ["id", "sourceKey", "operator", "value"],
+  properties: {
+    id: { type: "string", minLength: 1, maxLength: 80 },
+    sourceKey: { type: "string", maxLength: 80 },
+    operator: { type: "string", enum: ["eq", "neq", "gt", "gte", "lt", "lte", "contains"] },
+    value: { type: "string", maxLength: 300 },
+  },
+};
+
+const boardGameEffectSchema = {
+  type: "object",
+  additionalProperties: false,
+  required: ["id", "targetKey", "operation", "value"],
+  properties: {
+    id: { type: "string", minLength: 1, maxLength: 80 },
+    targetKey: { type: "string", maxLength: 80 },
+    operation: { type: "string", enum: ["set", "add", "subtract", "multiply", "min", "max", "toggle"] },
+    value: { type: "string", maxLength: 300 },
+  },
+};
+
+const boardGameMechanismSchema = {
+  type: "object",
+  additionalProperties: false,
+  required: ["id", "templateKey", "name", "sourceComponentId", "trigger", "conditionMode", "conditions", "effects", "notes"],
+  properties: {
+    id: { type: "string", minLength: 1, maxLength: 80 },
+    templateKey: { type: "string", minLength: 1, maxLength: 80 },
+    name: { type: "string", minLength: 1, maxLength: 160 },
+    sourceComponentId: { type: "string", maxLength: 80 },
+    trigger: { type: "string", minLength: 1, maxLength: 160 },
+    conditionMode: { type: "string", enum: ["all", "any"] },
+    conditions: { type: "array", maxItems: 40, items: boardGameConditionSchema },
+    effects: { type: "array", maxItems: 40, items: boardGameEffectSchema },
+    notes: { type: "string", maxLength: 2400 },
+  },
+};
+
+const boardGameRulebookSchema = {
+  type: "object",
+  additionalProperties: false,
+  required: ["objective", "setup", "turnStructure", "playerActions", "endCondition", "tieBreak", "notes"],
+  properties: {
+    objective: { type: "string", maxLength: 4000 },
+    setup: { type: "string", maxLength: 8000 },
+    turnStructure: { type: "string", maxLength: 8000 },
+    playerActions: { type: "string", maxLength: 8000 },
+    endCondition: { type: "string", maxLength: 4000 },
+    tieBreak: { type: "string", maxLength: 2400 },
+    notes: { type: "string", maxLength: 8000 },
+  },
+};
+
+export const boardGameDesignSchema = {
+  type: "object",
+  additionalProperties: false,
+  required: ["version", "title", "designGoal", "playerCount", "playTimeMinutes", "seats", "components", "variables", "mechanisms", "rulebook", "updatedAt"],
+  properties: {
+    version: { type: "integer", const: BOARD_GAME_DESIGN_VERSION },
+    title: { type: "string", maxLength: 120 },
+    designGoal: { type: "string", maxLength: 2400 },
+    playerCount: {
+      type: "object",
+      additionalProperties: false,
+      required: ["min", "max"],
+      properties: {
+        min: { type: "integer", minimum: 1, maximum: 99 },
+        max: { type: "integer", minimum: 1, maximum: 99 },
+      },
+    },
+    playTimeMinutes: { type: "integer", minimum: 1, maximum: 10080 },
+    seats: { type: "array", maxItems: 99, items: boardGameSeatSchema },
+    components: { type: "array", maxItems: 300, items: boardGameComponentSchema },
+    variables: { type: "array", maxItems: 300, items: boardGameVariableSchema },
+    mechanisms: { type: "array", maxItems: 300, items: boardGameMechanismSchema },
+    rulebook: boardGameRulebookSchema,
+    updatedAt: { anyOf: [{ type: "string", maxLength: 80 }, { type: "null" }] },
+  },
+};
+
 export const worldSettingsSchema = {
   type: "object",
   additionalProperties: true,
@@ -381,7 +406,9 @@ export const worldSettingsSchema = {
     narrativeProfile: narrativeProfileSchema,
     commercialProfile: commercialProfileSchema,
     creativeConstitution: creativeConstitutionSchema,
-    storySpine: storySpineSchema,
     mechanismDesign: mechanismDesignSchema,
+    boardGameDesign: boardGameDesignSchema,
+    communicationTemplates: { type: "array", maxItems: 4, items: communicationTemplateSchema },
+    miniGameTemplates: { type: "array", maxItems: 50, items: miniGameTemplateSchema },
   },
 };

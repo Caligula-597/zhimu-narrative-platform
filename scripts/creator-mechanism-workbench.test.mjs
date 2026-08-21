@@ -18,6 +18,9 @@ test("creator exposes the mechanism guide through a guarded lazy workbench", () 
   );
   assert.doesNotMatch(actions, /^import .*creator-mechanism-workbench/m);
   assert.match(workbench, /MECHANISM_DESIGN_QUESTIONS/);
+  assert.match(workbench, /MECHANISM_KIT_TEMPLATES/);
+  assert.match(workbench, /data-mechanism-kit/);
+  assert.match(workbench, /applyMechanismKitToDesign/);
   assert.match(workbench, /data-mechanism-save="draft"/);
   assert.match(workbench, /data-mechanism-save="confirmed"/);
   assert.match(workbench, /validateMechanismDesignConfirmation/);

@@ -34,7 +34,6 @@ import { setHtml } from "../../shared/safe-dom.js";
   const taskAction = U.taskAction || (() => "");
   const capability = U.capability || (() => "");
   const check = U.check || (() => "");
-  const voiceOption = U.voiceOption || (() => "");
   const showError = (error, fallback = "操作失败，请稍后重试") => showToast(normalizeError(error, fallback));
   const closeModal = M.closeModal || (() => {});
   const openModal = M.openModal || (() => {});
@@ -54,7 +53,7 @@ export function archive(){
  if(activeRecapId)return recapDetailView();
  const isPlayer=view==="player";
  return `${cloudStatus()}
- <article class="card"><div class="section-head"><div><h3>房间复盘 · ${escapeHtml(room.name)}</h3><p>基于真实日志、线索流转、调查记录与规则触发，生成可分享的跑团回顾（非 AI 版）。</p></div>${isPlayer?"":`<button class="primary-btn" data-action="create-recap">生成复盘</button>`}</div>
+ <article class="card"><div class="section-head"><div><h3>房间复盘 · ${escapeHtml(room.name)}</h3><p>基于真实日志、线索流转、调查记录与规则触发，生成可分享的剧本杀场次回顾（非 AI 版）。</p></div>${isPlayer?"":`<button class="primary-btn" data-action="create-recap">生成复盘</button>`}</div>
  ${recapListSection(recaps,isPlayer)}
  <div class="tutorial-tip"><b>视角说明</b><span>局后复盘以<strong>上帝视角</strong>串联全剧章节与各角色表现；玩家端会高亮自己的角色卡片。</span></div></article>
  <article class="card" style="margin-top:14px"><div class="section-head"><div><h3>运行房存档</h3><p>保存当前平行房的玩家进度、线索与开放场景；可将存档恢复到本房或其它平行房（同一世界内）。</p></div>${isPlayer?"":`<button class="primary-btn" data-action="create-checkpoint">＋ 创建存档点</button>`}</div>
@@ -65,10 +64,10 @@ export function archive(){
 function recapListSection(recaps,isPlayer){
  if(isPlayer){
   const latest=roomStore.get().cloudRecapLatest;
-  if(!latest)return `<div class="empty-state">主持人尚未生成本房间的复盘报告。跑团结束后，请让主持人在「存档与复盘」页生成。</div>`;
+  if(!latest)return `<div class="empty-state">主持人尚未生成本房间的复盘报告。场次结束后，请让主持人在「存档与复盘」页生成。</div>`;
   return `<article class="recap-card"><div class="recap-head"><div><strong>${escapeHtml(latest.label)}</strong><p>${escapeHtml(latest.description||"无备注")}</p></div><span class="status-chip published">局后复盘</span></div><div class="checkpoint-meta"><span>生成于 ${formatTime(latest.created_at)}</span><span>${escapeHtml(latest.created_by_name||"主持人")}</span><span>${latest.summary?.joinedPlayers||0} 人 · ${latest.summary?.cluesDiscovered||0} 条线索</span></div><button class="secondary-btn" data-action="recap-detail" data-recap="${latest.id}" data-player="1">查看完整复盘</button></article>`;
  }
- if(!recaps.length)return `<div class="empty-state">尚未生成复盘。跑团结束后点击「生成复盘」，系统会从时间线、线索流转、调查记录与规则执行汇总。</div>`;
+ if(!recaps.length)return `<div class="empty-state">尚未生成复盘。场次结束后点击「生成复盘」，系统会从时间线、线索流转、调查记录与规则执行汇总。</div>`;
  return `<div class="recap-list">${recaps.map(item=>`<article class="recap-card"><div class="recap-head"><div><strong>${escapeHtml(item.label)}</strong><p>${escapeHtml(item.description||"无备注")}</p></div><span class="status-chip published">全局复盘</span></div><div class="checkpoint-meta"><span>生成于 ${formatTime(item.created_at)}</span><span>${escapeHtml(item.created_by_name||"主持人")}</span><span>${item.summary?.joinedPlayers||0} 人 · ${item.summary?.cluesDiscovered||0} 条线索 · ${item.summary?.rulesTriggered||0} 条规则触发</span></div><button class="secondary-btn" data-action="recap-detail" data-recap="${item.id}">查看全局复盘</button></article>`).join("")}</div>`;
 }
 

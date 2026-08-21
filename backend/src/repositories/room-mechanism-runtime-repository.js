@@ -37,6 +37,7 @@ export function projectRoomMechanismState(row) {
       events: row.event_states ?? {},
       decisionStates: row.decision_states ?? {},
       executedInvestigations: row.executed_investigations ?? {},
+      investigationUseCounts: row.investigation_use_counts ?? {},
       ending: row.ending ?? null,
     },
   };
@@ -47,7 +48,7 @@ const STATE_COLUMNS = `
   source_content_revision, mechanism_package_sha256, status, current_round_key,
   current_round_sequence, prepared_round_key, current_branch, current_variant_key,
   state_values, resource_values, evidence_states, event_states, decision_states,
-  executed_investigations, ending, revision, initialized_by_user_id,
+  executed_investigations, investigation_use_counts, ending, revision, initialized_by_user_id,
   initialized_at, round_started_at, updated_at, metadata
 `;
 
@@ -80,6 +81,7 @@ function runtimeParams(runtime) {
     JSON.stringify(runtime.events ?? {}),
     JSON.stringify(runtime.decisionStates ?? {}),
     JSON.stringify(runtime.executedInvestigations ?? {}),
+    JSON.stringify(runtime.investigationUseCounts ?? {}),
     runtime.ending == null ? null : JSON.stringify(runtime.ending),
   ];
 }
@@ -106,11 +108,11 @@ export async function insertRoomMechanismState(
        status, current_round_key, current_round_sequence, prepared_round_key,
        current_branch, current_variant_key, state_values, resource_values,
        evidence_states, event_states, decision_states, executed_investigations,
-       ending, revision, initialized_by_user_id, metadata
+       investigation_use_counts, ending, revision, initialized_by_user_id, metadata
      ) VALUES (
        $1,$2,$3,$4,$5,$6,
        $7,$8,$9,$10,$11,$12,$13::jsonb,$14::jsonb,$15::jsonb,$16::jsonb,
-       $17::jsonb,$18::jsonb,$19::jsonb,1,$20,$21::jsonb
+       $17::jsonb,$18::jsonb,$19::jsonb,$20::jsonb,1,$21,$22::jsonb
      )
      RETURNING ${STATE_COLUMNS}`,
     [
@@ -163,13 +165,14 @@ export async function replaceRoomMechanismState(
        event_states = $17::jsonb,
        decision_states = $18::jsonb,
        executed_investigations = $19::jsonb,
-       ending = $20::jsonb,
+       investigation_use_counts = $20::jsonb,
+       ending = $21::jsonb,
        revision = revision + 1,
-       initialized_by_user_id = $21,
+       initialized_by_user_id = $22,
        initialized_at = now(),
        round_started_at = now(),
        updated_at = now(),
-       metadata = $22::jsonb
+       metadata = $23::jsonb
      WHERE room_id = $1 AND revision = $2
      RETURNING ${STATE_COLUMNS}`,
     [
@@ -207,8 +210,9 @@ export async function updateRoomMechanismRuntime(
        event_states = $12::jsonb,
        decision_states = $13::jsonb,
        executed_investigations = $14::jsonb,
-       ending = $15::jsonb,
-       round_started_at = CASE WHEN $16 THEN now() ELSE round_started_at END,
+       investigation_use_counts = $15::jsonb,
+       ending = $16::jsonb,
+       round_started_at = CASE WHEN $17 THEN now() ELSE round_started_at END,
        revision = revision + 1,
        updated_at = now()
      WHERE room_id = $1 AND revision = $2

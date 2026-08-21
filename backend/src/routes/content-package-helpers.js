@@ -5,6 +5,7 @@ import { admitWorldCreation } from "../quota-guards.js";
 import { assertCapability } from "../capabilities.js";
 import { resolveClueKind } from "../clue-kind.js";
 import { assertContentPackageWithinLimits } from "../content-package-limits.js";
+import { importCaseExtensions } from "../content-package-case-extensions.js";
 
 export const PACKAGE_FORMAT = "zhimu-world-package";
 export const PACKAGE_VERSION = 1;
@@ -578,6 +579,14 @@ export async function importContentPackageData(client, worldId, payload) {
     rulesImported += 1;
   }
 
+  const extensionStats = await importCaseExtensions(
+    client,
+    worldId,
+    payload,
+    { roleIds, clueIds, chapterIds },
+    warnings
+  );
+
   if (importKey) {
     await client.query(
       `UPDATE worlds SET settings = COALESCE(settings, '{}'::jsonb) || jsonb_build_object('lastContentPackageImportKey', $2::text), updated_at = now() WHERE id = $1`,
@@ -594,7 +603,11 @@ export async function importContentPackageData(client, worldId, payload) {
       clues: clueIds.size,
       points: pointsImported,
       edges: edgesImported,
-      rules: rulesImported
+      rules: rulesImported,
+      roleArchives: extensionStats.archivesImported,
+      materialBooklets: extensionStats.bookletsImported,
+      mechanismPackage: extensionStats.mechanismImported,
+      miniGameTemplates: extensionStats.miniGamesImported
     },
     idMaps: {
       chapters: Object.fromEntries(chapterIds),
