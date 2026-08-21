@@ -130,11 +130,38 @@ export function evaluateDocumentStructureGate(input = {}) {
     });
   }
 
-  if (/线索卡|地图|扫描|jpg|png/i.test(text) || (input.sectionBanners || []).some((b) => b.kind === "clue_list")) {
+  if (counts.scene > 0) {
+    plan.push({
+      step: step++,
+      action: "import_scenes",
+      label: `导入 ${counts.scene} 个搜证/地图场景`
+    });
+  }
+  if (counts.clue > 0) {
+    plan.push({
+      step: step++,
+      action: "import_clues",
+      label: `导入 ${counts.clue} 条线索（主持可见草稿）`
+    });
+  }
+  if (counts.secret > 0) {
+    plan.push({
+      step: step++,
+      action: "import_secrets",
+      label: `导入 ${counts.secret} 条秘密/遗书日记`
+    });
+  }
+  if (counts.scene === 0 && counts.clue === 0 && /线索卡|地图|扫描|jpg|png/i.test(text)) {
     plan.push({
       step: step++,
       action: "upload_clue_assets",
       label: "线索卡/地图图档走素材库，不依赖正文解析"
+    });
+  } else if (/线索卡|地图一堆/i.test(text) || (input.sectionBanners || []).some((b) => b.kind === "clue_list")) {
+    plan.push({
+      step: step++,
+      action: "upload_remaining_assets",
+      label: "纯图线索卡/地图仍请上传素材库作附件"
     });
   }
 

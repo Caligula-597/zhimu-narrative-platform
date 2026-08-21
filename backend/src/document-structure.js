@@ -14,6 +14,8 @@ export function analyzeNarrativeStructure(text, { filename = "", creationType = 
   const grouped = groupNarrativeStructure(text, { filename });
   const counts = { role: 0, act: 0, scene: 0, clue: 0, secret: 0 };
   const actTitles = new Set();
+  const sceneTitles = new Set();
+  const clueTitles = new Set();
   for (const candidate of grouped.candidates) {
     if (candidate.type === "act") {
       actTitles.add(
@@ -23,9 +25,27 @@ export function analyzeNarrativeStructure(text, { filename = "", creationType = 
       );
       continue;
     }
+    if (candidate.type === "scene") {
+      sceneTitles.add(
+        String(candidate.title ?? "")
+          .trim()
+          .toLocaleLowerCase("zh-CN")
+      );
+      continue;
+    }
+    if (candidate.type === "clue") {
+      clueTitles.add(
+        String(candidate.title ?? "")
+          .trim()
+          .toLocaleLowerCase("zh-CN")
+      );
+      continue;
+    }
     if (counts[candidate.type] != null) counts[candidate.type] += 1;
   }
   counts.act = actTitles.size;
+  counts.scene = sceneTitles.size;
+  counts.clue = clueTitles.size;
   const gate = evaluateDocumentStructureGate({
     candidates: grouped.candidates,
     text,

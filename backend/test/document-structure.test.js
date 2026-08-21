@@ -148,6 +148,39 @@ test("role booklet chapters follow page-label reading order 1-2-3-4 not extract 
   assert.match(bai[1].body, /夜阑正文/);
 });
 
+const QINGLOU_EXPLORATION_EXCERPT = [
+  "10. 衙门令搜证",
+  "搜证规则如下：",
+  "[1]城北：刚出城北不久的你，在路边发现了三个人的鞋印。",
+  "[2]城西：来到城西，一个小街坊告诉你，昨晚刚夜深时便看到过莫怀公子。",
+  "[6]街市：有街坊告诉你，昨天舒悦姑娘出玉满楼到回玉满楼刚好是一个时辰。 [7]府南河：来到府南河边，有一算命的老生告诉你：双黑前来。",
+  "[11]莫寒房间：一进门，你便在地上发现了一把匕首。",
+  "衙门公开线索",
+  "三具尸体，其中两具为一男一女，被一同埋在城西青树。",
+  "★遗书、日记备忘★ 唐玄宗遗书：",
+  "怀儿：当怀儿你看到这封信之时，想来爹已经离世了。",
+  "[1]当玩家报备杀人后，一定要询问用什么武器并记录。",
+  "莫寒房间：地上有一把匕首满是血迹。",
+  "忘优病：通常得此病者都源于有一段痛苦的回忆。"
+].join("\n");
+
+test("exploration catalog splits map locations into scenes and clues without host-rule noise", () => {
+  const result = analyzeNarrativeStructure(QINGLOU_EXPLORATION_EXCERPT, { filename: "剧本.docx" });
+  const scenes = result.candidates.filter((item) => item.type === "scene").map((item) => item.title);
+  const clues = result.candidates.filter((item) => item.type === "clue").map((item) => item.title);
+  const secrets = result.candidates.filter((item) => item.type === "secret").map((item) => item.title);
+  for (const name of ["城北", "城西", "街市", "府南河", "莫寒房间"]) {
+    assert.ok(scenes.includes(name), `missing scene ${name}`);
+    assert.ok(clues.includes(name), `missing clue ${name}`);
+  }
+  assert.ok(clues.includes("衙门公开线索"));
+  assert.ok(clues.includes("忘优病"));
+  assert.ok(secrets.some((title) => /遗书|日记/.test(title)));
+  assert.equal(scenes.includes("当玩家报备杀人后"), false);
+  assert.ok(result.gate.plan.some((item) => item.action === "import_scenes"));
+  assert.ok(result.gate.plan.some((item) => item.action === "import_clues"));
+});
+
 test("prose lines like 一幕玉满楼 are not treated as act headings", () => {
   const result = analyzeNarrativeStructure(
     ["普通叙述。", "莫怀复盘：莫怀醒来时，一幕玉满楼的灯还亮着，灵石与魔石都在桌上。", "夜阑之后他才离开。"].join("\n")

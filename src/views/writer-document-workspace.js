@@ -87,8 +87,14 @@ function documentPreviewHtml(parsed, creationType) {
   const structureSummary = `${terms.roleShort} ${Number(counts.role || 0)} · ${terms.act} ${Number(counts.act || 0)} · ${terms.scene} ${Number(counts.scene || 0)} · ${terms.clue} ${Number(counts.clue || 0)} · ${terms.secret} ${Number(counts.secret || 0)}`;
   const candidates = structure?.candidates || [];
   const roles = candidates.filter((item) => item.type === "role");
-  const acts = candidates.filter((item) => item.type === "act");
-  const other = candidates.filter((item) => item.type !== "role" && item.type !== "act");
+  const acts = candidates.filter((item) => item.type === "act" && !item.roleName);
+  const roleActs = candidates.filter((item) => item.type === "act" && item.roleName);
+  const scenes = candidates.filter((item) => item.type === "scene");
+  const clues = candidates.filter((item) => item.type === "clue");
+  const secrets = candidates.filter((item) => item.type === "secret");
+  const other = candidates.filter(
+    (item) => !["role", "act", "scene", "clue", "secret"].includes(item.type)
+  );
   const gate = structure?.gate;
   const kindLabel =
     gate?.documentKind === "host_handbook"
@@ -116,7 +122,7 @@ function documentPreviewHtml(parsed, creationType) {
           .join("")}${items.length > 12 ? `<p class="muted-note">另有 ${items.length - 12} 项</p>` : ""}</div>`
       : "";
   const structurePreview = candidates.length
-    ? `<section class="document-structure-preview"><h4>结构分组 · ${escapeHtml(structureSummary)}</h4>${listBlock("角色", roles)}${listBlock("章节 / 分幕", acts)}${listBlock("其他", other)}</section>`
+    ? `<section class="document-structure-preview"><h4>结构分组 · ${escapeHtml(structureSummary)}</h4>${listBlock("角色", roles)}${listBlock("章节 / 分幕", acts)}${listBlock("角色分幕正文", roleActs)}${listBlock("场景", scenes)}${listBlock("线索", clues)}${listBlock("秘密", secrets)}${listBlock("其他", other)}</section>`
     : "";
   const summary = parsed.contentMode === "pages" ? `${Number(parsed.pageCount || 0)} 页图片分幕` : `${Number(parsed.characterCount || 0)} 字符 · ${Number(parsed.sectionCount || 0)} 个分段`;
   return `<section class="assistant-preview document-workspace-preview"><div class="section-head"><div><h3>${escapeHtml(parsed.filename || "解析结果")}</h3><p>${summary}${modeLabel ? ` · ${escapeHtml(modeLabel)}` : ""}</p></div><span class="cloud-pill">仅预览</span></div>${warnings}${gatePlanHtml}${proseDiagnosticsHtml(parsed.proseDiagnostics)}${structurePreview}${previewImage}<div class="document-section-preview">${sections}</div></section>`;

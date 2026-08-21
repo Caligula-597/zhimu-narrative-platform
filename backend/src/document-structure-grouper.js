@@ -455,6 +455,193 @@ export function extractSequentialRoleBooklets(text) {
   return booklets;
 }
 
+function isHostRuleNumberedLine(title, body) {
+  const head = `${title}${body}`.replace(/\s+/g, "");
+  return /^(当玩家|一把武器|玩家开启|不管是|禁止|齐剑心佩带|如若玩家|玩家死后|主持人每轮|玩家们可以自由)/.test(head);
+}
+
+function splitInlineNumberedEntries(line) {
+  const text = cleanLine(line);
+  if (!text) return [];
+  const parts = text.split(/(?=\[\s*\d+\s*\])/);
+  const entries = [];
+  for (const part of parts) {
+    const cleaned = cleanLine(part);
+    let match = cleaned.match(/^\[\s*(\d+)\s*\]\s*([^：:（(]{1,40}?)\s*[：:]\s*(.+)$/s);
+    if (!match) {
+      match = cleaned.match(/^\[\s*(\d+)\s*\]\s*([^：:（(]{1,40})(.*)$/s);
+    }
+    if (!match) continue;
+    const title = trimLabel(match[2], `地点${match[1]}`);
+    const body = trimLabel(match[3], "").replace(/^[：:\s]+/, "");
+    if (!title) continue;
+    entries.push({
+      index: Number(match[1]),
+      title,
+      body: body || title
+    });
+  }
+  return entries;
+}
+
+function extractPublicClueBlocks(text) {
+  const lines = String(text ?? "")
+    .replace(/\r\n/g, "\n")
+    .split("\n");
+  const blocks = [];
+  let capturing = null;
+  const flush = () => {
+    if (!capturing) return;
+    const body = capturing.bodyLines.join("\n").trim();
+    if (body) blocks.push({ title: capturing.title, body, sourceHeading: capturing.sourceHeading });
+    capturing = null;
+  };
+  for (const raw of lines) {
+    const line = cleanLine(raw);
+    if (/^衙门公开线索/.test(line) && line.length < 40) {
+      flush();
+      capturing = { title: "衙门公开线索", sourceHeading: line, bodyLines: [] };
+      continue;
+    }
+    if (/遗书|日记/.test(line) && (/备忘|★/.test(line) || /遗书\s*[：:]/.test(line))) {
+      flush();
+      const titleMatch =
+        line.match(/(唐玄宗遗书|董小婉日记|莫玄宗遗书)/) ||
+        line.match(/([一-龥]{2,12}(?:遗书|日记))\s*[：:]/);
+      capturing = {
+        title: titleMatch ? trimLabel(titleMatch[1], "遗书日记") : "遗书日记",
+        sourceHeading: line,
+        bodyLines: []
+      };
+      const inline = line.split(/[：:]/).slice(1).join("：").trim();
+      if (inline && !/备忘/.test(inline)) capturing.bodyLines.push(inline);
+      continue;
+    }
+    if (capturing) {
+      if (classifySectionBanner(raw)?.kind && classifySectionBanner(raw).kind !== "other") {
+        flush();
+        continue;
+      }
+      if (/^★/.test(line) || /^第\s*[一二三四]章/.test(line) || /^[①1]\s*你的任务/.test(line)) {
+        flush();
+        continue;
+      }
+      capturing.bodyLines.push(raw);
+    }
+  }
+  flush();
+  return blocks;
+}
+
+function extractClueCardEntries(text) {
+  const lines = String(text ?? "")
+    .replace(/\r\n/g, "\n")
+    .split("\n");
+  const entries = [];
+  let current = null;
+  const flush = () => {
+    if (!current) return;
+    const body = current.bodyLines.join("\n").trim();
+    if (body || current.title) {
+      entries.push({ title: current.title, body: body || current.title, sourceHeading: current.title });
+    }
+    current = null;
+  };
+  for (const raw of lines) {
+    const line = cleanLine(raw);
+    if (!line) continue;
+    const room = line.match(/^([一-龥A-Za-z·]{2,16}(?:房间|之家|客栈))\s*[：:]\s*(.*)$/);
+    const named = line.match(/^([一-龥A-Za-z·]{2,16})\s*[：:]\s*(.*)$/);
+    const clueTitleOk = named && /^(?:忘忧病|忘优病|晕厥粉|皇书|莫府家仆|家中有一皇书)$/.test(trimLabel(named[1], ""));
+    const hit = room || (clueTitleOk ? named : null);
+    if (hit) {
+      flush();
+      const title = trimLabel(hit[1], "线索");
+      const rest = trimLabel(hit[2], "");
+      current = { title, bodyLines: rest ? [rest] : [] };
+      continue;
+    }
+    if (current) current.bodyLines.push(raw);
+  }
+  flush();
+  return entries;
+}
+
+/**
+ * Pull scenes/clues/secrets from host exploration catalogs and clue-card prose.
+ */
+export function extractPlayMaterialCatalog(text) {
+  const lines = String(text ?? "")
+    .replace(/\r\n/g, "\n")
+    .split("\n");
+  const scenes = [];
+  const clues = [];
+  const secrets = [];
+  const seenScene = new Set();
+  const seenClue = new Set();
+
+  const pushScene = (title, body, sourceHeading, index = null) => {
+    const key = lookupKey(title);
+    if (!key || seenScene.has(key)) return;
+    seenScene.add(key);
+    scenes.push({ title, body, sourceHeading, index });
+  };
+  const pushClue = (title, body, sourceHeading, index = null) => {
+    const key = lookupKey(title);
+    if (!key || seenClue.has(key)) return;
+    seenClue.add(key);
+    clues.push({ title, body, sourceHeading, index });
+  };
+
+  let inExploration = false;
+  for (let i = 0; i < lines.length; i += 1) {
+    const line = cleanLine(lines[i]);
+    if (/衙门令搜证|线索搜证|城闻线索|人物线索/.test(line)) inExploration = true;
+    if (inExploration && (/魔石验身|演绎第三章|灵石结局|杀人报备注意|大唐监狱/.test(line) || /^★/.test(line))) {
+      inExploration = false;
+    }
+    if (!inExploration && !/^\[\s*\d+\s*\]/.test(line)) continue;
+
+    const entries = splitInlineNumberedEntries(line);
+    if (!entries.length && /^\[\s*\d+\s*\]/.test(line)) {
+      // continuation lines already handled by joining? keep single-line parser only
+    }
+    for (const entry of entries) {
+      if (isHostRuleNumberedLine(entry.title, entry.body)) continue;
+      // Collect following non-numbered lines as body continuation until next [n]
+      let body = entry.body;
+      for (let j = i + 1; j < Math.min(lines.length, i + 6); j += 1) {
+        const next = cleanLine(lines[j]);
+        if (!next) continue;
+        if (/^\[\s*\d+\s*\]/.test(next) || /^★/.test(next) || /^第\s*[一二三四]章/.test(next)) break;
+        if (splitInlineNumberedEntries(next).length) break;
+        body = `${body}\n${next}`.trim();
+      }
+      pushScene(entry.title, body, `[${entry.index}]${entry.title}`, entry.index);
+      pushClue(entry.title, body, `[${entry.index}]${entry.title}`, entry.index);
+    }
+  }
+
+  for (const block of extractPublicClueBlocks(text)) {
+    if (/遗书|日记/.test(block.title)) {
+      secrets.push({ title: block.title, body: block.body, sourceHeading: block.sourceHeading });
+    } else {
+      pushClue(block.title, block.body, block.sourceHeading);
+    }
+  }
+
+  for (const card of extractClueCardEntries(text)) {
+    if (/房间|客栈|家$/.test(card.title)) {
+      pushScene(card.title, card.body, card.sourceHeading);
+    }
+    pushClue(card.title, card.body, card.sourceHeading);
+  }
+
+  scenes.sort((a, b) => (a.index ?? 999) - (b.index ?? 999));
+  clues.sort((a, b) => (a.index ?? 999) - (b.index ?? 999));
+  return { scenes, clues, secrets };
+}
+
 function chaptersFromFlowText(text) {
   const found = [];
   const seen = new Set();
@@ -691,15 +878,65 @@ export function groupNarrativeStructure(text, { filename = "" } = {}) {
     }
   }
 
+  const catalog = extractPlayMaterialCatalog(text);
+  for (const scene of catalog.scenes) {
+    candidates.push({
+      id: candidateId("scene", candidates.length, scene.sourceHeading, scene.body),
+      type: "scene",
+      title: scene.title,
+      body: String(scene.body || "").slice(0, 200_000),
+      confidence: "high",
+      sourceHeading: scene.sourceHeading,
+      lineStart: null,
+      lineEnd: null,
+      parentActTitle: null,
+      roleName: null,
+      included: true,
+      meta: { index: scene.index, readingOrder: scene.index }
+    });
+  }
+  for (const clue of catalog.clues) {
+    candidates.push({
+      id: candidateId("clue", candidates.length, clue.sourceHeading, clue.body),
+      type: "clue",
+      title: clue.title,
+      body: String(clue.body || "").slice(0, 200_000),
+      confidence: "high",
+      sourceHeading: clue.sourceHeading,
+      lineStart: null,
+      lineEnd: null,
+      parentActTitle: null,
+      roleName: null,
+      included: true,
+      meta: { index: clue.index, readingOrder: clue.index }
+    });
+  }
+  for (const secret of catalog.secrets) {
+    candidates.push({
+      id: candidateId("secret", candidates.length, secret.sourceHeading, secret.body),
+      type: "secret",
+      title: secret.title,
+      body: String(secret.body || "").slice(0, 200_000),
+      confidence: "medium",
+      sourceHeading: secret.sourceHeading,
+      lineStart: null,
+      lineEnd: null,
+      parentActTitle: null,
+      roleName: null,
+      included: true
+    });
+  }
+
   // Prefer reading order: chapter ordinal 1→2→3→4 (page labels), not extract appearance order.
   candidates.sort((a, b) => {
-    const roleA = a.type === "role" ? 0 : 1;
-    const roleB = b.type === "role" ? 0 : 1;
+    const rank = { role: 0, act: 1, scene: 2, clue: 3, secret: 4 };
+    const roleA = rank[a.type] ?? 9;
+    const roleB = rank[b.type] ?? 9;
     if (roleA !== roleB) return roleA - roleB;
-    const ordA = Number(a.meta?.ordinal ?? a.meta?.readingOrder ?? 99);
-    const ordB = Number(b.meta?.ordinal ?? b.meta?.readingOrder ?? 99);
+    const ordA = Number(a.meta?.ordinal ?? a.meta?.readingOrder ?? a.meta?.index ?? 99);
+    const ordB = Number(b.meta?.ordinal ?? b.meta?.readingOrder ?? b.meta?.index ?? 99);
     if (ordA !== ordB) return ordA - ordB;
-    return String(a.roleName || "").localeCompare(String(b.roleName || ""), "zh-CN");
+    return String(a.roleName || a.title || "").localeCompare(String(b.roleName || b.title || ""), "zh-CN");
   });
 
   const wasTruncated = candidates.length > 300;
@@ -710,6 +947,11 @@ export function groupNarrativeStructure(text, { filename = "" } = {}) {
     sectionBanners,
     wasTruncated,
     lineCount: lines.length,
-    roleBookletCount
+    roleBookletCount,
+    materialCounts: {
+      scenes: catalog.scenes.length,
+      clues: catalog.clues.length,
+      secrets: catalog.secrets.length
+    }
   };
 }
