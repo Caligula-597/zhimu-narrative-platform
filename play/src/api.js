@@ -160,6 +160,7 @@ export const api = {
     request(`/rooms/${roomId}/investigation-points/${pointId}/investigate`, { method: "POST", body: {} }),
   readClue: (roomId, clueId) =>
     request(`/rooms/${roomId}/clues/${clueId}/read`, { method: "POST", body: {} }),
+  getAssetDownloadUrl: (assetId) => request(`/assets/${assetId}/download-url`),
   shareClueToRoom: (roomId, clueId, shared = true) =>
     request(`/rooms/${roomId}/clues/${clueId}/share-room`, { method: "POST", body: { shared } }),
   shareClueToRoles: (roomId, clueId, roleSlotIds) =>

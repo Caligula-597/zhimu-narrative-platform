@@ -1,6 +1,33 @@
 import { asArray, escapeHtml } from "../../../shared/security.js";
+import { api } from "../api.js";
 import { state } from "../state.js";
 import { clueIsRead, clueOwnerLabel, clueShareRoleCount } from "../utils/clues.js";
+
+function clueImageSlot(clue) {
+  const assetId = clue?.image_asset_id;
+  if (!assetId) return "";
+  return `<div class="clue-card-image" data-clue-card-image="${escapeHtml(assetId)}"><span>线索卡加载中…</span></div>`;
+}
+
+export function hydrateClueCardImages(root = document) {
+  const slots = [...(root.querySelectorAll?.("[data-clue-card-image]") || [])];
+  slots.forEach((slot) => {
+    if (slot.dataset.hydrated) return;
+    slot.dataset.hydrated = "1";
+    const assetId = slot.dataset.clueCardImage;
+    if (!assetId) return;
+    api.getAssetDownloadUrl(assetId).then((ticket) => {
+      const url = ticket?.downloadUrl;
+      if (!url) {
+        slot.innerHTML = "<span>线索卡暂不可用</span>";
+        return;
+      }
+      slot.innerHTML = `<img src="${escapeHtml(url)}" alt="线索卡" loading="lazy">`;
+    }).catch(() => {
+      slot.innerHTML = "<span>线索卡加载失败</span>";
+    });
+  });
+}
 
 function renderOwnedClueDetail(clue) {
   if (!clue) return "";
@@ -16,6 +43,7 @@ function renderOwnedClueDetail(clue) {
           ${read ? `<span class="status-chip ok">已读</span>` : `<span class="status-chip draft">未读</span>`}
         </div>
       </div>
+      ${clueImageSlot(clue)}
       <p class="story-body">${escapeHtml(clue.public_text || "暂无内容")}</p>
       ${clue.player_note ? `<div class="clue-note-box"><strong>我的解读</strong><p>${escapeHtml(clue.player_note)}</p></div>` : ""}
       <div class="row-actions clue-actions">
@@ -40,6 +68,7 @@ function renderSharedClueDetail(clue) {
         <h3>${escapeHtml(clue.name)}</h3>
         <span class="status-chip ${clue.shared_scope === "roles" ? "testing" : "published"}">${scopeLabel}</span>
       </div>
+      ${clueImageSlot(clue)}
       <p class="story-body">${escapeHtml(clue.public_text || "暂无内容")}</p>
       ${clue.player_note ? `<div class="clue-note-box"><strong>分享者解读</strong><p>${escapeHtml(clue.player_note)}</p></div>` : ""}
       ${!read ? `<button class="btn outline" type="button" data-action="read-clue" data-clue-id="${clue.id}" data-shared="1" ${state.busy ? "disabled" : ""}>标记已读</button>` : `<p class="done-note">✓ 已读</p>`}

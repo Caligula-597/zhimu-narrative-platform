@@ -2900,6 +2900,27 @@ code {
   margin-bottom: 12px;
 }
 
+.clue-card-image {
+  margin: 0 0 14px;
+  min-height: 160px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
+  background: #15201c;
+  color: rgba(255,255,255,.72);
+  font-size: 12px;
+}
+
+.clue-card-image img {
+  display: block;
+  width: 100%;
+  max-height: 420px;
+  object-fit: contain;
+  background: #0f1714;
+}
+
 .clue-note-box {
   margin: 14px 0;
   padding: 12px 14px;

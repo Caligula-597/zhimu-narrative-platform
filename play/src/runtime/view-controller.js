@@ -64,6 +64,9 @@ export function createPlayViewController({
     if (scrollRestoreKey(state) === restoreKey) window.scrollTo(0, scrollTop);
     bindModalFocus(modalSnapshot);
     navigationFocus.afterRender(state.view);
+    if (state.view === "game" && state.tab === "clues") {
+      import("../views/game-investigation-views.js").then((mod) => mod.hydrateClueCardImages?.());
+    }
     syncPlayUrl(state);
   }
 

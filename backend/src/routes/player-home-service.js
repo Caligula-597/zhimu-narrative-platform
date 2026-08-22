@@ -30,12 +30,14 @@ function projectFrozenClue(provider, clue) {
   const authored = provider.find("clues", clue.id);
   if (!authored) return null;
   const ownerRole = provider.find("roles", clue.owner_role_slot_id);
+  const assetId = authored.metadata?.assetId || null;
   return {
     ...clue,
     name: authored.name,
     public_text: authored.public_text ?? "",
     segment_key: authored.metadata?.segmentKey ?? authored.metadata?.segment_key ?? null,
     location_id: authored.metadata?.locationId ?? authored.metadata?.location_id ?? null,
+    image_asset_id: assetId,
     owner_role_name: ownerRole?.name ?? clue.owner_role_name
   };
 }
