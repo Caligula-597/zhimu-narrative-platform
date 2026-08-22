@@ -3,6 +3,7 @@ import { render } from "../runtime/runtime-facade.js";
 import { studioStore, uiStore } from "../state/index.js";
 import * as S from "../components/ui-semantics.js";
 import { captureClueFlowViewport, restoreClueFlowViewport } from "./clue-flow-view.js";
+import { clearClueImage, hydrateClueImagePreviews, uploadClueImage } from "./clue-image-slot.js";
 import { studioDragMoved, studioDragPosition } from "./studio-drag-math.js";
 
 const showError = S.showError;
@@ -141,6 +142,7 @@ export function toggleCluesSelection(clueId, checked) {
 
 export function bindCluesSearch() {
     bindClueFlowPan();
+    bindClueImageSlot();
     const input = document.getElementById("clues-search-input");
     if (!input || input.dataset.bound) return;
     input.dataset.bound = "1";
@@ -154,6 +156,22 @@ export function bindCluesSearch() {
       }, 280);
     });
   }
+
+  function bindClueImageSlot() {
+    void hydrateClueImagePreviews();
+    document.querySelectorAll("[data-clue-image-upload]").forEach((input) => {
+      if (input.dataset.uploadBound) return;
+      input.dataset.uploadBound = "1";
+      input.addEventListener("change", () => {
+        const file = input.files?.[0];
+        const clueId = input.dataset.clue;
+        input.value = "";
+        if (file && clueId) void uploadClueImage(clueId, file);
+      });
+    });
+  }
+
+  export { clearClueImage };
 
   function bindClueFlowPan() {
     const viewport = document.querySelector("[data-clue-flow-viewport]");

@@ -22,7 +22,7 @@ import {
 import { loadClueHitRate, renderClueHitRatePanel } from "./clues-hit-rate.js";
 import { creatorTerms } from "../../shared/creator-terminology.js";
 import {
-  adjustClueFlowZoom, bindCluesSearch, closeClueDetail, selectClue,
+  adjustClueFlowZoom, bindCluesSearch, clearClueImage, closeClueDetail, selectClue,
   fitClueFlow, focusSelectedClue, setClueDetailTab, setClueFlowFilter,
   syncCluesSelectAll, toggleCluesSelection
 } from "./clues-interactions.js";
@@ -113,5 +113,5 @@ import {
 
 
 
-export const cluesViewApi = { clues, selectClue, closeClueDetail, setClueFlowFilter, setClueDetailTab, adjustClueFlowZoom, fitClueFlow, focusSelectedClue, bindCluesSearch, bindClueEditor, openClueInStudio, openCluesEditor, closeCluesEditor, saveCluesEditor, confirmDeleteClue, batchBindCluePaths, batchDeleteClues, toggleCluesSelection, syncCluesSelectAll, loadClueHitRate };
+export const cluesViewApi = { clues, selectClue, closeClueDetail, setClueFlowFilter, setClueDetailTab, adjustClueFlowZoom, fitClueFlow, focusSelectedClue, bindCluesSearch, bindClueEditor, openClueInStudio, openCluesEditor, closeCluesEditor, saveCluesEditor, confirmDeleteClue, batchBindCluePaths, batchDeleteClues, toggleCluesSelection, syncCluesSelectAll, clearClueImage, loadClueHitRate };
 registerView("clues", cluesViewApi);

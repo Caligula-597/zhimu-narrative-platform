@@ -25,6 +25,7 @@ import { callView } from "./view-registry.js";
         callView("clues", "syncCluesSelectAll", el?.checked, visible);
         return true;
       }
+      case "clue-image-clear": callView("clues", "clearClueImage", el?.dataset?.clue); return true;
       default: return false;
     }
   }

@@ -35,7 +35,8 @@ export function getAssetDownloadUrl(assetId) {
   return request(`/assets/${assetId}/download-url`, { userId: demoContext.hostUserId });
 }
 
-export async function uploadAsset(file) {
+export async function uploadAsset(file, options = {}) {
+  const visibility = options.visibility || "author";
   const ticket = await request("/assets/upload-url", {
     userId: demoContext.hostUserId,
     method: "POST",
@@ -44,7 +45,7 @@ export async function uploadAsset(file) {
       filename: file.name,
       contentType: file.type,
       byteSize: file.size,
-      visibility: "author"
+      visibility
     }
   });
   const timer = createAbortTimer(resolveAssetUploadTimeoutMs(file.size));

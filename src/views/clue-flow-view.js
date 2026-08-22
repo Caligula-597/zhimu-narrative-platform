@@ -5,6 +5,7 @@ import {
   CLUE_IMPORTANCE_LABELS, CLUE_KIND_LABELS, CLUE_TYPE_LABELS,
   VISIBILITY_LABELS, clueMetaLabel, grantModeLabel, relationLabel
 } from "./clues-catalog.js";
+import { renderClueImageSlot } from "./clue-image-slot.js";
 
 const escapeHtml = F.escapeHtml || ((value = "") => String(value));
 
@@ -367,7 +368,7 @@ export function highlightQuery(text, query) {
         <div class="clue-detail-tags">${clueKindBadge(clue)}${clueVisibilityChip(clue)}${clueActBadge(clue)}${clueGrantModeBadge(clue)}<span class="cloud-pill">${points.length || 0} 个调查点</span></div>
         ${rawMeta.triggerNote ? `<p class="wizard-intro">解锁：${escapeHtml(rawMeta.triggerNote)}${clueSceneLabel(clue, data) ? ` · 场景 ${escapeHtml(clueSceneLabel(clue, data))}` : ""}</p>` : ""}
         <div class="clue-preview-card">
-          <div class="clue-preview-image ${asset ? "has-asset" : ""}"><span>${asset ? "关联附件" : "线索预览"}</span></div>
+          ${renderClueImageSlot(clue, asset)}
           <strong>线索描述</strong>
           <p>${escapeHtml(excerpt.slice(0, 220))}${excerpt.length > 220 ? "…" : ""}</p>
         </div>
