@@ -13,8 +13,10 @@ import { ARC_STAGES, defaultRoleArc, MATERIAL_BOOKLET_KIND_LABELS } from "../../
 const showError = (error, fallback = "操作失败") => showToast(normalizeError(error, fallback));
 
 const TABS = [
+  { id: "digest", label: "主持手册汇总" },
   { id: "claims", label: "核心事实" },
   { id: "core-trick", label: "核心谜底" },
+  { id: "endings", label: "结局导向" },
   { id: "timeline", label: "案件时间线" },
   { id: "foreshadow", label: "伏笔" },
   { id: "materials", label: "平行物料册" },
@@ -149,6 +151,75 @@ function renderMaterialsPanel(booklets, roles) {
     </div></article>`;
 }
 
+function renderDigestPanel(digest) {
+  if (!digest) {
+    return `<article class="card"><div class="empty-state">点击「刷新」或切到本页签，加载主持手册汇总。</div></article>`;
+  }
+  const ratio = Math.round((digest.completeness?.ratio || 0) * 100);
+  const chain = (digest.chain || []).map((item) => {
+    const statusLabel = item.status === "filled" ? "已填" : item.status === "partial" ? "部分" : "待补";
+    const links = (item.links || [])
+      .map((link) => {
+        if (link.kind === "tab") {
+          return `<button type="button" class="text-btn" data-truth-tab="${escapeHtml(link.id)}">${escapeHtml(link.label)}</button>`;
+        }
+        return `<button type="button" class="text-btn" data-go="${escapeHtml(link.id)}">${escapeHtml(link.label)}</button>`;
+      })
+      .join(" ");
+    return `<article class="host-current-item handbook-chain-item is-${escapeHtml(item.status)}">
+      <div class="row"><strong>${escapeHtml(item.title)}</strong><span class="status-chip">${escapeHtml(statusLabel)}</span></div>
+      <p>${escapeHtml(item.detail || "")}</p>
+      <div class="row">${links}</div>
+    </article>`;
+  }).join("");
+  const pairs = (digest.pairPreview || []).length
+    ? `<div class="host-current-list">${digest.pairPreview.map((pair) =>
+      `<article class="host-current-item"><strong>${escapeHtml(pair.sceneName || "场景")} ↔ ${escapeHtml(pair.clueName || "线索")}</strong>
+       <p class="muted-note">${escapeHtml(pair.trigger || "触发条件待补")}</p></article>`
+    ).join("")}</div>`
+    : `<p class="muted-note">尚无场景↔线索调查点配对预览。</p>`;
+  return `<article class="card truth-digest-panel">
+    <div class="section-head"><div><h3>主持手册汇总</h3>
+      <p>自动把已填充的谜底、关系、场景线索、触发条件、结局与小游戏串成主持人可读链路。补写任一页签后点刷新即可更新。</p></div>
+      <strong>${ratio}%</strong></div>
+    <div class="assistant-guide"><b>当前作用</b><span>这是作者/主持人校对用的串联视图，不会直接展示给玩家。完整度 ${digest.completeness?.filled || 0}/${digest.completeness?.total || 0}。</span></div>
+    <pre class="handbook-narrative">${escapeHtml(digest.narrative || "尚无已填充内容可串联。")}</pre>
+    <h4>填充链路</h4>
+    <div class="host-current-list">${chain || `<div class="empty-state">暂无链路。</div>`}</div>
+    <h4>场景线索对应</h4>
+    ${pairs}
+  </article>`;
+}
+
+function renderEndingsPanel(endings, flowNotes) {
+  const list = endings?.length
+    ? endings.map((item, index) => `<article class="host-current-item" data-ending-index="${index}">
+        <label class="cockpit-field"><span>结局标题</span>
+          <input class="field" data-ending-field="title" data-ending-index="${index}" value="${escapeHtml(item.title || "")}"></label>
+        <label class="cockpit-field"><span>导向条件 / 备注</span>
+          <input class="field" data-ending-field="routeHint" data-ending-index="${index}" value="${escapeHtml(item.routeHint || "")}"></label>
+        <label class="cockpit-field"><span>结局正文</span>
+          <textarea class="field" data-ending-field="summary" data-ending-index="${index}" rows="4">${escapeHtml(item.summary || "")}</textarea></label>
+        <button type="button" class="text-btn danger-text" data-action="delete-bible-ending" data-ending-index="${index}">删除</button>
+      </article>`).join("")
+    : `<div class="empty-state">尚无结局。导入主持手册后会预填，也可手工新增不同结局正文与导向。</div>`;
+  const notes = (flowNotes || []).length
+    ? `<ul class="muted-note">${flowNotes.map((note) => `<li>${escapeHtml(note)}</li>`).join("")}</ul>`
+    : `<p class="muted-note">暂无开本流程摘录。</p>`;
+  return `<article class="card">
+    <div class="section-head"><div><h3>结局导向</h3>
+      <p>把主持人手册里的结局分支、宣判口径写在这里；与核心谜底区分开，避免混在角色本里。</p></div>
+      <div class="row">
+        <button type="button" class="secondary-btn" data-action="add-bible-ending">＋ 新增结局</button>
+        <button type="button" class="primary-btn" data-action="save-bible-endings">保存结局</button>
+      </div></div>
+    <div class="assistant-guide"><b>当前作用</b><span>写入剧本 settings.hostHandbook.endings，供主持校对与汇总串联；局内宣判仍可走机制结局或房间复盘。</span></div>
+    <h4>开本流程摘录</h4>
+    ${notes}
+    <div class="host-current-list">${list}</div>
+  </article>`;
+}
+
 function renderRelationsPanel(roles, relationships) {
   const relList = relationships?.length
     ? relationships.map((r) => `<article class="checkpoint-row" data-relationship-id="${escapeHtml(r.id)}"><div><strong>${escapeHtml(r.label || "未命名关系")}</strong><p class="muted-note">${escapeHtml(r.from_role_name || "")} → ${escapeHtml(r.to_role_name || "")}${Number.isInteger(r.strength) ? ` · 强度 ${r.strength}` : ""}</p></div><button type="button" class="text-btn danger-text" data-action="delete-relationship-inline" data-relationship-id="${escapeHtml(r.id)}">删除</button></article>`).join("")
@@ -171,23 +242,25 @@ function renderRelationsPanel(roles, relationships) {
 export function renderTruthBiblePage() {
   const studio = studioStore.get().cloudStudio;
   const ws = worldStore.get();
-  const tab = ws.truthBibleTab || "claims";
+  const tab = ws.truthBibleTab || "digest";
   const roles = studio?.roles || [];
   let body = "";
-  if (tab === "claims") body = renderClaimsPanel(ws.cloudTruthClaims);
+  if (tab === "digest") body = renderDigestPanel(ws.cloudHandbookDigest);
+  else if (tab === "claims") body = renderClaimsPanel(ws.cloudTruthClaims);
   else if (tab === "core-trick") body = renderCoreTrickPanel(ws.cloudCoreTrick, roles);
+  else if (tab === "endings") body = renderEndingsPanel(ws.cloudBibleEndings, ws.cloudBibleFlowNotes);
   else if (tab === "timeline") body = renderTimelinePanel(ws.cloudTimelineEvents);
   else if (tab === "foreshadow") body = renderForeshadowPanel(ws.cloudForeshadowBeats);
   else if (tab === "materials") body = renderMaterialsPanel(ws.cloudMaterialBooklets, roles);
   else body = renderRelationsPanel(roles, ws.cloudRoleRelationships);
 
-  const loaded = ws.cloudTruthClaims !== null;
+  const loaded = ws.cloudHandbookDigest !== null || ws.cloudTruthClaims !== null;
   return `<section class="truth-bible-workspace">
-    <header class="writer-hero compact"><div><p class="section-kicker">创作底稿</p><h2>谜底与人物关系</h2>
-      <p>集中维护不会直接展示给玩家的核心事实、谜底、时间线、伏笔与人物关系。每个页签都会说明数据当前实际作用。</p></div>
+    <header class="writer-hero compact"><div><p class="section-kicker">创作底稿 · 主持人手册</p><h2>谜底与人物关系</h2>
+      <p>把主持手册里的谜底、关系、结局与场景线索口径集中维护；「主持手册汇总」会自动串联已填内容。</p></div>
       <button type="button" class="secondary-btn" data-action="refresh-truth-workspace">刷新</button></header>
     <nav class="truth-bible-tabs">${renderTabs(tab)}</nav>
-    ${loaded || tab !== "claims" ? `<div class="truth-bible-panel">${body}</div>` : `<div class="empty-state">点击「刷新」加载数据，或切换 Tab 按需加载。</div>`}
+    ${loaded || tab !== "digest" ? `<div class="truth-bible-panel">${body}</div>` : `<div class="empty-state">点击「刷新」加载数据，或切换 Tab 按需加载。</div>`}
   </section>`;
 }
 
@@ -196,7 +269,14 @@ export async function loadTruthBibleTab(tab) {
   if (!worldId) return;
   worldStore.set({ truthBibleTab: tab });
   try {
-    if (tab === "claims" || tab === "relations") {
+    if (tab === "digest") {
+      const digest = await zhimuApi.getHandbookDigest(worldId);
+      worldStore.set({
+        cloudHandbookDigest: digest || null,
+        cloudBibleEndings: digest?.endings || [],
+        cloudBibleFlowNotes: digest?.flowNotes || []
+      });
+    } else if (tab === "claims" || tab === "relations") {
       const [claimsPayload, relPayload] = await Promise.all([
         zhimuApi.getTruthClaims(worldId),
         zhimuApi.getRoleRelationships(worldId)
@@ -208,6 +288,12 @@ export async function loadTruthBibleTab(tab) {
     } else if (tab === "core-trick") {
       const payload = await zhimuApi.getCoreTrick(worldId);
       worldStore.set({ cloudCoreTrick: payload?.coreTrick || {} });
+    } else if (tab === "endings") {
+      const payload = await zhimuApi.getBibleEndings(worldId);
+      worldStore.set({
+        cloudBibleEndings: payload?.endings || [],
+        cloudBibleFlowNotes: payload?.flowNotes || []
+      });
     } else if (tab === "timeline") {
       const payload = await zhimuApi.getTimelineEvents(worldId);
       worldStore.set({ cloudTimelineEvents: payload?.events || [] });

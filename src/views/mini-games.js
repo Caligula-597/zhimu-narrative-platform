@@ -185,27 +185,31 @@ import { normalizeError } from "../components/status-ui.js";
     const list = templates().map(normalizeTemplate);
     return `${catalogExperienceBanner(data.world)}<section class="mini-games-page">
       <div class="section-head">
-        <div><p class="section-kicker">TEST FEATURE</p><h2>小游戏设计</h2><p>先把后端已经支持的数字锁产品化。这里保存的是当前剧本的测试模板，正式发布前还需要继续扩展模板库。</p></div>
-        <button class="primary-btn" data-action="mini-game-new">＋ 新建数字锁</button>
+        <div><p class="section-kicker">TEST FEATURE</p><h2>小游戏设计</h2><p>支持数字锁、顺序还原与歌猜口令三类模板；保存后可在主持端启动测试。</p></div>
+        <div class="row">
+          <button class="primary-btn" data-action="mini-game-new" data-plugin="zhimu_lock">＋ 数字锁</button>
+          <button class="secondary-btn" data-action="mini-game-new" data-plugin="zhimu_sequence">＋ 顺序还原</button>
+          <button class="secondary-btn" data-action="mini-game-new" data-plugin="zhimu_guess">＋ 歌猜口令</button>
+        </div>
       </div>
       <div class="mini-games-layout">
         <main class="mini-template-list">
           <article class="mini-template-guide">
             <span class="test-badge">测试功能</span>
-            <h3>数字锁</h3>
-            <p>适合密码、门锁、机关盒、档案柜这类玩法。主持端启动后，玩家端会看到答题卡片；答对或次数耗尽后，房间事件会同步。</p>
+            <h3>三类机关</h3>
+            <p>数字锁适合密码柜；顺序还原适合流程步骤；歌猜/口令适合暗号。导入主持手册时会预置三类示例模板。</p>
           </article>
-          ${list.length ? list.map(templateCard).join("") : `<div class="empty-state enriched-empty"><p><strong>还没有小游戏模板</strong></p><p>先创建一个数字锁模板。答案会随剧本设置保存，测试阶段请只用于内部房间。</p><button class="primary-btn" data-action="mini-game-new">＋ 新建数字锁</button></div>`}
+          ${list.length ? list.map(templateCard).join("") : `<div class="empty-state enriched-empty"><p><strong>还没有小游戏模板</strong></p><p>任选一类创建，或重新执行结构化导入以预置三类模板。</p><div class="row"><button class="primary-btn" data-action="mini-game-new" data-plugin="zhimu_lock">＋ 数字锁</button><button class="secondary-btn" data-action="mini-game-new" data-plugin="zhimu_sequence">＋ 顺序还原</button><button class="secondary-btn" data-action="mini-game-new" data-plugin="zhimu_guess">＋ 歌猜口令</button></div></div>`}
         </main>
         ${renderMiniGameEditor() || backendStatusCard()}
       </div>
     </section>`;
   }
 
-  export function openMiniGameEditor(templateId = "") {
+  export function openMiniGameEditor(templateId = "", pluginKey = "zhimu_lock") {
     const current = templates().map(normalizeTemplate);
     const existing = current.find((item) => item.id === templateId);
-    const template = normalizeTemplate(existing || {});
+    const template = normalizeTemplate(existing || { pluginKey: pluginKey || "zhimu_lock" });
     miniGameEditorState = { existing: Boolean(existing), templateId: template.id, draft: miniGameDraft(template) };
     render();
   }

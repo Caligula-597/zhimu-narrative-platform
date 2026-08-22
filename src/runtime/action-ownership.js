@@ -1,6 +1,8 @@
 export const BIBLE_ACTIONS = new Set([
+  "truth-tab-digest",
   "truth-tab-claims",
   "truth-tab-core-trick",
+  "truth-tab-endings",
   "truth-tab-timeline",
   "truth-tab-foreshadow",
   "truth-tab-materials",
@@ -14,7 +16,11 @@ export const BIBLE_ACTIONS = new Set([
   "delete-material-booklet",
   "delete-truth-claim",
   "save-role-archive",
-  "add-appearance-state"
+  "add-appearance-state",
+  "add-bible-ending",
+  "delete-bible-ending",
+  "save-bible-endings",
+  "refresh-truth-workspace"
 ]);
 
 export function ownsCreatorCockpitAction(action) {

@@ -33,6 +33,7 @@ import {
   upsertCoreTrick,
   upsertRoleArchive
 } from "../creator-bible.js";
+import { loadHandbookDigest } from "../creator-handbook-digest.js";
 import { sendErr, throwErr } from "../api-errors.js";
 import { requireActor } from "../request-actor.js";
 import { requireWorldRole, WORLD_CREATOR_READER_ROLES } from "./route-guards.js";
@@ -59,6 +60,78 @@ export async function registerCreatorBibleRoutes(app) {
     const { worldId } = request.params;
     await requireWorldRole(actorId, worldId, WORLD_CREATOR_READER_ROLES);
     return loadBibleSummary(worldId);
+  });
+
+  app.get("/api/worlds/:worldId/bible/handbook-digest", { schema: { params: worldIdParams } }, async (request) => {
+    const actorId = requireActor(request);
+    const { worldId } = request.params;
+    await requireWorldRole(actorId, worldId, WORLD_CREATOR_READER_ROLES);
+    return loadHandbookDigest(worldId);
+  });
+
+  app.get("/api/worlds/:worldId/bible/endings", { schema: { params: worldIdParams } }, async (request) => {
+    const actorId = requireActor(request);
+    const { worldId } = request.params;
+    await requireWorldRole(actorId, worldId, WORLD_CREATOR_READER_ROLES);
+    const digest = await loadHandbookDigest(worldId);
+    return { endings: digest.endings || [], flowNotes: digest.flowNotes || [] };
+  });
+
+  app.patch("/api/worlds/:worldId/bible/endings", {
+    schema: {
+      params: worldIdParams,
+      body: {
+        type: "object",
+        additionalProperties: false,
+        properties: {
+          endings: {
+            type: "array",
+            maxItems: 12,
+            items: {
+              type: "object",
+              additionalProperties: false,
+              properties: {
+                key: { type: "string", maxLength: 80 },
+                title: { type: "string", maxLength: 120 },
+                summary: { type: "string", maxLength: 8000 },
+                routeHint: { type: "string", maxLength: 240 }
+              }
+            }
+          },
+          flowNotes: {
+            type: "array",
+            maxItems: 24,
+            items: { type: "string", maxLength: 400 }
+          }
+        }
+      }
+    }
+  }, async (request, reply) => {
+    const actorId = requireActor(request);
+    const { worldId } = request.params;
+    await requireWorldRole(actorId, worldId);
+    const endings = Array.isArray(request.body?.endings) ? request.body.endings : [];
+    const flowNotes = Array.isArray(request.body?.flowNotes) ? request.body.flowNotes : undefined;
+    return runRevisionMutation(request, reply, worldId, async (client) => {
+      const current = await client.query(`SELECT settings FROM worlds WHERE id = $1 FOR UPDATE`, [worldId]);
+      if (!current.rowCount) throwErr("WORLD_NOT_FOUND");
+      const settings = current.rows[0].settings || {};
+      const hostHandbook = {
+        ...(settings.hostHandbook || {}),
+        endings,
+        ...(flowNotes ? { flowNotes } : {}),
+        updatedAt: new Date().toISOString()
+      };
+      const result = await client.query(
+        `UPDATE worlds
+         SET settings = COALESCE(settings, '{}'::jsonb) || jsonb_build_object('hostHandbook', $2::jsonb),
+             updated_at = now()
+         WHERE id = $1
+         RETURNING settings`,
+        [worldId, JSON.stringify(hostHandbook)]
+      );
+      return { endings: result.rows[0].settings?.hostHandbook?.endings || [], flowNotes: result.rows[0].settings?.hostHandbook?.flowNotes || [] };
+    }, { sendErr });
   });
 
   app.get("/api/worlds/:worldId/bible/core-trick", { schema: { params: worldIdParams } }, async (request) => {

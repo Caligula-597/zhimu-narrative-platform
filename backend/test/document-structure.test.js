@@ -155,6 +155,8 @@ const QINGLOU_EXPLORATION_EXCERPT = [
   "[2]城西：来到城西，一个小街坊告诉你，昨晚刚夜深时便看到过莫怀公子。",
   "[6]街市：有街坊告诉你，昨天舒悦姑娘出玉满楼到回玉满楼刚好是一个时辰。 [7]府南河：来到府南河边，有一算命的老生告诉你：双黑前来。",
   "[11]莫寒房间：一进门，你便在地上发现了一把匕首。",
+  "[3] 当物品卡被搜索完，停止搜索阶段，让玩家只进行杀人报备。",
+  "[9]当搜索出宝箱后，必须立即选择开启或放弃开启。",
   "衙门公开线索",
   "三具尸体，其中两具为一男一女，被一同埋在城西青树。",
   "★遗书、日记备忘★ 唐玄宗遗书：",
@@ -164,21 +166,40 @@ const QINGLOU_EXPLORATION_EXCERPT = [
   "忘优病：通常得此病者都源于有一段痛苦的回忆。"
 ].join("\n");
 
-test("exploration catalog splits map locations into scenes and clues without host-rule noise", () => {
+test("exploration map becomes scenes only; clues come from card/handbook text", () => {
   const result = analyzeNarrativeStructure(QINGLOU_EXPLORATION_EXCERPT, { filename: "剧本.docx" });
   const scenes = result.candidates.filter((item) => item.type === "scene").map((item) => item.title);
   const clues = result.candidates.filter((item) => item.type === "clue").map((item) => item.title);
   const secrets = result.candidates.filter((item) => item.type === "secret").map((item) => item.title);
   for (const name of ["城北", "城西", "街市", "府南河", "莫寒房间"]) {
     assert.ok(scenes.includes(name), `missing scene ${name}`);
-    assert.ok(clues.includes(name), `missing clue ${name}`);
   }
-  assert.ok(clues.includes("衙门公开线索"));
+  // Map stubs must NOT become clues.
+  assert.equal(clues.includes("城北"), false);
+  assert.equal(clues.includes("城西"), false);
+  assert.equal(clues.includes("街市"), false);
+  assert.equal(clues.includes("府南河"), false);
+  // Host rule numbered lines must NOT become scenes.
+  assert.equal(scenes.some((name) => /当物品|当搜索|当玩家/.test(name)), false);
+  // Prop packing title is not a clue card.
+  assert.equal(clues.includes("衙门公开线索"), false);
+  // Clue-card / public handbook text may still create room clues.
+  assert.ok(clues.includes("莫寒房间") || clues.includes("忘优病"));
   assert.ok(clues.includes("忘优病"));
   assert.ok(secrets.some((title) => /遗书|日记/.test(title)));
   assert.equal(scenes.includes("当玩家报备杀人后"), false);
   assert.ok(result.gate.plan.some((item) => item.action === "import_scenes"));
-  assert.ok(result.gate.plan.some((item) => item.action === "import_clues"));
+});
+
+test("host handbook digest extracts killers endings and default mini-games", async () => {
+  const { extractHostHandbookDigest, defaultMiniGameTemplatesFromHandbook } = await import("../src/document-host-handbook.js");
+  const digest = extractHostHandbookDigest(QINGLOU_HANDBOOK_EXCERPT + "\n灵石结局：真凶伏法，玉满楼重开。\n");
+  assert.ok(digest.alignments.some((item) => item.name === "姜红儿" && item.alignment === "killer"));
+  assert.ok(digest.endings.length >= 1);
+  assert.match(digest.coreTrickDraft.summary, /凶手/);
+  const games = defaultMiniGameTemplatesFromHandbook("561青楼 玉满楼");
+  assert.equal(games.length, 3);
+  assert.deepEqual(games.map((item) => item.pluginKey).sort(), ["zhimu_guess", "zhimu_lock", "zhimu_sequence"]);
 });
 
 test("prose lines like 一幕玉满楼 are not treated as act headings", () => {

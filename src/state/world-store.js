@@ -39,5 +39,8 @@ export const worldStore = createStore({
   cloudRoleArchives: null,
   cloudRoleArchivesWorldId: null,
   cloudRoleArchivesError: "",
-  truthBibleTab: "claims"
+  truthBibleTab: "digest",
+  cloudHandbookDigest: null,
+  cloudBibleEndings: null,
+  cloudBibleFlowNotes: null,
 });

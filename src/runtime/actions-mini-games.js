@@ -4,7 +4,7 @@ import { callView } from "./view-registry.js";
 (function (window) {
   function handleMiniGamesAction(action, el) {
     switch (action) {
-      case "mini-game-new": callView("miniGames", "openMiniGameEditor", ""); return true;
+      case "mini-game-new": callView("miniGames", "openMiniGameEditor", "", el?.dataset?.plugin || "zhimu_lock"); return true;
       case "mini-game-edit": callView("miniGames", "openMiniGameEditor", el?.dataset?.template); return true;
       case "mini-game-editor-close": callView("miniGames", "closeMiniGameEditor"); return true;
       case "mini-game-editor-save": callView("miniGames", "saveMiniGameEditor"); return true;

@@ -241,6 +241,18 @@ export function getBibleSummary(worldId = demoContext.worldId) {
   return request(`/worlds/${worldId}/bible/summary`, { userId: demoContext.hostUserId });
 }
 
+export function getHandbookDigest(worldId = demoContext.worldId) {
+  return request(`/worlds/${worldId}/bible/handbook-digest`, { userId: demoContext.hostUserId });
+}
+
+export function getBibleEndings(worldId = demoContext.worldId) {
+  return request(`/worlds/${worldId}/bible/endings`, { userId: demoContext.hostUserId });
+}
+
+export function patchBibleEndings(payload, worldId = demoContext.worldId) {
+  return worldWrite(`/worlds/${worldId}/bible/endings`, { worldId, method: "PATCH", body: payload });
+}
+
 export function getCoreTrick(worldId = demoContext.worldId) {
   return request(`/worlds/${worldId}/bible/core-trick`, { userId: demoContext.hostUserId });
 }

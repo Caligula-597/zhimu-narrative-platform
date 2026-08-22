@@ -1,8 +1,11 @@
 /**
  * Local heuristic structure grouper for murder-mystery / creator manuscripts.
  * Splits text into role / act / scene / clue / secret candidates — no LLM.
+ * Scenes come from exploration maps; clues come from clue-card / handbook catalogs.
  */
 import { createHash } from "node:crypto";
+import { inferClueTriggerCondition } from "./document-host-handbook.js";
+import { extractQinglouClueCardCatalog } from "./document-clue-catalog.js";
 
 function cleanLine(value) {
   return String(value ?? "").replace(/\u00a0/g, " ").trim();
@@ -457,7 +460,25 @@ export function extractSequentialRoleBooklets(text) {
 
 function isHostRuleNumberedLine(title, body) {
   const head = `${title}${body}`.replace(/\s+/g, "");
-  return /^(当玩家|一把武器|玩家开启|不管是|禁止|齐剑心佩带|如若玩家|玩家死后|主持人每轮|玩家们可以自由)/.test(head);
+  if (
+    /^(当玩家|当物品|当搜索|一把武器|玩家开启|不管是|禁止|齐剑心佩带|如若玩家|玩家死后|主持人每轮|玩家们可以自由)/.test(
+      head
+    )
+  ) {
+    return true;
+  }
+  // Long instructional lines in the prison/search section are not map places.
+  if (head.length > 24 && /(搜索|报备|宝箱|银两|开启|放弃|杀人)/.test(head)) return true;
+  return false;
+}
+
+/** Map entries must look like place names, not host instructions. */
+function isExplorationPlaceTitle(title) {
+  const t = String(title || "").replace(/\s+/g, "");
+  if (!t || t.length > 16) return false;
+  if (/^(当|玩家|如若|不管|禁止|一把|主持人)/.test(t)) return false;
+  if (/(搜索|报备|宝箱|银两|开启|放弃|提示|顺序)/.test(t)) return false;
+  return true;
 }
 
 function splitInlineNumberedEntries(line) {
@@ -568,7 +589,9 @@ function extractClueCardEntries(text) {
 }
 
 /**
- * Pull scenes/clues/secrets from host exploration catalogs and clue-card prose.
+ * Pull scenes / secrets from host exploration maps, and clue-card prose.
+ * Exploration `[n]地点` becomes **scenes only** — clue bodies come from
+ * 「城闻线索 / 线索列表 / 线索卡」catalogs, not map stubs.
  */
 export function extractPlayMaterialCatalog(text) {
   const lines = String(text ?? "")
@@ -580,35 +603,34 @@ export function extractPlayMaterialCatalog(text) {
   const seenScene = new Set();
   const seenClue = new Set();
 
-  const pushScene = (title, body, sourceHeading, index = null) => {
+  const pushScene = (title, body, sourceHeading, index = null, extra = {}) => {
     const key = lookupKey(title);
     if (!key || seenScene.has(key)) return;
     seenScene.add(key);
-    scenes.push({ title, body, sourceHeading, index });
+    scenes.push({ title, body, sourceHeading, index, ...extra });
   };
-  const pushClue = (title, body, sourceHeading, index = null) => {
+  const pushClue = (title, body, sourceHeading, index = null, extra = {}) => {
     const key = lookupKey(title);
     if (!key || seenClue.has(key)) return;
     seenClue.add(key);
-    clues.push({ title, body, sourceHeading, index });
+    clues.push({ title, body, sourceHeading, index, ...extra });
   };
 
+  // Map / exploration locations → scenes only (never invent stub clues here).
   let inExploration = false;
   for (let i = 0; i < lines.length; i += 1) {
     const line = cleanLine(lines[i]);
-    if (/衙门令搜证|线索搜证|城闻线索|人物线索/.test(line)) inExploration = true;
-    if (inExploration && (/魔石验身|演绎第三章|灵石结局|杀人报备注意|大唐监狱/.test(line) || /^★/.test(line))) {
+    // Do NOT treat「城闻线索/人物线索」card catalogs as exploration maps.
+    if (/衙门令搜证|线索搜证|搜证规则|可去三地/.test(line)) inExploration = true;
+    if (inExploration && (/魔石验身|演绎第三章|灵石结局|杀人报备注意|大唐监狱|城闻线索|线索列表/.test(line) || /^★/.test(line))) {
       inExploration = false;
     }
     if (!inExploration && !/^\[\s*\d+\s*\]/.test(line)) continue;
 
     const entries = splitInlineNumberedEntries(line);
-    if (!entries.length && /^\[\s*\d+\s*\]/.test(line)) {
-      // continuation lines already handled by joining? keep single-line parser only
-    }
     for (const entry of entries) {
       if (isHostRuleNumberedLine(entry.title, entry.body)) continue;
-      // Collect following non-numbered lines as body continuation until next [n]
+      if (!isExplorationPlaceTitle(entry.title)) continue;
       let body = entry.body;
       for (let j = i + 1; j < Math.min(lines.length, i + 6); j += 1) {
         const next = cleanLine(lines[j]);
@@ -617,24 +639,28 @@ export function extractPlayMaterialCatalog(text) {
         if (splitInlineNumberedEntries(next).length) break;
         body = `${body}\n${next}`.trim();
       }
-      pushScene(entry.title, body, `[${entry.index}]${entry.title}`, entry.index);
-      pushClue(entry.title, body, `[${entry.index}]${entry.title}`, entry.index);
+      pushScene(entry.title, body, `[${entry.index}]${entry.title}`, entry.index, {
+        mapIndex: entry.index,
+        sourceKind: "exploration_map"
+      });
     }
   }
 
   for (const block of extractPublicClueBlocks(text)) {
     if (/遗书|日记/.test(block.title)) {
       secrets.push({ title: block.title, body: block.body, sourceHeading: block.sourceHeading });
-    } else {
-      pushClue(block.title, block.body, block.sourceHeading);
+      continue;
     }
+    // Prop packing lists belong in the host handbook, not the clue-card shelf.
+    if (/衙门公开线索/.test(block.title)) continue;
+    pushClue(block.title, block.body, block.sourceHeading, null, { sourceKind: "public_clue_block" });
   }
 
   for (const card of extractClueCardEntries(text)) {
     if (/房间|客栈|家$/.test(card.title)) {
-      pushScene(card.title, card.body, card.sourceHeading);
+      pushScene(card.title, card.body, card.sourceHeading, null, { sourceKind: "clue_card_room" });
     }
-    pushClue(card.title, card.body, card.sourceHeading);
+    pushClue(card.title, card.body, card.sourceHeading, null, { sourceKind: "clue_card_entry" });
   }
 
   scenes.sort((a, b) => (a.index ?? 999) - (b.index ?? 999));
@@ -892,7 +918,12 @@ export function groupNarrativeStructure(text, { filename = "" } = {}) {
       parentActTitle: null,
       roleName: null,
       included: true,
-      meta: { index: scene.index, readingOrder: scene.index }
+      meta: {
+        index: scene.index,
+        readingOrder: scene.index,
+        mapIndex: scene.mapIndex ?? scene.index ?? null,
+        sourceKind: scene.sourceKind || "exploration_map"
+      }
     });
   }
   for (const clue of catalog.clues) {
@@ -908,7 +939,13 @@ export function groupNarrativeStructure(text, { filename = "" } = {}) {
       parentActTitle: null,
       roleName: null,
       included: true,
-      meta: { index: clue.index, readingOrder: clue.index }
+      meta: {
+        index: clue.index,
+        readingOrder: clue.index,
+        sourceKind: clue.sourceKind || "clue_card",
+        triggerCondition: clue.triggerCondition || inferClueTriggerCondition(clue.body, clue.title),
+        grantMode: clue.grantMode || "host_confirm"
+      }
     });
   }
   for (const secret of catalog.secrets) {
@@ -925,6 +962,69 @@ export function groupNarrativeStructure(text, { filename = "" } = {}) {
       roleName: null,
       included: true
     });
+  }
+
+  // Overlay / append full card catalog text from host manuscript (城闻/人物线索卡).
+  const cardCatalog = extractQinglouClueCardCatalog(text);
+  const clueByKey = new Map();
+  for (const candidate of candidates) {
+    if (candidate.type !== "clue") continue;
+    clueByKey.set(
+      String(candidate.title || "")
+        .replace(/\s+/g, "")
+        .toLocaleLowerCase("zh-CN"),
+      candidate
+    );
+  }
+  for (const card of cardCatalog) {
+    const key = String(card.title || "")
+      .replace(/\s+/g, "")
+      .toLocaleLowerCase("zh-CN");
+    const existing = clueByKey.get(key);
+    if (existing) {
+      if (String(card.body || "").length > String(existing.body || "").length) {
+        existing.body = String(card.body || "").slice(0, 200_000);
+      }
+      existing.meta = {
+        ...(existing.meta || {}),
+        cardKind: card.kind,
+        catalogIndex: card.index ?? null,
+        sourceKind: "clue_card_catalog",
+        triggerCondition:
+          existing.meta?.triggerCondition ||
+          (card.kind === "character"
+            ? "人物线索卡：搜证阶段按规则抽取/发放"
+            : "城闻线索卡：搜证阶段按规则抽取/发放"),
+        grantMode: "explore_draw"
+      };
+    } else {
+      candidates.push({
+        id: candidateId("clue", candidates.length, card.sourceHeading, card.body),
+        type: "clue",
+        title: card.title,
+        body: String(card.body || "").slice(0, 200_000),
+        confidence: "high",
+        sourceHeading: card.sourceHeading,
+        lineStart: null,
+        lineEnd: null,
+        parentActTitle: null,
+        roleName: card.roleName || null,
+        included: true,
+        meta: {
+          cardKind: card.kind,
+          catalogIndex: card.index ?? null,
+          sourceKind: "clue_card_catalog",
+          triggerCondition:
+            card.kind === "character"
+              ? "人物线索卡：搜证阶段按规则抽取/发放"
+              : "城闻线索卡：搜证阶段按规则抽取/发放",
+          grantMode: "explore_draw"
+        }
+      });
+      clueByKey.set(key, candidates[candidates.length - 1]);
+    }
+    // Scenes come only from the exploration map (and explicit room clue-card entries).
+    // Do not promote city-rumor titles like「府南河下游男尸」into scenes.
   }
 
   // Prefer reading order: chapter ordinal 1→2→3→4 (page labels), not extract appearance order.

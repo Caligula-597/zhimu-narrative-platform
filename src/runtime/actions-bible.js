@@ -7,6 +7,7 @@ import { callView } from "./view-registry.js";
 import { bibleField, loadTruthBibleTab } from "../views/truth-bible.js";
 import { readAppearanceStatesFromRoot } from "../views/role-archive-panel.js";
 import { ownsBibleAction } from "./action-ownership.js";
+import { worldStore } from "../state/index.js";
 
 const showError = (error, fallback = "操作失败") => showToast(normalizeError(error, fallback));
 
@@ -24,11 +25,17 @@ const showError = (error, fallback = "操作失败") => showToast(normalizeError
     }
 
     switch (action) {
+      case "truth-tab-digest":
+        void loadTruthBibleTab("digest");
+        return true;
       case "truth-tab-claims":
         void loadTruthBibleTab("claims");
         return true;
       case "truth-tab-core-trick":
         void loadTruthBibleTab("core-trick");
+        return true;
+      case "truth-tab-endings":
+        void loadTruthBibleTab("endings");
         return true;
       case "truth-tab-timeline":
         void loadTruthBibleTab("timeline");
@@ -42,6 +49,58 @@ const showError = (error, fallback = "操作失败") => showToast(normalizeError
       case "truth-tab-relations":
         void loadTruthBibleTab("relations");
         return true;
+      case "refresh-truth-workspace": {
+        const tab = worldStore.get().truthBibleTab || "digest";
+        void loadTruthBibleTab(tab);
+        return true;
+      }
+
+      case "add-bible-ending": {
+        const current = [...(worldStore.get().cloudBibleEndings || [])];
+        current.push({
+          key: `ending-${Date.now()}`,
+          title: `结局 ${current.length + 1}`,
+          summary: "",
+          routeHint: ""
+        });
+        worldStore.set({ cloudBibleEndings: current });
+        render();
+        return true;
+      }
+
+      case "delete-bible-ending": {
+        const index = Number(el?.dataset?.endingIndex);
+        const current = [...(worldStore.get().cloudBibleEndings || [])];
+        if (!Number.isInteger(index) || index < 0 || index >= current.length) return true;
+        current.splice(index, 1);
+        worldStore.set({ cloudBibleEndings: current });
+        render();
+        return true;
+      }
+
+      case "save-bible-endings": {
+        try {
+          const endings = [...(worldStore.get().cloudBibleEndings || [])].map((item, index) => {
+            const root = document.querySelector(`[data-ending-index="${index}"]`);
+            return {
+              key: item.key || `ending-${index + 1}`,
+              title: root?.querySelector('[data-ending-field="title"]')?.value?.trim() || item.title || `结局 ${index + 1}`,
+              routeHint: root?.querySelector('[data-ending-field="routeHint"]')?.value?.trim() || item.routeHint || "",
+              summary: root?.querySelector('[data-ending-field="summary"]')?.value?.trim() || item.summary || ""
+            };
+          });
+          const payload = await zhimuApi.patchBibleEndings({ endings }, worldId);
+          worldStore.set({
+            cloudBibleEndings: payload?.endings || endings,
+            cloudBibleFlowNotes: payload?.flowNotes || worldStore.get().cloudBibleFlowNotes
+          });
+          showToast("结局导向已保存");
+          void loadTruthBibleTab("endings");
+        } catch (error) {
+          showError(error);
+        }
+        return true;
+      }
 
       case "save-core-trick":
         try {
