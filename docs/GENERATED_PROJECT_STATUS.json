@@ -1,20 +1,20 @@
 {
-  "generatedAt": "2026-08-21T07:29:38.173Z",
+  "generatedAt": "2026-08-25T15:01:48.926Z",
   "source": {
-    "gitCommit": "508b5ce",
+    "gitCommit": "8603703",
     "node": "v24.13.0",
     "note": "Counts describe source declarations and files, not a claim that every test was executed."
   },
   "backend": {
     "tests": {
-      "declarations": 1201,
-      "files": 286
+      "declarations": 1209,
+      "files": 287
     },
     "migrations": 115,
     "latestMigration": "115_case_play_extensions",
     "routes": {
       "modules": 80,
-      "directDatabaseCalls": 0
+      "directDatabaseCalls": 2
     },
     "schemas": {
       "domainFiles": 42
@@ -47,9 +47,8 @@
     "note": "Validated by npm run check:world-writes; run the command for pass/fail evidence."
   },
   "documentation": {
-    "trackedFiles": 131,
+    "trackedFiles": 117,
     "byArea": {
-      "创意提案-织幕": 15,
       "软著材料": 4,
       "backend": 3,
       "docs": 99,
@@ -58,7 +57,8 @@
       "host": 1,
       "play": 1,
       "root": 5,
-      "site": 1
+      "site": 1,
+      "v42-runtime": 1
     }
   }
 }

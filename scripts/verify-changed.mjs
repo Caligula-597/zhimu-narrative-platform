@@ -398,4 +398,8 @@ if (files.some((f) => f.startsWith("backend/migrations/063"))) {
   run("backend db:migrate", "npm run db:migrate", backendRoot);
 }
 
+if (files.some((f) => f.startsWith("v42-runtime/") && !f.endsWith(".md"))) {
+  run("v42-runtime tests", "npm run test:v42", root);
+}
+
 console.log("\n✓ verify-changed passed");
