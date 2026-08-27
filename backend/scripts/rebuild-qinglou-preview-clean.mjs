@@ -87,6 +87,7 @@ async function main() {
     await client.query("BEGIN");
     imported = await importStructuredCreatorDocumentWithClient(client, {
       worldId,
+      actorId: hostId,
       document: { filename: "剧本.docx", text: scriptText },
       creationType: "murder_mystery",
       rightsConfirmed: true

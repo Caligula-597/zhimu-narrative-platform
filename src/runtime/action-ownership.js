@@ -1,5 +1,6 @@
 export const BIBLE_ACTIONS = new Set([
   "truth-tab-digest",
+  "truth-tab-handbook-manuscript",
   "truth-tab-claims",
   "truth-tab-core-trick",
   "truth-tab-endings",
@@ -20,6 +21,7 @@ export const BIBLE_ACTIONS = new Set([
   "add-bible-ending",
   "delete-bible-ending",
   "save-bible-endings",
+  "save-handbook-manuscript",
   "refresh-truth-workspace"
 ]);
 

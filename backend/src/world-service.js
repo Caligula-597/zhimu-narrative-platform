@@ -17,7 +17,6 @@ import { throwErr } from "./api-errors.js";
 
 const PRODUCT_SETTING_OWNERS = Object.freeze({
   creatorBrief: "murder_mystery",
-  creativeConstitution: "murder_mystery",
   mechanismDesign: "murder_mystery",
   worldEngine: "murder_mystery",
   recapTruthSummary: "murder_mystery",

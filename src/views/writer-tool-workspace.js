@@ -1,12 +1,17 @@
 import { showToast } from "../components/toast.js";
 import { render } from "../runtime/runtime-facade.js";
 import { studioStore } from "../state/index.js";
+import * as storyAssistantWorkspace from "./writer-story-assistant-workspace.js";
+import * as openingPackageWorkspace from "./writer-opening-package-workspace.js";
 import {
   clearWriterToolSession,
   getWriterToolSession
 } from "./writer-tool-session.js";
 
-const loadedModules = new Map();
+const loadedModules = new Map([
+  ["story-assistant", storyAssistantWorkspace],
+  ["opening-package", openingPackageWorkspace]
+]);
 const loadingModules = new Map();
 const pendingOpenCalls = new Map();
 
@@ -20,7 +25,8 @@ const moduleLoaders = {
   review: () => import("./writer-review-workspace.js"),
   collaboration: () => import("./writer-collaboration-workspace.js"),
   logs: () => import("./writer-world-logs-workspace.js"),
-  "story-assistant": () => import("./writer-story-assistant-workspace.js"),
+  "story-assistant": () => Promise.resolve(storyAssistantWorkspace),
+  "opening-package": () => Promise.resolve(openingPackageWorkspace),
   "world-engine": () => import("./world-engine-workspace.js")
 };
 
@@ -35,6 +41,7 @@ const renderMethods = {
   collaboration: "collaborationWorkspaceHtml",
   logs: "worldLogsWorkspaceHtml",
   "story-assistant": "storyAssistantWorkspaceHtml",
+  "opening-package": "openingPackageWorkspaceHtml",
   "world-engine": "worldEngineWorkspaceHtml"
 };
 
@@ -49,6 +56,7 @@ const bindMethods = {
   collaboration: "bindCollaborationWorkspace",
   logs: "bindWorldLogsWorkspace",
   "story-assistant": "bindStoryAssistantWorkspace",
+  "opening-package": "bindOpeningPackageWorkspace",
   "world-engine": "bindWorldEngineWorkspace"
 };
 
@@ -60,9 +68,20 @@ async function loadToolModule(type) {
     loadingModules.set(type, loader().then((module) => {
       loadedModules.set(type, module);
       return module;
+    }).catch((error) => {
+      console.error(`[writer-tool] failed to load module "${type}"`, error);
+      throw error;
     }).finally(() => loadingModules.delete(type)));
   }
   return loadingModules.get(type);
+}
+
+/** Prefetch common writer tools so first open does not fail on slow/chunk-miss networks. */
+export function warmWriterToolModules(types = ["story-assistant", "opening-package", "document", "world-engine"]) {
+  for (const type of types) {
+    if (loadedModules.has(type) || loadingModules.has(type)) continue;
+    void loadToolModule(type).catch(() => {});
+  }
 }
 
 async function invokeTool(type, method, ...args) {
@@ -72,8 +91,14 @@ async function invokeTool(type, method, ...args) {
     try {
       const module = await loadToolModule(type);
       return await module[method]?.(...args);
-    } catch {
-      showToast("创作工具加载失败，请刷新页面后重试");
+    } catch (error) {
+      console.error(`[writer-tool] ${type}.${method} failed`, error);
+      const hint = type === "story-assistant"
+        ? "结构提取模块加载失败。若你要上传 Word，请用「上传 Word 剧本」或工具箱「文档解析」。"
+        : type === "document"
+          ? "文档导入模块加载失败，请强制刷新页面（Ctrl+Shift+R）后重试。"
+          : "创作工具加载失败，请强制刷新页面后重试。";
+      showToast(hint);
       return undefined;
     }
   };
@@ -129,9 +154,26 @@ export const applyWorldLogFilters = (...args) => invokeTool("logs", "applyWorldL
 export const clearWorldLogFilters = (...args) => invokeTool("logs", "clearWorldLogFilters", ...args);
 export const refreshWorldLogs = (...args) => invokeTool("logs", "refreshWorldLogs", ...args);
 export const loadMoreWorldLogs = (...args) => invokeTool("logs", "loadMoreWorldLogs", ...args);
-export const openStoryAssistantWorkspace = (...args) => invokeTool("story-assistant", "openStoryAssistantWorkspace", ...args);
-export const analyzeStoryAssistantWorkspace = (...args) => invokeTool("story-assistant", "analyzeStoryAssistantWorkspace", ...args);
-export const importStoryAssistantWorkspace = (...args) => invokeTool("story-assistant", "importStoryAssistantWorkspace", ...args);
+async function invokeStoryAssistant(method, ...args) {
+  const fn = storyAssistantWorkspace[method];
+  if (typeof fn !== "function") {
+    console.error(`[writer-tool] story-assistant.${method} is missing on module namespace`);
+    showToast("结构提取模块未就绪，请强制刷新页面（Ctrl+Shift+R）后重试");
+    return undefined;
+  }
+  try {
+    return await fn(...args);
+  } catch (error) {
+    console.error(`[writer-tool] story-assistant.${method} failed`, error);
+    const detail = String(error?.message || error).slice(0, 120);
+    showToast(detail ? `结构提取失败：${detail}` : "结构提取失败，请强制刷新页面后重试");
+    return undefined;
+  }
+}
+
+export const openStoryAssistantWorkspace = (...args) => invokeStoryAssistant("openStoryAssistantWorkspace", ...args);
+export const analyzeStoryAssistantWorkspace = (...args) => invokeStoryAssistant("analyzeStoryAssistantWorkspace", ...args);
+export const importStoryAssistantWorkspace = (...args) => invokeStoryAssistant("importStoryAssistantWorkspace", ...args);
 
 export const openWorldEngineWorkspace = (...args) => invokeTool("world-engine", "openWorldEngineWorkspace", ...args);
 export const seedWorldEngineWorkspace = (...args) => invokeTool("world-engine", "seedWorldEngineWorkspace", ...args);
@@ -140,6 +182,13 @@ export const commitWorldEngineWorkspace = (...args) => invokeTool("world-engine"
 export const lowerWorldEngineWorkspace = (...args) => invokeTool("world-engine", "lowerWorldEngineWorkspace", ...args);
 export const searchWorldEngineEpistemicWorkspace = (...args) => invokeTool("world-engine", "searchWorldEngineEpistemicWorkspace", ...args);
 export const renderWorldEngineWorkspace = (...args) => invokeTool("world-engine", "renderWorldEngineWorkspace", ...args);
+
+export const openOpeningPackageWorkspace = (...args) => invokeTool("opening-package", "openOpeningPackageWorkspace", ...args);
+export const nextOpeningPackageStep = (...args) => invokeTool("opening-package", "nextOpeningPackageStep", ...args);
+export const backOpeningPackageStep = (...args) => invokeTool("opening-package", "backOpeningPackageStep", ...args);
+export const skipOpeningPackageStep = (...args) => invokeTool("opening-package", "skipOpeningPackageStep", ...args);
+export const previewOpeningPackageWorkspace = (...args) => invokeTool("opening-package", "previewOpeningPackageWorkspace", ...args);
+export const commitOpeningPackageWorkspace = (...args) => invokeTool("opening-package", "commitOpeningPackageWorkspace", ...args);
 
 export const openDocumentWorkspace = (...args) => invokeTool("document", "openDocumentWorkspace", ...args);
 export const parseDocumentWorkspace = (...args) => invokeTool("document", "parseDocumentWorkspace", ...args);

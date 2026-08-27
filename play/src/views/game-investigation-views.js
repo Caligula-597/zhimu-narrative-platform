@@ -2,6 +2,8 @@ import { asArray, escapeHtml } from "../../../shared/security.js";
 import { api } from "../api.js";
 import { state } from "../state.js";
 import { clueIsRead, clueOwnerLabel, clueShareRoleCount } from "../utils/clues.js";
+import { renderLocationDiscovery } from "./game-tabletop-stage.js";
+import { authorizedCluesForLocation } from "./location-clue-deck.js";
 
 function clueImageSlot(clue) {
   const assetId = clue?.image_asset_id;
@@ -49,8 +51,8 @@ function renderOwnedClueDetail(clue) {
       <div class="row-actions clue-actions">
         ${!read ? `<button class="btn outline" type="button" data-action="read-clue" data-clue-id="${clue.id}" ${state.busy ? "disabled" : ""}>标记已读</button>` : ""}
         <button class="btn quiet" type="button" data-action="edit-clue-note" data-clue-id="${clue.id}">${clue.player_note ? "修改解读" : "添加解读"}</button>
-        <button class="btn quiet" type="button" data-action="share-clue-room" data-clue-id="${clue.id}">${clue.shared_with_room ? "取消公开" : "公开到全房间"}</button>
-        <button class="btn quiet" type="button" data-action="share-clue-roles" data-clue-id="${clue.id}">私享给玩家</button>
+        <button class="btn quiet" type="button" data-action="share-clue-room" data-clue-id="${clue.id}">${clue.shared_with_room ? "取消公开" : "公开到公共线索栏"}</button>
+        <button class="btn quiet" type="button" data-action="transfer-clue" data-clue-id="${clue.id}">转赠给玩家</button>
       </div>
     </article>`;
 }
@@ -83,7 +85,7 @@ export function renderClues() {
   const roleShared = shared.filter((c) => c.shared_scope === "roles");
 
   if (!owned.length && !shared.length && !booklets.length) {
-    return `<div class="empty enriched-empty"><span class="empty-icon">🔍</span>还没有获得线索。完成分幕阅读或探索场景中的调查点后，线索会出现在这里。</div>`;
+    return `<div class="empty enriched-empty"><span class="empty-icon">🔍</span>还没有获得线索。读完分幕后可探索开放场景抽取线索，线索会进入个人背包。</div>`;
   }
 
   const activeId = state.clueId || (!state.bookletId ? (owned[0]?.id || shared[0]?.id) : "");
@@ -151,7 +153,7 @@ export function renderClues() {
     <div class="clues-layout">
       <aside class="clues-sidebar">
         ${booklets.length ? `<section class="clues-group"><h4>物料册</h4><div class="list">${bookletList}</div></section>` : ""}
-        ${owned.length ? `<section class="clues-group"><h4>我的线索</h4><div class="list">${ownedList}</div></section>` : ""}
+        ${owned.length ? `<section class="clues-group"><h4>我的背包</h4><div class="list">${ownedList}</div></section>` : ""}
         ${roomShared.length ? `<section class="clues-group"><h4>公共讨论区</h4><div class="list">${sharedList("公开", roomShared)}</div></section>` : ""}
         ${roleShared.length ? `<section class="clues-group"><h4>私享线索</h4><div class="list">${sharedList("私享", roleShared)}</div></section>` : ""}
       </aside>
@@ -199,21 +201,45 @@ export function renderExploration() {
   }
   const scenes = state.exploration?.scenes || [];
   if (!scenes.length) {
-    return `${locationContext}<div class="empty enriched-empty"><span class="empty-icon">🗺</span>当前还没有开放探索场景。读完分幕并等待主持人解锁后，新地点会出现在这里。</div>`;
+    return `${locationContext}<div class="empty enriched-empty"><span class="empty-icon">🗺</span>当前还没有开放探索场景。等待主持人解锁后，场景名称会列在这里供你逐场探索。</div>`;
   }
-  return locationContext + scenes
-    .map(
-      (scene) => `
-    <article class="card scene-card">
+  const discoveryContext = {
+    roomId: state.roomId,
+    roleSlotId: state.home?.roleSlotId,
+    discoverySessions: state.discoverySessions || [],
+    clues: state.home?.clues || [],
+    sharedClues: state.home?.sharedClues || []
+  };
+  return `${locationContext}
+    <section class="exploration-scene-list" aria-label="开放场景列表">
+      <header class="exploration-scene-list-head">
+        <p class="eyebrow">搜证阶段</p>
+        <h2>开放场景 · ${scenes.length}</h2>
+        <p>选择场景进入探索动画，按顺序逐条抽取线索；抽到的线索进入个人背包，可自行保留、公开或转赠。</p>
+      </header>
+      ${scenes.map((scene, index) => {
+        const location = {
+          id: scene.id,
+          name: scene.name,
+          segmentKey: scene.segment_key || scene.segmentKey || scene.id,
+          description: scene.public_text,
+          discovery: scene.metadata?.discovery || {}
+        };
+        const clues = authorizedCluesForLocation(location, discoveryContext.clues, discoveryContext.sharedClues);
+        const discoveryPanel = renderLocationDiscovery(location, clues, discoveryContext);
+        const points = asArray(scene.investigation_points);
+        return `
+    <article class="card scene-card scene-explore-card">
       <header>
-        <p class="eyebrow">场景</p>
+        <p class="eyebrow">场景 ${index + 1}</p>
         <h3>${escapeHtml(scene.name)}</h3>
       </header>
       <p>${escapeHtml(scene.public_text || "")}</p>
-      <div class="point-list">
-        ${asArray(scene.investigation_points)
-          .map(
-            (point) => `
+      ${discoveryPanel}
+      ${points.length ? `<details class="scene-investigation-details">
+        <summary>调查点（${points.length}）</summary>
+        <div class="point-list">
+          ${points.map((point) => `
           <div class="point-row">
             <div>
               <strong>${escapeHtml(point.name)}</strong>
@@ -226,13 +252,12 @@ export function renderExploration() {
               ${point.investigated || !point.hasRequiredItem || state.busy ? "disabled" : ""}>
               ${point.investigated ? "已调查" : "调查"}
             </button>
-          </div>`
-          )
-          .join("")}
-      </div>
-    </article>`
-    )
-    .join("");
+          </div>`).join("")}
+        </div>
+      </details>` : ""}
+    </article>`;
+      }).join("")}
+    </section>`;
 }
 
 export function renderInventory() {

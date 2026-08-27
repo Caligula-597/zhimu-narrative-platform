@@ -46,6 +46,52 @@ export async function upsertStoryManuscript(client, { worldId, actorId, body }) 
   );
 }
 
+/** Immutable import snapshot in settings.importSource; manuscript row only if not manually edited. */
+export async function upsertImportSourceSnapshot(client, {
+  worldId,
+  actorId,
+  body,
+  filename = "",
+  sourceKey = "",
+  sha256 = ""
+}) {
+  const text = String(body ?? "");
+  const snapshot = {
+    body: text,
+    filename: String(filename ?? "").trim(),
+    sourceKey: String(sourceKey ?? "").trim(),
+    sha256: String(sha256 ?? "").trim(),
+    importedAt: new Date().toISOString(),
+    characterCount: text.length
+  };
+  await client.query(
+    `UPDATE worlds
+     SET settings = COALESCE(settings, '{}'::jsonb) || jsonb_build_object('importSource', $2::jsonb),
+         updated_at = now()
+     WHERE id = $1`,
+    [worldId, JSON.stringify(snapshot)]
+  );
+  await client.query(
+    `INSERT INTO story_manuscripts (world_id, body, last_sync_direction, updated_by_user_id)
+     VALUES ($1, $2, 'import_source', $3)
+     ON CONFLICT (world_id) DO UPDATE
+     SET body = CASE
+           WHEN story_manuscripts.last_sync_direction IN ('manual', 'manuscript_to_graph')
+             THEN story_manuscripts.body
+           ELSE EXCLUDED.body
+         END,
+         last_sync_direction = CASE
+           WHEN story_manuscripts.last_sync_direction IN ('manual', 'manuscript_to_graph')
+             THEN story_manuscripts.last_sync_direction
+           ELSE 'import_source'
+         END,
+         updated_by_user_id = EXCLUDED.updated_by_user_id,
+         updated_at = now()`,
+    [worldId, text, actorId]
+  );
+  return snapshot;
+}
+
 export async function ensureDocumentCharacterScript(client, roleSlotId) {
   const existing = await client.query(
     `SELECT id

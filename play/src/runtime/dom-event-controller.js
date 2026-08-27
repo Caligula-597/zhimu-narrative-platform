@@ -35,6 +35,10 @@ export function bindPlayDomEvents({
         .map((input) => input.value);
       return;
     }
+    if (event.target.matches("[data-transfer-role]")) {
+      state.clueTransferTargetRoleSlotId = event.target.value;
+      return;
+    }
     if (event.target.dataset.bind === "sectionId") {
       state.sectionId = event.target.value;
       render();

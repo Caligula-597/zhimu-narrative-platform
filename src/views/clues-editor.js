@@ -1,3 +1,4 @@
+import { refreshClueAudit } from "./clues-audit.js";
 import * as zhimuApi from "../api/index.js";
 import { formField, formSelect } from "../components/form-fields.js";
 import { showToast } from "../components/toast.js";
@@ -15,6 +16,21 @@ import { CLUE_IMPORTANCE_OPTIONS, CLUE_KIND_OPTIONS, CLUE_TYPE_OPTIONS } from ".
 
 const showError = S.showError;
 let clueEditorState = null;
+
+function impactSummary(impact) {
+  const lines = [];
+  if (impact?.investigationPoints?.length) {
+    lines.push(`调查点 ${impact.investigationPoints.length} 处：${impact.investigationPoints.slice(0, 3).map((p) => p.name || p.id).join("、")}`);
+  }
+  if (impact?.foreshadowBeats?.length) {
+    lines.push(`伏笔 ${impact.foreshadowBeats.length} 条`);
+  }
+  if (impact?.segment?.segmentKey) {
+    lines.push(`剧情段 ${impact.segment.segmentKey}`);
+  }
+  (impact?.cascadeHints || []).forEach((hint) => lines.push(hint));
+  return lines;
+}
 
 function clueDraft(clue = null) {
   const meta = clue?.metadata || {};
@@ -53,7 +69,7 @@ export function openCluesEditor(clueId = "") {
   if (!data) return showToast("请先选择剧本世界");
   const clue = clueId ? data.clues.find((item) => item.id === clueId) : null;
   if (clueId && !clue) return showToast("线索不存在或已被删除");
-  clueEditorState = { clueId: clue?.id || "", draft: clueDraft(clue) };
+  clueEditorState = { clueId: clue?.id || "", draft: clueDraft(clue), cascadeConfirm: false };
   if (clue?.id) uiStore.set({ cluesSelectedId: clue.id });
   render();
 }
@@ -104,7 +120,7 @@ export function renderClueEditorPanel() {
     kicker: "CLUE EDITOR",
     intro: "正文、主持备注与发放条件在同一上下文中编辑，保存后同步刷新线索图谱。",
     body,
-    submitLabel: clue ? "保存修改" : "创建线索",
+    submitLabel: clueEditorState.cascadeConfirm ? "再次点击：确认联动保存" : (clue ? "保存修改" : "创建线索"),
     submitAction: "clue-editor-save",
     cancelAction: "clue-editor-close",
     className: "clue-workspace-editor"
@@ -132,6 +148,31 @@ export async function saveCluesEditor() {
   const clue = currentClue();
   const resolvedSegmentKey = values.segmentKey || null;
   const allowUnbound = !resolvedSegmentKey && clueEditorState.draft.allowUnbound === true;
+
+  if (clue && !clueEditorState.cascadeConfirm) {
+    const textChanged =
+      values.name !== clue.name
+      || values.publicText !== (clue.public_text || "")
+      || values.hostText !== (clue.host_text || "");
+    if (textChanged) {
+      try {
+        const impact = await zhimuApi.getClueEditImpact(clue.id);
+        const summary = impactSummary(impact);
+        if (summary.length) {
+          clueEditorState.cascadeConfirm = true;
+          showWorkspaceErrors(root, [
+            "修改可能影响已关联模块。再次点击保存以确认联动。",
+            ...summary
+          ]);
+          render();
+          return;
+        }
+      } catch {
+        // impact preview is optional
+      }
+    }
+  }
+
   setWorkspaceSaving(root, true);
   showWorkspaceErrors(root, []);
   try {
@@ -159,6 +200,7 @@ export async function saveCluesEditor() {
     clueEditorState = null;
     if (saved?.id) uiStore.set({ cluesSelectedId: saved.id });
     await loadCloudData();
+    void refreshClueAudit({ silent: true });
     render();
     showToast(clue ? "线索已更新" : "线索已创建");
   } catch (error) {

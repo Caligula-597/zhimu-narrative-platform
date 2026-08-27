@@ -1,0 +1,80 @@
+.opening-package-workspace .opening-package-step {
+  display: grid;
+  gap: 14px;
+  padding-top: 8px;
+}
+
+.opening-package-guide {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding-left: 18px;
+  color: var(--ink-soft);
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+.opening-package-empty {
+  padding: 12px;
+  border: 1px dashed rgba(25, 68, 61, .22);
+  border-radius: 10px;
+  color: var(--muted);
+  font-size: 11px;
+  background: #fafbf8;
+}
+
+.opening-package-file-list ul {
+  margin: 8px 0 0;
+  padding-left: 18px;
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+.opening-package-nav {
+  margin-top: 16px;
+  justify-content: space-between;
+}
+
+.opening-package-preview-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.opening-package-preview-grid article {
+  display: grid;
+  gap: 4px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #fff;
+}
+
+.opening-package-preview-grid b {
+  font-size: 11px;
+}
+
+.opening-package-preview-grid span {
+  font-size: 10px;
+  color: var(--ink-soft);
+}
+
+.opening-package-preview-grid small {
+  color: var(--muted);
+  font-size: 9px;
+  line-height: 1.45;
+}
+
+.opening-package-editor.workspace-editor-panel {
+  max-height: calc(100vh - 132px);
+}
+
+@media (max-width: 1050px) {
+  .opening-package-editor.workspace-editor-panel {
+    max-height: calc(100dvh - 160px);
+  }
+
+  .opening-package-preview-grid {
+    grid-template-columns: 1fr;
+  }
+}

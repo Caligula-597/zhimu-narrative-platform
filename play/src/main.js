@@ -151,7 +151,11 @@ async function syncPlayerDiscovery({ action, locationId, expectedRevision } = {}
       session,
     ];
     state.discoverySyncError = "";
-    render();
+    if (action === "clue_drawn") {
+      await pullRoomData();
+    } else {
+      render();
+    }
     return session;
   } catch (error) {
     try {

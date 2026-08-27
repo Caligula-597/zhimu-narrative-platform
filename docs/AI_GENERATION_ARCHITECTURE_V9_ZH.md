@@ -241,3 +241,13 @@ V6 锁住了「模型不能拿事实权」。那一层仍有效。
 V9 锁住了另一条：不要设计完美 Renderer。第一遍写坏一点没有关系。真正危险的是写坏以后分不清文字问题还是游戏问题，于是每次推倒世界。
 
 商业流程对照：作者初稿 → 编辑修稿 → 桌测。没有人要求第一稿就是出版稿。
+
+---
+
+## 后继：V4.2 可执行规格（开发中）
+
+V9 解决的是「三遍制生产流程」与 Prompt 边界。下一版生成架构改为 **IR + Orchestrator + Validator** 的软件系统，目标整体**替代** V9 式 Prompt Pipeline（接入产品尚未开始）。
+
+规格与代码映射：[`AI_GENERATION_ARCHITECTURE_V4_2_ZH.md`](./AI_GENERATION_ARCHITECTURE_V4_2_ZH.md) · 实现包 [`v42-runtime/`](../v42-runtime/)
+
+V9 在 V4.2 验收通过前仍为线上生成流程真相。

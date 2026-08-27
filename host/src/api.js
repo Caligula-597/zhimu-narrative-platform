@@ -229,6 +229,10 @@ export const api = {
   hostGrantItem: (payload) => request(roomPath("/host/grant-item"), { method: "POST", body: payload, idempotent: true }),
   hostUnlockSection: (payload) =>
     request(roomPath("/host/unlock-section"), { method: "POST", body: payload, idempotent: true }),
+  hostUnlockAct: (payload) =>
+    request(roomPath("/host/unlock-act"), { method: "POST", body: payload, idempotent: true }),
+  hostUnlockActScenes: (payload) =>
+    request(roomPath("/host/unlock-act-scenes"), { method: "POST", body: payload, idempotent: true }),
   hostRelockSection: (payload) =>
     request(roomPath("/host/relock-section"), { method: "POST", body: payload, idempotent: true }),
   hostSkipSection: (payload) =>

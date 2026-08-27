@@ -72,14 +72,15 @@ export function normalizeStoryAssistantResult(payload = {}) {
   return { nodes, edges, suggestions };
 }
 
-export function storyAssistantCounts(result = {}) {
-  const nodes = Array.isArray(result.nodes) ? result.nodes : [];
+export function storyAssistantCounts(result) {
+  const payload = result && typeof result === "object" ? result : {};
+  const nodes = Array.isArray(payload.nodes) ? payload.nodes : [];
   return {
     total: nodes.length,
     scenes: nodes.filter((node) => node.type === "scene").length,
     points: nodes.filter((node) => node.type === "investigation_point").length,
     clues: nodes.filter((node) => node.type === "clue").length,
-    edges: Array.isArray(result.edges) ? result.edges.length : 0
+    edges: Array.isArray(payload.edges) ? payload.edges.length : 0
   };
 }
 

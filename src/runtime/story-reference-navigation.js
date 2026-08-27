@@ -41,7 +41,7 @@ export function openStoryReference(type, id) {
     return;
   }
   if (type === "constitution") {
-    go("constitution");
+    go("creatorCockpit");
     return;
   }
   showToast("该诊断对象暂时没有独立编辑入口");

@@ -5,11 +5,6 @@
  * It does not pretend to understand prose causality. The report therefore keeps
  * every finding traceable to a structured object and states its coverage limits.
  */
-import {
-  creativeConstitutionCoverage,
-  isCreativeConstitutionEmpty,
-  normalizeCreativeConstitution
-} from "../../shared/creative-constitution.js";
 
 export const STORY_DIAGNOSTIC_STANDARDS = Object.freeze({
   classic: {
@@ -617,13 +612,7 @@ function isLateStage(value) {
  */
 export function evaluateStoryDiagnostics(snapshot = {}, { standard = "classic" } = {}) {
   const profile = STORY_DIAGNOSTIC_STANDARDS[standard] || STORY_DIAGNOSTIC_STANDARDS.classic;
-  const rawConstitution = object(snapshot.world?.settings).creativeConstitution;
-  const constitution = normalizeCreativeConstitution(rawConstitution);
-  const constitutionConfigured = !isCreativeConstitutionEmpty(rawConstitution);
-  const constitutionCoverage = creativeConstitutionCoverage(rawConstitution, rows(snapshot.roles));
-  const minimumEvidence = constitutionConfigured
-    ? constitution.fairness.minimumEvidence
-    : profile.minEvidence;
+  const minimumEvidence = profile.minEvidence;
   const index = buildEntityIndex(snapshot);
   const graph = buildGraph(snapshot, index);
   const cluePaths = acquisitionPaths(snapshot, index);
@@ -633,50 +622,6 @@ export function evaluateStoryDiagnostics(snapshot = {}, { standard = "classic" }
   const events = eventRows(snapshot);
   const eventRefs = events.rows.map((event) => refFor(index, events.type, event.id));
   const authoredEdges = graph.edges.filter((edge) => edge.kind === "authored");
-  const constitutionRef = {
-    type: "constitution",
-    id: "creative-constitution",
-    label: "创作宪法",
-    view: "constitution"
-  };
-
-  if (!constitutionConfigured) {
-    add({
-      id: "intent.no_constitution",
-      category: "intent",
-      severity: "warning",
-      title: "尚未建立创作宪法",
-      detail: "当前诊断只能套用通用类型标准，无法判断结构是否偏离作者的体验承诺。",
-      recommendation: "写明核心主题、最终感受、不可破坏原则和禁用套路，再重新诊断。",
-      refs: [constitutionRef]
-    });
-  } else {
-    if (constitutionCoverage.missing.length) {
-      const labels = constitutionCoverage.missing.slice(0, 5).map((item) => item.label);
-      add({
-        id: "intent.constitution_incomplete",
-        category: "intent",
-        severity: "warning",
-        title: "创作宪法仍有关键约束未写明",
-        detail: `当前完成度 ${constitutionCoverage.score}%；待补：${labels.join("、")}${constitutionCoverage.missing.length > labels.length ? "等" : ""}。`,
-        recommendation: "优先补齐会影响结构判断的体验承诺、公平谜题和不可破坏原则。",
-        refs: [constitutionRef]
-      });
-    }
-    if (constitutionCoverage.roles.missing.length) {
-      const missingRoleRefs = constitutionCoverage.roles.missing.map((role) => refFor(index, "role", role.id, role.label));
-      add({
-        id: "intent.role_highlight_gaps",
-        category: "intent",
-        severity: "warning",
-        title: `${missingRoleRefs.length} 个角色尚未声明体验高光`,
-        detail: `缺少高光承诺：${missingRoleRefs.slice(0, 6).map((role) => role.label).join("、")}${missingRoleRefs.length > 6 ? "等" : ""}。`,
-        rationale: "角色高光是后续角色体验检查和 AI 玩家试跑的重要评判依据。",
-        recommendation: "为每个角色写明只有他能完成的行动、决定或情绪高潮。",
-        refs: [constitutionRef, ...missingRoleRefs]
-      });
-    }
-  }
 
   if (!eventRefs.length) {
     add({
@@ -826,7 +771,7 @@ export function evaluateStoryDiagnostics(snapshot = {}, { standard = "classic" }
         severity: evidence.length ? "warning" : "danger",
         title: `真相「${claimRef.label}」证据不足`,
         detail: evidence.length
-          ? `已声明 ${evidence.length} 条证据；${constitutionConfigured ? "创作宪法" : `「${profile.label}」标准`}要求至少 ${minimum} 条。`
+          ? `已声明 ${evidence.length} 条证据；「${profile.label}」标准要求至少 ${minimum} 条。`
           : "没有声明可回溯到创作对象的证据。",
         recommendation: "在真相断言的 evidence 中引用可验证线索，并确保它们在揭晓前可获得。",
         refs: [claimRef, ...evidence],
@@ -931,11 +876,9 @@ export function evaluateStoryDiagnostics(snapshot = {}, { standard = "classic" }
   const scores = {
     causal: causalScore,
     information: informationScore,
-    fairness: fairnessScore,
-    intent: constitutionCoverage.score
+    fairness: fairnessScore
   };
-  const structuralOverall = weightedOverall(scores, profile.weights);
-  scores.overall = score(structuralOverall * 0.85 + scores.intent * 0.15);
+  scores.overall = score(weightedOverall(scores, profile.weights));
 
   const sortedIssues = issues
     .sort((a, b) => {
@@ -967,8 +910,7 @@ export function evaluateStoryDiagnostics(snapshot = {}, { standard = "classic" }
       label: profile.label,
       description: profile.description,
       minEvidence: minimumEvidence,
-      defaultMinEvidence: profile.minEvidence,
-      constitutionOverride: constitutionConfigured && minimumEvidence !== profile.minEvidence
+      defaultMinEvidence: profile.minEvidence
     },
     scope: {
       events: eventRefs.length,
@@ -991,20 +933,6 @@ export function evaluateStoryDiagnostics(snapshot = {}, { standard = "classic" }
           : "已建模结构未发现明显阻塞项"
     },
     issues: sortedIssues,
-    constitution: {
-      configured: constitutionConfigured,
-      score: constitutionCoverage.score,
-      filled: constitutionCoverage.filled,
-      total: constitutionCoverage.total,
-      missing: constitutionCoverage.missing,
-      roleHighlights: constitutionCoverage.roles,
-      theme: constitution.theme,
-      experiencePromise: constitution.experiencePromise,
-      inviolableCount: constitution.inviolablePrinciples.length,
-      forbiddenTropesCount: constitution.forbiddenTropes.length,
-      minimumEvidence,
-      requireIndependentPaths: constitution.fairness.requireIndependentPaths
-    },
     causal: {
       eventType: events.type,
       events: eventRefs.map((ref) => ({

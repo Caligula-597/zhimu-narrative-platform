@@ -24,6 +24,10 @@ export function updateClue(clueId, payload) {
   return worldWrite(`/worlds/${demoContext.worldId}/clues/${clueId}`, { body: payload });
 }
 
+export function getClueEditImpact(clueId, worldId = demoContext.worldId) {
+  return request(`/worlds/${worldId}/clues/${clueId}/edit-impact`, { userId: demoContext.hostUserId });
+}
+
 export function bindCluePaths(payload) {
   return worldWrite(`/worlds/${demoContext.worldId}/clues/bind-paths`, {
     method: "POST",

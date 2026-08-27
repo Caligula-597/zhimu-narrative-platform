@@ -5,5 +5,7 @@ export const wizardStore = createStore({
   wizardDraft: {
     worldName: "",
     creationType: ""
-  }
+  },
+  /** After world create: "upload" → 开本包 */
+  postCreateJourney: ""
 });

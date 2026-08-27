@@ -5,6 +5,7 @@ import { decodeDocumentBuffer, parseCreatorDocument } from "./document-parser.js
 import { importStructuredCreatorDocumentWithClient } from "./creator-document-structure-service.js";
 import { loadFeishuDocumentText } from "./feishu-document-client.js";
 import { runDocumentProcessing } from "./document-processing-guard.js";
+import { reviewCreatorDocument } from "./document-ai-review-service.js";
 import {
   importImageFileToRoleSection,
   importPdfPagesToRoleScript,
@@ -87,15 +88,27 @@ function pageImportResponse(result) {
 
 export async function parseCreatorDocumentForWorld(payload) {
   if (payload?.rightsConfirmed !== true) throwErr("IMPORT_RIGHTS_CONFIRMATION_REQUIRED");
-  return runDocumentProcessing(() => parseCreatorDocument(payload ?? {}));
+  const parsed = await runDocumentProcessing(() => parseCreatorDocument(payload ?? {}));
+  const aiDocumentReview = await reviewCreatorDocument({
+    text: parsed?.text ?? "",
+    filename: parsed?.filename ?? "",
+    creationType: payload?.creationType
+  });
+  return { ...parsed, aiDocumentReview };
 }
 
 export async function parseFeishuDocumentForWorld(payload) {
   if (payload?.rightsConfirmed !== true) throwErr("IMPORT_RIGHTS_CONFIRMATION_REQUIRED");
-  return runDocumentProcessing(() => loadFeishuDocumentText({
+  const feishu = await runDocumentProcessing(() => loadFeishuDocumentText({
     url: payload?.url,
     creationType: payload?.creationType
   }));
+  const aiDocumentReview = await reviewCreatorDocument({
+    text: feishu?.text ?? "",
+    filename: feishu?.filename ?? "feishu.docx",
+    creationType: payload?.creationType
+  });
+  return { ...feishu, aiDocumentReview };
 }
 
 export async function importParsedCreatorDocument({ request, reply, actorId, worldId, payload }) {
@@ -107,6 +120,7 @@ export async function importParsedCreatorDocument({ request, reply, actorId, wor
       await lockDocumentEditor(client, { worldId, actorId });
       return importStructuredCreatorDocumentWithClient(client, {
         worldId,
+        actorId,
         document,
         creationType: payload?.creationType,
         rightsConfirmed: payload?.rightsConfirmed

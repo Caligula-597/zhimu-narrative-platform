@@ -20,7 +20,7 @@ export const MURDER_MYSTERY_DOMAIN = Object.freeze({
   }),
   toolViews: Object.freeze(["writer", "truth", "studio", "clues", "miniGames", "rules", "archive"]),
   allowedViews: Object.freeze([
-    "creatorCockpit", "constitution", "diagnostics", "playtest", "overview",
+    "creatorCockpit", "diagnostics", "playtest", "overview",
     "production", "structure", "truth", "publish", "insights", "writer",
     "studio", "clues", "rules", "miniGames", "rooms", "archive", "settings",
     "account", "ops"

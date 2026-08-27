@@ -127,6 +127,21 @@
 .first-run-card p { margin:0; font-size:13px; color:#5f5a52; }
 .first-run-card ul { margin:0; padding-left:18px; color:#5f5a52; font-size:12px; line-height:1.7; }
 .first-run-card .primary-btn,.first-run-card .secondary-btn { align-self:end; justify-self:start; margin-top:auto; }
+.creator-journey { position:relative; }
+.creator-journey-head { align-items:flex-start; gap:16px; }
+.creator-journey-dialogue { flex:1; min-width:0; }
+.journey-bubble { display:flex; gap:14px; align-items:flex-start; }
+.journey-avatar { flex:0 0 42px; width:42px; height:42px; border-radius:14px; display:grid; place-items:center; font-weight:800; color:#1f5d4f; background:linear-gradient(145deg,#dff3ea,#c8e8d8); border:1px solid rgba(35,91,75,.18); box-shadow:0 8px 20px rgba(47,78,68,.08); }
+.journey-bubble-body { min-width:0; }
+.journey-context { margin:10px 0 0; padding:10px 12px; border-radius:10px; background:rgba(35,91,75,.06); color:#4a5f58; font-size:13px; }
+.creator-journey-paths { grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); }
+.creator-journey-card.first-run-card-upload { border-color:rgba(35,91,75,.22); background:linear-gradient(155deg,#fff,#f4faf7); }
+.creator-journey-card.first-run-card-plan { border-color:rgba(88,127,121,.2); }
+.creator-journey-compact { margin:0 0 16px; padding:18px 20px; border-radius:14px; }
+.creator-journey-compact .section-head h2 { font-size:clamp(22px,2.4vw,30px); }
+.creator-journey-compact .creator-journey-paths { margin-top:14px; }
+.creator-journey-compact .first-run-card { min-height:0; padding:14px; }
+.creator-journey-compact .first-run-card ul { display:none; }
 .wizard-launch-code { display:flex; align-items:center; justify-content:space-between; gap:14px; margin:18px 0 12px; padding:15px 17px; border:1px solid rgba(88,127,121,.24); border-radius:12px; background:#f3f8f5; }
 .wizard-launch-code span { color:var(--muted); font-size:12px; }
 .wizard-launch-code strong { color:#1f6257; font-size:22px; letter-spacing:.08em; }
@@ -1404,6 +1419,31 @@
   gap: 14px;
 }
 
+.import-source-hub .import-source-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.import-source-hub .import-source-body {
+  max-height: 62vh;
+  overflow: auto;
+  white-space: pre-wrap;
+  font-size: 13px;
+  line-height: 1.55;
+  padding: 12px;
+  border-radius: 8px;
+  background: #f6f4ef;
+  border: 1px solid #e6dfd2;
+}
+
+@media (max-width: 960px) {
+  .import-source-hub .import-source-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 .role-archive-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1754,7 +1794,7 @@
 .writer-metadata-guidance { margin-top:16px; padding:13px; border-left:3px solid var(--gold); border-radius:10px; background:#fff9ed; }
 .writer-metadata-guidance p { margin-top:6px; color:var(--muted); font-size:11px; line-height:1.65; }
 .writer-metadata-editor { position:static; width:100%; max-height:calc(100vh - 132px); }
-.writer-manuscript-editor,.writer-impact-editor,.writer-document-editor,.writer-export-editor,.writer-import-editor,.writer-snapshot-editor { position:static; width:100%; max-height:calc(100vh - 132px); }
+.writer-manuscript-editor,.writer-impact-editor,.writer-document-editor,.writer-export-editor,.writer-import-editor,.writer-snapshot-editor,.writer-story-editor { position:static; width:100%; max-height:calc(100vh - 132px); }
 .writer-tool-grid-wide { grid-template-columns:minmax(280px,340px) minmax(620px,900px); }
 .workspace-longform-field { display:grid; gap:8px; padding-top:14px; color:var(--ink-soft); font-size:11px; font-weight:800; }
 .workspace-longform-field textarea { min-height:56vh; padding:16px; border:1px solid rgba(25,68,61,.23); border-radius:12px; color:var(--ink); background:#fff; font:500 13px/1.8 "Noto Sans SC","Microsoft YaHei",sans-serif; }

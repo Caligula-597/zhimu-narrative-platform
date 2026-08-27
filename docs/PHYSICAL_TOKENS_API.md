@@ -80,4 +80,4 @@ POST /api/rooms/:roomId/physical-tokens/activate
 
 ## 前端
 
-`zhimuApi` 已封装：`listPhysicalTokens` · `createPhysicalTokens` · `revokePhysicalToken` · `previewPhysicalToken` · `activatePhysicalToken`（UI 待做）。
+创作者主应用 `src/api` 未封装上述端点；主持/玩家激活走 `POST /api/rooms/:roomId/physical-tokens/activate`。UI 待做时可直连后端 API。

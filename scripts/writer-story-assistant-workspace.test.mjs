@@ -16,6 +16,16 @@ import { storyAssistantWorkspaceHtml } from "../src/views/writer-story-assistant
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const read = (relativePath) => fs.readFileSync(path.join(root, relativePath), "utf8");
 
+test("story assistant counts tolerate null analysis", () => {
+  assert.deepEqual(storyAssistantCounts(null), {
+    total: 0,
+    scenes: 0,
+    points: 0,
+    clues: 0,
+    edges: 0
+  });
+});
+
 test("story source validation and fingerprint bind previews to exact trimmed text", () => {
   assert.deepEqual(validateStoryAssistantSource(" \n "), {
     source: "",

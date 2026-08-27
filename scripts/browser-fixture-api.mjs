@@ -1,9 +1,4 @@
 import http from "node:http";
-import {
-  creativeConstitutionCoverage,
-  isCreativeConstitutionEmpty,
-  normalizeCreativeConstitution
-} from "../shared/creative-constitution.js";
 import { AI_PLAYER_ARCHETYPES } from "../shared/ai-playtest.js";
 import { createBoardGameAiDraftPreview, detectedUnsupportedBoardGameRequirements } from "../shared/board-game-ai-draft.js";
 import { projectRuntimePresentation } from "../shared/runtime-presentation.js";
@@ -940,34 +935,6 @@ const world = {
   } : {
     narrativeProfile: {
       creationType: "murder_mystery"
-    },
-    creativeConstitution: {
-      version: 1,
-      theme: "错误时间顺序如何制造偏见",
-      intendedEmotion: "玩家从确信转为愧疚，并重新理解每个人的沉默。",
-      experiencePromise: "玩家在最后三十分钟逐步意识到，他们一直在用错误的时间顺序理解案件。",
-      revealEmotion: "不是单纯震惊，而是对自己早先判断产生迟来的愧疚。",
-      inviolablePrinciples: [
-        "真相揭晓前至少出现三条可验证证据。",
-        "不能依靠失忆、双胞胎或未登场人物完成反转。"
-      ],
-      fairPuzzlePromises: ["案发时间必须能由游戏内物证推出。"],
-      pacingPrinciples: ["第二幕不新增世界观，只加速旧线索碰撞。"],
-      voicePrinciples: ["角色本避免全知视角和作者式结论。"],
-      forbiddenTropes: ["失忆", "双胞胎", "未登场人物完成反转"],
-      supernatural: {
-        policy: "forbidden",
-        rules: "可以出现无法解释的感知，但不能用超自然力量改变物证。"
-      },
-      desiredDebates: "隐瞒真相是否必然等于背叛。",
-      avoidMisunderstandings: "沉默不等于有罪，情感选择也不能替代物证。",
-      roleHighlights: {
-        "role-1": "只有侦探能决定是否公开停摆时钟，并承担误导全场的后果。",
-        "role-2": "记者必须决定是否公开被篡改的采访记录。",
-        "role-3": "医生能用专业判断推翻错误死亡时间。",
-        "role-4": "继承人决定是否承认自己隐瞒了停电原因。"
-      },
-      fairness: { minimumEvidence: 3, requireIndependentPaths: true }
     }
   }
 };
@@ -1189,7 +1156,7 @@ function buildFixturePlaytestReport(body = {}) {
     generatedAt: new Date().toISOString(),
     depth: body.depth === "deep" ? "deep" : "quick",
     focus: String(body.focus || ""),
-    constitutionConfigured: true,
+    constitutionConfigured: false,
     headline: "时间错序能够被推回，但沉默玩家仍可能让第二幕失速",
     summary: "四类玩家最终都能重建时间线。沉默型席位在公开采访记录前明显卡住，抢话型席位则可能过早把时钟假设定为全桌共识。",
     score: 78,
@@ -1253,23 +1220,10 @@ function buildFixturePlaytestReport(body = {}) {
       severity: "info",
       category: "intent",
       title: "目标情绪在最终拼合后成立",
-      detail: "玩家先确信 22:15，再因自己早先的判断产生迟来的愧疚，符合创作宪法。",
+      detail: "玩家先确信 22:15，再因自己早先的判断产生迟来的愧疚。",
       recommendation: "保留终局前由玩家亲手重排三条记录的动作。",
       refs: [{ type: "chapter", id: "chapter-3", label: "迟到的二十二点十五分" }],
       seatIds: players.map((player) => player.seatId)
-    }],
-    constitutionChecks: [{
-      principle: "真相揭晓前至少出现三条可验证证据。",
-      status: "pass",
-      evidence: "匿名信、采访记录与尸温记录在终局前均已被读取。"
-    }, {
-      principle: "玩家在最后三十分钟意识到自己使用了错误时间顺序。",
-      status: "pass",
-      evidence: "所有席位都在第三阶段重新排列了停电、死亡和拨钟顺序。"
-    }, {
-      principle: "每个角色都拥有不可替代的高光。",
-      status: "risk",
-      evidence: "继承人承担了选择，但医生的高光仍主要是提供信息。"
     }],
     missedClues: [{
       ref: { type: "clue", id: "clue-2", label: "采访记录" },
@@ -1835,28 +1789,8 @@ const server = http.createServer(async (request, response) => {
       narrative: "叙事诡计",
       open: "开放调查",
     }[diagnosticStandard] || "本格公平";
-    const rawConstitution = world.settings?.creativeConstitution;
-    const constitution = normalizeCreativeConstitution(rawConstitution);
-    const constitutionConfigured = !isCreativeConstitutionEmpty(rawConstitution);
-    const constitutionCoverage = creativeConstitutionCoverage(rawConstitution, workspacePreview.roles);
     const defaultMinEvidence = ["classic", "mechanism", "narrative"].includes(diagnosticStandard) ? 2 : 1;
-    const minimumEvidence = constitutionConfigured
-      ? constitution.fairness.minimumEvidence
-      : defaultMinEvidence;
-    const intentIssues = constitutionConfigured
-      ? []
-      : [{
-          id: "intent.no_constitution",
-          category: "intent",
-          severity: "warning",
-          title: "尚未建立创作宪法",
-          detail: "当前诊断只能套用通用类型标准。",
-          rationale: "",
-          recommendation: "写明体验承诺与不可破坏原则。",
-          refs: [{ type: "constitution", id: "creative-constitution", label: "创作宪法" }],
-          path: []
-        }];
-    const fixtureIssues = [...intentIssues, {
+    const fixtureIssues = [{
       id: "information.single_point_clue",
       category: "information",
       severity: "warning",
@@ -1879,17 +1813,15 @@ const server = http.createServer(async (request, response) => {
         id: diagnosticStandard,
         label: diagnosticStandardLabel,
         description: "浏览器验收结构诊断",
-        minEvidence: minimumEvidence,
-        defaultMinEvidence,
-        constitutionOverride: constitutionConfigured && minimumEvidence !== defaultMinEvidence
+        minEvidence: defaultMinEvidence,
+        defaultMinEvidence
       },
       scope: { events: 1, eventType: "scene", roles: 1, clues: 1, truthClaims: 0, authoredEdges: 0, rules: 0 },
       scores: {
         causal: 64,
         information: 48,
         fairness: 0,
-        intent: constitutionCoverage.score,
-        overall: constitutionConfigured ? 58 : 37
+        overall: 37
       },
       status: "review",
       summary: {
@@ -1897,23 +1829,9 @@ const server = http.createServer(async (request, response) => {
         warning: fixtureIssues.length,
         info: 0,
         issueCount: fixtureIssues.length,
-        headline: constitutionConfigured ? "线索获得路径仍需加固" : "先建立创作宪法，再校准结构"
+        headline: "线索获得路径仍需加固"
       },
       issues: fixtureIssues,
-      constitution: {
-        configured: constitutionConfigured,
-        score: constitutionCoverage.score,
-        filled: constitutionCoverage.filled,
-        total: constitutionCoverage.total,
-        missing: constitutionCoverage.missing,
-        roleHighlights: constitutionCoverage.roles,
-        theme: constitution.theme,
-        experiencePromise: constitution.experiencePromise,
-        inviolableCount: constitution.inviolablePrinciples.length,
-        forbiddenTropesCount: constitution.forbiddenTropes.length,
-        minimumEvidence,
-        requireIndependentPaths: constitution.fairness.requireIndependentPaths
-      },
       causal: { eventType: "scene", events: [], chains: [], orphanEvents: [], removableCandidates: [] },
       information: {
         knowledgeTimelines: [],

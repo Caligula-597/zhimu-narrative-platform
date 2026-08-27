@@ -26,6 +26,7 @@ import { callView } from "./view-registry.js";
         return true;
       }
       case "clue-image-clear": callView("clues", "clearClueImage", el?.dataset?.clue); return true;
+      case "load-clue-audit": void callView("clues", "refreshClueAudit", { withToast: true }); return true;
       default: return false;
     }
   }

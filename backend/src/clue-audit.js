@@ -7,6 +7,16 @@ function linkedPoints(clueId, points) {
   return points.filter((point) => point.clue_id === clueId);
 }
 
+function hasDiscoveryPath(clue, points) {
+  const metadata = clue?.metadata || {};
+  return Boolean(
+    linkedPoints(clue.id, points).length
+    || metadata.segmentKey
+    || metadata.segment_key
+    || metadata.allowUnbound === true
+  );
+}
+
 function hasRuleOrStoryEdge(clueId, edges) {
   return edges.some(
     (edge) =>
@@ -22,12 +32,12 @@ export function evaluateClueAudit(snapshot) {
   const total = clues.length;
 
   const withText = clues.filter((clue) => String(clue.public_text || "").trim()).length;
-  const linked = clues.filter((clue) => linkedPoints(clue.id, points).length).length;
+  const linked = clues.filter((clue) => hasDiscoveryPath(clue, points)).length;
   const withRules = clues.filter((clue) => hasRuleOrStoryEdge(clue.id, edges)).length;
   const keyed = clues.filter((clue) => clue?.metadata?.importance === "key").length;
 
   const missingText = clues.filter((clue) => !String(clue.public_text || "").trim());
-  const unlinked = clues.filter((clue) => !linkedPoints(clue.id, points).length);
+  const unlinked = clues.filter((clue) => !hasDiscoveryPath(clue, points));
   const noRuleLinks = clues.filter((clue) => !hasRuleOrStoryEdge(clue.id, edges));
 
   const nameCounts = clues.reduce((acc, clue) => {

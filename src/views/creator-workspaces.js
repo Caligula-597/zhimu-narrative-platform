@@ -84,7 +84,8 @@ export function production() {
   <section class="workspace-action-grid">
     <button type="button" class="workspace-action-card primary" data-action="world-engine"><strong>世界引擎</strong><span>从场所方向生成可运行历史，再写角色本</span></button>
     <button type="button" class="workspace-action-card primary" data-action="story-manuscript"><strong>完整剧情</strong><span>母稿与章节总览</span></button>
-    <button type="button" class="workspace-action-card" data-action="creator-import"><strong>导入内容包</strong><span>Word / Markdown / 内容包</span></button>
+    <button type="button" class="workspace-action-card primary" data-action="opening-package"><strong>上传开本包</strong><span>主持手册 · 角色本 · 线索文字 · 线索图</span></button>
+    <button type="button" class="workspace-action-card" data-action="creator-import"><strong>导入内容包</strong><span>JSON 备份迁移</span></button>
     <button type="button" class="workspace-action-card" data-go="writer"><strong>角色私人剧本</strong><span>${roleCount} 角色 · ${sectionCount} 分幕</span></button>
     <button type="button" class="workspace-action-card" data-action="creator-export"><strong>交付包导出</strong><span>玩家本 · 线索清单 · 主持手册 · JSON</span></button>
     <button type="button" class="workspace-action-card" data-action="story-assistant"><strong>剧情结构提取</strong><span>从文本提取场景、调查点、线索和建议连线</span></button>

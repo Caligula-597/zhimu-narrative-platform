@@ -32,12 +32,6 @@ import { accountScopedStorageKey, currentStorageUserId } from "./storage-scope.j
 
     "#settings-recap-truth",
 
-    "[data-constitution-field]",
-
-    "[data-constitution-list]",
-
-    "[data-role-highlight]",
-
     "[data-studio-field]",
 
     ".studio-inspector textarea",
@@ -85,8 +79,6 @@ import { accountScopedStorageKey, currentStorageUserId } from "./storage-scope.j
     const view = uiStore.get().view;
 
     if (view === "settings") return "settings";
-
-    if (view === "constitution") return "constitution";
 
     if (view === "studio") {
 

@@ -15,8 +15,9 @@ test("zero-world account creates an empty board-game world with only type and na
   await page.goto("/?verify=fixture-link-token");
   await expect(page).not.toHaveURL(/verify=/);
   await expect(page.locator("[data-first-run-chooser]")).toBeVisible();
-  await expect(page.getByRole("heading", { name: "先创建一个属于你的世界" })).toBeVisible();
-  await expect(page.locator("[data-first-run-chooser]")).toContainText("选择类型 → 命名 → 进入工作区");
+  await expect(page.getByRole("heading", { name: "你是第一次来织幕吗？" })).toBeVisible();
+  await expect(page.locator("[data-first-run-chooser]")).toContainText("上传开本包");
+  await expect(page.locator("[data-first-run-chooser]")).toContainText("先做世界规划");
   await expect(page.locator("#preview-btn")).toBeHidden();
   await expect(page.locator("#run-btn")).toBeHidden();
   await expect(page.locator("body")).toHaveAttribute("data-product-active", "0");
@@ -29,7 +30,7 @@ test("zero-world account creates an empty board-game world with only type and na
   await expect(page.locator("[data-world-create-submit]")).toBeDisabled();
   await page.locator("[data-world-create-cancel]").click();
 
-  await page.getByRole("button", { name: "创建空白世界 →" }).click();
+  await page.locator("#create-world-btn").click();
   await expect(page.locator(".world-create-shell")).toBeVisible();
   await page.locator('[data-world-create-type="board_game"]').click();
   await page.locator("[data-world-create-name]").fill("空白桌游原型");

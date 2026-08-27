@@ -28,6 +28,30 @@ export function shuffledDiscoveryClueIds(values, pick = randomInt) {
   return ids;
 }
 
+export function isExploreDrawClue(clue) {
+  const metadata = clue?.metadata && typeof clue.metadata === "object" ? clue.metadata : {};
+  const mode = String(metadata.grantMode || clue?.grantMode || "");
+  return mode === "explore" || mode === "explore_draw";
+}
+
+function clueSortKey(clue) {
+  const metadata = clue?.metadata && typeof clue.metadata === "object" ? clue.metadata : {};
+  const index = Number(metadata.catalogIndex ?? metadata.sequence ?? metadata.ordinal);
+  if (Number.isFinite(index)) return index;
+  return String(clue?.name || clue?.id || "");
+}
+
+export function orderedDiscoveryClueIds(clues = []) {
+  return [...clues]
+    .sort((left, right) => {
+      const leftKey = clueSortKey(left);
+      const rightKey = clueSortKey(right);
+      if (typeof leftKey === "number" && typeof rightKey === "number") return leftKey - rightKey;
+      return String(leftKey).localeCompare(String(rightKey), "zh-CN");
+    })
+    .map((clue) => String(clue.id));
+}
+
 function normalizeActionInput(input = {}) {
   const action = String(input.action || "");
   if (!ACTIONS.has(action)) throwErr("DISCOVERY_ACTION_INVALID");
@@ -44,13 +68,16 @@ function locationMetadata(clue) {
     : {};
   return {
     locationId: String(metadata.locationId || metadata.location_id || ""),
+    sceneId: String(metadata.sceneId || metadata.scene_id || ""),
     segmentKey: String(metadata.segmentKey || metadata.segment_key || "")
   };
 }
 
 export function clueMatchesDiscoveryLocation(clue, location) {
   const metadata = locationMetadata(clue);
-  if (metadata.locationId) return metadata.locationId === String(location?.id || "");
+  const locationId = String(location?.id || "");
+  if (metadata.locationId) return metadata.locationId === locationId;
+  if (metadata.sceneId) return metadata.sceneId === locationId;
   return Boolean(
     metadata.segmentKey
     && location?.segmentKey
@@ -58,37 +85,72 @@ export function clueMatchesDiscoveryLocation(clue, location) {
   );
 }
 
-async function resolveDiscoveryContext(client, { roomId, roleSlotId, locationId }) {
-  const runQuery = client.query.bind(client);
-  const provider = await loadRuntimeContentProvider(roomId, { runQuery });
-  if (!provider) throwErr("ROOM_NOT_FOUND");
+export function clueRequiresMandatoryPublic(clue) {
+  if (String(clue?.visibility || "") === "public") return true;
+  const metadata = clue?.metadata && typeof clue.metadata === "object" ? clue.metadata : {};
+  return Boolean(metadata.forcePublic || metadata.mustPublic);
+}
+
+async function sceneIsUnlocked(client, roomId, sceneId) {
+  const result = await client.query(
+    `SELECT 1 FROM room_content_unlocks
+     WHERE room_id = $1 AND content_type = 'scene' AND content_id = $2`,
+    [roomId, sceneId]
+  );
+  return result.rowCount > 0;
+}
+
+async function resolveDiscoveryLocation(client, provider, { roomId, locationId }) {
   const presentation = projectRuntimePresentation({
     world: provider.snapshot.world || {},
     roomSettings: provider.roomSettings,
     audience: "player"
   });
-  const location = presentation.map?.locations?.find(
+  const mapLocation = presentation.map?.locations?.find(
     (candidate) => String(candidate.id) === String(locationId)
   );
-  if (!location) throwErr("DISCOVERY_LOCATION_UNAVAILABLE");
+  if (mapLocation) {
+    return {
+      id: String(mapLocation.id),
+      name: mapLocation.name,
+      segmentKey: String(mapLocation.segmentKey || mapLocation.id),
+      discovery: mapLocation.discovery || {},
+      kind: "map"
+    };
+  }
+  if (!await sceneIsUnlocked(client, roomId, locationId)) {
+    throwErr("DISCOVERY_LOCATION_UNAVAILABLE");
+  }
+  const scene = provider.find("scenes", locationId)
+    || provider.collection("scenes").find((candidate) => String(candidate.id) === String(locationId));
+  if (!scene) throwErr("DISCOVERY_LOCATION_UNAVAILABLE");
+  const sceneMeta = scene.metadata && typeof scene.metadata === "object" ? scene.metadata : {};
+  return {
+    id: String(scene.id),
+    name: scene.name,
+    segmentKey: String(sceneMeta.segmentKey || scene.chapter_id || scene.id),
+    discovery: sceneMeta.discovery || {},
+    kind: "scene"
+  };
+}
 
-  const access = await client.query(
-    `SELECT DISTINCT clue_id
-     FROM clue_ownership
-     WHERE room_id = $1
-       AND (
-         role_slot_id = $2
-         OR shared_with_room = true
-         OR $2::uuid = ANY(COALESCE(shared_with_roles, '{}'))
-       )`,
+async function resolveDiscoveryContext(client, { roomId, roleSlotId, locationId }) {
+  const provider = await loadRuntimeContentProvider(roomId, { runQuery: client.query.bind(client) });
+  if (!provider) throwErr("ROOM_NOT_FOUND");
+  const location = await resolveDiscoveryLocation(client, provider, { roomId, locationId });
+
+  const owned = await client.query(
+    `SELECT clue_id FROM clue_ownership WHERE room_id = $1 AND role_slot_id = $2`,
     [roomId, roleSlotId]
   );
-  const accessible = new Set(access.rows.map((row) => String(row.clue_id)));
-  const clueIds = provider.collection("clues")
-    .filter((clue) => accessible.has(String(clue.id)))
+  const ownedIds = new Set(owned.rows.map((row) => String(row.clue_id)));
+
+  const matchingClues = provider.collection("clues")
+    .filter(isExploreDrawClue)
     .filter((clue) => clueMatchesDiscoveryLocation(clue, location))
-    .map((clue) => String(clue.id));
-  return { location, clueIds };
+    .filter((clue) => !ownedIds.has(String(clue.id)));
+  const clueIds = orderedDiscoveryClueIds(matchingClues);
+  return { location, clueIds, provider };
 }
 
 export function projectPlayerDiscoveryState(state) {
@@ -101,6 +163,7 @@ export function projectPlayerDiscoveryState(state) {
     drawnClueIds: payload.drawnClueIds || [],
     lastDrawnClueId: payload.drawnClueIds?.at(-1) || null,
     remainingCount: Number(payload.remainingCount) || 0,
+    drawOrder: payload.drawOrder || "sequential",
     scanStartedAt: payload.scanStartedAt || null,
     scanReadyAt: payload.scanReadyAt || null,
     completedAt: payload.completedAt || null,
@@ -119,7 +182,7 @@ export function buildDiscoveryStatePayload({ location, existing, clueIds, action
   const known = new Set([...drawnClueIds, ...previousRemaining]);
   let remainingClueIds = [
     ...previousRemaining,
-    ...shuffledDiscoveryClueIds(clueIds.filter((id) => !known.has(id)))
+    ...clueIds.filter((id) => !known.has(id))
   ];
   let phase = previous.phase || "idle";
   let scanStartedAt = previous.scanStartedAt || null;
@@ -162,11 +225,95 @@ export function buildDiscoveryStatePayload({ location, existing, clueIds, action
     drawnClueIds,
     remainingClueIds,
     remainingCount: remainingClueIds.length,
+    drawOrder: "sequential",
     scanStartedAt,
     scanReadyAt,
     completedAt,
     updatedAt: now
   });
+}
+
+async function grantDiscoveryClue(client, {
+  roomId,
+  roleSlotId,
+  clueId,
+  locationId,
+  provider
+}) {
+  const clue = provider.find("clues", clueId)
+    || provider.collection("clues").find((candidate) => String(candidate.id) === String(clueId));
+  if (!clue) throwErr("CLUE_NOT_FOUND");
+  await client.query(
+    `INSERT INTO clue_ownership (room_id, role_slot_id, clue_id, metadata)
+     VALUES ($1, $2, $3, jsonb_build_object(
+       'source', 'explore_draw',
+       'locationId', $4::text,
+       'grantMode', 'explore_draw'
+     ))
+     ON CONFLICT (room_id, role_slot_id, clue_id) DO NOTHING`,
+    [roomId, roleSlotId, clueId, String(locationId)]
+  );
+  return clue;
+}
+
+async function listActiveRoomRoleIds(client, roomId) {
+  const result = await client.query(
+    `SELECT role_slot_id
+     FROM room_members
+     WHERE room_id = $1
+       AND role_slot_id IS NOT NULL
+       AND status = 'active'`,
+    [roomId]
+  );
+  return result.rows.map((row) => String(row.role_slot_id));
+}
+
+async function maybePromoteMandatoryPublicClues(client, queueEvent, {
+  roomId,
+  locationId,
+  provider
+}) {
+  const roleIds = await listActiveRoomRoleIds(client, roomId);
+  if (!roleIds.length) return;
+
+  const states = await listRoomExperienceStates(roomId, {
+    stateKind: STATE_KIND,
+    scopeKey: String(locationId)
+  });
+  const completeRoleIds = new Set(
+    states
+      .filter((state) => state.payload?.phase === "complete")
+      .map((state) => String(state.subjectKey))
+  );
+  if (!roleIds.every((roleId) => completeRoleIds.has(roleId))) return;
+
+  const drawnClueIds = [...new Set(states.flatMap((state) => state.payload?.drawnClueIds || []))];
+  const mandatoryIds = drawnClueIds.filter((clueId) => {
+    const clue = provider.find("clues", clueId)
+      || provider.collection("clues").find((candidate) => String(candidate.id) === String(clueId));
+    return clue && clueRequiresMandatoryPublic(clue);
+  });
+  if (!mandatoryIds.length) return;
+
+  const promoted = await client.query(
+    `UPDATE clue_ownership
+     SET shared_with_room = true,
+         shared_with_roles = '{}'::uuid[],
+         shared_at = COALESCE(shared_at, now())
+     WHERE room_id = $1
+       AND clue_id = ANY($2::uuid[])
+       AND shared_with_room = false
+     RETURNING clue_id, role_slot_id`,
+    [roomId, mandatoryIds]
+  );
+  for (const row of promoted.rows) {
+    queueEvent(roomId, "room.clue_granted", {
+      clueId: row.clue_id,
+      roleSlotId: row.role_slot_id,
+      source: "mandatory_public",
+      locationId
+    });
+  }
 }
 
 export async function applyPlayerDiscoveryAction({
@@ -224,6 +371,32 @@ export async function applyPlayerDiscoveryAction({
           actorId
         });
     if (!saved) throwErr("DISCOVERY_VERSION_CONFLICT");
+
+    const drawnClueId = action === "clue_drawn" ? payload.drawnClueIds.at(-1) : null;
+    if (drawnClueId) {
+      const clue = await grantDiscoveryClue(client, {
+        roomId,
+        roleSlotId,
+        clueId: drawnClueId,
+        locationId: context.location.id,
+        provider: context.provider
+      });
+      queueEvent(roomId, "room.clue_granted", {
+        clueId: drawnClueId,
+        roleSlotId,
+        clueName: clue?.name || "",
+        source: "explore_draw",
+        locationId: context.location.id
+      });
+    }
+    if (payload.phase === "complete") {
+      await maybePromoteMandatoryPublicClues(client, queueEvent, {
+        roomId,
+        locationId: context.location.id,
+        provider: context.provider
+      });
+    }
+
     queueEvent(roomId, "room.discovery_updated", {
       locationId: payload.locationId,
       roleSlotId,

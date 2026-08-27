@@ -169,7 +169,7 @@ function hostSessionToolbar(inviteCode) {
       <button type="button" class="secondary-btn" data-action="host-manual-log">主持日志</button>
       <button type="button" class="primary-btn" data-action="create-checkpoint">创建存档点</button>
       <button type="button" class="secondary-btn" data-action="host-create-vote">开启投票</button>
-      <button type="button" class="secondary-btn" data-action="host-manual-unlock-scene">开放场景</button>
+      <button type="button" class="secondary-btn" data-action="host-manual-unlock-scene">开放本幕场景</button>
       <button type="button" class="secondary-btn" data-action="host-nudge-waiting">提醒卡关玩家</button>
       <button type="button" class="secondary-btn" data-action="onboarding-go-player">进入玩家视角</button>
     </div>

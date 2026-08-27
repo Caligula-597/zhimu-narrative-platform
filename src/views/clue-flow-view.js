@@ -415,45 +415,6 @@ export function highlightQuery(text, query) {
     </aside>`;
   }
 
-  export function clueAuditCards(list, data) {
-    const linked = list.filter((clue) => clueHasDiscoveryPath(clue, data)).length;
-    const withText = list.filter((clue) => String(clue.public_text || "").trim()).length;
-    const withRules = list.filter((clue) => (data.edges || []).some((edge) => (edge.from_type === "clue" && edge.from_id === clue.id) || (edge.to_type === "clue" && edge.to_id === clue.id))).length;
-    const keyed = list.filter((clue) => clue?.metadata?.importance === "key").length;
-    const total = list.length || 0;
-    const missingText = list.filter((clue) => !String(clue.public_text || "").trim());
-    const unlinked = list.filter((clue) => !clueHasDiscoveryPath(clue, data));
-    const noRuleLinks = list.filter((clue) => !(data.edges || []).some((edge) => (edge.from_type === "clue" && edge.from_id === clue.id) || (edge.to_type === "clue" && edge.to_id === clue.id)));
-    const nameCounts = list.reduce((acc, clue) => {
-      const key = String(clue.name || "").trim();
-      if (key) acc[key] = (acc[key] || 0) + 1;
-      return acc;
-    }, {});
-    const duplicated = Object.entries(nameCounts).filter(([, count]) => count > 1).map(([name]) => name);
-    const score = total ? Math.round(((withText + linked + withRules) / (total * 3)) * 100) : 0;
-    const cards = [
-      { icon: "文", label: "内容审核", value: `${withText}/${total}`, ok: !missingText.length },
-      { icon: "线", label: "调查关联", value: `${linked}/${total}`, ok: !unlinked.length },
-      { icon: "规", label: "触发关联", value: `${withRules}/${total}`, ok: !noRuleLinks.length },
-      { icon: "测", label: "关键线索", value: `${keyed}/${Math.max(keyed, 1)}`, ok: keyed > 0 }
-    ];
-    const issues = [
-      missingText.length ? { title: "缺少玩家可见正文", detail: missingText.slice(0, 4).map((clue) => clue.name).join("、"), tone: "warn" } : null,
-      unlinked.length ? { title: "未关联调查点", detail: unlinked.slice(0, 4).map((clue) => clue.name).join("、"), tone: "warn" } : null,
-      noRuleLinks.length ? { title: "未接入触发条件或前置线索", detail: noRuleLinks.slice(0, 4).map((clue) => clue.name).join("、"), tone: "warn" } : null,
-      duplicated.length ? { title: "线索名称重复", detail: duplicated.slice(0, 4).join("、"), tone: "danger" } : null,
-      !keyed && total ? { title: "没有标记关键线索", detail: "建议至少标记 1 条用于真相节点或章节推进。", tone: "warn" } : null
-    ].filter(Boolean);
-    const issueRows = issues.length
-      ? issues.map((issue) => `<div class="clue-audit-issue ${issue.tone}"><b>${escapeHtml(issue.title)}</b><p>${escapeHtml(issue.detail)}</p></div>`).join("")
-      : `<div class="clue-audit-issue ok"><b>当前列表无明显审稿问题</b><p>可以进入编排图谱检查章节节奏和真实依赖关系。</p></div>`;
-    return `<section class="clue-audit-report">
-      <div class="section-head"><div><p class="section-kicker">CLUE AUDIT</p><h3>线索审稿报告</h3><p>线索管理负责正文、调查关联、触发条件和证据链检查；完整流程编排仍交给剧情编排图谱。</p></div><div class="clue-audit-score"><strong>${score}%</strong><span>审稿完整度</span></div></div>
-      <div class="clue-audit-grid">${cards.map((card) => `<article class="${card.ok ? "ok" : "warn"}"><span>${card.icon}</span><div><strong>${escapeHtml(card.label)}</strong><p>${escapeHtml(card.value)}</p></div><i>${card.ok ? "✓" : "!"}</i></article>`).join("")}</div>
-      <div class="clue-audit-issues">${issueRows}</div>
-    </section>`;
-  }
-
   export function clueVisibilityChip(clue) {
     const key = clue.visibility === "public" ? "public" : "private";
     return S.chip?.("clue", key, {

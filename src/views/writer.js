@@ -45,6 +45,13 @@ import {
   openReviewWorkspace,
   openSnapshotWorkspace,
   openStoryAssistantWorkspace,
+  warmWriterToolModules,
+  openOpeningPackageWorkspace,
+  nextOpeningPackageStep,
+  backOpeningPackageStep,
+  skipOpeningPackageStep,
+  previewOpeningPackageWorkspace,
+  commitOpeningPackageWorkspace,
   openWorldEngineWorkspace,
   seedWorldEngineWorkspace,
   searchWorldEngineWorkspace,
@@ -270,7 +277,7 @@ export function writer(){
  const isReviewer=membershipRole==="reviewer";
  const statusName={draft:"草稿",testing:"测试中",published:"已发布"};
  const checks=worldStore.get().cloudCreatorChecks||[];
- const quickActions=canEdit?`<div class="row writer-hero-actions"><button class="primary-btn" data-action="world-engine">世界引擎</button><button class="primary-btn" data-action="story-manuscript">完整内容</button><button class="secondary-btn" data-action="story-assistant">结构提取</button><button class="secondary-btn" data-action="creator-import">导入内容</button><button class="secondary-btn" data-action="creator-export">导出备份</button><button class="secondary-btn" data-action="publish-impact-preview">发布影响预览</button><button class="secondary-btn" data-action="creator-check">运行发布检查</button><button class="secondary-btn" data-action="creator-snapshot">＋ 保存创作版本</button></div>`:isReviewer?`<div class="row writer-hero-actions"><button class="primary-btn" data-action="creator-review">打开协作者审稿</button></div>`:`<div class="empty-state">当前身份不开放内容预览。</div>`;
+ const quickActions=canEdit?`<div class="row writer-hero-actions"><button class="primary-btn" data-action="world-engine">世界引擎</button><button class="primary-btn" data-action="story-manuscript">完整内容</button><button class="primary-btn" data-action="opening-package">上传开本包</button><button class="secondary-btn" data-action="story-assistant">结构提取</button><button class="secondary-btn" data-action="creator-import">导入备份</button><button class="secondary-btn" data-action="creator-export">导出备份</button><button class="secondary-btn" data-action="publish-impact-preview">发布影响预览</button><button class="secondary-btn" data-action="creator-check">运行发布检查</button><button class="secondary-btn" data-action="creator-snapshot">＋ 保存创作版本</button></div>`:isReviewer?`<div class="row writer-hero-actions"><button class="primary-btn" data-action="creator-review">打开协作者审稿</button></div>`:`<div class="empty-state">当前身份不开放内容预览。</div>`;
  const archiveMap=archiveMapFromList(worldStore.get().cloudRoleArchives||[]);
  const selectedRoleId=roles.some((role)=>role.id===uiStore.get().writerSelectedRoleId)?uiStore.get().writerSelectedRoleId:roles[0]?.id||null;
  const selectedRole=roles.find((role)=>role.id===selectedRoleId)||null;
@@ -479,8 +486,34 @@ export async function openWorldLogs(){
 
 export function openDocumentParser(){return openDocumentWorkspace()}
 
-export function openStoryAssistant(){
- return openStoryAssistantWorkspace();
+export function openOpeningPackage() {
+  const open = async () => {
+    try {
+      await window.zhimuViewLoader?.ensureViewModules?.("writer");
+      if (uiStore.get().view !== "writer") go("writer");
+      return await openOpeningPackageWorkspace();
+    } catch (error) {
+      console.error("[writer] openOpeningPackage failed", error);
+      showToast(`无法打开开本包向导：${String(error?.message || error).slice(0, 120)}`);
+      return undefined;
+    }
+  };
+  return open();
+}
+
+export function openStoryAssistant() {
+  const open = async () => {
+    try {
+      await window.zhimuViewLoader?.ensureViewModules?.("writer");
+      if (uiStore.get().view !== "writer") go("writer");
+      return await openStoryAssistantWorkspace();
+    } catch (error) {
+      console.error("[writer] openStoryAssistant failed", error);
+      showToast(`无法打开结构提取：${String(error?.message || error).slice(0, 120)}`);
+      return undefined;
+    }
+  };
+  return open();
 }
 
 export function openWorldEngine(){
@@ -499,5 +532,5 @@ export function createCreatorSnapshot(){return openSnapshotWorkspace()}
 export async function restoreCreatorSnapshot(versionId){try{await zhimuApi.restoreContentVersion(versionId);await loadCloudData();showToast("已恢复该版本的正文与发布状态")}catch(error){showError(error)}}
 export async function deleteCreatorSnapshot(versionId){try{await zhimuApi.deleteContentVersion(versionId);await loadCloudData();showToast("创作版本记录已删除")}catch(error){showError(error)}}
 
-export const writerViewApi = { writer, loadWriterRoleArchives, selectWriterRole, createCreatorSnapshot, restoreCreatorSnapshot, deleteCreatorSnapshot, creatorTool, openCreatorSection, closeWriterSectionEditor, saveWriterSectionEditor, deleteWriterSectionEditor, discardWriterSectionDraft, replaceWriterSectionText, formatWriterSectionText, switchWriterSection, bindWriterSectionEditor, bindWriterMetadataEditor, closeWriterMetadataEditor, saveWriterMetadataEditor, deleteWriterRoleEditor, bindWriterToolWorkspace, closeWriterToolWorkspace, saveManuscriptWorkspace, syncManuscriptFromGraphWorkspace, syncManuscriptToGraphWorkspace, analyzeStoryAssistantWorkspace, importStoryAssistantWorkspace, parseDocumentWorkspace, importDocumentWorkspace, nextExportWorkspaceStep, previousExportWorkspaceStep, runExportWorkspace, previewImportWorkspace, runImportWorkspace, saveSnapshotWorkspace, setReviewWorkspaceMode, setReviewFilter, refreshReviewList, createReviewFromWorkspace, replyReviewFromWorkspace, updateReviewStatusFromWorkspace, compareReviewVersions, refreshCollaborationWorkspace, inviteCollaboratorFromWorkspace, saveCollaboratorRoleFromWorkspace, removeCollaboratorFromWorkspace, resendCollaboratorInviteFromWorkspace, revokeCollaboratorInviteFromWorkspace, copyCollaborationInviteLink, dismissCollaborationInviteLink, setWorldLogFilter, applyWorldLogFilters, clearWorldLogFilters, refreshWorldLogs, loadMoreWorldLogs, openCreatorRole, openCreatorChapter, deleteCreatorChapter, runCreatorChecks, openStoryManuscript, openCollaboration, openCreatorReview, openWorldLogs, openDocumentParser, openStoryAssistant, openWorldEngine, seedWorldEngineWorkspace, searchWorldEngineWorkspace, commitWorldEngineWorkspace, lowerWorldEngineWorkspace, searchWorldEngineEpistemicWorkspace, renderWorldEngineWorkspace, openPublishImpactPreview, openCreatorExport, exportCreatorPackage, openCreatorImport, importCreatorPackage };
+export const writerViewApi = { writer, loadWriterRoleArchives, selectWriterRole, createCreatorSnapshot, restoreCreatorSnapshot, deleteCreatorSnapshot, creatorTool, openCreatorSection, closeWriterSectionEditor, saveWriterSectionEditor, deleteWriterSectionEditor, discardWriterSectionDraft, replaceWriterSectionText, formatWriterSectionText, switchWriterSection, bindWriterSectionEditor, bindWriterMetadataEditor, closeWriterMetadataEditor, saveWriterMetadataEditor, deleteWriterRoleEditor, bindWriterToolWorkspace, closeWriterToolWorkspace, warmWriterToolModules, saveManuscriptWorkspace, syncManuscriptFromGraphWorkspace, syncManuscriptToGraphWorkspace, analyzeStoryAssistantWorkspace, importStoryAssistantWorkspace, parseDocumentWorkspace, importDocumentWorkspace, openDocumentWorkspace, nextOpeningPackageStep, backOpeningPackageStep, skipOpeningPackageStep, previewOpeningPackageWorkspace, commitOpeningPackageWorkspace, openOpeningPackage, nextExportWorkspaceStep, previousExportWorkspaceStep, runExportWorkspace, previewImportWorkspace, runImportWorkspace, saveSnapshotWorkspace, setReviewWorkspaceMode, setReviewFilter, refreshReviewList, createReviewFromWorkspace, replyReviewFromWorkspace, updateReviewStatusFromWorkspace, compareReviewVersions, refreshCollaborationWorkspace, inviteCollaboratorFromWorkspace, saveCollaboratorRoleFromWorkspace, removeCollaboratorFromWorkspace, resendCollaboratorInviteFromWorkspace, revokeCollaboratorInviteFromWorkspace, copyCollaborationInviteLink, dismissCollaborationInviteLink, setWorldLogFilter, applyWorldLogFilters, clearWorldLogFilters, refreshWorldLogs, loadMoreWorldLogs, openCreatorRole, openCreatorChapter, deleteCreatorChapter, runCreatorChecks, openStoryManuscript, openCollaboration, openCreatorReview, openWorldLogs, openDocumentParser, openDocumentWorkspace, openStoryAssistant, openWorldEngine, seedWorldEngineWorkspace, searchWorldEngineWorkspace, commitWorldEngineWorkspace, lowerWorldEngineWorkspace, searchWorldEngineEpistemicWorkspace, renderWorldEngineWorkspace, openPublishImpactPreview, openCreatorExport, exportCreatorPackage, openCreatorImport, importCreatorPackage };
 registerView("writer", writerViewApi);

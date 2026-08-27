@@ -5,6 +5,8 @@ import { grantItemToInventory } from "./inventory-helpers.js";
 import { evaluateRoomRulesWithClient } from "./rule-engine.js";
 import { transactionWithEvents } from "./transaction-events.js";
 import { loadRuntimeContentProvider } from "./runtime-content-provider.js";
+import { resolveSectionSegmentKey } from "../../shared/segment-contract.js";
+import { sceneMatchesActUnlock } from "../../shared/host-act-scene-match.js";
 import {
   appendHostContentAudit,
   appendHostContentTimeline,
@@ -503,5 +505,140 @@ export async function unlockSceneFromHost({ roomId, actorId, sceneId }) {
       metadata: { newlyUnlocked }
     });
     return { ok: true };
+  });
+}
+
+function sectionMatchesActUnlock(section, { actKey, sequence }) {
+  if (actKey && String(resolveSectionSegmentKey(section, section.sequence || 1)) === String(actKey)) {
+    return true;
+  }
+  if (sequence != null && Number(section.sequence) === Number(sequence)) return true;
+  return false;
+}
+
+export async function unlockActFromHost({ roomId, actorId, actKey, sequence, message }) {
+  if (!actKey && sequence == null) throwErr("SECTION_NOT_FOUND");
+  return transactionWithEvents(async (client, queueEvent) => {
+    await configureHostContentActionTransaction(client);
+    await assertHostAccess(client, roomId, actorId);
+    const provider = await loadActionContent(client, roomId);
+    const sections = (provider?.collection("sections") || [])
+      .filter((section) => sectionMatchesActUnlock(section, { actKey, sequence }))
+      .filter((section) => Number(section.sequence) !== 1);
+    if (!sections.length) throwErr("SECTION_NOT_FOUND");
+
+    const unlockedSectionIds = [];
+    for (const section of sections) {
+      const newlyUnlocked = await unlockSection(client, {
+        roomId,
+        scriptSectionId: section.id
+      });
+      if (newlyUnlocked) {
+        unlockedSectionIds.push(String(section.id));
+        queueEvent(roomId, "room.section_unlocked", {
+          scriptSectionId: section.id,
+          roleSlotId: section.role_slot_id,
+          source: "host_unlock_act"
+        });
+      }
+    }
+
+    if (unlockedSectionIds.length) {
+      await appendHostContentTimeline(client, {
+        roomId,
+        actorId,
+        eventType: "host_unlock_act",
+        message: message || `主持人开放本幕分幕（全员 ${unlockedSectionIds.length} 段）`,
+        metadata: { actKey: actKey || null, sequence: sequence ?? null, sectionIds: unlockedSectionIds }
+      });
+    }
+    await appendHostContentAudit(client, {
+      roomId,
+      actorId,
+      action: "host_unlock_act",
+      targetType: "script_section",
+      targetId: unlockedSectionIds[0] || null,
+      metadata: {
+        actKey: actKey || null,
+        sequence: sequence ?? null,
+        unlockedCount: unlockedSectionIds.length,
+        sectionIds: unlockedSectionIds
+      }
+    });
+    return { ok: true, unlockedCount: unlockedSectionIds.length, sectionIds: unlockedSectionIds };
+  });
+}
+
+export { sceneMatchesActUnlock } from "../../shared/host-act-scene-match.js";
+
+export async function unlockActScenesFromHost({
+  roomId,
+  actorId,
+  actKey,
+  sequence,
+  chapterId,
+  sceneIds,
+  message
+}) {
+  const hasSceneIds = Array.isArray(sceneIds) && sceneIds.length;
+  if (!hasSceneIds && !actKey && sequence == null && !chapterId) {
+    throwErr("SCENE_NOT_FOUND");
+  }
+  return transactionWithEvents(async (client, queueEvent) => {
+    await configureHostContentActionTransaction(client);
+    await assertHostAccess(client, roomId, actorId);
+    const provider = await loadActionContent(client, roomId);
+    const chapters = provider?.collection("chapters") || [];
+    const allScenes = provider?.collection("scenes") || [];
+    const scenes = hasSceneIds
+      ? sceneIds
+        .map((sceneId) => provider?.find("scenes", sceneId)
+          || allScenes.find((candidate) => String(candidate.id) === String(sceneId)))
+        .filter(Boolean)
+      : allScenes.filter((scene) => sceneMatchesActUnlock(scene, chapters, { actKey, sequence, chapterId }));
+    if (!scenes.length) throwErr("SCENE_NOT_FOUND");
+
+    const unlockedSceneIds = [];
+    for (const scene of scenes) {
+      const newlyUnlocked = await unlockScene(client, { roomId, sceneId: scene.id });
+      if (newlyUnlocked) {
+        unlockedSceneIds.push(String(scene.id));
+        queueEvent(roomId, "room.scene_unlocked", {
+          sceneId: scene.id,
+          sceneName: scene.name,
+          source: "host_unlock_act_scenes"
+        });
+      }
+    }
+
+    if (unlockedSceneIds.length) {
+      await appendHostContentTimeline(client, {
+        roomId,
+        actorId,
+        eventType: "host_unlock_act_scenes",
+        message: message || `主持人开放本幕场景（${unlockedSceneIds.length} 处）`,
+        metadata: {
+          actKey: actKey || null,
+          sequence: sequence ?? null,
+          chapterId: chapterId || null,
+          sceneIds: unlockedSceneIds
+        }
+      });
+    }
+    await appendHostContentAudit(client, {
+      roomId,
+      actorId,
+      action: "host_unlock_act_scenes",
+      targetType: "scene",
+      targetId: unlockedSceneIds[0] || null,
+      metadata: {
+        actKey: actKey || null,
+        sequence: sequence ?? null,
+        chapterId: chapterId || null,
+        unlockedCount: unlockedSceneIds.length,
+        sceneIds: unlockedSceneIds
+      }
+    });
+    return { ok: true, unlockedCount: unlockedSceneIds.length, sceneIds: unlockedSceneIds };
   });
 }

@@ -5,6 +5,10 @@ import { demoContext, request, worldWrite } from "./client.js";
 
 /* ── Documents ── */
 
+export function getImportSource() {
+  return request(`/worlds/${demoContext.worldId}/import-source`, { userId: demoContext.hostUserId });
+}
+
 export function parseDocument(payload) {
   return request(`/worlds/${demoContext.worldId}/documents/parse`, { userId: demoContext.hostUserId, method: "POST", body: payload });
 }
@@ -24,6 +28,19 @@ export function importParsedDocument(payload) {
 
 export function importDocumentPages(payload) {
   return worldWrite(`/worlds/${demoContext.worldId}/documents/import-pages`, { method: "POST", body: payload });
+}
+
+export function previewOpeningPackage(payload) {
+  return request(`/worlds/${demoContext.worldId}/opening-package/preview`, {
+    userId: demoContext.hostUserId,
+    method: "POST",
+    body: payload,
+    timeoutMs: 120_000
+  });
+}
+
+export function commitOpeningPackage(payload) {
+  return worldWrite(`/worlds/${demoContext.worldId}/opening-package/commit`, { method: "POST", body: payload });
 }
 
 /* ── Story manuscript ── */

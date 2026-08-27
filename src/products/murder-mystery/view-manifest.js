@@ -1,7 +1,8 @@
 const creatorWorkspaceModules = [
   () => import("../../runtime/world-revision.js"),
   () => import("../../views/creator-workspaces.js"),
-  () => import("../../runtime/actions-creator-workspaces.js")
+  () => import("../../runtime/actions-creator-workspaces.js"),
+  () => import("../../runtime/actions-writer.js")
 ];
 
 export const MURDER_MYSTERY_VIEW_MODULES = Object.freeze({
@@ -10,11 +11,6 @@ export const MURDER_MYSTERY_VIEW_MODULES = Object.freeze({
     () => import("../../runtime/actions-creator-cockpit.js")
   ],
   overview: [() => import("../../views/overview.js"), ...creatorWorkspaceModules],
-  constitution: [
-    () => import("../../runtime/world-revision.js"),
-    () => import("../../views/creative-constitution.js"),
-    () => import("../../runtime/actions-creative-constitution.js")
-  ],
   diagnostics: [
     () => import("../../views/story-diagnostics.js"),
     () => import("../../runtime/actions-story-diagnostics.js")
@@ -30,10 +26,16 @@ export const MURDER_MYSTERY_VIEW_MODULES = Object.freeze({
   insights: creatorWorkspaceModules,
   writer: [
     () => import("../../views/writer-focus.css"),
+    () => import("../../views/writer-story-assistant-workspace.css"),
+    () => import("../../views/writer-opening-package-workspace.css"),
     () => import("../../runtime/world-revision.js"),
     () => import("../../views/writer.js"),
     () => import("../../runtime/actions-bible.js"),
     () => import("../../runtime/actions-writer.js")
+  ],
+  importSource: [
+    () => import("../../views/import-source-hub.js"),
+    () => import("../../runtime/actions-import-source.js")
   ],
   studio: [
     () => import("../../utils/studio-scene-tree.js"),

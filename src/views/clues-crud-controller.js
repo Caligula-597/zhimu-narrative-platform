@@ -1,3 +1,4 @@
+import { refreshClueAudit } from "./clues-audit.js";
 import * as zhimuApi from "../api/index.js";
 import { showToast } from "../components/toast.js";
 import { loadCloudData } from "../runtime/runtime-facade.js";
@@ -37,6 +38,7 @@ export async function confirmDeleteClue(clueId) {
             if (ui.cluesSelectedId === clueId) uiStore.set({ cluesSelectedId: null });
             closeModal();
             await loadCloudData();
+            void refreshClueAudit({ silent: true });
             showToast("线索已删除");
           } catch (error) {
             showError(error);
@@ -80,6 +82,7 @@ export function batchBindCluePaths() {
           uiStore.set({ cluesBulkSelection: [] });
           closeModal();
           await loadCloudData();
+          void refreshClueAudit({ silent: true });
           showToast(`已更新 ${ids.length} 条线索的玩家发现路径`);
         } catch (error) {
           showError(error);
@@ -107,6 +110,7 @@ export function batchBindCluePaths() {
           if (ui.cluesSelectedId && ids.includes(ui.cluesSelectedId)) uiStore.set({ cluesSelectedId: null });
           closeModal();
           await loadCloudData();
+          void refreshClueAudit({ silent: true });
           showToast(`已删除 ${ids.length} 条线索`);
         } catch (error) {
           showError(error);

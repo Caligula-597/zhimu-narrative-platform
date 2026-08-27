@@ -245,6 +245,14 @@ export function getHandbookDigest(worldId = demoContext.worldId) {
   return request(`/worlds/${worldId}/bible/handbook-digest`, { userId: demoContext.hostUserId });
 }
 
+export function getHandbookManuscript(worldId = demoContext.worldId) {
+  return request(`/worlds/${worldId}/bible/handbook-manuscript`, { userId: demoContext.hostUserId });
+}
+
+export function patchHandbookManuscript(payload, worldId = demoContext.worldId) {
+  return worldWrite(`/worlds/${worldId}/bible/handbook-manuscript`, { worldId, method: "PATCH", body: payload });
+}
+
 export function getBibleEndings(worldId = demoContext.worldId) {
   return request(`/worlds/${worldId}/bible/endings`, { userId: demoContext.hostUserId });
 }
@@ -351,6 +359,10 @@ export function getSegmentCompletion({ roomId, worldId } = {}) {
   });
 }
 
+export function getClueAudit(worldId = demoContext.worldId) {
+  return request(`/worlds/${worldId}/clue-audit`, { userId: demoContext.hostUserId });
+}
+
 export function getClueHitRate({ roomId, worldId } = {}) {
   const params = new URLSearchParams();
   if (roomId) params.set("roomId", roomId);
@@ -358,33 +370,6 @@ export function getClueHitRate({ roomId, worldId } = {}) {
   const wid = worldId || demoContext.worldId;
   return request(`/worlds/${wid}/clue-hit-rate${query ? `?${query}` : ""}`, {
     userId: demoContext.hostUserId
-  });
-}
-
-/* ── Physical tokens ── */
-
-export function listPhysicalTokens(worldId, query = "") {
-  return request(`/worlds/${worldId || demoContext.worldId}/physical-tokens${query ? `?${query}` : ""}`, { userId: demoContext.hostUserId });
-}
-
-export function createPhysicalTokens(payload, worldId = demoContext.worldId) {
-  return worldWrite(`/worlds/${worldId}/physical-tokens`, { worldId, method: "POST", body: payload });
-}
-
-export function revokePhysicalToken(tokenId, worldId = demoContext.worldId) {
-  return worldWrite(`/worlds/${worldId}/physical-tokens/${tokenId}/revoke`, { worldId, method: "POST" });
-}
-
-export function previewPhysicalToken(tokenCode) {
-  return request(`/physical-tokens/${encodeURIComponent(tokenCode)}/preview`);
-}
-
-export function activatePhysicalToken(roomId, payload) {
-  return request(`/rooms/${roomId || demoContext.roomId}/physical-tokens/activate`, {
-    userId: demoContext.playerUserId,
-    method: "POST",
-    body: payload,
-    idempotent: true
   });
 }
 

@@ -243,12 +243,20 @@ export function createHostOperationController({ render, showToast }) {
       case "host-manual-grant-item":
         open(HOST_OPERATION_KINDS.GRANT_ITEM);
         return true;
-      case "host-manual-unlock-section":
-        open(HOST_OPERATION_KINDS.UNLOCK_SECTION, { actKey: element?.dataset?.actKey || "" });
+      case "host-manual-unlock-section": {
+        const actKey = element?.dataset?.actKey || "";
+        if (actKey) {
+          commands.unlockActBatch(actKey);
+          return true;
+        }
+        open(HOST_OPERATION_KINDS.UNLOCK_SECTION, { actKey: "" });
         return true;
-      case "host-manual-unlock-scene":
-        open(HOST_OPERATION_KINDS.UNLOCK_SCENE);
+      }
+      case "host-manual-unlock-scene": {
+        const actKey = element?.dataset?.actKey || "";
+        commands.unlockActScenesBatch(actKey);
         return true;
+      }
       case "host-manual-log":
         open(HOST_OPERATION_KINDS.LOG);
         return true;

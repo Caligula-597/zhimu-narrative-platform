@@ -14,6 +14,7 @@ import {
 } from "../../shared/narrative-profile.js";
 import { ACTIVE_PRODUCT_TYPES, productDomainDefinition } from "../../shared/product-domains/registry.js";
 import { go, loadCloudData, registerRuntime } from "./runtime-facade.js";
+import { callView } from "./view-registry.js";
 
 const PRIMARY_CREATION_TYPES = ACTIVE_PRODUCT_TYPES;
 
@@ -132,8 +133,15 @@ export async function finishWizard() {
     zhimuApi.selectWorld(world.id);
     await loadCloudData(true);
     closeModal();
-    wizardStore.set({ wizardDraft: { worldName: "", creationType: "" } });
+    const postCreateJourney = wizardStore.get().postCreateJourney || "";
+    wizardStore.set({
+      wizardDraft: { worldName: "", creationType: "" },
+      postCreateJourney: ""
+    });
     go(productDomainDefinition(draft.creationType).homeView);
+    if (postCreateJourney === "upload") {
+      void callView("writer", "openOpeningPackage");
+    }
     showToast(`已创建空白${productDomainDefinition(draft.creationType).label}「${draft.worldName}」`);
   } catch (error) {
     creating = false;

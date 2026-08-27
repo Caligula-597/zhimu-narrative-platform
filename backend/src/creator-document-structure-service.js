@@ -4,6 +4,7 @@ import { analyzeNarrativeStructure, normalizeCreationType } from "./document-str
 import {
   defaultMiniGameTemplatesFromHandbook,
   extractHostHandbookDigest,
+  extractHostHandbookManuscript,
   inferClueTriggerCondition
 } from "./document-host-handbook.js";
 import {
@@ -22,6 +23,7 @@ import {
   mergeStructuredImportWorldHandbook,
   upsertStructuredImportCoreTrick
 } from "./repositories/creator-document-structure-repository.js";
+import { upsertImportSourceSnapshot } from "./repositories/creator-document-repository.js";
 
 function lookupKey(value) {
   return String(value ?? "")
@@ -133,6 +135,7 @@ function buildSceneClueLinks({ source, scenes, clues, sceneIdByImportKey, clueId
 
 export async function importStructuredCreatorDocumentWithClient(client, {
   worldId,
+  actorId,
   document,
   creationType,
   rightsConfirmed
@@ -149,6 +152,15 @@ export async function importStructuredCreatorDocumentWithClient(client, {
   if (!await lockStructuredImportWorld(client, worldId)) throwErr("WORLD_NOT_FOUND");
 
   const source = sourceKey(document, normalizedType);
+  const sha256 = source.replace(/^structured-document:sha256:/, "");
+  await upsertImportSourceSnapshot(client, {
+    worldId,
+    actorId,
+    body: text,
+    filename: document?.filename,
+    sourceKey: source,
+    sha256
+  });
   const byType = (type) => structure.candidates.filter((candidate) => candidate.type === type);
   const roleCandidates = byType("role");
   const actCandidates = byType("act");
@@ -277,6 +289,7 @@ export async function importStructuredCreatorDocumentWithClient(client, {
     relationships: relationshipRows
   });
 
+  const handbookManuscript = extractHostHandbookManuscript(text);
   await mergeStructuredImportWorldHandbook(client, {
     worldId,
     hostHandbook: {
@@ -284,6 +297,7 @@ export async function importStructuredCreatorDocumentWithClient(client, {
       flowNotes: handbook.flowNotes,
       endings: handbook.endings,
       alignments: handbook.alignments,
+      manuscript: handbookManuscript,
       importedAt: new Date().toISOString()
     },
     miniGameTemplates: defaultMiniGameTemplatesFromHandbook(text)

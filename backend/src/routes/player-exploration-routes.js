@@ -5,6 +5,7 @@ import {
   readPlayerClue,
   sharePlayerClueWithRoles,
   sharePlayerClueWithRoom,
+  transferPlayerClue,
   updatePlayerClueNote
 } from "../player-exploration-service.js";
 import {
@@ -19,6 +20,7 @@ import {
   cluePlayerNoteSchema,
   clueShareRoomSchema,
   clueShareRolesSchema,
+  clueTransferSchema,
   investigatePointSchema,
   readClueSchema,
   roomIdParams
@@ -104,6 +106,22 @@ export async function registerPlayerExplorationRoutes(app) {
         roleSlotId: membership.role_slot_id,
         actorId,
         roleSlotIds
+      })
+    );
+  });
+
+  app.post("/api/rooms/:roomId/clues/:clueId/transfer", { schema: clueTransferSchema }, async (request) => {
+    const actorId = requireActor(request);
+    const { roomId, clueId } = request.params;
+    const membership = await requirePlayerMembership(actorId, roomId);
+    const { targetRoleSlotId } = request.body;
+    return withRoomIdempotency(roomId, request, "clues.transfer", () =>
+      transferPlayerClue({
+        roomId,
+        clueId,
+        roleSlotId: membership.role_slot_id,
+        actorId,
+        targetRoleSlotId
       })
     );
   });

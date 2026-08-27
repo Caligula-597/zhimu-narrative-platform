@@ -96,6 +96,7 @@ export const state = {
   modal: null,
   modalDraft: "",
   clueShareRoles: [],
+  clueTransferTargetRoleSlotId: "",
   voiceRoomId: "",
   voiceRoomName: "",
   voiceMessages: [],

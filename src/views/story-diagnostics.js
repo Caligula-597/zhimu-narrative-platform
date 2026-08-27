@@ -19,7 +19,6 @@ export const STORY_DIAGNOSTIC_STANDARD_OPTIONS = [
 ];
 
 const CATEGORY_META = {
-  intent: { label: "创作意图", icon: "北", description: "体验承诺、项目护栏与角色高光" },
   causal: { label: "因果链", icon: "因", description: "事件前因、后果与可删除性" },
   information: { label: "信息链", icon: "知", description: "获得路径、角色知识与交流依赖" },
   fairness: { label: "公平推理", icon: "证", description: "真相证据、揭晓时机与关键线索" }
@@ -117,37 +116,6 @@ function renderIssues(report) {
     <div class="diagnostic-section-title"><div><p class="section-kicker">PRIORITY FINDINGS</p><h2>优先处理</h2></div>
       <p>每条结论都附带创作对象引用；点击对象可回到编辑器定位。</p></div>
     <div class="diagnostic-issue-columns">${groups.join("")}</div>
-  </section>`;
-}
-
-function renderConstitution(report) {
-  const constitution = report.constitution || {};
-  const issues = (report.issues || []).filter((issue) => issue.category === "intent");
-  const missing = constitution.missing || [];
-  const configured = Boolean(constitution.configured);
-  return `<section class="diagnostic-constitution ${configured ? "configured" : "empty"}">
-    <div class="diagnostic-constitution-score" style="--score:${Number(constitution.score) || 0}">
-      <strong>${Number(constitution.score) || 0}</strong><span>%</span>
-    </div>
-    <div class="diagnostic-constitution-copy">
-      <p class="section-kicker">CREATIVE CONSTITUTION</p>
-      <h2>${configured ? escapeHtml(constitution.theme || "创作宪法已接入诊断") : "先定义作品想成为什么"}</h2>
-      <p>${configured
-        ? escapeHtml(constitution.experiencePromise || "已保存创作约束；继续补齐体验承诺可提高诊断针对性。")
-        : "当前只能使用通用类型标准。写下体验承诺、不可破坏原则和角色高光后，诊断才知道什么不能被牺牲。"}</p>
-      <div class="diagnostic-constitution-meta">
-        <span>${constitution.filled || 0} / ${constitution.total || 0} 项约束</span>
-        <span>${constitution.roleHighlights?.filled || 0} / ${constitution.roleHighlights?.total || 0} 角色高光</span>
-        <span>证据下限 ${constitution.minimumEvidence || report.standard.minEvidence || 1} 条</span>
-        ${constitution.requireIndependentPaths ? "<span>要求独立获得路径</span>" : ""}
-      </div>
-      ${missing.length ? `<small>待补：${missing.slice(0, 5).map((item) => escapeHtml(item.label)).join("、")}</small>` : ""}
-    </div>
-    <div class="diagnostic-constitution-action">
-      <button type="button" class="secondary-btn" data-action="diagnostics-open-ref"
-        data-ref-type="constitution" data-ref-id="creative-constitution">${configured ? "完善创作宪法" : "建立创作宪法"} →</button>
-    </div>
-    ${issues.length ? `<div class="diagnostic-constitution-issues">${issues.slice(0, 3).map(issueCard).join("")}</div>` : ""}
   </section>`;
 }
 
@@ -255,7 +223,7 @@ function fairnessRow(claim) {
 
 function renderFairness(report) {
   const claims = report.fairness?.claims || [];
-  const evidenceSource = report.standard?.constitutionOverride ? "创作宪法" : `「${report.standard.label}」`;
+  const evidenceSource = `「${report.standard.label}」`;
   return `<section class="diagnostic-section card">
     <div class="section-head"><div><p class="section-kicker">FAIRNESS</p><h2>真相可推理性</h2>
       <p>${escapeHtml(evidenceSource)}要求每条核心结论至少 ${report.fairness?.minimumEvidence || 1} 条显式证据。</p></div>
@@ -334,7 +302,6 @@ export function storyDiagnostics() {
         <div class="diagnostic-hero-meta">
           <span>${report.scope.events} 个事件</span><span>${report.scope.clues} 条线索</span>
           <span>${report.scope.truthClaims} 条真相</span><span>${report.scope.roles} 个角色</span>
-          <span>宪法 ${report.constitution?.score || 0}%</span>
           <span>更新于 ${escapeHtml(generated)}</span>
         </div>
       </div>
@@ -344,7 +311,6 @@ export function storyDiagnostics() {
       </div>
     </header>
     <div class="diagnostic-standard-bar"><span>评价标准</span>${standardButtons(activeStandard)}</div>
-    ${renderConstitution(report)}
     <section class="diagnostic-summary-grid">
       ${scoreCard("causal", "因果链", report.scores.causal, `${report.causal.orphanEvents.length} 个缺前因事件 · ${report.causal.removableCandidates.length} 个低影响候选`)}
       ${scoreCard("information", "信息链", report.scores.information, `${report.information.unreachableClues.length} 条不可达 · ${report.information.singlePointClues.length} 个单点线索`)}

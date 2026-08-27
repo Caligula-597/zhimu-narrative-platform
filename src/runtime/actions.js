@@ -8,7 +8,6 @@ import { handleShellAction } from "./actions-shell.js";
 const enhanceCloudPanels = () => callRuntime("enhanceCloudPanels");
 
 const dispatchers = [
-  () => window.zhimuActionsCreativeConstitution?.handleCreativeConstitutionAction,
   () => window.zhimuActionsStoryDiagnostics?.handleStoryDiagnosticsAction,
   () => window.zhimuActionsAiPlaytest?.handleAiPlaytestAction,
   () => window.zhimuActionsCreatorCockpit?.handleCreatorCockpitAction,
@@ -24,7 +23,8 @@ const dispatchers = [
   () => window.zhimuActionsBoardGame?.handleBoardGameAction,
   () => window.zhimuActionsAssets?.handleAssetsAction,
   () => window.zhimuActionsOps?.handleOpsAction,
-  () => window.zhimuActionsClues?.handleCluesAction
+  () => window.zhimuActionsClues?.handleCluesAction,
+  () => window.zhimuActionsImportSource?.handleImportSourceAction
 ];
 
 export function bindDynamic() {
@@ -37,6 +37,7 @@ export function bindDynamic() {
   if (view === "clues") {
     callView("clues", "bindCluesSearch");
     callView("clues", "bindClueEditor");
+    void callView("clues", "refreshClueAudit", { silent: true });
   }
   if (view === "miniGames") callView("miniGames", "bindMiniGameEditor");
   if (view === "tabletopMap") callView("tabletopMap", "bindTabletopMapEditor");
@@ -45,10 +46,10 @@ export function bindDynamic() {
   if (view === "rooms") callView("rooms", "bindRoomWorkspace");
   if (view === "account") callView("accountHub", "bindAccountHubView");
   if (view === "structure") callView("creatorWorkspaces", "bindSegmentRefTypeSelect");
-  if (view === "constitution") callView("creativeConstitution", "bindCreativeConstitutionForm");
   if (view === "playtest") callView("aiPlaytestLab", "bindAiPlaytestForm");
   if (view === "writer") {
     void callView("writer", "loadWriterRoleArchives");
+    callView("writer", "warmWriterToolModules");
     callView("writer", "bindWriterSectionEditor");
     callView("writer", "bindWriterMetadataEditor");
     callView("writer", "bindWriterToolWorkspace");

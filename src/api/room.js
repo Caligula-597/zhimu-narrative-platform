@@ -55,12 +55,6 @@ export function getCreatorRoomCurrentState(worldId, roomId) {
   });
 }
 
-export function getCreatorRoleKnowledge(worldId, roomId, roleSlotId) {
-  return request(`/worlds/${worldId}/rooms/${roomId}/knowledge/${roleSlotId}`, {
-    userId: demoContext.hostUserId
-  });
-}
-
 export function patchRoomSettings(settings, roomId = demoContext.roomId) {
   return request(`/rooms/${roomId}/settings`, { userId: demoContext.hostUserId, method: "PATCH", body: { settings } });
 }

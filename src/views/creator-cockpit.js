@@ -364,7 +364,9 @@ export function creatorCockpit() {
   }
   const dash = ctx.dashboard;
   const worldName = studio?.world?.name || "当前剧本";
+  const journeyBanner = window.zhimuCreatorJourney?.renderCockpitBanner?.() || "";
   return `<section class="creator-cockpit">
+    ${journeyBanner}
     <header class="cockpit-hero">
       <div>
         <p class="eyebrow">CREATOR COCKPIT · ${escapeHtml(worldName)}</p>

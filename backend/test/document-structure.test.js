@@ -192,8 +192,10 @@ test("exploration map becomes scenes only; clues come from card/handbook text", 
 });
 
 test("host handbook digest extracts killers endings and default mini-games", async () => {
-  const { extractHostHandbookDigest, defaultMiniGameTemplatesFromHandbook } = await import("../src/document-host-handbook.js");
+  const { extractHostHandbookDigest, extractHostHandbookManuscript, defaultMiniGameTemplatesFromHandbook } = await import("../src/document-host-handbook.js");
   const digest = extractHostHandbookDigest(QINGLOU_HANDBOOK_EXCERPT + "\n灵石结局：真凶伏法，玉满楼重开。\n");
+  const manuscript = extractHostHandbookManuscript(QINGLOU_HANDBOOK_EXCERPT);
+  assert.ok(manuscript.length >= 80);
   assert.ok(digest.alignments.some((item) => item.name === "姜红儿" && item.alignment === "killer"));
   assert.ok(digest.endings.length >= 1);
   assert.match(digest.coreTrickDraft.summary, /凶手/);

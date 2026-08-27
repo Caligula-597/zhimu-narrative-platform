@@ -15,7 +15,6 @@ import {
   renderSegmentCompletionEmbed,
 } from "./creator-cockpit-insights.js";
 import { renderTimelineSwimlane } from "./creator-cockpit-timeline.js";
-import { creativeConstitutionCoverage } from "../../shared/creative-constitution.js";
 
 export function linkButton(link, className = "secondary-btn compact") {
   if (!link) return "";
@@ -121,27 +120,6 @@ export function renderConceptCanvas(ctx, cockpit, findItemLink) {
     cockpit.activeItem === "spark"
   ) {
     return renderInspirationWall(cockpit);
-  }
-  if (cockpit.activeCanvas === "constitution") {
-    const coverage = creativeConstitutionCoverage(
-      ctx.studio?.world?.settings?.creativeConstitution,
-      ctx.studio?.roles || [],
-    );
-    return `<section class="cockpit-panel">
-      <div class="panel-heading"><div><p>创作宪法</p><h3>${coverage.score}% · ${coverage.filled}/${coverage.total} 项约束已写明</h3></div>
-        ${linkButton({ view: "constitution", label: "打开创作宪法" })}</div>
-      <div class="constitution-cockpit-summary">
-        <strong>${coverage.missing.length ? "先把作者意图变成可检查的约束" : "核心创作约束已经齐备"}</strong>
-        <p>${
-          coverage.missing.length
-            ? `待补：${coverage.missing
-                .slice(0, 5)
-                .map((item) => escapeHtml(item.label))
-                .join("、")}`
-            : "作品诊断将使用你的体验承诺、证据下限和角色高光要求。"
-        }</p>
-      </div>
-    </section>`;
   }
   if (cockpit.activeCanvas === "selling") {
     return `<section class="cockpit-panel">
@@ -341,10 +319,14 @@ export function renderManuscriptCanvas(ctx, cockpit) {
       <div class="row">${linkButton({ action: "creator-import", label: "导入内容包" }, "secondary-btn")}${linkButton({ action: "creator-export", label: "导出备份" }, "primary-btn")}</div></section>`;
   }
   return `<section class="cockpit-panel"><div class="panel-heading"><div><p>内容生产</p><h3>${counts.sections || 0} 分幕 · ${counts.chapters || 0} 章节</h3></div></div>
+    <p class="muted-note">两条入口：空白世界从要点补齐；已有完整稿件走上传拆稿。</p>
     <div class="workspace-action-grid" style="margin-top:12px">
-      <button type="button" class="workspace-action-card primary" data-action="story-manuscript"><strong>完整剧情</strong><span>母稿与章节总览</span></button>
+      <button type="button" class="workspace-action-card primary" data-action="cockpit-open-document-import"><strong>上传开本包</strong><span>主持手册 · 角色本 · 线索文字 · 线索图</span></button>
+      <button type="button" class="workspace-action-card" data-action="cockpit-open-mechanism-workbench"><strong>从要点补齐</strong><span>机制与世界引擎填空</span></button>
+      <button type="button" class="workspace-action-card" data-go="importSource"><strong>来源稿与拆稿</strong><span>快照 + 模块导航</span></button>
+      <button type="button" class="workspace-action-card" data-go="truth"><strong>主持手册</strong><span>全文 / 结局 / 关系</span></button>
       <button type="button" class="workspace-action-card" data-go="writer"><strong>角色私人剧本</strong><span>Markdown 分幕</span></button>
-      <button type="button" class="workspace-action-card" data-action="creator-import"><strong>导入内容包</strong><span>Word / Markdown</span></button>
+      <button type="button" class="workspace-action-card" data-action="story-manuscript"><strong>完整剧情母稿</strong><span>母稿与编排同步</span></button>
     </div></section>`;
 }
 

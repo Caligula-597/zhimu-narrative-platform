@@ -26,7 +26,6 @@ test("lazy Creator views own their feature CSS", async () => {
   const creatorStyles = await read("styles.css");
   const views = [
     ["story-diagnostics", ".diagnostic-page"],
-    ["creative-constitution", ".constitution-page"],
     ["ai-playtest-lab", ".ai-playtest-page"]
   ];
 

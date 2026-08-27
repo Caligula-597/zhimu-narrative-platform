@@ -22,15 +22,7 @@ function fixtureSnapshot() {
     world: {
       id: "33333333-3333-4333-8333-333333333333",
       name: "错序之夜",
-      summary: "玩家必须重建停摆时钟背后的时间线。",
-      settings: {
-        creativeConstitution: {
-          theme: "错误时间顺序如何制造偏见",
-          experiencePromise: "终局前意识到大家一直按错误顺序理解案件。",
-          inviolablePrinciples: ["真相揭晓前必须出现三条证据。"],
-          fairness: { minimumEvidence: 3, requireIndependentPaths: true }
-        }
-      }
+      summary: "玩家必须重建停摆时钟背后的时间线。"
     },
     roles: [roleA, roleB],
     chapters: [
@@ -177,7 +169,6 @@ test("multi-agent playtest runs isolated players before observer synthesis", asy
   assert.equal(report.issues.length, 1);
   assert.equal(report.issues[0].refs[0].id, "clue-public");
   assert.equal(report.score, 76);
-  assert.equal(report.constitutionConfigured, true);
   assert.equal(report.summaryCounts.warning, 1);
 });
 

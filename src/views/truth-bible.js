@@ -14,6 +14,7 @@ const showError = (error, fallback = "操作失败") => showToast(normalizeError
 
 const TABS = [
   { id: "digest", label: "主持手册汇总" },
+  { id: "handbook-manuscript", label: "主持手册全文" },
   { id: "claims", label: "核心事实" },
   { id: "core-trick", label: "核心谜底" },
   { id: "endings", label: "结局导向" },
@@ -93,12 +94,18 @@ function renderTimelinePanel(events) {
     </div></article>`;
 }
 
-function renderForeshadowPanel(beats) {
+function renderForeshadowPanel(beats, clues = [], sections = []) {
+  const clueOptions = clues.map((c) => `<option value="${escapeHtml(c.id)}">${escapeHtml(c.name)}</option>`).join("");
+  const sectionOptions = sections.slice(0, 80).map((s) =>
+    `<option value="${escapeHtml(s.id)}">${escapeHtml(s.title || s.id)}</option>`
+  ).join("");
   const rows = beats?.length
     ? beats.map((b) => `<article class="host-current-item" data-beat-id="${escapeHtml(b.id)}">
         <strong>${escapeHtml(b.title || "伏笔")}</strong>
         <p>埋：${escapeHtml(b.plantSummary || "—")}</p>
         <p>收：${escapeHtml(b.payoffSummary || "—")}</p>
+        ${b.clueId ? `<p class="muted-note">关联线索 ID：${escapeHtml(b.clueId)}</p>` : ""}
+        ${b.plantSectionId ? `<p class="muted-note">埋设分幕 ID：${escapeHtml(b.plantSectionId)}</p>` : ""}
         <button type="button" class="text-btn danger-text" data-action="delete-foreshadow-beat" data-beat-id="${escapeHtml(b.id)}">删除</button></article>`).join("")
     : `<div class="empty-state">尚无伏笔卡片。</div>`;
   return `<article class="card">
@@ -111,6 +118,8 @@ function renderForeshadowPanel(beats) {
       <textarea class="field" data-foreshadow-field="surfaceMeaning" rows="2" placeholder="表面含义"></textarea>
       <textarea class="field" data-foreshadow-field="trueMeaning" rows="2" placeholder="真实含义"></textarea>
       <textarea class="field" data-foreshadow-field="payoffSummary" rows="2" placeholder="回收说明"></textarea>
+      <select class="field" data-foreshadow-field="clueId" aria-label="关联线索"><option value="">不关联线索</option>${clueOptions}</select>
+      <select class="field" data-foreshadow-field="plantSectionId" aria-label="埋设分幕"><option value="">不关联分幕</option>${sectionOptions}</select>
       <button type="button" class="primary-btn" data-action="add-foreshadow-beat">添加伏笔</button>
     </div></article>`;
 }
@@ -149,6 +158,17 @@ function renderMaterialsPanel(booklets, roles) {
       <textarea class="field" data-material-field="pageBody" rows="4" placeholder="首页正文（可先写一页，之后再扩页）"></textarea>
       <button type="button" class="primary-btn" data-action="add-material-booklet">添加物料册</button>
     </div></article>`;
+}
+
+function renderHandbookManuscriptPanel(manuscript = "") {
+  return `<article class="card truth-handbook-manuscript-panel">
+    <div class="section-head"><div><h3>主持手册全文</h3>
+      <p>完整组织者手册正文，导入时机械提取；主持端可读全文，分幕控场仍走运行段落。</p></div>
+      <button type="button" class="primary-btn" data-action="save-handbook-manuscript">保存全文</button></div>
+    <div class="assistant-guide"><b>当前作用</b><span>写入 settings.hostHandbook.manuscript；与「主持手册汇总」串联视图互补，不替代 Segment 薄 runbook。</span></div>
+    <label class="cockpit-field"><span>手册正文</span>
+      <textarea class="field" data-handbook-field="manuscript" rows="22">${escapeHtml(manuscript || "")}</textarea></label>
+  </article>`;
 }
 
 function renderDigestPanel(digest) {
@@ -246,11 +266,12 @@ export function renderTruthBiblePage() {
   const roles = studio?.roles || [];
   let body = "";
   if (tab === "digest") body = renderDigestPanel(ws.cloudHandbookDigest);
+  else if (tab === "handbook-manuscript") body = renderHandbookManuscriptPanel(ws.cloudHandbookManuscript);
   else if (tab === "claims") body = renderClaimsPanel(ws.cloudTruthClaims);
   else if (tab === "core-trick") body = renderCoreTrickPanel(ws.cloudCoreTrick, roles);
   else if (tab === "endings") body = renderEndingsPanel(ws.cloudBibleEndings, ws.cloudBibleFlowNotes);
   else if (tab === "timeline") body = renderTimelinePanel(ws.cloudTimelineEvents);
-  else if (tab === "foreshadow") body = renderForeshadowPanel(ws.cloudForeshadowBeats);
+  else if (tab === "foreshadow") body = renderForeshadowPanel(ws.cloudForeshadowBeats, studio?.clues || [], studio?.sections || []);
   else if (tab === "materials") body = renderMaterialsPanel(ws.cloudMaterialBooklets, roles);
   else body = renderRelationsPanel(roles, ws.cloudRoleRelationships);
 
@@ -276,6 +297,9 @@ export async function loadTruthBibleTab(tab) {
         cloudBibleEndings: digest?.endings || [],
         cloudBibleFlowNotes: digest?.flowNotes || []
       });
+    } else if (tab === "handbook-manuscript") {
+      const payload = await zhimuApi.getHandbookManuscript(worldId);
+      worldStore.set({ cloudHandbookManuscript: payload?.manuscript || "" });
     } else if (tab === "claims" || tab === "relations") {
       const [claimsPayload, relPayload] = await Promise.all([
         zhimuApi.getTruthClaims(worldId),

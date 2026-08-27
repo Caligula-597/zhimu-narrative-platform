@@ -153,48 +153,6 @@ export interface UpdateWorldBody {
       materialChangeDate?: string;
       filingUpdatedDate?: string;
     };
-    creativeConstitution?: {
-      version: 1;
-      theme: string;
-      intendedEmotion: string;
-      experiencePromise: string;
-      revealEmotion: string;
-      /**
-       * @maxItems 20
-       */
-      inviolablePrinciples: string[];
-      /**
-       * @maxItems 20
-       */
-      fairPuzzlePromises: string[];
-      /**
-       * @maxItems 20
-       */
-      pacingPrinciples: string[];
-      /**
-       * @maxItems 20
-       */
-      voicePrinciples: string[];
-      /**
-       * @maxItems 20
-       */
-      forbiddenTropes: string[];
-      supernaturalPolicy: "forbidden" | "ambiguous" | "allowed";
-      supernaturalRules: string;
-      desiredDebates: string;
-      avoidMisunderstandings: string;
-      /**
-       * @maxItems 60
-       */
-      roleHighlights: {
-        roleId: string;
-        promise: string;
-      }[];
-      fairness: {
-        minimumEvidence: number;
-        requireIndependentPaths: boolean;
-      };
-    };
     mechanismDesign?: {
       version: 1;
       interactionKind:
@@ -556,48 +514,6 @@ export interface CreateWorldBody {
       selfReviewNotes?: string;
       materialChangeDate?: string;
       filingUpdatedDate?: string;
-    };
-    creativeConstitution?: {
-      version: 1;
-      theme: string;
-      intendedEmotion: string;
-      experiencePromise: string;
-      revealEmotion: string;
-      /**
-       * @maxItems 20
-       */
-      inviolablePrinciples: string[];
-      /**
-       * @maxItems 20
-       */
-      fairPuzzlePromises: string[];
-      /**
-       * @maxItems 20
-       */
-      pacingPrinciples: string[];
-      /**
-       * @maxItems 20
-       */
-      voicePrinciples: string[];
-      /**
-       * @maxItems 20
-       */
-      forbiddenTropes: string[];
-      supernaturalPolicy: "forbidden" | "ambiguous" | "allowed";
-      supernaturalRules: string;
-      desiredDebates: string;
-      avoidMisunderstandings: string;
-      /**
-       * @maxItems 60
-       */
-      roleHighlights: {
-        roleId: string;
-        promise: string;
-      }[];
-      fairness: {
-        minimumEvidence: number;
-        requireIndependentPaths: boolean;
-      };
     };
     mechanismDesign?: {
       version: 1;

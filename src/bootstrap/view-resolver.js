@@ -4,7 +4,6 @@ import { productToolCapabilities, productToolLabel } from "../../shared/product-
 
 const viewMeta = {
   creatorCockpit: ["创作驾驶舱", "创作驾驶舱"],
-  constitution: ["创作意图", "创作宪法"],
   diagnostics: ["作品诊断", "作品诊断中心"],
   playtest: ["体验验证", "AI 玩家试跑实验室"],
   overview: ["项目总控", "项目总控"],
@@ -14,6 +13,7 @@ const viewMeta = {
   publish: ["测试与发布", "测试与发布"],
   insights: ["复盘改本", "复盘改本"],
   writer: ["剧本杀创作", "角色私人剧本"],
+  importSource: ["剧本杀创作", "来源稿与拆稿"],
   studio: ["内容创作", "剧情编排图谱"],
   tabletopMap: ["空间与结局", "跑团地图设计"],
   boardGame: ["桌游创作", "桌游创作中心"],
@@ -41,7 +41,6 @@ export function getViewMeta(view, creationType) {
 export function resolveViewFn(view) {
   switch (view) {
     case "creatorCockpit": return getView("creatorCockpit").creatorCockpit;
-    case "constitution": return getView("creativeConstitution").creativeConstitution;
     case "diagnostics": return getView("storyDiagnostics").storyDiagnostics;
     case "playtest": return getView("aiPlaytestLab").aiPlaytestLab;
     case "overview": return getView("overview").overview;
@@ -51,6 +50,7 @@ export function resolveViewFn(view) {
     case "publish": return getView("creatorWorkspaces").publishLab;
     case "insights": return getView("creatorWorkspaces").insights;
     case "writer": return getView("writer").writer;
+    case "importSource": return getView("importSource").importSource;
     case "studio": return getView("studio").studioCloud;
     case "tabletopMap": return getView("tabletopMap").tabletopMap;
     case "boardGame": return getView("boardGame").boardGame;

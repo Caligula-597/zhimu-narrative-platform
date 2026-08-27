@@ -3,7 +3,7 @@ import { canEditWorldContent } from "../components/emptyState.js";
 import { renderWorkspaceEditor, setWorkspaceSaving } from "../components/workspace-editor.js";
 import { showToast } from "../components/toast.js";
 import { normalizeError } from "../components/status-ui.js";
-import { loadCloudData, render } from "../runtime/runtime-facade.js";
+import { loadCloudData, render, go } from "../runtime/runtime-facade.js";
 import { studioStore } from "../state/index.js";
 import { escapeHtml } from "../utils/format.js";
 import { creatorTerms } from "../../shared/creator-terminology.js";
@@ -75,6 +75,18 @@ function proseDiagnosticsHtml(report) {
   return `<section class="prose-diagnostics ${reviewRequired ? "needs-review" : "observed"}"><div class="section-head"><div><p class="section-kicker">上传稿件 · 可解释文本诊断</p><h4>硬边界与 Narrative Rhythm / 叙事呼吸</h4><p>只展示原文证据和统计分布，不计算文学分数。</p></div><span class="cloud-pill">${reviewLabel}</span></div>${reviewReason}<div class="proposal-stats">${stats}</div>${issueRows ? `<div class="revision-list"><h4>硬边界与可定位问题</h4>${issueRows}</div>` : ""}${rhythmRows ? `<div class="revision-list"><h4>Narrative Rhythm / 叙事呼吸</h4>${rhythmRows}</div>` : `<p class="muted-note">当前样本未触发已登记的统计异常；这不等于系统对文学质量作出通过判断。</p>`}<p class="muted-note">${escapeHtml(report.disclaimer || "")}</p></section>`;
 }
 
+function aiDocumentReviewHtml(review) {
+  if (!review) return "";
+  const decisionLabel =
+    review.decision === "reject" ? "不建议导入" : review.decision === "review_required" ? "建议人工复核" : "通过";
+  const tone = review.decision === "reject" ? "needs-review" : review.decision === "review_required" ? "observed" : "";
+  return `<section class="prose-diagnostics ai-document-review ${tone}">
+    <div class="section-head"><div><p class="section-kicker">稿件质检 · ${escapeHtml(review.mode || "heuristic")}</p><h4>${escapeHtml(decisionLabel)}</h4></div></div>
+    ${review.feedback ? `<p>${escapeHtml(review.feedback)}</p>` : ""}
+    ${review.reason ? `<p class="muted-note">${escapeHtml(review.reason)}</p>` : ""}
+  </section>`;
+}
+
 function documentPreviewHtml(parsed, creationType) {
   if (!parsed) return `<div class="writer-tool-empty-preview"><strong>等待解析</strong><p>解析结果会先显示在这里；复核结构、分段和警告后才能导入。</p></div>`;
   const warnings = (parsed.warnings || []).map((warning) => `<p class="tutorial-tip"><span>${escapeHtml(warning)}</span></p>`).join("");
@@ -125,7 +137,7 @@ function documentPreviewHtml(parsed, creationType) {
     ? `<section class="document-structure-preview"><h4>结构分组 · ${escapeHtml(structureSummary)}</h4>${listBlock("角色", roles)}${listBlock("章节 / 分幕", acts)}${listBlock("角色分幕正文", roleActs)}${listBlock("场景", scenes)}${listBlock("线索", clues)}${listBlock("秘密", secrets)}${listBlock("其他", other)}</section>`
     : "";
   const summary = parsed.contentMode === "pages" ? `${Number(parsed.pageCount || 0)} 页图片分幕` : `${Number(parsed.characterCount || 0)} 字符 · ${Number(parsed.sectionCount || 0)} 个分段`;
-  return `<section class="assistant-preview document-workspace-preview"><div class="section-head"><div><h3>${escapeHtml(parsed.filename || "解析结果")}</h3><p>${summary}${modeLabel ? ` · ${escapeHtml(modeLabel)}` : ""}</p></div><span class="cloud-pill">仅预览</span></div>${warnings}${gatePlanHtml}${proseDiagnosticsHtml(parsed.proseDiagnostics)}${structurePreview}${previewImage}<div class="document-section-preview">${sections}</div></section>`;
+  return `<section class="assistant-preview document-workspace-preview"><div class="section-head"><div><h3>${escapeHtml(parsed.filename || "解析结果")}</h3><p>${summary}${modeLabel ? ` · ${escapeHtml(modeLabel)}` : ""}</p></div><span class="cloud-pill">仅预览</span></div>${warnings}${gatePlanHtml}${aiDocumentReviewHtml(parsed.aiDocumentReview)}${proseDiagnosticsHtml(parsed.proseDiagnostics)}${structurePreview}${previewImage}<div class="document-section-preview">${sections}</div></section>`;
 }
 
 function canImportDocument(session) {
@@ -362,6 +374,7 @@ export async function importDocumentWorkspace() {
   session.error = "";
   render();
   let committedMessage = "";
+  let openImportSourceHub = false;
   try {
     const target = session.draft.target;
     if (session.parsed.contentMode === "pages") {
@@ -389,12 +402,14 @@ export async function importDocumentWorkspace() {
       });
       const created = Object.values(result.created || {}).reduce((sum, count) => sum + Number(count || 0), 0);
       committedMessage = resolvedTarget === "structured" ? `结构化草稿已导入：${created} 项写入` : "文档内容已写入云端";
+      if (resolvedTarget === "structured") openImportSourceHub = true;
     }
     if (!writerToolSessionIsCurrent(session)) return;
     clearWriterToolSession(session);
     try {
       await loadCloudData();
       showToast(committedMessage);
+      if (openImportSourceHub) go("importSource");
     } catch {
       showToast(`${committedMessage}；页面刷新失败，请手动刷新，切勿重复导入`);
     }

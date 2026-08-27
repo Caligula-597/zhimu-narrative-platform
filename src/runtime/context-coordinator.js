@@ -27,7 +27,10 @@ import { invalidateStudioSnapshot } from "./studio-loader.js";
       cloudCreatorDashboard: null,
       cloudWorkspacePreview: null,
       cloudWorldLogs: [],
-      cloudWorldReleases: null
+      cloudWorldReleases: null,
+      cloudClueAudit: null,
+      cloudClueAuditLoading: false,
+      cloudClueAuditError: ""
     });
     roomStore.set({
       cloudHost: [],

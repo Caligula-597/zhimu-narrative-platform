@@ -35,6 +35,7 @@ import {
 } from "../creator-bible.js";
 import { loadHandbookDigest } from "../creator-handbook-digest.js";
 import { sendErr, throwErr } from "../api-errors.js";
+import { query } from "../db.js";
 import { requireActor } from "../request-actor.js";
 import { requireWorldRole, WORLD_CREATOR_READER_ROLES } from "./route-guards.js";
 import { runRevisionMutation } from "../world-revision.js";
@@ -55,6 +56,61 @@ import {
 } from "./schemas.js";
 
 export async function registerCreatorBibleRoutes(app) {
+  app.get("/api/worlds/:worldId/bible/handbook-manuscript", { schema: { params: worldIdParams } }, async (request) => {
+    const actorId = requireActor(request);
+    const { worldId } = request.params;
+    await requireWorldRole(actorId, worldId, WORLD_CREATOR_READER_ROLES);
+    const result = await query(`SELECT settings FROM worlds WHERE id = $1`, [worldId]);
+    if (!result.rowCount) throwErr("WORLD_NOT_FOUND");
+    const hostHandbook = result.rows[0].settings?.hostHandbook || {};
+    return {
+      manuscript: String(hostHandbook.manuscript || ""),
+      flowNotes: Array.isArray(hostHandbook.flowNotes) ? hostHandbook.flowNotes : [],
+      updatedAt: hostHandbook.updatedAt || null
+    };
+  });
+
+  app.patch("/api/worlds/:worldId/bible/handbook-manuscript", {
+    schema: {
+      params: worldIdParams,
+      body: {
+        type: "object",
+        additionalProperties: false,
+        properties: {
+          manuscript: { type: "string", maxLength: 120000 }
+        },
+        required: ["manuscript"]
+      }
+    }
+  }, async (request, reply) => {
+    const actorId = requireActor(request);
+    const { worldId } = request.params;
+    await requireWorldRole(actorId, worldId);
+    const manuscript = String(request.body?.manuscript ?? "");
+    return runRevisionMutation(request, reply, worldId, async (client) => {
+      const current = await client.query(`SELECT settings FROM worlds WHERE id = $1 FOR UPDATE`, [worldId]);
+      if (!current.rowCount) throwErr("WORLD_NOT_FOUND");
+      const settings = current.rows[0].settings || {};
+      const hostHandbook = {
+        ...(settings.hostHandbook || {}),
+        manuscript,
+        updatedAt: new Date().toISOString()
+      };
+      const result = await client.query(
+        `UPDATE worlds
+         SET settings = COALESCE(settings, '{}'::jsonb) || jsonb_build_object('hostHandbook', $2::jsonb),
+             updated_at = now()
+         WHERE id = $1
+         RETURNING settings`,
+        [worldId, JSON.stringify(hostHandbook)]
+      );
+      return {
+        manuscript: result.rows[0].settings?.hostHandbook?.manuscript || "",
+        updatedAt: result.rows[0].settings?.hostHandbook?.updatedAt || null
+      };
+    }, { sendErr });
+  });
+
   app.get("/api/worlds/:worldId/bible/summary", { schema: { params: worldIdParams } }, async (request) => {
     const actorId = requireActor(request);
     const { worldId } = request.params;

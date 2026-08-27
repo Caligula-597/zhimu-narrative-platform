@@ -28,6 +28,9 @@ const showError = (error, fallback = "操作失败") => showToast(normalizeError
       case "truth-tab-digest":
         void loadTruthBibleTab("digest");
         return true;
+      case "truth-tab-handbook-manuscript":
+        void loadTruthBibleTab("handbook-manuscript");
+        return true;
       case "truth-tab-claims":
         void loadTruthBibleTab("claims");
         return true;
@@ -102,6 +105,17 @@ const showError = (error, fallback = "操作失败") => showToast(normalizeError
         return true;
       }
 
+      case "save-handbook-manuscript":
+        try {
+          const manuscript = document.querySelector("[data-handbook-field=\"manuscript\"]")?.value ?? "";
+          await zhimuApi.patchHandbookManuscript({ manuscript }, worldId);
+          worldStore.set({ cloudHandbookManuscript: manuscript });
+          showToast("主持手册全文已保存");
+        } catch (error) {
+          showError(error);
+        }
+        return true;
+
       case "save-core-trick":
         try {
           await zhimuApi.patchCoreTrick({
@@ -150,7 +164,9 @@ const showError = (error, fallback = "操作失败") => showToast(normalizeError
             plantSummary: field("plantSummary", "data-foreshadow-field"),
             surfaceMeaning: field("surfaceMeaning", "data-foreshadow-field"),
             trueMeaning: field("trueMeaning", "data-foreshadow-field"),
-            payoffSummary: field("payoffSummary", "data-foreshadow-field")
+            payoffSummary: field("payoffSummary", "data-foreshadow-field"),
+            clueId: field("clueId", "data-foreshadow-field") || null,
+            plantSectionId: field("plantSectionId", "data-foreshadow-field") || null
           }, worldId);
           showToast("伏笔已添加");
           void loadTruthBibleTab("foreshadow");

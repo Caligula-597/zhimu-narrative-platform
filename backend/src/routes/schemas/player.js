@@ -105,6 +105,18 @@ export const clueShareRolesSchema = {
   }
 };
 
+export const clueTransferSchema = {
+  params: paramsSchema({ roomId: uuid, clueId: uuid }),
+  body: {
+    type: "object",
+    additionalProperties: false,
+    required: ["targetRoleSlotId"],
+    properties: {
+      targetRoleSlotId: uuid
+    }
+  }
+};
+
 export const hostClueNoteSchema = {
   params: paramsSchema({ roomId: uuid, clueId: uuid }),
   body: {

@@ -165,6 +165,8 @@ export const api = {
     request(`/rooms/${roomId}/clues/${clueId}/share-room`, { method: "POST", body: { shared } }),
   shareClueToRoles: (roomId, clueId, roleSlotIds) =>
     request(`/rooms/${roomId}/clues/${clueId}/share-roles`, { method: "POST", body: { roleSlotIds } }),
+  transferClue: (roomId, clueId, targetRoleSlotId) =>
+    request(`/rooms/${roomId}/clues/${clueId}/transfer`, { method: "POST", body: { targetRoleSlotId } }),
   submitMiniGame: (payload) => request("/rooms/game/submit", { method: "POST", body: payload }),
   updateCluePlayerNote: (roomId, clueId, note) =>
     request(`/rooms/${roomId}/clues/${clueId}/player-note`, { method: "PATCH", body: { note } }),

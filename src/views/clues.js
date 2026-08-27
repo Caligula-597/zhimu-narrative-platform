@@ -5,10 +5,11 @@ import * as F from "../utils/format.js";
 import * as U from "../components/emptyState.js";
 import * as S from "../components/ui-semantics.js";
 import {
-  clueActBadge, clueAuditCards, clueDependencyEdges,
+  clueActBadge, clueDependencyEdges,
   clueDetailPanel, clueGraph, clueKindBadge, clueTimeline, clueVisibilityChip,
   clueHasDiscoveryPath, highlightQuery, linkedPoints
 } from "./clue-flow-view.js";
+import { renderClueAuditPanel, refreshClueAudit } from "./clues-audit.js";
 import { batchBindCluePaths, batchDeleteClues, confirmDeleteClue } from "./clues-crud-controller.js";
 import {
   bindClueEditor,
@@ -89,7 +90,7 @@ import {
       <main class="clue-workbench-main">
         ${clueGraph(list, data, q)}
         ${clueTimeline(data)}
-        ${clueAuditCards(list, data)}
+        ${renderClueAuditPanel()}
         <details class="clues-list-drawer">
           <summary>列表管理 · ${list.length} 条线索</summary>
           <div class="clues-table">${list
@@ -113,5 +114,5 @@ import {
 
 
 
-export const cluesViewApi = { clues, selectClue, closeClueDetail, setClueFlowFilter, setClueDetailTab, adjustClueFlowZoom, fitClueFlow, focusSelectedClue, bindCluesSearch, bindClueEditor, openClueInStudio, openCluesEditor, closeCluesEditor, saveCluesEditor, confirmDeleteClue, batchBindCluePaths, batchDeleteClues, toggleCluesSelection, syncCluesSelectAll, clearClueImage, loadClueHitRate };
+export const cluesViewApi = { clues, selectClue, closeClueDetail, setClueFlowFilter, setClueDetailTab, adjustClueFlowZoom, fitClueFlow, focusSelectedClue, bindCluesSearch, bindClueEditor, openClueInStudio, openCluesEditor, closeCluesEditor, saveCluesEditor, confirmDeleteClue, batchBindCluePaths, batchDeleteClues, toggleCluesSelection, syncCluesSelectAll, clearClueImage, loadClueHitRate, refreshClueAudit };
 registerView("clues", cluesViewApi);

@@ -354,3 +354,105 @@ export async function updatePlayerClueNote({ roomId, clueId, roleSlotId, note })
   if (!result.rowCount) throwErr("CLUE_NOT_OWNED");
   return { ok: true, playerNote: result.rows[0].player_note };
 }
+
+export async function transferPlayerClue({
+  roomId,
+  clueId,
+  roleSlotId,
+  actorId,
+  targetRoleSlotId
+}) {
+  const clueName = await requireRoomClueName(roomId, clueId);
+  if (String(targetRoleSlotId) === String(roleSlotId)) {
+    throwErr("ROLE_SLOT_WORLD_MISMATCH");
+  }
+  let targets;
+  try {
+    targets = await assertRolesInRoomWorld(query, roomId, [targetRoleSlotId], {
+      excludeRoleSlotId: roleSlotId
+    });
+  } catch (error) {
+    if (error.code === "ROLE_SLOT_WORLD_MISMATCH") throwErr("ROLE_SLOT_WORLD_MISMATCH");
+    throw error;
+  }
+  if (!targets.length) throwErr("ROLE_SLOT_WORLD_MISMATCH");
+
+  const result = await transactionWithEvents(async (client, queueEvent) => {
+    const owned = await client.query(
+      `SELECT shared_with_room, metadata
+       FROM clue_ownership
+       WHERE room_id = $1 AND role_slot_id = $2 AND clue_id = $3
+       FOR UPDATE`,
+      [roomId, roleSlotId, clueId]
+    );
+    if (!owned.rowCount) return null;
+    if (owned.rows[0].shared_with_room) throwErr("CLUE_NOT_OWNED");
+    const metadata = owned.rows[0].metadata && typeof owned.rows[0].metadata === "object"
+      ? owned.rows[0].metadata
+      : {};
+    if (metadata.noTransfer) throwErr("CLUE_NOT_OWNED");
+
+    const targetOwns = await client.query(
+      `SELECT 1 FROM clue_ownership
+       WHERE room_id = $1 AND role_slot_id = $2 AND clue_id = $3`,
+      [roomId, targetRoleSlotId, clueId]
+    );
+    if (targetOwns.rowCount) throwErr("CLUE_TRANSFER_TARGET_OWNS");
+
+    const removed = await client.query(
+      `DELETE FROM clue_ownership
+       WHERE room_id = $1 AND role_slot_id = $2 AND clue_id = $3
+       RETURNING player_note`,
+      [roomId, roleSlotId, clueId]
+    );
+    if (!removed.rowCount) return null;
+
+    await client.query(
+      `INSERT INTO clue_ownership (room_id, role_slot_id, clue_id, metadata, player_note)
+       VALUES ($1, $2, $3, $4::jsonb, $5)`,
+      [
+        roomId,
+        targetRoleSlotId,
+        clueId,
+        JSON.stringify({
+          source: "transfer",
+          fromRoleSlotId: String(roleSlotId),
+          grantMode: metadata.grantMode || "explore_draw"
+        }),
+        removed.rows[0].player_note
+      ]
+    );
+
+    const playerName = await playerDisplayName(client.query.bind(client), roomId, roleSlotId);
+    const targetName = await playerDisplayName(client.query.bind(client), roomId, targetRoleSlotId);
+    await client.query(
+      `INSERT INTO timeline_logs (room_id, actor_user_id, visibility, event_type, message, metadata)
+       VALUES ($1, $2, 'host', 'clue_transferred', $3,
+               jsonb_build_object('clueId', $4::text, 'fromRoleSlotId', $5::text, 'toRoleSlotId', $6::text))`,
+      [
+        roomId,
+        actorId,
+        `${playerName}将线索「${clueName}」转赠给 ${targetName}`,
+        clueId,
+        roleSlotId,
+        targetRoleSlotId
+      ]
+    );
+    queueEvent(roomId, "room.clue_transferred", {
+      clueId,
+      fromRoleSlotId: roleSlotId,
+      toRoleSlotId: targetRoleSlotId,
+      clueName
+    });
+    queueEvent(roomId, "room.clue_granted", {
+      clueId,
+      roleSlotId: targetRoleSlotId,
+      clueName,
+      source: "transfer",
+      fromRoleSlotId: roleSlotId
+    });
+    return { targetRoleSlotId };
+  });
+  if (!result) throwErr("CLUE_NOT_OWNED");
+  return { ok: true, targetRoleSlotId: result.targetRoleSlotId };
+}

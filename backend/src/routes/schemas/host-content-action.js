@@ -79,6 +79,47 @@ export const hostUnlockSectionSchema = {
   }
 };
 
+export const hostUnlockActSchema = {
+  params: roomIdParams,
+  body: {
+    type: "object",
+    additionalProperties: false,
+    anyOf: [{ required: ["actKey"] }, { required: ["sequence"] }],
+    properties: {
+      actKey: { type: "string", minLength: 1, maxLength: 120 },
+      sequence: { type: "integer", minimum: 1, maximum: 99 },
+      message: { type: "string", maxLength: 500 }
+    }
+  }
+};
+
+export const hostUnlockActScenesSchema = {
+  params: roomIdParams,
+  body: {
+    type: "object",
+    additionalProperties: false,
+    anyOf: [
+      { required: ["actKey"] },
+      { required: ["sequence"] },
+      { required: ["chapterId"] },
+      { required: ["sceneIds"] }
+    ],
+    properties: {
+      actKey: { type: "string", minLength: 1, maxLength: 120 },
+      sequence: { type: "integer", minimum: 1, maximum: 99 },
+      chapterId: uuid,
+      sceneIds: {
+        type: "array",
+        items: uuid,
+        minItems: 1,
+        maxItems: 50,
+        uniqueItems: true
+      },
+      message: { type: "string", maxLength: 500 }
+    }
+  }
+};
+
 const hostSingleClueActionBody = {
   type: "object",
   additionalProperties: false,

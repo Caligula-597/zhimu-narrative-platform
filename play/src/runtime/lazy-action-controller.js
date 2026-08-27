@@ -95,8 +95,10 @@ const definitions = {
       "edit-clue-note",
       "share-clue-room",
       "share-clue-roles",
+      "transfer-clue",
       "modal-save-clue-note",
-      "modal-save-clue-share"
+      "modal-save-clue-share",
+      "modal-save-clue-transfer"
     ]),
     load: () => import("./clue-action-controller.js"),
     handler: "handlePlayClueAction"

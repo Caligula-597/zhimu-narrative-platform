@@ -86,27 +86,11 @@ export function searchWorldEngineEpistemic({ worldId = demoContext.worldId } = {
   });
 }
 
-export function commitWorldEngineEpistemic(indexes, { worldId = demoContext.worldId } = {}) {
-  return worldWrite(`/worlds/${worldId}/world-engine/epistemic/commit`, {
-    worldId,
-    method: "POST",
-    body: { indexes }
-  });
-}
-
 export function renderWorldEngineScript(body, { worldId = demoContext.worldId } = {}) {
   return deepseekRequest(`/worlds/${worldId}/world-engine/render`, {
     userId: demoContext.hostUserId,
     method: "POST",
     body,
     timeoutMs: 180_000
-  });
-}
-
-export function repairWorldEngineScript(body, { worldId = demoContext.worldId } = {}) {
-  return worldWrite(`/worlds/${worldId}/world-engine/repair`, {
-    worldId,
-    method: "POST",
-    body
   });
 }

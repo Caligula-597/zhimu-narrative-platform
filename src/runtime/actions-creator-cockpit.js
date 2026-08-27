@@ -63,6 +63,10 @@ const showError = (error, fallback = "操作失败") => showToast(normalizeError
           .openCurrentCreatorMechanismWorkbench();
         return true;
 
+      case "cockpit-open-document-import":
+        callView("writer", "openOpeningPackage");
+        return true;
+
       case "cockpit-fill-logline-template": {
         callView("creatorCockpit", "patchCockpitDraft", {
           logline: LOGLINE_TEMPLATE,

@@ -137,6 +137,14 @@ import { callView } from "./view-registry.js";
         window.zhimuFirstRun?.dismiss?.();
         render();
         return true;
+      case "creator-journey-upload":
+        window.zhimuCreatorJourney?.startUpload?.();
+        render();
+        return true;
+      case "creator-journey-plan":
+        window.zhimuCreatorJourney?.startPlan?.();
+        render();
+        return true;
       case "toggle-nav-advanced": {
         const panel = document.getElementById("nav-advanced");
         if (!panel) return true;

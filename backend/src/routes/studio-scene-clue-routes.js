@@ -6,7 +6,8 @@ import {
   reviseStudioClue,
   reviseStudioScene
 } from "../studio-scene-clue-service.js";
-import { requireWorldRole } from "./route-guards.js";
+import { loadClueEditImpact, loadSceneEditImpact } from "../module-edit-impact-service.js";
+import { requireWorldRole, WORLD_CREATOR_READER_ROLES } from "./route-guards.js";
 import {
   bindCluePathsSchema,
   createClueSchema,
@@ -14,8 +15,47 @@ import {
   patchClueSchema,
   patchSceneSchema
 } from "./schemas/studio-scene-clue.js";
+import { worldIdParams } from "./schemas.js";
 
 export async function registerStudioSceneClueRoutes(app) {
+  app.get("/api/worlds/:worldId/clues/:clueId/edit-impact", {
+    schema: {
+      params: {
+        type: "object",
+        additionalProperties: false,
+        properties: {
+          worldId: worldIdParams.properties.worldId,
+          clueId: { type: "string", format: "uuid" }
+        },
+        required: ["worldId", "clueId"]
+      }
+    }
+  }, async (request) => {
+    const actorId = requireActor(request);
+    const { worldId, clueId } = request.params;
+    await requireWorldRole(actorId, worldId, WORLD_CREATOR_READER_ROLES);
+    return loadClueEditImpact(worldId, clueId);
+  });
+
+  app.get("/api/worlds/:worldId/scenes/:sceneId/edit-impact", {
+    schema: {
+      params: {
+        type: "object",
+        additionalProperties: false,
+        properties: {
+          worldId: worldIdParams.properties.worldId,
+          sceneId: { type: "string", format: "uuid" }
+        },
+        required: ["worldId", "sceneId"]
+      }
+    }
+  }, async (request) => {
+    const actorId = requireActor(request);
+    const { worldId, sceneId } = request.params;
+    await requireWorldRole(actorId, worldId, WORLD_CREATOR_READER_ROLES);
+    return loadSceneEditImpact(worldId, sceneId);
+  });
+
   app.post("/api/worlds/:worldId/scenes", { schema: createSceneSchema }, async (request, reply) => {
     const actorId = requireActor(request);
     const { worldId } = request.params;

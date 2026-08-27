@@ -50,20 +50,37 @@ README → PRODUCT_BRAND_MAINTENANCE_HUB（产品与品牌）
 | [安全与测试收口](../SECURITY_AND_TESTING.md) | `SECURITY_AND_TESTING.md` |
 | [织幕 · 官网（营销站）](../site/README.md) | `site/README.md` |
 
-## 产品、流程与用户指南（25）
+## 产品、流程与用户指南（42）
 
 描述产品意图、工作流和用户操作；部分页面同时包含待实现设计。
 
 | 文档 | 路径 |
 |---|---|
+| [槐荫路旧邮电所人物登场册](../创意提案-织幕/重生成样稿-槐荫路最后一封信/玩家层/00_人物登场册.md) | `创意提案-织幕/重生成样稿-槐荫路最后一封信/玩家层/00_人物登场册.md` |
+| [江雁回](../创意提案-织幕/重生成样稿-槐荫路最后一封信/玩家层/01_江雁回.md) | `创意提案-织幕/重生成样稿-槐荫路最后一封信/玩家层/01_江雁回.md` |
+| [罗启川](../创意提案-织幕/重生成样稿-槐荫路最后一封信/玩家层/02_罗启川.md) | `创意提案-织幕/重生成样稿-槐荫路最后一封信/玩家层/02_罗启川.md` |
+| [陈停云](../创意提案-织幕/重生成样稿-槐荫路最后一封信/玩家层/03_陈停云.md) | `创意提案-织幕/重生成样稿-槐荫路最后一封信/玩家层/03_陈停云.md` |
+| [袁素](../创意提案-织幕/重生成样稿-槐荫路最后一封信/玩家层/04_袁素.md) | `创意提案-织幕/重生成样稿-槐荫路最后一封信/玩家层/04_袁素.md` |
+| [沈砚秋](../创意提案-织幕/重生成样稿-槐荫路最后一封信/玩家层/05_沈砚秋.md) | `创意提案-织幕/重生成样稿-槐荫路最后一封信/玩家层/05_沈砚秋.md` |
+| [唐竞](../创意提案-织幕/重生成样稿-槐荫路最后一封信/玩家层/06_唐竞.md) | `创意提案-织幕/重生成样稿-槐荫路最后一封信/玩家层/06_唐竞.md` |
+| [一致性与越界复核](../创意提案-织幕/重生成样稿-槐荫路最后一封信/质检/05_一致性与越界复核.md) | `创意提案-织幕/重生成样稿-槐荫路最后一封信/质检/05_一致性与越界复核.md` |
+| [主持人手册](../创意提案-织幕/重生成样稿-槐荫路最后一封信/主持层/03_主持人手册.md) | `创意提案-织幕/重生成样稿-槐荫路最后一封信/主持层/03_主持人手册.md` |
+| [线索与道具全文](../创意提案-织幕/重生成样稿-槐荫路最后一封信/主持层/04_线索与道具全文.md) | `创意提案-织幕/重生成样稿-槐荫路最后一封信/主持层/04_线索与道具全文.md` |
+| [创作合同（作者层，禁止向玩家发放）](../创意提案-织幕/重生成样稿-槐荫路最后一封信/作者层/00_创作合同.md) | `创意提案-织幕/重生成样稿-槐荫路最后一封信/作者层/00_创作合同.md` |
+| [唯一真相与双时间线（作者层，禁止向玩家发放）](../创意提案-织幕/重生成样稿-槐荫路最后一封信/作者层/01_唯一真相与双时间线.md) | `创意提案-织幕/重生成样稿-槐荫路最后一封信/作者层/01_唯一真相与双时间线.md` |
+| [关系图与知识矩阵（作者层，禁止向玩家发放）](../创意提案-织幕/重生成样稿-槐荫路最后一封信/作者层/02_关系图与知识矩阵.md) | `创意提案-织幕/重生成样稿-槐荫路最后一封信/作者层/02_关系图与知识矩阵.md` |
+| [人物行为与叙事差异（作者层，禁止向玩家发放）](../创意提案-织幕/重生成样稿-槐荫路最后一封信/作者层/03_人物行为与叙事差异.md) | `创意提案-织幕/重生成样稿-槐荫路最后一封信/作者层/03_人物行为与叙事差异.md` |
+| [《槐荫路最后一封信》](../创意提案-织幕/重生成样稿-槐荫路最后一封信/README.md) | `创意提案-织幕/重生成样稿-槐荫路最后一封信/README.md` |
 | [织幕创作者机制设计与多审查工作台 V1](./创作者机制设计与多审查工作台-V1.md) | `docs/创作者机制设计与多审查工作台-V1.md` |
 | [机制运行包与主持端联动实施基线 V1](./机制运行包与主持端联动实施基线-V1.md) | `docs/机制运行包与主持端联动实施基线-V1.md` |
+| [AI 剧本杀生成架构 V4.2（可执行规格 · 开发中）](./AI_GENERATION_ARCHITECTURE_V4_2_ZH.md) | `docs/AI_GENERATION_ARCHITECTURE_V4_2_ZH.md` |
 | [AI 剧本杀生成架构 V6.0（历史冻结）](./AI_GENERATION_ARCHITECTURE_V6_ZH.md) | `docs/AI_GENERATION_ARCHITECTURE_V6_ZH.md` |
 | [AI 剧本杀生成架构 V9.0（冻结）](./AI_GENERATION_ARCHITECTURE_V9_ZH.md) | `docs/AI_GENERATION_ARCHITECTURE_V9_ZH.md` |
 | [商业作者工作流与稿件安全](./COMMERCIAL_CREATOR_WORKFLOW_ZH.md) | `docs/COMMERCIAL_CREATOR_WORKFLOW_ZH.md` |
 | [内容平台路由边界](./CONTENT_PLATFORM_ROUTE_BOUNDARIES_ZH.md) | `docs/CONTENT_PLATFORM_ROUTE_BOUNDARIES_ZH.md` |
 | [织幕 · 创作者步骤指引](./CREATOR_GUIDE.md) | `docs/CREATOR_GUIDE.md` |
 | [创作端结构化对象 · 产品位置与 API 映射](./CREATOR_OBJECT_PRODUCT_MAP_ZH.md) | `docs/CREATOR_OBJECT_PRODUCT_MAP_ZH.md` |
+| [创作问卷](./CREATOR_SURVEY_ZH.md) | `docs/CREATOR_SURVEY_ZH.md` |
 | [系统设计](./DESIGN_ZH.md) | `docs/DESIGN_ZH.md` |
 | [织幕 · 如何跑第一场（用户手册）](./FIRST_SESSION_GUIDE_ZH.md) | `docs/FIRST_SESSION_GUIDE_ZH.md` |
 | [织幕 · 身份与权限底座](./IDENTITY_AND_PERMISSIONS.md) | `docs/IDENTITY_AND_PERMISSIONS.md` |
@@ -82,7 +99,7 @@ README → PRODUCT_BRAND_MAINTENANCE_HUB（产品与品牌）
 | [结构化案例包（可导入体验）](../fixtures/cases/README.md) | `fixtures/cases/README.md` |
 | [@zhimu/v42-runtime (V4.2)](../v42-runtime/README.md) | `v42-runtime/README.md` |
 
-## 方案、路线图与决策记录（5）
+## 方案、路线图与决策记录（6）
 
 用于讨论和排期，不应被当成已上线承诺。
 
@@ -93,6 +110,7 @@ README → PRODUCT_BRAND_MAINTENANCE_HUB（产品与品牌）
 | [织幕积分与套餐定价（草案 · 2026-07-06）](./PRICING_CREDITS_ZH.md) | `docs/PRICING_CREDITS_ZH.md` |
 | [定价与权益草案（内测 · 未对外售卖）](./PRICING_DRAFT_ZH.md) | `docs/PRICING_DRAFT_ZH.md` |
 | [上市路线图（后端优先 · 分 Part 推进）](./ROADMAP_LAUNCH_ZH.md) | `docs/ROADMAP_LAUNCH_ZH.md` |
+| [剧本导入流水线 — 决策记录](./SCRIPT_IMPORT_PIPELINE_DECISIONS.md) | `docs/SCRIPT_IMPORT_PIPELINE_DECISIONS.md` |
 
 ## 运维、安全与交付手册（46）
 

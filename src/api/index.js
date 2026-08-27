@@ -148,6 +148,8 @@ export {
   deleteRoleRelationship,
   getBibleSummary,
   getHandbookDigest,
+  getHandbookManuscript,
+  patchHandbookManuscript,
   getBibleEndings,
   patchBibleEndings,
   getCoreTrick,
@@ -172,11 +174,6 @@ export {
   getCreatorAnalytics,
   getQualityReports,
   createQualityReport,
-  listPhysicalTokens,
-  createPhysicalTokens,
-  revokePhysicalToken,
-  previewPhysicalToken,
-  activatePhysicalToken,
   searchWorld,
   createChapter,
   createRole,
@@ -192,7 +189,8 @@ export {
   getWorldReleases,
   createWorldRelease,
   getSegmentCompletion,
-  getClueHitRate
+  getClueHitRate,
+  getClueAudit
 } from "./world.js";
 
 /* ── Studio ── */
@@ -202,6 +200,7 @@ export {
   updateScene,
   createClue,
   updateClue,
+  getClueEditImpact,
   bindCluePaths,
   createItem,
   updateItem,
@@ -227,7 +226,6 @@ export {
   getRoomReleaseImpact,
   applyRoomRelease,
   getCreatorRoomCurrentState,
-  getCreatorRoleKnowledge,
   patchRoomSettings,
   streamRoomEvents
 } from "./room.js";
@@ -299,17 +297,18 @@ export {
   commitWorldEngineEvents,
   lowerWorldEngineType,
   searchWorldEngineEpistemic,
-  commitWorldEngineEpistemic,
-  renderWorldEngineScript,
-  repairWorldEngineScript
+  renderWorldEngineScript
 } from "./ai.js";
 
 /* ── Content (documents / manuscript / rules / packages) ── */
 export {
+  getImportSource,
   parseDocument,
   parseFeishuDocument,
   importParsedDocument,
   importDocumentPages,
+  previewOpeningPackage,
+  commitOpeningPackage,
   getStoryManuscript,
   saveStoryManuscript,
   syncStoryManuscriptFromGraph,

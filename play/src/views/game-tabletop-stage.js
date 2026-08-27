@@ -192,7 +192,7 @@ function renderRevealedClue(clue, drawnCount, totalCount, key, copy) {
   </article>`;
 }
 
-function renderLocationDiscovery(location, clues, context) {
+export function renderLocationDiscovery(location, clues, context) {
   const session = ensureDiscoverySession(location, context, clues);
   const remote = session.remote;
   const copy = normalizeLocationDiscoveryCopy(location?.discovery);
@@ -216,12 +216,12 @@ function renderLocationDiscovery(location, clues, context) {
       </div>
     </div>
     <div class="player-location-clue-summary">
-      <div><strong>${total ? escapeHtml(countLabel) : "尚无可抽取线索"}</strong><span>${total ? "打乱后逐条抽取" : "等待主持人授权此地点内容"}</span></div>
+      <div><strong>${total ? escapeHtml(countLabel) : "尚无可抽取线索"}</strong><span>${total ? "按顺序逐条抽取" : "等待主持人开放此场景"}</span></div>
       ${unlocked && remaining && !activeClue ? `<button type="button" class="player-stage-button is-primary" data-action="tabletop-draw-clue" data-discovery-key="${escapeHtml(session.key)}">抽取一条线索</button>` : ""}
       <small>已授权内容 · 不会提前揭示</small>
     </div>
     <div class="player-location-clue-deck ${activeClue ? "has-revealed-clue" : ""}">
-      <div class="player-clue-deck-head"><strong>${activeClue ? escapeHtml(copy.collectionLabel) : `${escapeHtml(copy.collectionLabel)}（未抽取）`}</strong>${unlocked && remaining > 1 ? `<button type="button" data-action="tabletop-reshuffle-clues" data-discovery-key="${escapeHtml(session.key)}">重新洗牌</button>` : ""}</div>
+      <div class="player-clue-deck-head"><strong>${activeClue ? escapeHtml(copy.collectionLabel) : `${escapeHtml(copy.collectionLabel)}（未抽取）`}</strong></div>
       ${activeClue ? renderRevealedClue(activeClue, drawn, total, session.key, copy) : `<div class="player-clue-backs">${renderClueBacks(location, total, copy)}</div>`}
     </div>
   </section>`;

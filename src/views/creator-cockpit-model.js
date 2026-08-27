@@ -1,7 +1,6 @@
 /**
  * Creator cockpit — stage defs and factual item observations (no design judgment).
  */
-import { creativeConstitutionCoverage } from "../../shared/creative-constitution.js";
 
 export function creatorCockpitAccessMode(role = "") {
   if (role === "owner" || role === "editor" || !role) return "creator";
@@ -13,11 +12,10 @@ export const STAGE_DEFS = [
     id: "concept",
     title: "灵魂的种子",
     short: "概念",
-    subtitle: "故事总览、灵感、梗概、创作宪法、核心卖点、商业定位",
+    subtitle: "故事总览、灵感、梗概、核心卖点、商业定位",
     items: [
       { id: "spark", title: "灵感卡", link: { canvas: "inspiration" } },
       { id: "logline", title: "一句话梗概", link: { canvas: "logline", view: "settings", label: "世界设置" } },
-      { id: "constitution", title: "创作宪法", link: { canvas: "constitution", view: "constitution", label: "创作宪法" } },
       { id: "selling", title: "核心卖点", link: { canvas: "selling" } },
       { id: "positioning", title: "商业定位", link: { canvas: "positioning", view: "settings", label: "世界设置" } }
     ]
@@ -64,7 +62,8 @@ export const STAGE_DEFS = [
     subtitle: "创作入口、物料、导入导出",
     items: [
       { id: "player-book", title: "内容生产", link: { canvas: "writing", view: "writer", label: "角色私人剧本" } },
-      { id: "dm-manual", title: "主持手册", link: { canvas: "writing", view: "structure", label: "运行段落工作台" } },
+      { id: "dm-manual", title: "主持手册", link: { canvas: "writing", view: "truth", label: "主持手册全文" } },
+      { id: "import-hub", title: "来源与拆稿", link: { canvas: "writing", view: "importSource", label: "来源稿与模块" } },
       { id: "props", title: "线索与场景", link: { canvas: "cards", view: "studio", label: "编排图谱" } },
       { id: "package", title: "导入导出", link: { canvas: "package", action: "creator-export", label: "导出备份" } }
     ]
@@ -85,7 +84,7 @@ export const STAGE_DEFS = [
 ];
 
 export const CANVAS_MODES = {
-  concept: ["inspiration", "logline", "constitution", "selling", "positioning", "overview"],
+  concept: ["inspiration", "logline", "selling", "positioning", "overview"],
   architecture: ["trick", "relations", "timeline"],
   characters: ["profiles", "arcs"],
   flow: ["beats", "matrix", "sandbox"],
@@ -96,7 +95,6 @@ export const CANVAS_MODES = {
 export const CANVAS_LABELS = {
   inspiration: "灵感",
   logline: "梗概",
-  constitution: "宪法",
   selling: "卖点",
   positioning: "定位",
   overview: "一览",
@@ -127,18 +125,12 @@ function itemPresence(id, ctx) {
   const positioningFilled = [draft.target, draft.duration, draft.type].filter(Boolean).length;
   const publishedSections = (studio?.sections || []).filter((s) => s.publication_status && s.publication_status !== "draft").length;
   const checks = ctx.checks || [];
-  const constitutionCoverage = creativeConstitutionCoverage(
-    studio?.world?.settings?.creativeConstitution,
-    studio?.roles || []
-  );
 
   switch (id) {
     case "spark":
       return sparks.length ? "present" : "empty";
     case "logline":
       return summary ? "present" : "empty";
-    case "constitution":
-      return constitutionCoverage.score >= 80 ? "present" : constitutionCoverage.filled ? "partial" : "empty";
     case "selling":
       return sellingFilled >= 3 ? "present" : sellingFilled ? "partial" : "empty";
     case "positioning":
@@ -197,17 +189,10 @@ function itemObservation(id, ctx) {
   const segWithFlow = segments.filter((s) => s.operations?.flow || s.operations?.hostTruth).length;
   const err = checks.filter((c) => c.level === "error").length;
   const warn = checks.filter((c) => c.level === "warning").length;
-  const constitutionCoverage = creativeConstitutionCoverage(
-    studio?.world?.settings?.creativeConstitution,
-    studio?.roles || []
-  );
 
   const map = {
     spark: sparks.length ? `${sparks.length} 张灵感卡` : "尚无灵感卡",
     logline: summary ? `${summary.length} 字 · 与世界简介同步` : "世界简介为空",
-    constitution: constitutionCoverage.filled
-      ? `${constitutionCoverage.score}% · ${constitutionCoverage.filled}/${constitutionCoverage.total} 项约束`
-      : "尚未建立项目级创作约束",
     selling: sellingFilled ? `${sellingFilled} / 3 个卖点槽已填写` : "卖点槽为空",
     positioning: [draft.target, draft.duration, draft.type].filter(Boolean).length
       ? `定位字段 ${[draft.target, draft.duration, draft.type].filter(Boolean).length} / 3 已填写`

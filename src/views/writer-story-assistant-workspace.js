@@ -18,7 +18,6 @@ import {
   getWriterToolSession,
   writerToolSessionIsCurrent
 } from "./writer-tool-session.js";
-import "./writer-story-assistant-workspace.css";
 
 export { storyAssistantWorkspaceHtml } from "./writer-story-assistant-view.js";
 
@@ -46,7 +45,13 @@ export function openStoryAssistantWorkspace() {
     requestId: ""
   });
   if (!session) return showToast("当前工具还有未保存修改，请先返回处理");
-  render();
+  try {
+    render();
+  } catch (error) {
+    clearWriterToolSession(session);
+    console.error("[story-assistant] render failed while opening workspace", error);
+    showToast(`结构提取界面渲染失败：${String(error?.message || error).slice(0, 120)}`);
+  }
 }
 
 export function bindStoryAssistantWorkspace(data, session) {

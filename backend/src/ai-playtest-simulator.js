@@ -1,9 +1,5 @@
 import { requestDeepseekJson } from "./deepseek-client.js";
 import {
-  isCreativeConstitutionEmpty,
-  normalizeCreativeConstitution
-} from "../../shared/creative-constitution.js";
-import {
   AI_PLAYER_ARCHETYPES,
   AI_PLAYER_ARCHETYPE_IDS
 } from "../../shared/ai-playtest.js";
@@ -321,28 +317,12 @@ export function normalizePlayerReport(value = {}, profile = {}) {
 }
 
 function buildObserverContext(snapshot, config, players) {
-  const constitutionRaw = snapshot.world?.settings?.creativeConstitution;
-  const constitution = normalizeCreativeConstitution(constitutionRaw);
   return {
     world: {
       name: text(snapshot.world?.name, 200),
       summary: text(snapshot.world?.summary, 2200)
     },
     config,
-    constitution: {
-      configured: !isCreativeConstitutionEmpty(constitutionRaw),
-      theme: constitution.theme,
-      intendedEmotion: constitution.intendedEmotion,
-      experiencePromise: constitution.experiencePromise,
-      revealEmotion: constitution.revealEmotion,
-      inviolablePrinciples: constitution.inviolablePrinciples,
-      fairPuzzlePromises: constitution.fairPuzzlePromises,
-      pacingPrinciples: constitution.pacingPrinciples,
-      forbiddenTropes: constitution.forbiddenTropes,
-      desiredDebates: constitution.desiredDebates,
-      avoidMisunderstandings: constitution.avoidMisunderstandings,
-      roleHighlights: constitution.roleHighlights
-    },
     authoredTruth: rows(snapshot.truthClaims).slice(0, 30).map(compactTruthClaim).filter(Boolean),
     coreTrick: object(snapshot.coreTrick),
     chapters: compactItems("chapter", snapshot.chapters, 16),
@@ -354,7 +334,7 @@ function buildObserverContext(snapshot, config, players) {
 }
 
 function observerSystemPrompt() {
-  return `你是互动推理作品的试跑观察员。你会得到作者真相、创作宪法，以及多个彼此隔离的 AI 玩家报告。
+  return `你是互动推理作品的试跑观察员。你会得到作者真相与多个彼此隔离的 AI 玩家报告。
 你的职责是比较他们的可观察行为，定位作品问题，而不是评价玩家聪明与否。
 任何问题必须引用输入中真实存在的创作对象；无法定位时 refs 留空，不得伪造 ID。
 不要输出隐藏思维链。返回严格 JSON。`;
@@ -372,7 +352,7 @@ ${JSON.stringify(context)}
 - 描述歧义与合理误解；
 - 长期无事可做、决策权失衡与交流单点；
 - 首次卡住时间、主持干预次数和提前猜中真相；
-- 是否违背创作宪法的体验承诺、禁区或角色高光。
+- 结构是否支持玩家按信息逐步推进，而非依赖场外知识。
 
 返回结构：
 {
@@ -405,11 +385,6 @@ ${JSON.stringify(context)}
     "recommendation": "可执行改法",
     "refs": [{"type":"clue","id":"...","label":"..."}],
     "seatIds": ["seat-1"]
-  }],
-  "constitutionChecks": [{
-    "principle": "宪法条目",
-    "status": "pass|risk|fail",
-    "evidence": "试跑证据"
   }],
   "missedClues": [{"ref":{"type":"clue","id":"...","label":"..."},"seatIds":["seat-1"],"reason":"原因"}],
   "inactiveRoles": [{"ref":{"type":"role","id":"...","label":"..."},"reason":"原因"}],
@@ -458,18 +433,6 @@ function normalizeGroupTimeline(value) {
   });
 }
 
-function normalizeConstitutionChecks(value) {
-  return rows(value).slice(0, 20).map((entry) => {
-    const source = object(entry);
-    const status = ["pass", "risk", "fail"].includes(source.status) ? source.status : "risk";
-    return {
-      principle: text(source.principle, 800),
-      status,
-      evidence: text(source.evidence, 1800)
-    };
-  }).filter((entry) => entry.principle);
-}
-
 function normalizeRefFinding(value) {
   const source = object(value);
   const ref = reference(source.ref);
@@ -489,14 +452,12 @@ export function normalizeAiPlaytestReport(value = {}, { config, players, snapsho
   const inferredScore = metricValues.length
     ? Math.round(metricValues.reduce((sum, value) => sum + value, 0) / metricValues.length)
     : 0;
-  const constitutionRaw = snapshot?.world?.settings?.creativeConstitution;
   return {
     version: AI_PLAYTEST_VERSION,
     promptVersion: AI_PLAYTEST_PROMPT_VERSION,
     generatedAt: new Date().toISOString(),
     depth: config?.depth || "quick",
     focus: config?.focus || "",
-    constitutionConfigured: !isCreativeConstitutionEmpty(constitutionRaw),
     headline: text(source.headline, 320) || "多 AI 玩家试跑已完成",
     summary: text(source.summary, 2600),
     score: numberInRange(source.score, 0, 100, inferredScore),
@@ -512,7 +473,6 @@ export function normalizeAiPlaytestReport(value = {}, { config, players, snapsho
     groupTimeline: normalizeGroupTimeline(source.groupTimeline),
     players: rows(players),
     issues,
-    constitutionChecks: normalizeConstitutionChecks(source.constitutionChecks),
     missedClues: rows(source.missedClues).map(normalizeRefFinding).filter(Boolean).slice(0, 24),
     inactiveRoles: rows(source.inactiveRoles).map(normalizeRefFinding).filter(Boolean).slice(0, 16),
     dominantRoles: rows(source.dominantRoles).map(normalizeRefFinding).filter(Boolean).slice(0, 16),

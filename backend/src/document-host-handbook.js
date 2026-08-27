@@ -140,6 +140,31 @@ function extractFlowNotes(text) {
   return notes;
 }
 
+const HANDBOOK_MANUSCRIPT_MAX = 120_000;
+
+/**
+ * Extract host-handbook prose block for full-text editor / host portal (mechanical, no LLM).
+ * Falls back to capped full document when no handbook section is detected.
+ */
+export function extractHostHandbookManuscript(text = "") {
+  const normalized = String(text ?? "").replace(/\r\n/g, "\n");
+  const lines = normalized.split("\n");
+  const bodyLines = [];
+  let capturing = false;
+  for (const raw of lines) {
+    const line = cleanLine(raw);
+    if (/开本流程|组织者手册|严禁盲开|主持人手册/.test(line) && !capturing) {
+      capturing = true;
+    }
+    if (!capturing) continue;
+    if (/玩家读本第一章|角色简介|发行方/.test(line) && bodyLines.length > 8) break;
+    bodyLines.push(raw);
+  }
+  const extracted = bodyLines.join("\n").trim();
+  const body = extracted.length >= 80 ? extracted : normalized.trim();
+  return body.slice(0, HANDBOOK_MANUSCRIPT_MAX);
+}
+
 /**
  * @param {string} text
  * @returns {{ alignments: object[], endings: object[], flowNotes: string[], coreTrickDraft: object, relationships: object[] }}

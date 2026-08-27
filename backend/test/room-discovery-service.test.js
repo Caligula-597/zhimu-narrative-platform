@@ -3,6 +3,9 @@ import test from "node:test";
 import {
   buildDiscoveryStatePayload,
   clueMatchesDiscoveryLocation,
+  clueRequiresMandatoryPublic,
+  isExploreDrawClue,
+  orderedDiscoveryClueIds,
   projectHostDiscoveryState,
   projectPlayerDiscoveryState,
   shuffledDiscoveryClueIds
@@ -42,6 +45,28 @@ test("an explicit location binding takes precedence over a shared segment key", 
   assert.equal(clueMatchesDiscoveryLocation({ metadata: { locationId: "vault", segmentKey: "ch2" } }, location), false);
   assert.equal(clueMatchesDiscoveryLocation({ metadata: { locationId: "library", segmentKey: "ch9" } }, location), true);
   assert.equal(clueMatchesDiscoveryLocation({ metadata: { segmentKey: "ch2" } }, location), true);
+});
+
+test("scene-bound explore clues match unlocked scene ids", () => {
+  const scene = { id: "study", segmentKey: "ch2" };
+  assert.equal(clueMatchesDiscoveryLocation({ metadata: { sceneId: "study" } }, scene), true);
+  assert.equal(clueMatchesDiscoveryLocation({ metadata: { sceneId: "yard" } }, scene), false);
+});
+
+test("explore draw clues are ordered by catalog index", () => {
+  const ordered = orderedDiscoveryClueIds([
+    { id: "c", metadata: { catalogIndex: 3 } },
+    { id: "a", metadata: { catalogIndex: 1 } },
+    { id: "b", metadata: { catalogIndex: 2 } }
+  ]);
+  assert.deepEqual(ordered, ["a", "b", "c"]);
+});
+
+test("mandatory public clues are detected from visibility or metadata", () => {
+  assert.equal(clueRequiresMandatoryPublic({ visibility: "public" }), true);
+  assert.equal(clueRequiresMandatoryPublic({ metadata: { forcePublic: true } }), true);
+  assert.equal(isExploreDrawClue({ metadata: { grantMode: "explore_draw" } }), true);
+  assert.equal(isExploreDrawClue({ metadata: { grantMode: "host_confirm" } }), false);
 });
 
 test("player discovery projection exposes only that player's drawn order", () => {

@@ -318,10 +318,69 @@ export function createHostOperationCommandService({
     }
   }
 
+  async function unlockActBatch(actKey) {
+    const key = String(actKey || "").trim();
+    if (!key) {
+      showToast("当前幕缺少 Segment 标识，请使用「解锁分幕」逐人操作");
+      return;
+    }
+    const confirmed = typeof globalThis.confirm === "function"
+      ? globalThis.confirm(`将为全员解锁本幕（${key}）对应分幕，是否继续？`)
+      : true;
+    if (!confirmed) return;
+    showToast("正在开放本幕分幕…", render);
+    try {
+      const result = await apiRef.hostUnlockAct({
+        actKey: key,
+        message: `主持人开放本幕分幕（${key}）`
+      });
+      const refreshed = await refreshRoom(false);
+      showToast(
+        refreshed
+          ? `本幕分幕已开放 · 解锁 ${Number(result?.unlockedCount) || 0} 段`
+          : `写入已提交，但状态刷新失败 · 解锁 ${Number(result?.unlockedCount) || 0} 段`,
+        render
+      );
+    } catch (error) {
+      showToast(formatApiError(error, "开放本幕分幕失败"), render);
+    }
+  }
+
+  async function unlockActScenesBatch(actKey) {
+    const key = String(actKey || state.hostSelectedActKey || "").trim();
+    if (!key) {
+      showToast("请先在当前幕面板选择幕次");
+      return;
+    }
+    const confirmed = typeof globalThis.confirm === "function"
+      ? globalThis.confirm(`将一次性开放本幕（${key}）的全部搜证场景，是否继续？`)
+      : true;
+    if (!confirmed) return;
+    showToast("正在开放本幕场景…", render);
+    try {
+      const result = await apiRef.hostUnlockActScenes({
+        actKey: key,
+        message: `主持人开放本幕场景（${key}）`
+      });
+      const refreshed = await refreshRoom(false);
+      const count = Number(result?.unlockedCount) || 0;
+      showToast(
+        refreshed
+          ? (count ? `本幕场景已开放 · ${count} 处` : "本幕场景均已开放，无新增")
+          : `写入已提交，但状态刷新失败 · ${count} 处`,
+        render
+      );
+    } catch (error) {
+      showToast(formatApiError(error, "开放本幕场景失败"), render);
+    }
+  }
+
   return {
     executeConfirmedDetailCommand,
     requestDetailCommand,
     savePlayerNotes,
-    submitCurrent
+    submitCurrent,
+    unlockActBatch,
+    unlockActScenesBatch
   };
 }

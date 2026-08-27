@@ -24,13 +24,13 @@ test("email code verification enters a responsive zero-world workspace", async (
   await page.locator("[data-auth-verify-code]").click();
 
   await expect(page.locator("#modal-backdrop")).not.toHaveClass(/show/);
-  await expect(page.locator("#content")).toContainText("先创建一个属于你的世界");
+  await expect(page.locator("#content")).toContainText("你是第一次来织幕吗？");
   await expect(page.locator("body")).toHaveAttribute("data-product-active", "0");
   await expect(page.locator("body")).toHaveAttribute("data-product-mode", "");
   await expect(page.locator("body")).toHaveAttribute("data-product-key", "");
 
   const productViews = [
-    "creatorCockpit", "constitution", "diagnostics", "playtest", "writer", "truth",
+    "creatorCockpit", "diagnostics", "playtest", "writer", "truth",
     "studio", "clues", "rules", "miniGames", "archive", "settings", "tabletopMap", "boardGame"
   ];
   for (const view of productViews) {
@@ -45,7 +45,7 @@ test("email code verification enters a responsive zero-world workspace", async (
 
 test("email verification link logs in and removes the one-time URL token", async ({ page }) => {
   await page.goto("/?verify=fixture-link-token");
-  await expect(page.locator("#content")).toContainText("先创建一个属于你的世界");
+  await expect(page.locator("#content")).toContainText("你是第一次来织幕吗？");
   await expect(page).not.toHaveURL(/verify=/);
   await expect(page.locator("#modal-backdrop")).not.toHaveClass(/show/);
 });
@@ -58,7 +58,7 @@ test("mobile verification link keeps an empty account responsive across protecte
   await page.goto("/?verify=fixture-link-token");
   await expect(page).not.toHaveURL(/verify=/);
   await expect(page.locator("#modal-backdrop")).not.toHaveClass(/show/);
-  await expect(page.locator("#content")).toContainText("先创建一个属于你的世界");
+  await expect(page.locator("#content")).toContainText("你是第一次来织幕吗？");
 
   await expect(page.locator("body")).toHaveAttribute("data-product-active", "0");
   await expect(page.locator("body")).toHaveAttribute("data-product-mode", "");

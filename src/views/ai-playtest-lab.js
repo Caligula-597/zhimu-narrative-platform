@@ -283,24 +283,6 @@ function renderPlayers(report) {
   </section>`;
 }
 
-function renderConstitutionChecks(report) {
-  const checks = report.constitutionChecks || [];
-  if (!checks.length && !report.constitutionConfigured) {
-    return `<section class="playtest-constitution-callout">
-      <div><p class="section-kicker">CREATIVE CONSTITUTION</p><h3>这轮试跑没有作者意图基线</h3><p>建立体验承诺与不可破坏原则后，观察员才能判断“玩通了”是否等于“作品达成了目标”。</p></div>
-      <button type="button" class="secondary-btn" data-go="constitution">建立创作宪法 →</button>
-    </section>`;
-  }
-  if (!checks.length) return "";
-  return `<section class="card playtest-constitution-checks">
-    <div class="section-head"><div><p class="section-kicker">CONSTITUTION CHECK</p><h2>作者意图验收</h2></div><button type="button" class="secondary-btn compact" data-go="constitution">查看创作宪法</button></div>
-    <div>${checks.map((check) => `<article class="${escapeHtml(check.status)}">
-      <span>${check.status === "pass" ? "✓" : check.status === "fail" ? "!" : "?"}</span>
-      <div><strong>${escapeHtml(check.principle)}</strong><p>${escapeHtml(check.evidence || "等待更多试跑证据")}</p></div>
-    </article>`).join("")}</div>
-  </section>`;
-}
-
 function renderReport(run) {
   const report = reportOf(run);
   if (!report) {
@@ -331,7 +313,6 @@ function renderReport(run) {
     ${renderGroupTimeline(report)}
     ${renderIssues(report)}
     ${renderPlayers(report)}
-    ${renderConstitutionChecks(report)}
     <details class="diagnostic-limitations card"><summary>如何解读这份报告</summary>
       <ul>${(report.limitations || []).map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
     </details>
@@ -341,7 +322,7 @@ function renderReport(run) {
 function renderLoading() {
   return `<section class="ai-playtest-page" data-ai-playtest-page>
     <header class="playtest-lab-hero"><div><p class="section-kicker">MULTI-AGENT PLAYTEST</p><h1>AI 玩家试跑实验室</h1><p>正在读取模型状态与历史试跑档案。</p></div></header>
-    <div class="diagnostic-loading card"><span></span><h3>准备测试桌</h3><p>正在装载角色、报告和创作宪法。</p></div>
+    <div class="diagnostic-loading card"><span></span><h3>准备测试桌</h3><p>正在装载角色与历史试跑档案。</p></div>
   </section>`;
 }
 

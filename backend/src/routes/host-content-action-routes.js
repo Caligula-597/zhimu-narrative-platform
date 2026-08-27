@@ -8,7 +8,9 @@ import {
   revokeClueFromHost,
   skipSectionFromHost,
   unlockSceneFromHost,
-  unlockSectionFromHost
+  unlockSectionFromHost,
+  unlockActFromHost,
+  unlockActScenesFromHost
 } from "../host-content-action-service.js";
 import { withRoomIdempotency } from "../idempotency-helpers.js";
 import { requireActor } from "../request-actor.js";
@@ -23,7 +25,9 @@ import {
   hostRevokeClueSchema,
   hostSkipSectionSchema,
   hostUnlockSceneSchema,
-  hostUnlockSectionSchema
+  hostUnlockSectionSchema,
+  hostUnlockActSchema,
+  hostUnlockActScenesSchema
 } from "./schemas/host-content-action.js";
 
 export async function registerHostContentActionRoutes(app) {
@@ -93,6 +97,26 @@ export async function registerHostContentActionRoutes(app) {
     await requireHostMembership(actorId, roomId);
     return withRoomIdempotency(roomId, request, "host.unlock_section", () => (
       unlockSectionFromHost({ roomId, actorId, roleSlotId, scriptSectionId, message })
+    ));
+  });
+
+  app.post("/api/rooms/:roomId/host/unlock-act", { schema: hostUnlockActSchema }, async (request) => {
+    const actorId = requireActor(request);
+    const { roomId } = request.params;
+    const { actKey, sequence, message } = request.body;
+    await requireHostMembership(actorId, roomId);
+    return withRoomIdempotency(roomId, request, "host.unlock_act", () => (
+      unlockActFromHost({ roomId, actorId, actKey, sequence, message })
+    ));
+  });
+
+  app.post("/api/rooms/:roomId/host/unlock-act-scenes", { schema: hostUnlockActScenesSchema }, async (request) => {
+    const actorId = requireActor(request);
+    const { roomId } = request.params;
+    const { actKey, sequence, chapterId, sceneIds, message } = request.body;
+    await requireHostMembership(actorId, roomId);
+    return withRoomIdempotency(roomId, request, "host.unlock_act_scenes", () => (
+      unlockActScenesFromHost({ roomId, actorId, actKey, sequence, chapterId, sceneIds, message })
     ));
   });
 

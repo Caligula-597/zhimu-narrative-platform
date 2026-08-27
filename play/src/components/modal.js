@@ -51,6 +51,21 @@ export function renderModal() {
               .join("")
           : `<p class="hint muted">当前房间没有其他角色席位。</p>`}
       </div>`;
+  } else if (kind === "clue-transfer") {
+    const myRoleId = state.home?.role?.id;
+    const members = (state.home?.roomMembers || []).filter((m) => m.role_slot_id && m.role_slot_id !== myRoleId);
+    const options = members.map((member) => `
+      <option value="${escapeHtml(member.role_slot_id)}" ${state.clueTransferTargetRoleSlotId === member.role_slot_id ? "selected" : ""}>
+        ${escapeHtml(member.role_name || "未命名角色")}${member.display_name ? ` · ${escapeHtml(member.display_name)}` : ""}
+      </option>`).join("");
+    body = `
+      <p class="modal-lede">转赠后线索会从你的背包移出，对方成为唯一持有人。不会复制内容。</p>
+      <label class="field-label">转赠给
+        <select class="field" data-transfer-role ${members.length ? "" : "disabled"}>
+          <option value="">请选择玩家</option>
+          ${options}
+        </select>
+      </label>`;
   } else if (kind === "investigate") {
     const inv = modal.investigation || {};
     body = `
@@ -164,7 +179,9 @@ export function renderModal() {
         ? `<button class="btn primary" type="button" data-action="modal-save-clue-note" data-clue-id="${escapeHtml(modal.clueId || "")}" ${state.busy ? "disabled" : ""}>保存解读</button>`
         : kind === "clue-share"
           ? `<button class="btn primary" type="button" data-action="modal-save-clue-share" data-clue-id="${escapeHtml(modal.clueId || "")}" ${state.busy ? "disabled" : ""}>保存私享</button>`
-          : kind === "investigate"
+          : kind === "clue-transfer"
+            ? `<button class="btn primary" type="button" data-action="modal-save-clue-transfer" data-clue-id="${escapeHtml(modal.clueId || "")}" ${state.busy ? "disabled" : ""}>确认转赠</button>`
+            : kind === "investigate"
             ? `<button class="btn primary" type="button" data-action="modal-close">知道了</button>`
             : kind === "voice-create"
               ? `<button class="btn primary" type="button" data-action="modal-create-voice" ${state.busy || voiceCreateInviteCount === 0 ? "disabled" : ""}>创建并进入</button>`
@@ -199,6 +216,7 @@ export function closeModalState() {
   state.modal = null;
   state.modalDraft = "";
   state.clueShareRoles = [];
+  state.clueTransferTargetRoleSlotId = "";
   state.voiceInviteUserIds = [];
 }
 
@@ -208,6 +226,8 @@ export function openModalState(modal) {
     state.modalDraft = modal.initialNote || "";
   } else if (modal.kind === "clue-share") {
     state.clueShareRoles = [...(modal.initialRoles || [])];
+  } else if (modal.kind === "clue-transfer") {
+    state.clueTransferTargetRoleSlotId = modal.initialTargetRoleSlotId || "";
   } else {
     state.modalDraft = "";
   }

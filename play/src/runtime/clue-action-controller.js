@@ -46,6 +46,21 @@ export async function handlePlayClueAction({
       render();
       return true;
     }
+    case "transfer-clue": {
+      const clue = findOwnedClue(state, clueId);
+      if (!clue) {
+        setToast("线索不存在", render);
+        return true;
+      }
+      openModalState({
+        kind: "clue-transfer",
+        title: `转赠线索 · ${clue.name}`,
+        clueId: clue.id,
+        initialTargetRoleSlotId: ""
+      });
+      render();
+      return true;
+    }
     case "modal-save-clue-note":
       await saveClueMutation({
         state, api, render, setBusy, setToast, formatApiError, closeModalState, pullRoomData, clueId,
@@ -59,6 +74,19 @@ export async function handlePlayClueAction({
         state, api, render, setBusy, setToast, formatApiError, closeModalState, pullRoomData, clueId,
         operation: () => api.shareClueToRoles(state.roomId, clueId, roles),
         success: roles.length ? `已私享给 ${roles.length} 名玩家` : "已清空私享名单"
+      });
+      return true;
+    }
+    case "modal-save-clue-transfer": {
+      const targetRoleSlotId = String(state.clueTransferTargetRoleSlotId || "").trim();
+      if (!targetRoleSlotId) {
+        setToast("请选择转赠对象", render);
+        return true;
+      }
+      await saveClueMutation({
+        state, api, render, setBusy, setToast, formatApiError, closeModalState, pullRoomData, clueId,
+        operation: () => api.transferClue(state.roomId, clueId, targetRoleSlotId),
+        success: "线索已转赠，你不再持有该线索"
       });
       return true;
     }

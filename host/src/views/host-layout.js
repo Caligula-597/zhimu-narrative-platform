@@ -142,12 +142,17 @@ function actSelector(acts, current) {
 
 function renderRunbook(act) {
   const book = act?.runbook;
+  const settings = state.studio?.world?.settings || {};
+  const handbookManuscript = String(settings.hostHandbook?.manuscript || "").trim();
+  const handbookBlock = handbookManuscript
+    ? `<section class="host-handbook-full"><p class="section-kicker">主持手册全文</p><pre class="host-handbook-manuscript">${escapeHtml(handbookManuscript.slice(0, 8000))}${handbookManuscript.length > 8000 ? "\n…" : ""}</pre></section>`
+    : "";
   if (!book) {
-    return `<div class="host-current-empty">当前幕没有主持手册。可先按章节控场，后续由 Matrix/Segment 生成 runbook。</div>`;
+    return `${handbookBlock}<div class="host-current-empty">当前幕没有薄层 runbook。${handbookManuscript ? "可参考上方主持手册全文控场。" : "可先按章节控场，或在创作者端填写主持手册全文。"}</div>`;
   }
   const flow = String(book.flow || "").trim();
   const hostTruth = String(book.hostTruth || "").trim();
-  return `<div class="host-current-runbook">
+  return `${handbookBlock}<div class="host-current-runbook">
     ${flow ? `<section><p class="section-kicker">流程</p><p>${escapeHtml(flow)}</p></section>` : ""}
     ${hostTruth ? `<section><p class="section-kicker">上帝视角</p><p>${escapeHtml(hostTruth)}</p></section>` : ""}
   </div>`;
@@ -543,7 +548,8 @@ function renderCurrentActColumn(preferredActKey = "", presentation = null) {
       <section><div class="section-head compact"><div><h3>补救话术</h3></div></div>${renderRemedies(act)}</section>
     </div>
     <div class="host-current-actions">
-      <button class="secondary-btn" data-action="host-manual-unlock-section" data-act-key="${escapeHtml(act?.key || "")}">解锁本幕分幕</button>
+      <button class="secondary-btn" data-action="host-manual-unlock-section" data-act-key="${escapeHtml(act?.key || "")}">开放本幕（全员）</button>
+      <button class="secondary-btn" data-action="host-manual-unlock-scene" data-act-key="${escapeHtml(act?.key || "")}">开放本幕场景</button>
     </div>
   </section>`;
 }
