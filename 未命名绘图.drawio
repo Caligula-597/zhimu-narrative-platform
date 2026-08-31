@@ -1,0 +1,109 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="第 1 页" id="R6fFpwbZgZuiiVU-q2jt">
+    <mxGraphModel dx="1193" dy="1928" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="Nc8IaSkarlcMGxWJkGY_-3" edge="1" parent="1" source="Nc8IaSkarlcMGxWJkGY_-1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="Nc8IaSkarlcMGxWJkGY_-2" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="Nc8IaSkarlcMGxWJkGY_-1" parent="1" style="ellipse;whiteSpace=wrap;html=1;shapeInside=1;" value="注册" vertex="1">
+          <mxGeometry height="80" width="120" x="60" y="110" as="geometry" />
+        </mxCell>
+        <mxCell id="Nc8IaSkarlcMGxWJkGY_-5" edge="1" parent="1" source="Nc8IaSkarlcMGxWJkGY_-2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="Nc8IaSkarlcMGxWJkGY_-4" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="Nc8IaSkarlcMGxWJkGY_-7" edge="1" parent="1" source="Nc8IaSkarlcMGxWJkGY_-2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="Nc8IaSkarlcMGxWJkGY_-6" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="Nc8IaSkarlcMGxWJkGY_-2" parent="1" style="rounded=1;whiteSpace=wrap;html=1;" value="登录" vertex="1">
+          <mxGeometry height="60" width="120" x="260" y="120" as="geometry" />
+        </mxCell>
+        <mxCell id="Nc8IaSkarlcMGxWJkGY_-9" edge="1" parent="1" source="Nc8IaSkarlcMGxWJkGY_-4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="Nc8IaSkarlcMGxWJkGY_-8" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="Nc8IaSkarlcMGxWJkGY_-13" edge="1" parent="1" source="Nc8IaSkarlcMGxWJkGY_-4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="Nc8IaSkarlcMGxWJkGY_-12" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="520" y="290" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="Nc8IaSkarlcMGxWJkGY_-4" parent="1" style="whiteSpace=wrap;html=1;rounded=1;" value="有剧本创作者" vertex="1">
+          <mxGeometry height="60" width="120" x="460" y="120" as="geometry" />
+        </mxCell>
+        <mxCell id="Nc8IaSkarlcMGxWJkGY_-20" edge="1" parent="1" source="Nc8IaSkarlcMGxWJkGY_-6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="Nc8IaSkarlcMGxWJkGY_-19" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="Nc8IaSkarlcMGxWJkGY_-6" parent="1" style="rounded=1;whiteSpace=wrap;html=1;" value="新人创作者" vertex="1">
+          <mxGeometry height="60" width="120" x="260" y="260" as="geometry" />
+        </mxCell>
+        <mxCell id="Nc8IaSkarlcMGxWJkGY_-11" edge="1" parent="1" source="Nc8IaSkarlcMGxWJkGY_-8" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="Nc8IaSkarlcMGxWJkGY_-10" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="Nc8IaSkarlcMGxWJkGY_-8" parent="1" style="rounded=1;whiteSpace=wrap;html=1;" value="输入剧本（docx）" vertex="1">
+          <mxGeometry height="60" width="120" x="660" y="120" as="geometry" />
+        </mxCell>
+        <mxCell id="Nc8IaSkarlcMGxWJkGY_-16" edge="1" parent="1" source="Nc8IaSkarlcMGxWJkGY_-10" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="Nc8IaSkarlcMGxWJkGY_-15" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="Nc8IaSkarlcMGxWJkGY_-10" parent="1" style="whiteSpace=wrap;html=1;rounded=1;" value="LLM完整理解拆分成具体内容（docx）" vertex="1">
+          <mxGeometry height="60" width="120" x="860" y="120" as="geometry" />
+        </mxCell>
+        <mxCell id="Nc8IaSkarlcMGxWJkGY_-14" edge="1" parent="1" source="Nc8IaSkarlcMGxWJkGY_-12" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" target="Nc8IaSkarlcMGxWJkGY_-10">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="920" y="290" />
+            </Array>
+            <mxPoint x="890" y="190" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="Nc8IaSkarlcMGxWJkGY_-12" parent="1" style="whiteSpace=wrap;html=1;rounded=1;" value="自行拆分" vertex="1">
+          <mxGeometry height="60" width="120" x="660" y="260" as="geometry" />
+        </mxCell>
+        <mxCell id="Nc8IaSkarlcMGxWJkGY_-18" edge="1" parent="1" source="Nc8IaSkarlcMGxWJkGY_-15" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="Nc8IaSkarlcMGxWJkGY_-17" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="Nc8IaSkarlcMGxWJkGY_-15" parent="1" style="whiteSpace=wrap;html=1;rounded=1;" value="我们完整的细节拆分系统" vertex="1">
+          <mxGeometry height="60" width="120" x="1060" y="120" as="geometry" />
+        </mxCell>
+        <mxCell id="Nc8IaSkarlcMGxWJkGY_-30" edge="1" parent="1" source="Nc8IaSkarlcMGxWJkGY_-17" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="Nc8IaSkarlcMGxWJkGY_-29" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="Nc8IaSkarlcMGxWJkGY_-17" parent="1" style="whiteSpace=wrap;html=1;rounded=1;" value="&lt;ul&gt;&lt;li&gt;&lt;p&gt;&lt;code&gt;CFG&lt;/code&gt;：项目边界与成品规格。&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;&lt;code&gt;SIT&lt;/code&gt;：核心局势中的不可删事实。&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;&lt;code&gt;A&lt;/code&gt;：玉满楼之夜与随后连续行动。&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;&lt;code&gt;W&lt;/code&gt;：世界规则、超自然规则与客观规则。&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;&lt;code&gt;H&lt;/code&gt;：历史事件。&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;&lt;code&gt;C&lt;/code&gt;：玩家人物身份、人生场景与任务。&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;&lt;code&gt;NPC&lt;/code&gt;：非玩家人物内容。&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;&lt;code&gt;R&lt;/code&gt;：关系过程。&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;&lt;code&gt;O&lt;/code&gt;：物件、毒药、兵器、防具与意象。&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;&lt;code&gt;K&lt;/code&gt;：人物知情、误认与分阶段可知真相。&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;&lt;code&gt;M&lt;/code&gt;：运行状态、机制状态和异常处理。&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;&lt;code&gt;E&lt;/code&gt;：线索、证明路径与材料。&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;&lt;code&gt;LOC&lt;/code&gt;：衙门令与监狱地图地点。&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;&lt;code&gt;ECON&lt;/code&gt;：银两、拍卖、宝箱与经济规则。&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;&lt;code&gt;P&lt;/code&gt;：主持阶段。&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;&lt;code&gt;X&lt;/code&gt;：结局结果。&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;&lt;code&gt;SRC&lt;/code&gt;：最终交付文本与文件来源。&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;&lt;code&gt;ASSET&lt;/code&gt;：实体道具、地图、卡件与配乐资产。&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;&lt;code&gt;VAL&lt;/code&gt;：原稿内部差异、缺失与待统一事项。&lt;/p&gt;&lt;/li&gt;&lt;li&gt;&lt;p&gt;&lt;code&gt;MOD&lt;/code&gt;：扩展机制模块。&lt;/p&gt;&lt;/li&gt;&lt;/ul&gt;" vertex="1">
+          <mxGeometry height="590" width="540" x="1260" y="-145" as="geometry" />
+        </mxCell>
+        <mxCell id="Nc8IaSkarlcMGxWJkGY_-22" edge="1" parent="1" source="Nc8IaSkarlcMGxWJkGY_-19" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="Nc8IaSkarlcMGxWJkGY_-21" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="Nc8IaSkarlcMGxWJkGY_-19" parent="1" style="whiteSpace=wrap;html=1;rounded=1;" value="我们不展开精细编辑器" vertex="1">
+          <mxGeometry height="60" width="120" x="60" y="400" as="geometry" />
+        </mxCell>
+        <mxCell id="Nc8IaSkarlcMGxWJkGY_-24" edge="1" parent="1" source="Nc8IaSkarlcMGxWJkGY_-21" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="Nc8IaSkarlcMGxWJkGY_-23" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="Nc8IaSkarlcMGxWJkGY_-21" parent="1" style="whiteSpace=wrap;html=1;rounded=1;" value="先让用户给一个想法" vertex="1">
+          <mxGeometry height="60" width="120" x="60" y="540" as="geometry" />
+        </mxCell>
+        <mxCell id="Nc8IaSkarlcMGxWJkGY_-26" edge="1" parent="1" source="Nc8IaSkarlcMGxWJkGY_-23" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="Nc8IaSkarlcMGxWJkGY_-25" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="Nc8IaSkarlcMGxWJkGY_-23" parent="1" style="whiteSpace=wrap;html=1;rounded=1;" value="这个想法拆解到我们的对应内容中去" vertex="1">
+          <mxGeometry height="60" width="120" x="60" y="680" as="geometry" />
+        </mxCell>
+        <mxCell id="Nc8IaSkarlcMGxWJkGY_-28" edge="1" parent="1" source="Nc8IaSkarlcMGxWJkGY_-25" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="Nc8IaSkarlcMGxWJkGY_-27" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="Nc8IaSkarlcMGxWJkGY_-25" parent="1" style="whiteSpace=wrap;html=1;rounded=1;" value="我们已有这个具体素材库" vertex="1">
+          <mxGeometry height="60" width="120" x="260" y="680" as="geometry" />
+        </mxCell>
+        <mxCell id="Nc8IaSkarlcMGxWJkGY_-27" parent="1" style="whiteSpace=wrap;html=1;rounded=1;" value="调用素材库给他一段话描述世界场景背景" vertex="1">
+          <mxGeometry height="60" width="120" x="460" y="680" as="geometry" />
+        </mxCell>
+        <mxCell id="Nc8IaSkarlcMGxWJkGY_-29" parent="1" style="whiteSpace=wrap;html=1;rounded=1;" value="" vertex="1">
+          <mxGeometry height="60" width="120" x="1910" y="120" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
