@@ -435,6 +435,16 @@ export const API_ERRORS = {
   DOCUMENT_STRUCTURE_EMPTY: { status: 422, message: "No importable narrative structure was detected" },
   IMPORT_RIGHTS_CONFIRMATION_REQUIRED: { status: 400, message: "请先确认你有权处理和导入该稿件" },
   OPENING_PACKAGE_HOST_REQUIRED: { status: 400, message: "开本包导入需要上传主持手册（docx）" },
+  COMPILER_V2_JOB_NOT_FOUND: { status: 404, message: "Compiler V2 任务不存在" },
+  COMPILER_V2_FAILED: { status: 500, message: "Compiler V2 流水线执行失败" },
+  COMPILER_V2_NOT_READY_FOR_COMMIT: {
+    status: 409,
+    message: "Compiler V2 任务尚未进入可提交状态（需 needs_review）"
+  },
+  COMPILER_V2_COMMIT_CONFIRM_REQUIRED: {
+    status: 400,
+    message: "提交正式 Runtime 前必须 confirmCommit=true（User Review）"
+  },
   FEISHU_IMPORT_NOT_CONFIGURED: { status: 503, message: "飞书稿件导入尚未配置" },
   FEISHU_DOCUMENT_URL_INVALID: { status: 400, message: "请输入有效的飞书文档或知识库链接" },
   FEISHU_DOCUMENT_FORBIDDEN: { status: 403, message: "飞书应用无权读取该文档，请先把文档授权给应用" },
