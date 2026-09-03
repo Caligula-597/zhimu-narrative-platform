@@ -1,12 +1,9 @@
-import {
-  newCompilerId,
-  markStageComplete,
-  pushWarning
-} from "../state.js";
+import { markStageComplete, pushWarning, newCompilerId } from "../state.js";
 
 /**
- * Stage 4 — Scene Resolver.
- * locationHint → resolve/create Scene → backfill locationId.
+ * Stage 4 — Scene Resolver (passive).
+ * Only resolves timelineEvents.locationHint → Scene.
+ * Does NOT invent scenes from heading keywords.
  */
 export async function stage4SceneResolver(state) {
   let next = {
@@ -16,50 +13,43 @@ export async function stage4SceneResolver(state) {
 
   const scenesByName = new Map();
   for (const scene of state.scenes || []) {
-    scenesByName.set(String(scene.name).trim(), scene);
+    if (scene?.name) scenesByName.set(String(scene.name).trim(), scene);
   }
 
-  function resolveScene(hint) {
-    const name = String(hint || "").trim();
-    if (!name) return null;
-    if (scenesByName.has(name)) return scenesByName.get(name);
-    const scene = {
-      id: newCompilerId("scene"),
-      name,
-      parentSceneId: null,
-      description: "",
-      availableActs: [],
-      eventIds: [],
-      clueIds: [],
-      interactiveObjects: []
-    };
-    scenesByName.set(name, scene);
-    return scene;
-  }
-
-  const events = (state.timelineEvents || []).map((ev) => {
-    if (ev.locationId) return ev;
-    if (!ev.locationHint) return ev;
-    const scene = resolveScene(ev.locationHint);
-    return scene ? { ...ev, locationId: scene.id } : ev;
-  });
-
-  // Also seed scenes mentioned in host / scene docs as hints (no LLM).
-  for (const doc of state.documents || []) {
-    if (doc.kind !== "SCENE_FILE" && doc.kind !== "HOST_BOOK") continue;
-    const titles = (doc.sections || [])
-      .map((s) => String(s.title || "").trim())
-      .filter((t) => t && t.length <= 40 && /厅|房|室|园|楼|廊|堂|院|馆/.test(t));
-    for (const title of titles.slice(0, 40)) {
-      resolveScene(title);
+  const events = [];
+  for (const ev of state.timelineEvents || []) {
+    if (ev.locationId || !ev.locationHint) {
+      events.push(ev);
+      continue;
     }
+    const name = String(ev.locationHint).trim();
+    if (!name || name.length > 40) {
+      events.push(ev);
+      continue;
+    }
+    let scene = scenesByName.get(name);
+    if (!scene) {
+      scene = {
+        id: newCompilerId("scene"),
+        name,
+        parentSceneId: null,
+        description: "",
+        availableActs: [],
+        eventIds: [],
+        clueIds: [],
+        interactiveObjects: [],
+        source: "locationHint"
+      };
+      scenesByName.set(name, scene);
+    }
+    events.push({ ...ev, locationId: scene.id });
   }
 
   const scenes = [...scenesByName.values()];
-  if (!scenes.length && events.every((e) => !e.locationHint)) {
+  if (!scenes.length) {
     next = pushWarning(next, {
       code: "SCENE_EMPTY",
-      message: "尚未解析到场景；时间线生成后将按 locationHint 补全"
+      message: "尚无场景（需 Timeline locationHint 或后续 Scene 专用提取）；未从标题关键词伪造场景"
     });
   }
 

@@ -1,0 +1,78 @@
+[
+  {
+    "label": "changsheng-tan-slots",
+    "status": "needs_review",
+    "elapsedMs": 123,
+    "project": {
+      "title": "长生叹",
+      "titleStatus": "AUTO_DETECTED"
+    },
+    "counts": {
+      "documents": 8,
+      "characters": 6,
+      "acts": 3,
+      "characterScripts": 6,
+      "sourceSections": 260,
+      "timelineEvents": 0,
+      "scenes": 0,
+      "clues": 0,
+      "characterCores": 0,
+      "mechanisms": 0,
+      "warnings": 3,
+      "unresolved": 1
+    },
+    "characters": [
+      "张九孚",
+      "杨峥",
+      "白初",
+      "陶梦芸",
+      "顾怀晨",
+      "黎小曼"
+    ],
+    "acts": [
+      {
+        "title": "第一幕",
+        "explicit": true
+      },
+      {
+        "title": "第二幕",
+        "explicit": true
+      },
+      {
+        "title": "第三幕",
+        "explicit": true
+      }
+    ],
+    "crossTalk": 0,
+    "unresolvedCount": 1,
+    "warningCount": 3
+  },
+  {
+    "label": "qinglou-host-slot-only",
+    "status": "needs_review",
+    "elapsedMs": 33,
+    "project": {
+      "title": "青楼",
+      "titleStatus": "AUTO_DETECTED"
+    },
+    "counts": {
+      "documents": 2,
+      "characters": 0,
+      "acts": 0,
+      "characterScripts": 0,
+      "sourceSections": 89,
+      "timelineEvents": 0,
+      "scenes": 0,
+      "clues": 0,
+      "characterCores": 0,
+      "mechanisms": 0,
+      "warnings": 2,
+      "unresolved": 4
+    },
+    "characters": [],
+    "acts": [],
+    "crossTalk": 0,
+    "unresolvedCount": 4,
+    "warningCount": 2
+  }
+]

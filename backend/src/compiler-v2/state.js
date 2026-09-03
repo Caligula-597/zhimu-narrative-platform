@@ -25,6 +25,12 @@ export const DETECTION_STATUS = Object.freeze({
   NEEDS_CONFIRMATION: "NEEDS_CONFIRMATION"
 });
 
+/** Act assignment — never invent fallback Acts like「主持手册」「未分幕」. */
+export const ACT_STATUS = Object.freeze({
+  ASSIGNED: "ASSIGNED",
+  UNASSIGNED: "UNASSIGNED"
+});
+
 export const TRUTH_STATUS = Object.freeze({
   CONFIRMED: "CONFIRMED",
   CHARACTER_BELIEF: "CHARACTER_BELIEF",

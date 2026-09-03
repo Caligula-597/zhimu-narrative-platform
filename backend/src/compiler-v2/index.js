@@ -25,10 +25,12 @@ const STAGE_RUNNERS = Object.freeze({
 });
 
 /**
- * Run all stages synchronously (caller schedules as background job).
+ * Run stages synchronously (caller schedules as background job).
+ * @param {{ inputFiles?: object, toStage?: string }} options
+ *   toStage — stop after this stage id (inclusive). Default: full pipeline to integrity_check.
  * Stops at integrity_check — does NOT auto-commit to runtime.
  */
-export async function runCompilerV2Pipeline(initialState, { inputFiles } = {}) {
+export async function runCompilerV2Pipeline(initialState, { inputFiles, toStage } = {}) {
   let state = initialState || createEmptyCompilerV2State();
   state = {
     ...state,
@@ -39,7 +41,12 @@ export async function runCompilerV2Pipeline(initialState, { inputFiles } = {}) {
     }
   };
 
-  for (const stageId of COMPILER_V2_STAGES) {
+  const stopAt = toStage || "integrity_check";
+  const stopIdx = COMPILER_V2_STAGES.indexOf(stopAt);
+  const stages =
+    stopIdx >= 0 ? COMPILER_V2_STAGES.slice(0, stopIdx + 1) : [...COMPILER_V2_STAGES];
+
+  for (const stageId of stages) {
     const runner = STAGE_RUNNERS[stageId];
     if (!runner) throw new Error(`Missing stage runner: ${stageId}`);
     state = {
@@ -50,13 +57,12 @@ export async function runCompilerV2Pipeline(initialState, { inputFiles } = {}) {
     state = await runner(state, ctx);
   }
 
-  // Always land in needs_review — AI 整理 ≠ 作者确认
   state = {
     ...state,
     job: {
       ...(state.job || {}),
       status: "needs_review",
-      currentStage: "integrity_check"
+      currentStage: stopAt
     }
   };
   return state;

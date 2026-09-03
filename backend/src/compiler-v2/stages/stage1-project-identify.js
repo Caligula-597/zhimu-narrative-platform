@@ -2,61 +2,47 @@ import {
   DETECTION_STATUS,
   newCompilerId,
   pushUnresolved,
+  pushWarning,
   markStageComplete
 } from "../state.js";
 import {
-  filenameStem,
+  detectProjectTitle,
   guessActCountFromText,
   guessPlayerCountFromText,
-  guessTitleFromText,
-  parseDocxFile
+  parseUploadFile
 } from "../document-utils.js";
-
-function classifyByHint({ filename, roleName, slot }) {
-  if (slot === "hostHandbook") return "HOST_BOOK";
-  if (slot === "roleScript") return "CHARACTER_BOOK";
-  if (slot === "clueTextDoc") return "CLUE_FILE";
-  if (slot === "mechanismDoc") return "MECHANISM_FILE";
-  if (slot === "sceneDoc") return "SCENE_FILE";
-  const name = `${filename || ""} ${roleName || ""}`;
-  if (/主持|DM|GM|手册|复盘/.test(name)) return "HOST_BOOK";
-  if (/线索/.test(name)) return "CLUE_FILE";
-  if (/机制|规则|玩法/.test(name)) return "MECHANISM_FILE";
-  if (/地图|场景|地点/.test(name)) return "SCENE_FILE";
-  if (roleName) return "CHARACTER_BOOK";
-  return "OTHER";
-}
+import {
+  kindFromSlot,
+  normalizeOpeningPackageInput
+} from "../opening-package-input.js";
 
 /**
- * Stage 1 — Project Identify.
- * Parses uploads, classifies documents. Uncertain metadata → NEEDS_CONFIRMATION (no hard guess).
+ * Stage 1 — Project Identify from Opening Package slots.
+ * Slot decides document kind. Do NOT reclassify from merged heuristics.
  */
 export async function stage1ProjectIdentify(state, { inputFiles = {} } = {}) {
   let next = {
     ...state,
     job: { ...(state.job || {}), currentStage: "project_identify" }
   };
-  const creationType = next.project?.creationType || "murder_mystery";
+  const pack = normalizeOpeningPackageInput(inputFiles);
+  const creationType = pack.creationType || next.project?.creationType || "murder_mystery";
   const documents = [];
   const characters = [];
 
-  async function ingestSlot(file, slot, extra = {}) {
-    if (!file?.filename || !file?.contentBase64) return null;
-    const parsed = await parseDocxFile(file, creationType);
-    const kind = classifyByHint({
-      filename: file.filename,
-      roleName: file.roleName || extra.roleName,
-      slot
-    });
-    const kindStatus =
-      kind === "OTHER" ? DETECTION_STATUS.NEEDS_CONFIRMATION : DETECTION_STATUS.AUTO_DETECTED;
+  async function ingest(file, slot, { roleName = null } = {}) {
+    if (!file?.filename && file?.text == null && !file?.contentBase64) return null;
+    const filename = file.filename || `${slot}.txt`;
+    const parsed = await parseUploadFile({ ...file, filename }, creationType);
+    const kind = kindFromSlot(slot);
     const doc = {
       id: newCompilerId("doc"),
       kind,
-      kindStatus,
+      kindStatus: DETECTION_STATUS.AUTO_DETECTED,
+      kindSource: "upload_slot",
       slot,
-      filename: file.filename,
-      roleName: file.roleName || extra.roleName || null,
+      filename,
+      roleName,
       characterCount: Number(parsed.characterCount || 0),
       sectionCount: Number(parsed.sectionCount || 0),
       text: parsed.text || "",
@@ -64,103 +50,133 @@ export async function stage1ProjectIdentify(state, { inputFiles = {} } = {}) {
       structure: parsed.structure || null
     };
     documents.push(doc);
-    if (kindStatus === DETECTION_STATUS.NEEDS_CONFIRMATION) {
-      next = pushUnresolved(next, {
-        kind: DETECTION_STATUS.NEEDS_CONFIRMATION,
-        field: `document.kind:${doc.id}`,
-        message: `无法确定文件「${file.filename}」类型，请确认`,
-        evidence: [file.filename],
-        suggestedValue: kind
-      });
-    }
     return doc;
   }
 
-  if (inputFiles.hostHandbook) {
-    await ingestSlot(inputFiles.hostHandbook, "hostHandbook");
-  } else {
+  if (!pack.hostHandbook) {
     next = pushUnresolved(next, {
       kind: DETECTION_STATUS.NEEDS_CONFIRMATION,
       field: "hostHandbook",
-      message: "未上传主持手册"
+      message: "未上传主持手册（Opening Package 槽位 hostHandbook）"
     });
+  } else {
+    await ingest(pack.hostHandbook, "hostHandbook");
   }
 
-  for (const file of inputFiles.roleScripts || []) {
-    const doc = await ingestSlot(file, "roleScript");
+  for (const file of pack.roleScripts) {
+    const roleName = file.roleName || file.characterName || null;
+    const doc = await ingest(file, "roleScript", { roleName });
     if (!doc) continue;
-    const name = file.roleName || filenameStem(file.filename) || null;
-    const nameStatus = name
+    const nameStatus = roleName
       ? DETECTION_STATUS.AUTO_DETECTED
       : DETECTION_STATUS.NEEDS_CONFIRMATION;
     const character = {
       id: newCompilerId("char"),
-      name,
+      name: roleName,
       nameStatus,
+      nameSource: roleName ? "upload_slot" : null,
       documentId: doc.id
     };
     characters.push(character);
     doc.characterId = character.id;
-    if (nameStatus === DETECTION_STATUS.NEEDS_CONFIRMATION) {
+    if (!roleName) {
       next = pushUnresolved(next, {
         kind: DETECTION_STATUS.NEEDS_CONFIRMATION,
         field: `character.name:${character.id}`,
-        message: `角色名无法从「${file.filename}」确定`,
+        message: `角色本「${file.filename}」未提供 characterName/roleName，请确认`,
         evidence: [file.filename]
       });
     }
   }
 
-  if (inputFiles.clueTextDoc) {
-    await ingestSlot(inputFiles.clueTextDoc, "clueTextDoc");
+  if (!pack.roleScripts.length) {
+    next = pushUnresolved(next, {
+      kind: DETECTION_STATUS.NEEDS_CONFIRMATION,
+      field: "roleScripts",
+      message: "未上传角色剧本槽位；不会从主持手册猜测切分角色本"
+    });
   }
-  if (inputFiles.mechanismDoc) {
-    await ingestSlot(inputFiles.mechanismDoc, "mechanismDoc");
+
+  for (const file of pack.clueTextFiles) {
+    await ingest(file, "clueTextFile");
   }
-  for (const file of inputFiles.sceneDocs || []) {
-    await ingestSlot(file, "sceneDoc");
-  }
-  if (inputFiles.notes) {
+  for (const file of pack.clueImages) {
     documents.push({
       id: newCompilerId("doc"),
-      kind: "OTHER",
+      kind: "CLUE_MEDIA",
       kindStatus: DETECTION_STATUS.AUTO_DETECTED,
+      kindSource: "upload_slot",
+      slot: "clueImage",
+      filename: file.filename || "clue-image",
+      roleName: null,
+      characterCount: 0,
+      sectionCount: 0,
+      text: "",
+      sections: [],
+      mediaMeta: {
+        contentBase64Present: Boolean(file.contentBase64),
+        matchKey: file.matchKey || null
+      }
+    });
+  }
+
+  if (pack.mechanismDoc) {
+    await ingest(pack.mechanismDoc, "mechanismDoc");
+  }
+
+  if (pack.notes) {
+    documents.push({
+      id: newCompilerId("doc"),
+      kind: "NOTES",
+      kindStatus: DETECTION_STATUS.AUTO_DETECTED,
+      kindSource: "upload_slot",
       slot: "notes",
       filename: "notes.txt",
-      text: String(inputFiles.notes),
+      text: pack.notes,
       sections: [],
-      characterCount: String(inputFiles.notes).length,
+      characterCount: pack.notes.length,
       sectionCount: 0
     });
   }
 
   const host = documents.find((d) => d.kind === "HOST_BOOK");
   const hostText = host?.text || "";
-  const titleGuess = guessTitleFromText(hostText, host?.filename);
+  const titleHit = detectProjectTitle(hostText, host?.filename);
   const playerGuess = guessPlayerCountFromText(hostText);
   const actGuess = guessActCountFromText(hostText);
 
   const project = {
     ...(next.project || {}),
-    title: titleGuess,
-    titleStatus: titleGuess
-      ? DETECTION_STATUS.AUTO_DETECTED
-      : DETECTION_STATUS.NEEDS_CONFIRMATION,
+    creationType,
+    title: titleHit.confidence === "HIGH" ? titleHit.title : null,
+    titleStatus:
+      titleHit.confidence === "HIGH"
+        ? DETECTION_STATUS.AUTO_DETECTED
+        : DETECTION_STATUS.NEEDS_CONFIRMATION,
+    titleSuggestion:
+      titleHit.confidence === "LOW" ? titleHit.title : titleHit.confidence === "HIGH" ? null : null,
     playerCount: playerGuess,
-    playerCountStatus: playerGuess != null
-      ? DETECTION_STATUS.AUTO_DETECTED
-      : DETECTION_STATUS.NEEDS_CONFIRMATION,
+    playerCountStatus:
+      playerGuess != null ? DETECTION_STATUS.AUTO_DETECTED : DETECTION_STATUS.NEEDS_CONFIRMATION,
     actCount: actGuess,
-    actCountStatus: actGuess != null
-      ? DETECTION_STATUS.AUTO_DETECTED
-      : DETECTION_STATUS.NEEDS_CONFIRMATION
+    actCountStatus:
+      actGuess != null ? DETECTION_STATUS.AUTO_DETECTED : DETECTION_STATUS.NEEDS_CONFIRMATION
   };
 
+  if (titleHit.confidence === "LOW" && titleHit.title) {
+    project.titleSuggestion = titleHit.title;
+    next = pushWarning(next, {
+      code: "TITLE_LOW_CONFIDENCE",
+      message: `标题仅有低置信建议「${titleHit.title}」，未自动采用`,
+      evidence: [host?.filename]
+    });
+  }
   if (project.titleStatus === DETECTION_STATUS.NEEDS_CONFIRMATION) {
     next = pushUnresolved(next, {
       kind: DETECTION_STATUS.NEEDS_CONFIRMATION,
       field: "project.title",
-      message: "剧本标题无法从主持手册可靠解析，请确认"
+      message: "剧本标题无法高置信解析（需《书名》或明确剧名标注），请确认",
+      suggestedValue: project.titleSuggestion || undefined
     });
   }
   if (project.playerCountStatus === DETECTION_STATUS.NEEDS_CONFIRMATION) {
@@ -179,11 +195,6 @@ export async function stage1ProjectIdentify(state, { inputFiles = {} } = {}) {
     });
   }
 
-  next = {
-    ...next,
-    project,
-    documents,
-    characters
-  };
+  next = { ...next, project, documents, characters };
   return markStageComplete(next, "project_identify");
 }
