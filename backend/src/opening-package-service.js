@@ -22,6 +22,7 @@ import { decodeDocumentBuffer, parseCreatorDocument } from "./document-parser.js
 import { runDocumentProcessing } from "./document-processing-guard.js";
 import { normalizeCreationType } from "./document-structure.js";
 import { runRevisionMutation } from "./world-revision.js";
+import { proposeStageSchemaFromRoleScripts } from "./compiler-v2/stage-schema.js";
 
 const IMAGE_EXTENSIONS = new Map([
   [".jpg", "image/jpeg"],
@@ -131,11 +132,16 @@ export async function previewOpeningPackage(payload = {}) {
   const hostParsed = await parseDocxSlot(payload.hostHandbook, creationType);
   const roleFiles = (payload.roleScripts || []).flatMap(expandZipDocxEntries);
   const roleSummaries = [];
+  const roleTextsForStages = [];
   for (const file of roleFiles) {
     const parsed = await parseDocxSlot(file, creationType);
     roleSummaries.push({
       ...summarizeDocxSlot(parsed, file.roleName || filenameStem(file.filename)),
       roleName: file.roleName || filenameStem(file.filename)
+    });
+    roleTextsForStages.push({
+      characterName: file.roleName || filenameStem(file.filename),
+      originalContent: parsed?.text || ""
     });
   }
 
@@ -153,6 +159,8 @@ export async function previewOpeningPackage(payload = {}) {
     matchKey: matchKey(file.filename)
   }));
 
+  const stageSchemaProposal = proposeStageSchemaFromRoleScripts(roleTextsForStages);
+
   return {
     target: "opening_package_preview",
     creationType,
@@ -160,11 +168,13 @@ export async function previewOpeningPackage(payload = {}) {
     roleScripts: roleSummaries,
     clueTextDoc: clueTextSummary,
     clueImages: imageSummaries,
+    stageSchemaProposal,
     checklist: {
       hostHandbook: true,
       roleScripts: roleSummaries.length > 0,
       clueTextDoc: Boolean(clueTextSummary),
-      clueImages: imageSummaries.length > 0
+      clueImages: imageSummaries.length > 0,
+      stageSchemaPending: Boolean(stageSchemaProposal)
     },
     ready: hostParsed?.text?.trim()
   };
@@ -373,7 +383,9 @@ export async function commitOpeningPackageWithClient(client, {
         roleFileCount: roleFiles.length,
         clueTextFilename: payload.clueTextDoc?.filename || "",
         clueImageCount: imageFiles.length,
-        created
+        created,
+        stageSchema: payload.stageSchema || null,
+        stageSchemaDecision: payload.stageSchemaDecision || null
       })
     ]
   );

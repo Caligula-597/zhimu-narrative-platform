@@ -41,6 +41,52 @@ function previewSummaryHtml(preview) {
   </section>`;
 }
 
+function stageSchemaConfirmHtml(session) {
+  const proposal = session.preview?.stageSchemaProposal;
+  if (!proposal?.items?.length) return "";
+
+  const decision = session.stageSchemaDecision || "";
+  const editing = decision === "manual" || session.stageSchemaEditing;
+  const items = session.stageSchemaDraftItems || proposal.items;
+  const statusLine = decision === "confirm"
+    ? `<p class="opening-package-stage-status">已确认：设为统一游戏阶段（${escapeHtml(proposal.label || "")}）</p>`
+    : decision === "reject"
+      ? `<p class="opening-package-stage-status">已确认：仅作章节标题，不设统一阶段</p>`
+      : decision === "manual" && !session.stageSchemaEditing
+        ? `<p class="opening-package-stage-status">已手动设定：${escapeHtml((session.stageSchema?.label) || items.map((i) => i.name).join(" / "))}</p>`
+        : `<p class="opening-package-stage-hint">请确认后再写入世界（可不改，但建议先选一项）。</p>`;
+
+  const listHtml = editing
+    ? `<ol class="opening-package-stage-edit-list">${items.map((item, index) => `
+        <li>
+          <label><span>阶段 ${index + 1}</span>
+            <input class="field" type="text" data-opening-stage-edit="${index}" value="${escapeHtml(item.name || "")}" maxlength="80">
+          </label>
+        </li>`).join("")}</ol>
+        <div class="writer-transfer-inline-actions">
+          <button type="button" class="primary-btn" data-action="opening-package-stage-manual-save">保存手动阶段</button>
+          <button type="button" class="secondary-btn" data-action="opening-package-stage-manual-cancel">取消</button>
+        </div>`
+    : `<ol class="opening-package-stage-list">${(proposal.items || []).map((item) => `<li>${escapeHtml(`${item.order}. ${item.name}`)}</li>`).join("")}</ol>
+        <div class="writer-transfer-inline-actions opening-package-stage-actions">
+          <button type="button" class="primary-btn" data-action="opening-package-stage-confirm">是，设为统一阶段</button>
+          <button type="button" class="secondary-btn" data-action="opening-package-stage-reject">不是，只作为章节标题</button>
+          <button type="button" class="secondary-btn" data-action="opening-package-stage-manual">手动编辑</button>
+        </div>`;
+
+  const promptLines = String(proposal.prompt || "")
+    .split(/\n/)
+    .map((line) => escapeHtml(line))
+    .join("<br>");
+
+  return `<section class="opening-package-stage-schema" data-opening-stage-schema>
+    <h4>统一游戏阶段确认</h4>
+    <p class="opening-package-stage-prompt">${promptLines}</p>
+    ${listHtml}
+    ${statusLine}
+  </section>`;
+}
+
 function stepBodyHtml(session) {
   const step = Number(session.draft.step || 1);
   if (step === 1) {
@@ -100,6 +146,7 @@ function stepBodyHtml(session) {
     <h3>总览与写入</h3>
     <p>确认各槽位文件无误后写入世界。角色分幕与线索默认为草稿，不会直接发布给玩家。</p>
     ${previewSummaryHtml(session.preview)}
+    ${stageSchemaConfirmHtml(session)}
     <div class="writer-transfer-inline-actions">
       <button type="button" class="secondary-btn" data-action="opening-package-preview-run"${session.savingAction === "preview" ? " disabled" : ""}>${session.savingAction === "preview" ? "正在生成预览…" : "生成总览预览"}</button>
     </div>

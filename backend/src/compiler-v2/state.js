@@ -67,6 +67,10 @@ export function createEmptyCompilerV2State({ worldId, jobId = null } = {}) {
     acts: [],
     characterScripts: [],
     sourceSections: [],
+    /** Authoritative only after user confirm — never auto-promoted from heuristics. */
+    stageSchema: null,
+    /** Heuristic suggestion awaiting UI (confirm / reject / manual). */
+    stageSchemaProposal: null,
     timelineTracks: [],
     timelineEvents: [],
     scenes: [],
@@ -134,6 +138,7 @@ export function summarizeStateForStatus(state) {
       acts: state.acts?.length || 0,
       characterScripts: state.characterScripts?.length || 0,
       sourceSections: state.sourceSections?.length || 0,
+      stageSchemaItems: state.stageSchema?.items?.length || 0,
       timelineEvents: state.timelineEvents?.length || 0,
       scenes: state.scenes?.length || 0,
       clues: state.clues?.length || 0,
@@ -142,6 +147,22 @@ export function summarizeStateForStatus(state) {
       warnings: state.warnings?.length || 0,
       unresolved: state.unresolved?.length || 0
     },
+    stageSchema: state.stageSchema
+      ? {
+          id: state.stageSchema.id,
+          source: state.stageSchema.source,
+          label: state.stageSchema.label,
+          itemCount: state.stageSchema.items?.length || 0
+        }
+      : null,
+    stageSchemaProposal: state.stageSchemaProposal
+      ? {
+          label: state.stageSchemaProposal.label,
+          characterCount: state.stageSchemaProposal.characterCount,
+          items: state.stageSchemaProposal.items,
+          prompt: state.stageSchemaProposal.prompt
+        }
+      : null,
     job: state.job,
     warnings: (state.warnings || []).slice(0, 50),
     unresolved: (state.unresolved || []).slice(0, 50)

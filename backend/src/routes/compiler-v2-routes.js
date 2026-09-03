@@ -7,12 +7,14 @@ import {
   createCompilerV2Job,
   getCompilerV2Status,
   getCompilerV2Results,
-  commitCompilerV2Job
+  commitCompilerV2Job,
+  confirmCompilerV2StageSchema
 } from "../compiler-v2/job-service.js";
 import {
   runCompilerV2Schema,
   compilerV2JobQuerySchema,
-  commitCompilerV2Schema
+  commitCompilerV2Schema,
+  confirmCompilerV2StageSchemaSchema
 } from "./schemas/compiler-v2.js";
 
 export async function registerCompilerV2Routes(app) {
@@ -69,6 +71,18 @@ export async function registerCompilerV2Routes(app) {
     await requireWorldRole(actorId, worldId, "editor");
     return commitCompilerV2Job(worldId, request.body.jobId, {
       confirmCommit: request.body.confirmCommit
+    });
+  });
+
+  app.post("/api/worlds/:worldId/compiler-v2/stage-schema/confirm", {
+    schema: confirmCompilerV2StageSchemaSchema
+  }, async (request) => {
+    const actorId = requireActor(request);
+    const { worldId } = request.params;
+    await requireWorldRole(actorId, worldId, "editor");
+    return confirmCompilerV2StageSchema(worldId, request.body.jobId, {
+      decision: request.body.decision,
+      items: request.body.items
     });
   });
 }

@@ -28,6 +28,8 @@ describe("Compiler V2 state", () => {
     assert.equal(state.job.jobId, "j1");
     assert.equal(state.project.playerCountStatus, DETECTION_STATUS.NEEDS_CONFIRMATION);
     assert.ok(Array.isArray(state.sourceSections));
+    assert.equal(state.stageSchema, null);
+    assert.equal(state.stageSchemaProposal, null);
     assert.equal(COMPILER_V2_STAGES.length, 8);
   });
 });
@@ -463,5 +465,93 @@ describe("Compiler V2 ManuscriptBoundaryResolver (no LLM)", () => {
     const hits = findExactRoleHeadings(paragraphs, ["白斋子", "齐剑心", "莫怀"]);
     assert.equal(hits.length, 1);
     assert.equal(hits[0].characterName, "白斋子");
+  });
+});
+
+describe("Compiler V2 StageSchema (user confirmation)", () => {
+  it("proposes shared stages and binds only after confirm", async () => {
+    const {
+      proposeStageSchemaFromRoleScripts,
+      applyStageSchemaDecision,
+      STAGE_SCHEMA_SOURCE,
+      attachStageSchemaProposal
+    } = await import("../src/compiler-v2/stage-schema.js");
+
+    const roles = ["白斋子", "齐剑心", "莫怀"].map((name) => ({
+      characterName: name,
+      originalContent: [
+        "①你的任务一",
+        "第一章：玉满楼",
+        "身世……",
+        "第二章：灵石",
+        "……",
+        "第三章：魔石",
+        "……",
+        "第四章：夜阑 夜初",
+        "结局"
+      ].join("\n")
+    }));
+
+    const proposal = proposeStageSchemaFromRoleScripts(roles);
+    assert.ok(proposal);
+    assert.equal(proposal.items.map((i) => i.name).join("/"), "玉满楼/灵石/魔石/夜阑");
+    assert.equal(proposal.source, STAGE_SCHEMA_SOURCE.PROPOSED);
+
+    let state = createEmptyCompilerV2State({ worldId: "w1" });
+    state.characterScripts = roles.map((r, i) => ({
+      id: `cs_${i}`,
+      characterId: `c_${i}`,
+      originalContent: r.originalContent,
+      sourceSectionIds: [`src_${i}_a`, `src_${i}_b`]
+    }));
+    state.sourceSections = roles.flatMap((r, i) =>
+      ["玉满楼", "灵石", "魔石", "夜阑"].map((stage, j) => ({
+        id: `src_${i}_${j}`,
+        characterId: `c_${i}`,
+        headingPath: [`第一章：${stage}`],
+        originalText: "正文",
+        title: `第一章：${stage}`
+      }))
+    );
+    state = attachStageSchemaProposal(state, proposal);
+    assert.ok(state.stageSchemaProposal);
+    assert.ok(state.unresolved.some((u) => u.field === "stageSchema"));
+
+    const confirmed = applyStageSchemaDecision(state, { decision: "confirm" });
+    assert.equal(confirmed.stageSchema.source, STAGE_SCHEMA_SOURCE.USER_CONFIRMED);
+    assert.equal(confirmed.stageSchema.items.length, 4);
+    assert.equal(confirmed.stageSchemaProposal, null);
+    assert.ok(!confirmed.unresolved.some((u) => u.field === "stageSchema"));
+    assert.ok(confirmed.characterScripts[0].stageBindings?.length >= 4);
+    assert.equal(confirmed.characterScripts[0].stageBindings[0].stageName, "玉满楼");
+    assert.ok(confirmed.sourceSections.every((s) => s.stageId));
+
+    const rejected = applyStageSchemaDecision(state, { decision: "reject" });
+    assert.equal(rejected.stageSchema.source, STAGE_SCHEMA_SOURCE.REJECTED_AS_HEADINGS);
+    assert.equal(rejected.stageSchema.items.length, 0);
+
+    const manual = applyStageSchemaDecision(state, {
+      decision: "manual",
+      manualItems: [{ name: "序章" }, { name: "终章" }]
+    });
+    assert.equal(manual.stageSchema.source, STAGE_SCHEMA_SOURCE.MANUAL);
+    assert.equal(manual.stageSchema.items.map((i) => i.name).join("/"), "序章/终章");
+  });
+
+  it("does not auto-create acts from shared stage chapter titles", async () => {
+    const { detectSharedStageSchema } = await import(
+      "../src/compiler-v2/manuscript-boundary-resolver.js"
+    );
+    const shared = detectSharedStageSchema([
+      {
+        originalContent: "第一章：玉满楼\nA\n第二章：灵石\nB"
+      },
+      {
+        originalContent: "第一章：玉满楼\nC\n第二章：灵石\nD"
+      }
+    ]);
+    assert.ok(shared);
+    assert.deepEqual(shared.stages, ["玉满楼", "灵石"]);
+    assert.equal(shared.suggestion, "SHARED_GAME_STAGES");
   });
 });

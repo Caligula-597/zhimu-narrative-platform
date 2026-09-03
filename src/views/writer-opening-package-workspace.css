@@ -65,6 +65,52 @@
   line-height: 1.45;
 }
 
+.opening-package-stage-schema {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #f7faf8;
+}
+
+.opening-package-stage-schema h4 {
+  margin: 0;
+  font-size: 13px;
+}
+
+.opening-package-stage-prompt,
+.opening-package-stage-hint,
+.opening-package-stage-status {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.55;
+  color: var(--ink-soft);
+  white-space: normal;
+}
+
+.opening-package-stage-status {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.opening-package-stage-list,
+.opening-package-stage-edit-list {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.opening-package-stage-edit-list label {
+  display: grid;
+  gap: 4px;
+}
+
+.opening-package-stage-actions {
+  flex-wrap: wrap;
+}
+
 .opening-package-editor.workspace-editor-panel {
   max-height: calc(100vh - 132px);
 }

@@ -81,22 +81,33 @@ OpeningPackageCommit
 ```
 多文件槽位 ──────────────────┐
                              ↓
-合订本 DOCX → ManuscriptBoundaryResolver
+合订本 DOCX → ManuscriptBoundaryResolver V1
                              ↓
                     Canonical Opening Package
                              ↓
                         Compiler V2
 ```
 
-`ManuscriptBoundaryResolver` 只做文档边界：
+`ManuscriptBoundaryResolver` **V1 已锁定**：只做文档边界。
 
 - HOST / CHARACTER × N / 可选 CLUE_APPENDIX
 - 结构信号：独占标题、Heading 样式、分页、重复 stage 标题（如七次「第一章：玉满楼」）、「①你的任务一」
 - **禁止**用正文里出现的角色名当边界
 - 硬校验：覆盖、不重叠、角色齐全、最短长度
 - 不确定 → 用户确认一点，不调 DeepSeek
+- **除非**新剧本证明「重复结构以外还有新的通用边界类型」，否则不为单本继续改 Boundary
 
 API 只用于：Host TRUE Timeline / Character tracks / CharacterCore / Mechanism。
+
+---
+
+## Product principles（导入链）
+
+1. **Boundary 是确定性层** — 不得用 LLM 覆盖。
+2. **StageSchema 是作者/用户确认层** — AI/启发式可建议，**不能擅自确认**为统一游戏阶段；确认 UI：`是，设为统一阶段` / `不是，只作为章节标题` / `手动编辑`。
+3. **API 输出永远是派生结构** — 不能修改或替代 original manuscript。
+
+确认后的 `StageSchema`（`source: USER_CONFIRMED | MANUAL`）写入 CompilerV2State，并把角色 section 绑定到 `stage_N`，供 Timeline / CharacterCore / Mechanism 共用坐标系。
 
 ---
 
@@ -115,6 +126,9 @@ actId? | time? | order | locationHint? | title | summary | participantNames[] | 
 `truthStatus` ∈ `CONFIRMED | UNCERTAIN`（本阶段禁止 FABRICATED / CHARACTER_BELIEF）。
 
 **启用：** `enableTimelineLlm: true` 或 `COMPILER_V2_ENABLE_TIMELINE_LLM=1`。未启用时 `timelineEvents=[]` + `NEEDS_LLM`。
+
+**下一步方向（有状态阅读，替代单纯 chunk→consolidate）：**
+Host Handbook → Global Story Map → 按 source window 携带 StoryMemory 阅读 → EventCandidates + memoryPatch → Temporal Pass → Display Grouping。
 
 **Benchmark（5 指标，不以条数为荣）：**
 

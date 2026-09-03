@@ -33,6 +33,39 @@ function invalidatePreview(session) {
   session.preview = null;
   session.commitArmed = false;
   session.error = "";
+  session.stageSchemaDecision = "";
+  session.stageSchema = null;
+  session.stageSchemaEditing = false;
+  session.stageSchemaDraftItems = null;
+}
+
+function buildStageSchemaPayload(session) {
+  const decision = session.stageSchemaDecision;
+  if (!decision) return {};
+  if (decision === "reject") {
+    return {
+      stageSchemaDecision: "reject",
+      stageSchema: {
+        source: "REJECTED_AS_HEADINGS",
+        label: "",
+        items: []
+      }
+    };
+  }
+  const items = (session.stageSchema?.items || session.preview?.stageSchemaProposal?.items || [])
+    .map((item, index) => ({
+      order: Number(item.order) || index + 1,
+      name: String(item.name || "").trim()
+    }))
+    .filter((item) => item.name);
+  return {
+    stageSchemaDecision: decision,
+    stageSchema: {
+      source: decision === "manual" ? "MANUAL" : "USER_CONFIRMED",
+      label: items.map((item) => item.name).join(" / "),
+      items
+    }
+  };
 }
 
 async function filePayload(file, roleName = "") {
@@ -62,6 +95,7 @@ async function buildCommitPayload(session) {
       session.clueImageFiles.map((item) => filePayload(item.file))
     );
   }
+  Object.assign(payload, buildStageSchemaPayload(session));
   return payload;
 }
 
@@ -95,7 +129,11 @@ export function openOpeningPackageWorkspace() {
     preview: null,
     commitArmed: false,
     savingAction: "",
-    error: ""
+    error: "",
+    stageSchemaDecision: "",
+    stageSchema: null,
+    stageSchemaEditing: false,
+    stageSchemaDraftItems: null
   });
   if (!session) return showToast("当前工具还有未保存修改，请先返回处理");
   try {
@@ -193,7 +231,17 @@ export async function previewOpeningPackageWorkspace() {
     if (!writerToolSessionIsCurrent(session)) return;
     session.preview = preview;
     session.commitArmed = false;
-    showToast("预览已生成，请核对后写入");
+    session.stageSchemaDecision = "";
+    session.stageSchema = null;
+    session.stageSchemaEditing = false;
+    session.stageSchemaDraftItems = preview?.stageSchemaProposal?.items
+      ? preview.stageSchemaProposal.items.map((item) => ({ ...item }))
+      : null;
+    showToast(
+      preview?.stageSchemaProposal
+        ? "预览已生成；请确认是否设为统一游戏阶段"
+        : "预览已生成，请核对后写入"
+    );
   } catch (error) {
     if (writerToolSessionIsCurrent(session)) {
       session.error = normalizeError(error, "预览生成失败");
@@ -209,6 +257,10 @@ export async function previewOpeningPackageWorkspace() {
 export async function commitOpeningPackageWorkspace() {
   const session = editableOpeningPackageSession();
   if (!session || session.savingAction || !session.preview) return;
+  if (session.preview.stageSchemaProposal?.items?.length && !session.stageSchemaDecision) {
+    showToast("检测到统一阶段建议，请先选择「是 / 不是 / 手动编辑」");
+    return;
+  }
   if (!session.commitArmed) {
     session.commitArmed = true;
     render();
@@ -237,4 +289,94 @@ export async function commitOpeningPackageWorkspace() {
       render();
     }
   }
+}
+
+export function confirmOpeningPackageStageSchema() {
+  const session = editableOpeningPackageSession();
+  if (!session?.preview?.stageSchemaProposal) return;
+  const items = (session.preview.stageSchemaProposal.items || []).map((item, index) => ({
+    order: Number(item.order) || index + 1,
+    name: String(item.name || "").trim()
+  }));
+  session.stageSchemaDecision = "confirm";
+  session.stageSchemaEditing = false;
+  session.stageSchema = {
+    source: "USER_CONFIRMED",
+    label: items.map((item) => item.name).join(" / "),
+    items
+  };
+  session.commitArmed = false;
+  showToast("已设为统一游戏阶段");
+  render();
+}
+
+export function rejectOpeningPackageStageSchema() {
+  const session = editableOpeningPackageSession();
+  if (!session?.preview?.stageSchemaProposal) return;
+  session.stageSchemaDecision = "reject";
+  session.stageSchemaEditing = false;
+  session.stageSchema = {
+    source: "REJECTED_AS_HEADINGS",
+    label: "",
+    items: []
+  };
+  session.commitArmed = false;
+  showToast("已按章节标题处理，不设统一阶段");
+  render();
+}
+
+export function editOpeningPackageStageSchema() {
+  const session = editableOpeningPackageSession();
+  if (!session?.preview?.stageSchemaProposal) return;
+  session.stageSchemaEditing = true;
+  session.stageSchemaDecision = "manual";
+  session.stageSchemaDraftItems = (
+    session.stageSchema?.items ||
+    session.preview.stageSchemaProposal.items ||
+    []
+  ).map((item, index) => ({
+    order: Number(item.order) || index + 1,
+    name: String(item.name || "").trim()
+  }));
+  session.commitArmed = false;
+  render();
+}
+
+export function saveOpeningPackageStageSchemaManual() {
+  const session = editableOpeningPackageSession();
+  if (!session) return;
+  const root = document.querySelector('[data-writer-tool="opening-package"]');
+  const inputs = [...(root?.querySelectorAll("[data-opening-stage-edit]") || [])];
+  const items = inputs
+    .map((input, index) => ({
+      order: index + 1,
+      name: String(input.value || "").trim()
+    }))
+    .filter((item) => item.name);
+  if (!items.length) {
+    showToast("请至少填写一个阶段名称");
+    return;
+  }
+  session.stageSchemaDecision = "manual";
+  session.stageSchemaEditing = false;
+  session.stageSchemaDraftItems = items;
+  session.stageSchema = {
+    source: "MANUAL",
+    label: items.map((item) => item.name).join(" / "),
+    items
+  };
+  session.commitArmed = false;
+  showToast("已保存手动阶段");
+  render();
+}
+
+export function cancelOpeningPackageStageSchemaManual() {
+  const session = editableOpeningPackageSession();
+  if (!session) return;
+  session.stageSchemaEditing = false;
+  if (!session.stageSchema?.items?.length) {
+    session.stageSchemaDecision = "";
+    session.stageSchema = null;
+  }
+  render();
 }

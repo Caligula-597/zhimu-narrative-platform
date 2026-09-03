@@ -31,6 +31,34 @@ const openingPackageBodySchema = {
       type: "array",
       maxItems: 80,
       items: openingPackageFileSchema
+    },
+    stageSchemaDecision: {
+      type: "string",
+      enum: ["confirm", "reject", "manual"]
+    },
+    stageSchema: {
+      type: "object",
+      additionalProperties: false,
+      properties: {
+        source: {
+          type: "string",
+          enum: ["USER_CONFIRMED", "REJECTED_AS_HEADINGS", "MANUAL"]
+        },
+        label: { type: "string", maxLength: 500 },
+        items: {
+          type: "array",
+          maxItems: 24,
+          items: {
+            type: "object",
+            additionalProperties: false,
+            required: ["name"],
+            properties: {
+              order: { type: "integer", minimum: 1, maximum: 99 },
+              name: { type: "string", minLength: 1, maxLength: 80 }
+            }
+          }
+        }
+      }
     }
   }
 };

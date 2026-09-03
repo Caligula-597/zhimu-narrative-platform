@@ -9,6 +9,7 @@ import {
   summarizeStateForStatus
 } from "./state.js";
 import { runCompilerV2Pipeline } from "./index.js";
+import { applyStageSchemaDecision } from "./stage-schema.js";
 
 const RETURN_COLS = "id, world_id, status, current_stage, state, error_code, error_message, created_by, created_at, updated_at";
 
@@ -210,7 +211,8 @@ export async function commitCompilerV2Job(worldId, jobId, { confirmCommit } = {}
           jobId,
           committedAt: new Date().toISOString(),
           projectTitle: job.state?.project?.title || null,
-          counts: summarizeStateForStatus(job.state || {}).counts
+          counts: summarizeStateForStatus(job.state || {}).counts,
+          stageSchema: job.state?.stageSchema || null
         }
       })
     ]
@@ -221,5 +223,37 @@ export async function commitCompilerV2Job(worldId, jobId, { confirmCommit } = {}
     jobId,
     status: "committed",
     note: "Staging marked committed; full runtime entity mapping will expand in a follow-up slice."
+  };
+}
+
+/**
+ * User confirms / rejects / manually edits StageSchema on a job (author layer).
+ * decision: confirm | reject | manual
+ */
+export async function confirmCompilerV2StageSchema(worldId, jobId, body = {}) {
+  const job = await getCompilerV2Job(worldId, jobId);
+  if (!job) throwErr("COMPILER_V2_JOB_NOT_FOUND");
+  if (job.status === "committed") throwErr("COMPILER_V2_ALREADY_COMMITTED");
+  if (job.status === "processing" || job.status === "queued") {
+    throwErr("COMPILER_V2_NOT_READY_FOR_COMMIT");
+  }
+
+  const decision = String(body.decision || "").trim();
+  if (!["confirm", "reject", "manual"].includes(decision)) {
+    throwErr("VALIDATION_ERROR", "decision 须为 confirm | reject | manual");
+  }
+
+  const nextState = applyStageSchemaDecision(job.state || {}, {
+    decision,
+    manualItems: body.items
+  });
+
+  const updated = await updateJob(worldId, jobId, { state: nextState });
+  return {
+    jobId,
+    status: updated.status,
+    stageSchema: nextState.stageSchema,
+    stageSchemaProposal: nextState.stageSchemaProposal,
+    summary: summarizeStateForStatus(nextState)
   };
 }

@@ -445,6 +445,10 @@ export const API_ERRORS = {
     status: 400,
     message: "提交正式 Runtime 前必须 confirmCommit=true（User Review）"
   },
+  COMPILER_V2_ALREADY_COMMITTED: {
+    status: 409,
+    message: "Compiler V2 任务已提交，不能再修改 StageSchema"
+  },
   FEISHU_IMPORT_NOT_CONFIGURED: { status: 503, message: "飞书稿件导入尚未配置" },
   FEISHU_DOCUMENT_URL_INVALID: { status: 400, message: "请输入有效的飞书文档或知识库链接" },
   FEISHU_DOCUMENT_FORBIDDEN: { status: 403, message: "飞书应用无权读取该文档，请先把文档授权给应用" },

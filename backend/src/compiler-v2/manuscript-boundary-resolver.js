@@ -6,6 +6,7 @@
 
 import { randomUUID } from "node:crypto";
 import { extractDocxParagraphStream, joinParagraphs } from "./docx-paragraph-stream.js";
+import { proposeStageSchemaFromRoleScripts } from "./stage-schema.js";
 
 export const SEGMENT_TYPE = Object.freeze({
   HOST: "HOST",
@@ -224,38 +225,18 @@ function buildSegmentsFromStarts(paragraphs, roleSlots, { detection }) {
 
 /**
  * Detect shared stage schema repeated across all character segments.
+ * Suggestion only — StageSchema Confirmation UI must confirm (never auto-act).
  */
 export function detectSharedStageSchema(characterSegments) {
-  const stageRe = /^第[一二三四五六七八九十\d]+章\s*[：:]?\s*(.+)$/;
-  const sequences = [];
-  for (const seg of characterSegments) {
-    const lines = String(seg.originalContent || "").split(/\n+/);
-    const stages = [];
-    for (const line of lines) {
-      const t = line.trim();
-      const m = t.match(stageRe);
-      if (m) {
-        // Normalize「夜阑 夜初」→「夜阑」
-        const label = compact(m[1]).replace(/夜阑.*/, "夜阑");
-        stages.push(label);
-      }
-    }
-    sequences.push(stages);
-  }
-  if (sequences.length < 2) return null;
-  const first = sequences[0];
-  if (first.length < 2) return null;
-  const same = sequences.every(
-    (seq) => seq.length === first.length && seq.every((s, i) => s === first[i])
-  );
-  if (!same) return null;
+  const proposal = proposeStageSchemaFromRoleScripts(characterSegments || []);
+  if (!proposal) return null;
   return {
-    stages: first,
-    label: first.join(" / "),
-    characterCount: sequences.length,
+    stages: proposal.items.map((i) => i.name),
+    label: proposal.label,
+    characterCount: proposal.characterCount,
     suggestion: "SHARED_GAME_STAGES",
-    prompt:
-      "检测到全部角色使用相同章节序列。是否将其作为游戏阶段（而非幕）？"
+    prompt: proposal.prompt,
+    proposal
   };
 }
 

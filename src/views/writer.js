@@ -52,9 +52,40 @@ import {
   skipOpeningPackageStep,
   previewOpeningPackageWorkspace,
   commitOpeningPackageWorkspace,
+  confirmOpeningPackageStageSchema,
+  rejectOpeningPackageStageSchema,
+  editOpeningPackageStageSchema,
+  saveOpeningPackageStageSchemaManual,
+  cancelOpeningPackageStageSchemaManual,
   openWorldEngineWorkspace,
   seedWorldEngineWorkspace,
   searchWorldEngineWorkspace,
+  openMisidentificationWorkspace,
+  closeMisidentificationWorkspace,
+  openRelationshipArcWorkspace,
+  closeRelationshipArcWorkspace,
+  openKnowledgeMatrixWorkspace,
+  closeKnowledgeMatrixWorkspace,
+  openEndingWorkspace,
+  closeEndingWorkspace,
+  openHostManualCompilerWorkspace,
+  closeHostManualCompilerWorkspace,
+  openObjectLifecycleWorkspace,
+  closeObjectLifecycleWorkspace,
+  openTimelineWorkspace,
+  closeTimelineWorkspace,
+  openHistoryCausalWorkspace,
+  closeHistoryCausalWorkspace,
+  openRuntimeStateMachineWorkspace,
+  closeRuntimeStateMachineWorkspace,
+  openValConsistencyWorkspace,
+  closeValConsistencyWorkspace,
+  openEconSystemWorkspace,
+  closeEconSystemWorkspace,
+  openNpcScriptWorkspace,
+  closeNpcScriptWorkspace,
+  openLocationStateWorkspace,
+  closeLocationStateWorkspace,
   commitWorldEngineWorkspace,
   lowerWorldEngineWorkspace,
   searchWorldEngineEpistemicWorkspace,
@@ -520,6 +551,94 @@ export function openWorldEngine(){
  return openWorldEngineWorkspace();
 }
 
+export function openMisidentification(){
+ return openMisidentificationWorkspace();
+}
+
+export function openRelationshipArc(){
+ return openRelationshipArcWorkspace();
+}
+
+export function openKnowledgeMatrix(){
+ return openKnowledgeMatrixWorkspace();
+}
+
+export function openEnding(){
+ return openEndingWorkspace();
+}
+
+export function openHostManualCompiler(){
+ return openHostManualCompilerWorkspace();
+}
+
+export function closeHostManualCompiler(){
+ return closeHostManualCompilerWorkspace();
+}
+
+export function openObjectLifecycle(){
+ return openObjectLifecycleWorkspace();
+}
+
+export function closeObjectLifecycle(){
+ return closeObjectLifecycleWorkspace();
+}
+
+export function openTimeline(){
+ return openTimelineWorkspace();
+}
+
+export function closeTimeline(){
+ return closeTimelineWorkspace();
+}
+
+export function openHistoryCausal(){
+ return openHistoryCausalWorkspace();
+}
+
+export function closeHistoryCausal(){
+ return closeHistoryCausalWorkspace();
+}
+
+export function openRuntimeStateMachine(){
+ return openRuntimeStateMachineWorkspace();
+}
+
+export function closeRuntimeStateMachine(){
+ return closeRuntimeStateMachineWorkspace();
+}
+
+export function openValConsistency(){
+ return openValConsistencyWorkspace();
+}
+
+export function closeValConsistency(){
+ return closeValConsistencyWorkspace();
+}
+
+export function openEconSystem(){
+ return openEconSystemWorkspace();
+}
+
+export function closeEconSystem(){
+ return closeEconSystemWorkspace();
+}
+
+export function openNpcScript(){
+ return openNpcScriptWorkspace();
+}
+
+export function closeNpcScript(){
+ return closeNpcScriptWorkspace();
+}
+
+export function openLocationState(){
+ return openLocationStateWorkspace();
+}
+
+export function closeLocationState(){
+ return closeLocationStateWorkspace();
+}
+
 export function openPublishImpactPreview(){return openImpactWorkspace()}
 
 export async function openCreatorExport(){return openExportWorkspace()}
@@ -532,5 +651,5 @@ export function createCreatorSnapshot(){return openSnapshotWorkspace()}
 export async function restoreCreatorSnapshot(versionId){try{await zhimuApi.restoreContentVersion(versionId);await loadCloudData();showToast("已恢复该版本的正文与发布状态")}catch(error){showError(error)}}
 export async function deleteCreatorSnapshot(versionId){try{await zhimuApi.deleteContentVersion(versionId);await loadCloudData();showToast("创作版本记录已删除")}catch(error){showError(error)}}
 
-export const writerViewApi = { writer, loadWriterRoleArchives, selectWriterRole, createCreatorSnapshot, restoreCreatorSnapshot, deleteCreatorSnapshot, creatorTool, openCreatorSection, closeWriterSectionEditor, saveWriterSectionEditor, deleteWriterSectionEditor, discardWriterSectionDraft, replaceWriterSectionText, formatWriterSectionText, switchWriterSection, bindWriterSectionEditor, bindWriterMetadataEditor, closeWriterMetadataEditor, saveWriterMetadataEditor, deleteWriterRoleEditor, bindWriterToolWorkspace, closeWriterToolWorkspace, warmWriterToolModules, saveManuscriptWorkspace, syncManuscriptFromGraphWorkspace, syncManuscriptToGraphWorkspace, analyzeStoryAssistantWorkspace, importStoryAssistantWorkspace, parseDocumentWorkspace, importDocumentWorkspace, openDocumentWorkspace, nextOpeningPackageStep, backOpeningPackageStep, skipOpeningPackageStep, previewOpeningPackageWorkspace, commitOpeningPackageWorkspace, openOpeningPackage, nextExportWorkspaceStep, previousExportWorkspaceStep, runExportWorkspace, previewImportWorkspace, runImportWorkspace, saveSnapshotWorkspace, setReviewWorkspaceMode, setReviewFilter, refreshReviewList, createReviewFromWorkspace, replyReviewFromWorkspace, updateReviewStatusFromWorkspace, compareReviewVersions, refreshCollaborationWorkspace, inviteCollaboratorFromWorkspace, saveCollaboratorRoleFromWorkspace, removeCollaboratorFromWorkspace, resendCollaboratorInviteFromWorkspace, revokeCollaboratorInviteFromWorkspace, copyCollaborationInviteLink, dismissCollaborationInviteLink, setWorldLogFilter, applyWorldLogFilters, clearWorldLogFilters, refreshWorldLogs, loadMoreWorldLogs, openCreatorRole, openCreatorChapter, deleteCreatorChapter, runCreatorChecks, openStoryManuscript, openCollaboration, openCreatorReview, openWorldLogs, openDocumentParser, openDocumentWorkspace, openStoryAssistant, openWorldEngine, seedWorldEngineWorkspace, searchWorldEngineWorkspace, commitWorldEngineWorkspace, lowerWorldEngineWorkspace, searchWorldEngineEpistemicWorkspace, renderWorldEngineWorkspace, openPublishImpactPreview, openCreatorExport, exportCreatorPackage, openCreatorImport, importCreatorPackage };
+export const writerViewApi = { writer, loadWriterRoleArchives, selectWriterRole, createCreatorSnapshot, restoreCreatorSnapshot, deleteCreatorSnapshot, creatorTool, openCreatorSection, closeWriterSectionEditor, saveWriterSectionEditor, deleteWriterSectionEditor, discardWriterSectionDraft, replaceWriterSectionText, formatWriterSectionText, switchWriterSection, bindWriterSectionEditor, bindWriterMetadataEditor, closeWriterMetadataEditor, saveWriterMetadataEditor, deleteWriterRoleEditor, bindWriterToolWorkspace, closeWriterToolWorkspace, warmWriterToolModules, saveManuscriptWorkspace, syncManuscriptFromGraphWorkspace, syncManuscriptToGraphWorkspace, analyzeStoryAssistantWorkspace, importStoryAssistantWorkspace, parseDocumentWorkspace, importDocumentWorkspace, openDocumentWorkspace, nextOpeningPackageStep, backOpeningPackageStep, skipOpeningPackageStep, previewOpeningPackageWorkspace, commitOpeningPackageWorkspace, confirmOpeningPackageStageSchema, rejectOpeningPackageStageSchema, editOpeningPackageStageSchema, saveOpeningPackageStageSchemaManual, cancelOpeningPackageStageSchemaManual, openOpeningPackage, nextExportWorkspaceStep, previousExportWorkspaceStep, runExportWorkspace, previewImportWorkspace, runImportWorkspace, saveSnapshotWorkspace, setReviewWorkspaceMode, setReviewFilter, refreshReviewList, createReviewFromWorkspace, replyReviewFromWorkspace, updateReviewStatusFromWorkspace, compareReviewVersions, refreshCollaborationWorkspace, inviteCollaboratorFromWorkspace, saveCollaboratorRoleFromWorkspace, removeCollaboratorFromWorkspace, resendCollaboratorInviteFromWorkspace, revokeCollaboratorInviteFromWorkspace, copyCollaborationInviteLink, dismissCollaborationInviteLink, setWorldLogFilter, applyWorldLogFilters, clearWorldLogFilters, refreshWorldLogs, loadMoreWorldLogs, openCreatorRole, openCreatorChapter, deleteCreatorChapter, runCreatorChecks, openStoryManuscript, openCollaboration, openCreatorReview, openWorldLogs, openDocumentParser, openDocumentWorkspace, openStoryAssistant, openWorldEngine, seedWorldEngineWorkspace, searchWorldEngineWorkspace, commitWorldEngineWorkspace, lowerWorldEngineWorkspace, searchWorldEngineEpistemicWorkspace, renderWorldEngineWorkspace, openPublishImpactPreview, openCreatorExport, exportCreatorPackage, openCreatorImport, importCreatorPackage, openObjectLifecycle, closeObjectLifecycle, openTimeline, closeTimeline, openHistoryCausal, closeHistoryCausal, openRuntimeStateMachine, closeRuntimeStateMachine };
 registerView("writer", writerViewApi);

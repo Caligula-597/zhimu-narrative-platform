@@ -67,3 +67,32 @@ export const commitCompilerV2Schema = {
     }
   }
 };
+
+export const confirmCompilerV2StageSchemaSchema = {
+  params: worldIdParams,
+  body: {
+    type: "object",
+    additionalProperties: false,
+    required: ["jobId", "decision"],
+    properties: {
+      jobId: uuid,
+      decision: {
+        type: "string",
+        enum: ["confirm", "reject", "manual"]
+      },
+      items: {
+        type: "array",
+        maxItems: 24,
+        items: {
+          type: "object",
+          additionalProperties: false,
+          required: ["name"],
+          properties: {
+            order: { type: "integer", minimum: 1, maximum: 99 },
+            name: { type: "string", minLength: 1, maxLength: 80 }
+          }
+        }
+      }
+    }
+  }
+};

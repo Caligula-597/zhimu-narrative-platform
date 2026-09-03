@@ -7,6 +7,10 @@ import {
   pushWarning
 } from "../state.js";
 import { splitActSectionTree } from "../document-utils.js";
+import {
+  attachStageSchemaProposal,
+  proposeStageSchemaFromCompilerState
+} from "../stage-schema.js";
 
 /**
  * Stage 2 — Lossless Manuscript Ingest + provenance.
@@ -171,5 +175,13 @@ export async function stage2ManuscriptIngest(state) {
     sourceSections,
     sourceRefs
   };
+
+  // Suggest shared game stages — never auto-confirm (product principle ②).
+  if (!next.stageSchema?.items?.length) {
+    const proposal =
+      next.stageSchemaProposal || proposeStageSchemaFromCompilerState(next);
+    if (proposal) next = attachStageSchemaProposal(next, proposal);
+  }
+
   return markStageComplete(next, "manuscript_ingest");
 }
