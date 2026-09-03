@@ -74,6 +74,32 @@ OpeningPackageCommit
 
 ---
 
+## Bound manuscript path（零 API）
+
+两种上传收敛到同一 Opening Package：
+
+```
+多文件槽位 ──────────────────┐
+                             ↓
+合订本 DOCX → ManuscriptBoundaryResolver
+                             ↓
+                    Canonical Opening Package
+                             ↓
+                        Compiler V2
+```
+
+`ManuscriptBoundaryResolver` 只做文档边界：
+
+- HOST / CHARACTER × N / 可选 CLUE_APPENDIX
+- 结构信号：独占标题、Heading 样式、分页、重复 stage 标题（如七次「第一章：玉满楼」）、「①你的任务一」
+- **禁止**用正文里出现的角色名当边界
+- 硬校验：覆盖、不重叠、角色齐全、最短长度
+- 不确定 → 用户确认一点，不调 DeepSeek
+
+API 只用于：Host TRUE Timeline / Character tracks / CharacterCore / Mechanism。
+
+---
+
 ## Stage 3A — Host TRUE Timeline（下一层 AI）
 
 **范围（仅此）：** HostHandbook + SourceSections + Acts → 一条 TRUE 主时间线。

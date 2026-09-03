@@ -1,0 +1,144 @@
+{
+  "source": "案例/561青楼/剧本.docx",
+  "cast": [
+    "白斋子",
+    "齐剑心",
+    "莫怀",
+    "杜霄元",
+    "陈一兔",
+    "姜红儿",
+    "舒悦"
+  ],
+  "paragraphCount": 1433,
+  "validation": {
+    "ok": true,
+    "issues": [],
+    "needsConfirmation": false
+  },
+  "sharedStages": {
+    "stages": [
+      "玉满楼",
+      "灵石",
+      "魔石",
+      "夜阑"
+    ],
+    "label": "玉满楼 / 灵石 / 魔石 / 夜阑",
+    "characterCount": 7,
+    "suggestion": "SHARED_GAME_STAGES",
+    "prompt": "检测到全部角色使用相同章节序列。是否将其作为游戏阶段（而非幕）？"
+  },
+  "preview": [
+    {
+      "id": "seg_9dc4e448950d",
+      "type": "HOST",
+      "characterName": null,
+      "startParagraph": 0,
+      "endParagraph": 478,
+      "chars": 31801,
+      "confidence": 0.9,
+      "needsConfirmation": false,
+      "detection": "STRUCTURAL_PATTERN",
+      "head": "青 发 行 黑 羽 发 行 社 作 者 ： 发 阳 美工：发阳 本故事纯属虚构，版权所有，翻版必究。 黑羽发行工作室 《 青 楼 》 ★作者想对您说的话 ★ 这"
+    },
+    {
+      "id": "seg_7ddb0bb81efb",
+      "type": "CHARACTER",
+      "characterName": "白斋子",
+      "startParagraph": 478,
+      "endParagraph": 602,
+      "chars": 8103,
+      "confidence": 0.9500000000000001,
+      "needsConfirmation": false,
+      "detection": "STRUCTURAL_PATTERN",
+      "head": "黑羽发行工作室 《 青 楼 》 ①你的任务一： 你是为数不多的未染鲜血之人，请找到和你一样的未染鲜血之人与你 共同出狱。 ②你的任务二： 杀死害死董小婉之人，保"
+    },
+    {
+      "id": "seg_752e05c57131",
+      "type": "CHARACTER",
+      "characterName": "齐剑心",
+      "startParagraph": 602,
+      "endParagraph": 738,
+      "chars": 8157,
+      "confidence": 0.9500000000000001,
+      "needsConfirmation": false,
+      "detection": "STRUCTURAL_PATTERN",
+      "head": "①你的任务一： 你是手染鲜血之人，找到和你一样的手染鲜血之人与你共同出狱。 ②你的任务二： 杀死莫玄宗之子，保护你想保护之人。 ③杀人规则： 按照顺序，查看地图"
+    },
+    {
+      "id": "seg_aa72f54b7356",
+      "type": "CHARACTER",
+      "characterName": "舒悦",
+      "startParagraph": 738,
+      "endParagraph": 852,
+      "chars": 7287,
+      "confidence": 0.9500000000000001,
+      "needsConfirmation": false,
+      "detection": "STRUCTURAL_PATTERN",
+      "head": "①你的任务一： 你是手染鲜血之人，找到和你一样的手染鲜血之人与你共同出狱。 ②你的任务二： 杀死杀莫寒之人，保护你想保护之人。 ③杀人规则： 按照顺序，查看地图"
+    },
+    {
+      "id": "seg_34aeee0edac9",
+      "type": "CHARACTER",
+      "characterName": "姜红儿",
+      "startParagraph": 852,
+      "endParagraph": 992,
+      "chars": 7461,
+      "confidence": 0.9500000000000001,
+      "needsConfirmation": false,
+      "detection": "STRUCTURAL_PATTERN",
+      "head": "①你的任务一： 你是手染鲜血之人，找到和你一样的手染鲜血之人与你共同出狱。 ②你的任务二： 杀死杀你亲姐姐之人，保护你想保护之人。 ③杀人规则： 按照顺序，查看"
+    },
+    {
+      "id": "seg_768f61429c96",
+      "type": "CHARACTER",
+      "characterName": "莫怀",
+      "startParagraph": 992,
+      "endParagraph": 1186,
+      "chars": 7146,
+      "confidence": 0.9500000000000001,
+      "needsConfirmation": false,
+      "detection": "STRUCTURAL_PATTERN",
+      "head": "①你的任务一： 你是为数不多的未染鲜血之人，请找到和你一样的未染鲜血之人与你 共同出狱。 ②你的任务二： 杀死杀你父母及弟弟的人，保护你想保护之人。 ③杀人规则"
+    },
+    {
+      "id": "seg_c6c55bf5a1e5",
+      "type": "CHARACTER",
+      "characterName": "杜霄元",
+      "startParagraph": 1186,
+      "endParagraph": 1317,
+      "chars": 8279,
+      "confidence": 0.9500000000000001,
+      "needsConfirmation": false,
+      "detection": "STRUCTURAL_PATTERN",
+      "head": "①你的任务一： 你是手染鲜血之人，找到和你一样的手染鲜血之人与你共同出狱。 ②你的任务二： 杀死莫玄宗之子，保护你想保护之人。 ③杀人规则： 按照顺序，查看地图"
+    },
+    {
+      "id": "seg_93cbab1cc511",
+      "type": "CHARACTER",
+      "characterName": "陈一兔",
+      "startParagraph": 1317,
+      "endParagraph": 1433,
+      "chars": 7928,
+      "confidence": 0.9500000000000001,
+      "needsConfirmation": false,
+      "detection": "STRUCTURAL_PATTERN",
+      "head": "①你的任务一： 你是为数不多的未染鲜血之人，请找到和你一样的未染鲜血之人 与你共同出狱。 ②你的任务二： 杀死害死你娘亲之人，保护你想保护之人。 ③杀人规则： "
+    }
+  ],
+  "compilerAfterIngest": {
+    "title": "青楼",
+    "titleStatus": "AUTO_DETECTED",
+    "characters": [
+      "白斋子",
+      "齐剑心",
+      "舒悦",
+      "姜红儿",
+      "莫怀",
+      "杜霄元",
+      "陈一兔"
+    ],
+    "acts": [],
+    "characterScripts": 7,
+    "crossTalk": 0
+  }
+}

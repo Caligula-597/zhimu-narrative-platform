@@ -1,0 +1,48 @@
+{
+  "rightsConfirmed": true,
+  "creationType": "murder_mystery",
+  "hostHandbook": {
+    "filename": "host-from-bound-manuscript.txt",
+    "chars": 31801
+  },
+  "roleScripts": [
+    {
+      "characterName": "白斋子",
+      "filename": "白斋子.txt",
+      "chars": 8103
+    },
+    {
+      "characterName": "齐剑心",
+      "filename": "齐剑心.txt",
+      "chars": 8157
+    },
+    {
+      "characterName": "舒悦",
+      "filename": "舒悦.txt",
+      "chars": 7287
+    },
+    {
+      "characterName": "姜红儿",
+      "filename": "姜红儿.txt",
+      "chars": 7461
+    },
+    {
+      "characterName": "莫怀",
+      "filename": "莫怀.txt",
+      "chars": 7146
+    },
+    {
+      "characterName": "杜霄元",
+      "filename": "杜霄元.txt",
+      "chars": 8279
+    },
+    {
+      "characterName": "陈一兔",
+      "filename": "陈一兔.txt",
+      "chars": 7928
+    }
+  ],
+  "clueTextFiles": [],
+  "clueImages": [],
+  "notes": "从合订本 ManuscriptBoundaryResolver 机械切分生成"
+}

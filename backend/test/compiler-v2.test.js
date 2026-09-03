@@ -398,3 +398,70 @@ describe("Compiler V2 Stage 3A Host TRUE Timeline (no live LLM)", () => {
     assert.equal(score.sourceRefs.withRefs, 2);
   });
 });
+
+describe("Compiler V2 ManuscriptBoundaryResolver (no LLM)", () => {
+  it("splits bound manuscript by repeating ①你的任务一 pattern", async () => {
+    const {
+      resolveManuscriptBoundaries,
+      segmentsToOpeningPackageInput,
+      SEGMENT_TYPE
+    } = await import("../src/compiler-v2/manuscript-boundary-resolver.js");
+
+    const paragraphs = [];
+    const push = (text) => {
+      paragraphs.push({
+        index: paragraphs.length,
+        text,
+        textCompact: text.replace(/\s+/g, ""),
+        styleId: null,
+        isHeading: false,
+        pageBreakBefore: false,
+        maxFontHalfPoints: 20
+      });
+    };
+    push("《青楼》组织者手册");
+    push("开本流程");
+    push("①你的任务一：出狱");
+    push("第一章：玉满楼");
+    push("所有人都称你为江南第一才子。");
+    push("第四章：灵石");
+    push("①你的任务一：出狱");
+    push("第一章：玉满楼");
+    push("五岁时你便在名剑山庄和剑打交道。");
+    push("第四章：灵石");
+
+    const result = resolveManuscriptBoundaries({
+      paragraphs,
+      characterNames: ["白斋子", "齐剑心"],
+      minRoleChars: 5
+    });
+    const host = result.segments.find((s) => s.type === SEGMENT_TYPE.HOST);
+    const roles = result.segments.filter((s) => s.type === SEGMENT_TYPE.CHARACTER);
+    assert.ok(host);
+    assert.equal(roles.length, 2);
+    assert.equal(roles[0].characterName, "白斋子");
+    assert.equal(roles[1].characterName, "齐剑心");
+    assert.ok(roles[0].originalContent.includes("才子"));
+    assert.ok(!roles[0].originalContent.includes("名剑山庄"));
+    const opening = segmentsToOpeningPackageInput(result.segments);
+    assert.equal(opening.roleScripts.length, 2);
+  });
+
+  it("does not treat inline role mentions as boundaries", async () => {
+    const { findExactRoleHeadings } = await import(
+      "../src/compiler-v2/manuscript-boundary-resolver.js"
+    );
+    const paragraphs = [
+      {
+        index: 0,
+        text: "齐剑心看见莫怀走来。",
+        textCompact: "齐剑心看见莫怀走来。",
+        isHeading: false
+      },
+      { index: 1, text: "白斋子", textCompact: "白斋子", isHeading: true }
+    ];
+    const hits = findExactRoleHeadings(paragraphs, ["白斋子", "齐剑心", "莫怀"]);
+    assert.equal(hits.length, 1);
+    assert.equal(hits[0].characterName, "白斋子");
+  });
+});

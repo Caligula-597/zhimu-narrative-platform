@@ -41,7 +41,7 @@ export async function parseUploadFile(file, creationType = "murder_mystery") {
 
 /** True act / chapter titles only — not 灵石/魔石/玉满楼. */
 const ACT_CORE_CAPTURE =
-  "(序幕|终幕|尾声|楔子|第\\s*[一二三四五六七八九十百千零〇两\\d]+\\s*[幕章场])";
+  "(序幕|终幕|尾声|楔子|第\\s*[一二三四五六七八九十百千零〇两\\d]+\\s*幕)";
 
 const ACT_LINE_RE = new RegExp(
   `^(?:\\d+\\s*[、.．]\\s*|[（(][一二三四五六七八九十\\d]+[）)]\\s*)?${ACT_CORE_CAPTURE}` +
@@ -63,7 +63,7 @@ export function parseActHeadingLine(line = "") {
   if (!m) return null;
   const core = m[1].replace(/\s+/g, "");
   const actTitle = core.replace(/(游戏|小剧场|剧本)$/u, "") || core;
-  if (!/^(?:序幕|终幕|尾声|楔子|第[一二三四五六七八九十百千零〇两\d]+[幕章场])$/u.test(actTitle)) {
+  if (!/^(?:序幕|终幕|尾声|楔子|第[一二三四五六七八九十百千零〇两\d]+幕)$/u.test(actTitle)) {
     return null;
   }
   const rest = String(m[2] || "").trim();
