@@ -332,3 +332,69 @@ describe("Compiler V2 Opening Package pipeline", () => {
     assert.ok(state.unresolved.some((u) => u.field === "acts"));
   });
 });
+
+describe("Compiler V2 Stage 3A Host TRUE Timeline (no live LLM)", () => {
+  it("stays empty with NEEDS_LLM when enableTimelineLlm is off", async () => {
+    const state = await runCompilerV2Pipeline(
+      createEmptyCompilerV2State({ worldId: "w3", jobId: "j3" }),
+      {
+        toStage: "timeline_compiler",
+        enableTimelineLlm: false,
+        inputFiles: {
+          hostHandbook: {
+            filename: "host.txt",
+            text: "《长生叹》\n第一幕\n陶老板被砸死。\n第二幕\n墓室啼哭。"
+          },
+          roleScripts: []
+        }
+      }
+    );
+    assert.equal(state.timelineEvents.length, 0);
+    assert.ok(state.unresolved.some((u) => u.field === "timelineEvents"));
+  });
+
+  it("chunks host source sections and scores gold coverage", async () => {
+    const { buildHostTimelineChunks } = await import("../src/compiler-v2/host-true-timeline.js");
+    const {
+      scoreHostTrueTimeline,
+      CHANGSHENG_HOST_TRUE_GOLD
+    } = await import("../src/compiler-v2/benchmarks/changsheng-host-true-gold.js");
+
+    const state = createEmptyCompilerV2State({ worldId: "w4" });
+    state.documents = [{ id: "doc_host", kind: "HOST_BOOK", text: "x".repeat(100) }];
+    state.sourceSections = [
+      { id: "s1", documentId: "doc_host", originalText: "a".repeat(3000) },
+      { id: "s2", documentId: "doc_host", originalText: "b".repeat(3000) },
+      { id: "s3", documentId: "doc_host", originalText: "c".repeat(3000) }
+    ];
+    const chunks = buildHostTimelineChunks(state, { maxChars: 5500 });
+    assert.ok(chunks.length >= 2);
+
+    const fakeEvents = [
+      {
+        id: "e1",
+        order: 1,
+        title: "拍卖会陶老板被吊灯砸死",
+        summary: "拍卖会上玻璃吊灯砸死陶老板。",
+        sourceSectionIds: ["s1"],
+        evidenceQuote: "吊灯砸"
+      },
+      {
+        id: "e2",
+        order: 2,
+        title: "杨峥揭下人皮面具",
+        summary: "杨峥揭下人皮面具。",
+        sourceSectionIds: ["s2"],
+        evidenceQuote: "人皮面具"
+      }
+    ];
+    const score = scoreHostTrueTimeline(fakeEvents, CHANGSHENG_HOST_TRUE_GOLD, {
+      sourceSections: [
+        { id: "s1", originalText: "拍卖会玻璃吊灯砸死陶老板" },
+        { id: "s2", originalText: "杨峥揭下人皮面具" }
+      ]
+    });
+    assert.ok(score.coverage.covered >= 2);
+    assert.equal(score.sourceRefs.withRefs, 2);
+  });
+});

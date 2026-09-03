@@ -71,3 +71,31 @@ OpeningPackageCommit
 | 无明确幕标题 | `acts = []`，段落 `actId = null` |
 
 不知道就不造。
+
+---
+
+## Stage 3A — Host TRUE Timeline（下一层 AI）
+
+**范围（仅此）：** HostHandbook + SourceSections + Acts → 一条 TRUE 主时间线。
+
+**不做：** 角色认知线、FABRICATED、全局合并、Scene ID、Mechanism、六角色并行。
+
+**TimelineEvent 字段：**
+
+```
+actId? | time? | order | locationHint? | title | summary | participantNames[] | sourceRefs[] | truthStatus
+```
+
+`truthStatus` ∈ `CONFIRMED | UNCERTAIN`（本阶段禁止 FABRICATED / CHARACTER_BELIEF）。
+
+**启用：** `enableTimelineLlm: true` 或 `COMPILER_V2_ENABLE_TIMELINE_LLM=1`。未启用时 `timelineEvents=[]` + `NEEDS_LLM`。
+
+**Benchmark（5 指标，不以条数为荣）：**
+
+1. 重大事件覆盖（gold）
+2. 幻觉率
+3. 粒度（非微动作）
+4. 相对顺序
+5. SourceRefs 可回指原文
+
+试跑：`node backend/scripts/compiler-v2-stage3a-trial.mjs`

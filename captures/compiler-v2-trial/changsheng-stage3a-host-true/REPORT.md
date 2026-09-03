@@ -1,0 +1,488 @@
+# Compiler V2 Stage 3A：长生叹 Host TRUE Timeline
+
+状态：**needs_review** · 43219ms · chunks=4 calls=5 consolidated=true
+
+## Five metrics (primary)
+
+| Metric | Score |
+|---|---|
+| 1. 重大事件覆盖 | **11/14** (79%) |
+| 2. 幻觉率（启发式） | **0/20** (0%) |
+| 3. 微动作嫌疑（粒度） | **0**（结局碎片 1；目标约 15–35，实得 20） |
+| 4. Gold 相对顺序 | **60%** |
+| 5. SourceRefs 覆盖 | **20/20** (100%) |
+
+## Timeline events (20)
+
+```json
+[
+  {
+    "order": 1,
+    "title": "苗王命人研制长生水",
+    "summary": "1416年，苗王命人研制长生水，杨氏巫医参与其中。",
+    "time": "1416年",
+    "actId": null,
+    "locationHint": "苗疆",
+    "participantNames": [
+      "杨氏巫医"
+    ],
+    "truthStatus": "CONFIRMED",
+    "sourceSectionIds": [
+      "src_97e0db8ae68f4960"
+    ],
+    "evidenceQuote": "1416年苗王命人研制长生水"
+  },
+  {
+    "order": 2,
+    "title": "杨氏发现灵魂为原料，傅月生夺水并引发诅咒",
+    "summary": "1419年，杨氏发现长生水需以灵魂为原料，傅月生夺水并杀杨氏巫医，巫医临死前下咒：饮者不老不死但失去所爱。",
+    "time": "1419年",
+    "actId": null,
+    "locationHint": "苗疆",
+    "participantNames": [
+      "傅月生",
+      "杨氏巫医"
+    ],
+    "truthStatus": "CONFIRMED",
+    "sourceSectionIds": [
+      "src_97e0db8ae68f4960"
+    ],
+    "evidenceQuote": "杨氏巫医在临死前对长生水下咒：“凡饮下长生水者，不老不死，却会永远失去所爱之人。”"
+  },
+  {
+    "order": 3,
+    "title": "第二次炼制长生水，陆未晞沉睡",
+    "summary": "杨氏第二次作法，暮尘牺牲，陆未晞成为长生水容器沉睡，南一将其随葬苗王墓并设双层墓保护。",
+    "time": "苗王时期",
+    "actId": null,
+    "locationHint": "苗疆",
+    "participantNames": [
+      "杨南一",
+      "暮尘",
+      "陆未晞"
+    ],
+    "truthStatus": "CONFIRMED",
+    "sourceSectionIds": [
+      "src_08c4ab7390ca4907"
+    ],
+    "evidenceQuote": "作法结束后，南一将陷入沉睡的未晞带走。"
+  },
+  {
+    "order": 4,
+    "title": "傅月生复仇与寻找转世",
+    "summary": "傅月生饮长生水后隐姓埋名，覆灭明朝，并多次寻找妹妹转世，但均因诅咒而失去。",
+    "time": "1424-1903年",
+    "actId": null,
+    "locationHint": null,
+    "participantNames": [
+      "傅月生",
+      "侯玄星",
+      "荣妙珠"
+    ],
+    "truthStatus": "CONFIRMED",
+    "sourceSectionIds": [
+      "src_e7d652d0ceca44be",
+      "src_a1343199b1b24b99"
+    ],
+    "evidenceQuote": "傅月生发现，侯炯曾的小女儿侯玄星颈项处有一个北斗星的胎记，那正是妹妹转世的标志。"
+  },
+  {
+    "order": 5,
+    "title": "1894年苗王墓事件",
+    "summary": "张家、李家、考古队相继下墓，陆卿原杀死白止、杨峥等人，陆未晞苏醒被误认为李瑶，白初失去哥哥。",
+    "time": "1894年",
+    "actId": null,
+    "locationHint": "苗王墓",
+    "participantNames": [
+      "陆卿原",
+      "白止",
+      "杨峥",
+      "陆未晞",
+      "白初"
+    ],
+    "truthStatus": "CONFIRMED",
+    "sourceSectionIds": [
+      "src_a1343199b1b24b99",
+      "src_7f1739c3394c4128"
+    ],
+    "evidenceQuote": "陆卿原毫不留情地杀死了白止、杨峥和张家的盗墓贼。"
+  },
+  {
+    "order": 6,
+    "title": "陆卿原与白初相遇相爱",
+    "summary": "陆卿原救下白初并收留，二人互生情愫，后经历绑架事件后正式在一起。",
+    "time": "1896-1914年",
+    "actId": null,
+    "locationHint": "学堂/孤儿院",
+    "participantNames": [
+      "陆卿原",
+      "白初"
+    ],
+    "truthStatus": "CONFIRMED",
+    "sourceSectionIds": [
+      "src_7f1739c3394c4128",
+      "src_e3aaeda6399946c5"
+    ],
+    "evidenceQuote": "随着白初渐渐长大，和陆卿原二人互生情愫。"
+  },
+  {
+    "order": 7,
+    "title": "民国18年诗人留下《长生叹》诗集",
+    "summary": "民国18年，一位黑衣诗人到访山庄，留下诗集《长生叹》后离去，诗集流落民间。",
+    "time": "民国18年",
+    "actId": null,
+    "locationHint": "山庄",
+    "participantNames": [],
+    "truthStatus": "CONFIRMED",
+    "sourceSectionIds": [
+      "src_0c0bfa2ffb1d413a"
+    ],
+    "evidenceQuote": "民国18年，长沙迎来了漫长的雨季。有一身穿黑色长袍的诗人慕名来到一处山庄...写下了一册名为《长生叹》的诗集"
+  },
+  {
+    "order": 8,
+    "title": "陶老板收养陶梦芸并谋划血祭",
+    "summary": "1918年6月，陶老板为制作长生水收养陶梦芸（实为傅月遥转世、长沙张家遗孤），并每月放血；1919年4月发现灵魂为材料，伪造长生水，计划在拍卖会启动血祭阵法。",
+    "time": "1918年6月至1919年6月20日前",
+    "actId": null,
+    "locationHint": "日月山庄",
+    "participantNames": [
+      "陶老板",
+      "陶梦芸"
+    ],
+    "truthStatus": "CONFIRMED",
+    "sourceSectionIds": [
+      "src_1779edba65324295"
+    ],
+    "evidenceQuote": "陶老板为了做实验, 来到孤儿院收养了陶梦芸。……陶老板早已在日月山庄地下的墓室屮完成了阵法，只等拍卖会的时候当场启动血祭，汲取众人魂魄，为他制造出真正的长生水。"
+  },
+  {
+    "order": 9,
+    "title": "众人各怀目的齐聚日月山庄",
+    "summary": "张九孚、陆卿原（假扮杨峥）、顾怀辰、陶梦芸、白初、黎小曼等因不同目的于1919年6月20日来到日月山庄参加拍卖会。",
+    "time": "1919年6月20日",
+    "actId": null,
+    "locationHint": "日月山庄",
+    "participantNames": [
+      "张九孚",
+      "陆卿原",
+      "顾怀辰",
+      "陶梦芸",
+      "白初",
+      "黎小曼"
+    ],
+    "truthStatus": "CONFIRMED",
+    "sourceSectionIds": [
+      "src_1779edba65324295"
+    ],
+    "evidenceQuote": "1919年6月20日，众人各怀心事来到了日月山庄，开启了我们今天的故事。"
+  },
+  {
+    "order": 10,
+    "title": "陶老板被白初杀害并伪装",
+    "summary": "18:00左右，白初在舞台用玻璃饰品砸死陶老板，后用偷来的人皮面具伪装成陶老板，藏尸于幕布间。",
+    "time": "18:00左右",
+    "actId": null,
+    "locationHint": "舞台",
+    "participantNames": [
+      "白初",
+      "陶老板"
+    ],
+    "truthStatus": "CONFIRMED",
+    "sourceSectionIds": [
+      "src_4a868e104b07451b"
+    ],
+    "evidenceQuote": "白初跟在陶老板身后，趁机抡起舞台上的玻璃饰品，往陶老板的头上砸去……于是，白初再次砸几下之后将他砸死。"
+  },
+  {
+    "order": 11,
+    "title": "白初假扮陶老板制造不在场证明",
+    "summary": "白初伪装成陶老板在18:30拍卖会前露面，并让杨峥上台发言，随后换回身份，将尸体布置成被吊灯砸死的假象。",
+    "time": "18:15-19:00",
+    "actId": null,
+    "locationHint": "拍卖会现场",
+    "participantNames": [
+      "白初",
+      "杨峥"
+    ],
+    "truthStatus": "CONFIRMED",
+    "sourceSectionIds": [
+      "src_7c8ee8c63fa34ff0"
+    ],
+    "evidenceQuote": "“陶老板”上台与宾客们致意，制造陶老板没死的假象……将身份换回白初。"
+  },
+  {
+    "order": 12,
+    "title": "吊灯落下砸中尸体，众人被困",
+    "summary": "19:00拍卖会开始，白初切断吊灯砸向尸体，众人发现尸体；随后阵法启动，山庄被封锁，众人发现地下墓穴并失忆。",
+    "time": "19:00后",
+    "actId": null,
+    "locationHint": "舞台",
+    "participantNames": [
+      "白初"
+    ],
+    "truthStatus": "CONFIRMED",
+    "sourceSectionIds": [
+      "src_7c8ee8c63fa34ff0"
+    ],
+    "evidenceQuote": "众目睽睽下，吊灯落下，砸向了舞台中央“站着”的陶老板尸体……整个日月山序仿佛被一堵看不见的墙所阻挡，任何人都出不去。"
+  },
+  {
+    "order": 13,
+    "title": "众人墓室苏醒并回忆拍卖会命案",
+    "summary": "民国8年6月20日，六人于墓室苏醒，失忆后逐渐回忆起日月山庄拍卖会及主人陶老板被杀。",
+    "time": "民国8年6月20日",
+    "actId": "act_0cb59b6bd71049fc",
+    "locationHint": "墓室",
+    "participantNames": [
+      "黎小曼",
+      "陶梦芸",
+      "杨峥",
+      "白初",
+      "张九孚",
+      "顾怀辰"
+    ],
+    "truthStatus": "CONFIRMED",
+    "sourceSectionIds": [
+      "src_ed7aab3eed694dfc",
+      "src_1910baebb17746c8"
+    ],
+    "evidenceQuote": "光影摇晃，晕倒在地的你们缓缓睁开眼，眼前看上去像是一座墓室...你们今天本是来参加一场拍卖会的...这场拍卖会的主办者...似乎被什么人给杀害了"
+  },
+  {
+    "order": 14,
+    "title": "第一轮搜证与投凶",
+    "summary": "玩家自我介绍后，进行第一轮搜证与公聊，最终投票指认杀死陶老板的凶手。",
+    "time": null,
+    "actId": "act_0cb59b6bd71049fc",
+    "locationHint": null,
+    "participantNames": [],
+    "truthStatus": "CONFIRMED",
+    "sourceSectionIds": [
+      "src_20425c63105b4a40"
+    ],
+    "evidenceQuote": "召集玩家进行投凶，需玩家指认：杀死陶老板的凶手是谁？"
+  },
+  {
+    "order": 15,
+    "title": "进入主墓室并发现刘警探尸体",
+    "summary": "众人沿楼梯下行，进入主墓室，发现刘警探尸体及能查看他人回忆的玉石。",
+    "time": null,
+    "actId": "act_d22adf5326964bfb",
+    "locationHint": "主墓室",
+    "participantNames": [
+      "白初",
+      "黎小曼",
+      "张九孚",
+      "陶梦芸",
+      "顾怀辰",
+      "杨峥"
+    ],
+    "truthStatus": "CONFIRMED",
+    "sourceSectionIds": [
+      "src_b43bef34803a4d93",
+      "src_e0274d09b8b449d8"
+    ],
+    "evidenceQuote": "你们走进了大门之中，出现在你们眼前的是一座宏伟壮观，宛如宫殿般的墓室...发现一个人倒在棺椁后面的地上...正是方才来山庄调查过的那位刘警探"
+  },
+  {
+    "order": 16,
+    "title": "第二幕探索与长生水真相浮现",
+    "summary": "通过玉石回忆、水井幻象及多轮线索，众人逐步还原长生水的由来与陶老板的阴谋。",
+    "time": null,
+    "actId": "act_d22adf5326964bfb",
+    "locationHint": null,
+    "participantNames": [],
+    "truthStatus": "CONFIRMED",
+    "sourceSectionIds": [
+      "src_e0274d09b8b449d8",
+      "src_94e0b303b7dc4ca7",
+      "src_094f1c2a5f01447a"
+    ],
+    "evidenceQuote": "没想到，这长生水的背后，竟隐藏着如此触目惊心的秘密"
+  },
+  {
+    "order": 17,
+    "title": "第三幕揭示身份与阵法抉择",
+    "summary": "众人恢复记忆，揭示真实身份（如顾怀辰为傅月生、杨峥揭下人皮面具），并明白身处长生水制造阵法，需做出生死抉择。",
+    "time": null,
+    "actId": "act_481782c0ad6f4d75",
+    "locationHint": "墓室",
+    "participantNames": [
+      "黎小曼",
+      "杨峥",
+      "张九孚",
+      "顾怀辰",
+      "陶梦芸",
+      "白初"
+    ],
+    "truthStatus": "CONFIRMED",
+    "sourceSectionIds": [
+      "src_f0c93170f2a54965",
+      "src_285d95b5f0a14fe7"
+    ],
+    "evidenceQuote": "杨峥...缓缓地揭下了自己的人皮面具...你们现在明白自己身处在什么样的地方了吗？...制造长生水的阵法"
+  },
+  {
+    "order": 18,
+    "title": "阵法启动与抉择规则",
+    "summary": "长生水阵法已启动，玩家无法阻止或逃离，需在生门与死门之间做出抉择，每处生门对应一处死门，只有死门有人时生门者才能存活。",
+    "time": null,
+    "actId": "act_481782c0ad6f4d75",
+    "locationHint": null,
+    "participantNames": [],
+    "truthStatus": "CONFIRMED",
+    "sourceSectionIds": [
+      "src_383be79984db4daa"
+    ],
+    "evidenceQuote": "现在长生水制造的阵法已经启动，你们无法阻止它也无法从这里逃出去，但你们已经得知，此处还存在多处死门，和对应的生门，每处可以站下一个人。"
+  },
+  {
+    "order": 19,
+    "title": "玩家心声与最终抉择",
+    "summary": "玩家依次念出心声后，主持人宣布时间紧迫，玩家进行自由表达与最终抉择。",
+    "time": null,
+    "actId": "act_481782c0ad6f4d75",
+    "locationHint": null,
+    "participantNames": [
+      "顾怀辰",
+      "陶梦芸",
+      "黎小曼",
+      "张九孚",
+      "杨峥",
+      "白初"
+    ],
+    "truthStatus": "CONFIRMED",
+    "sourceSectionIds": [
+      "src_7df6a2397b4a47de"
+    ],
+    "evidenceQuote": "各位，距离阵法完成已经没多少时间了，请各位尽快做出最终的抉择吧。"
+  },
+  {
+    "order": 20,
+    "title": "结局触发与旁白",
+    "summary": "根据三对CP的不同生死选择，按顺序触发对应结局旁白或小剧场，游戏结束。",
+    "time": null,
+    "actId": "act_481782c0ad6f4d75",
+    "locationHint": null,
+    "participantNames": [
+      "顾怀辰",
+      "陶梦芸",
+      "黎小曼",
+      "张九孚",
+      "杨峥",
+      "白初"
+    ],
+    "truthStatus": "CONFIRMED",
+    "sourceSectionIds": [
+      "src_01df7de3aa104603"
+    ],
+    "evidenceQuote": "结局会根据3对CP的不同选择来触发不同的旁白或小剧场，请主持人按照“顾怀辰+陶梦芸”一一“张九孚+黎小曼” 一一 “杨峥+白初”的顺序来依次触发和进行结局旁白或者小剧场。"
+  }
+]
+```
+
+## Coverage detail
+
+```json
+[
+  {
+    "goldId": "G01",
+    "goldTitle": "开场：众人于墓室苏醒/失忆困局",
+    "covered": true,
+    "matchedEventId": "tev_e3c6b157a41045e4",
+    "matchedTitle": "众人墓室苏醒并回忆拍卖会命案"
+  },
+  {
+    "goldId": "G02",
+    "goldTitle": "陶老板之死 / 吊灯案发",
+    "covered": true,
+    "matchedEventId": "tev_04ecec361be94ff1",
+    "matchedTitle": "陶老板被白初杀害并伪装"
+  },
+  {
+    "goldId": "G03",
+    "goldTitle": "搜证与投凶推进",
+    "covered": true,
+    "matchedEventId": "tev_212504f8fd0c4ef0",
+    "matchedTitle": "第一轮搜证与投凶"
+  },
+  {
+    "goldId": "G04",
+    "goldTitle": "发现刘警探尸体 / 深入主墓室",
+    "covered": true,
+    "matchedEventId": "tev_7fda8670eb7a4c25",
+    "matchedTitle": "进入主墓室并发现刘警探尸体"
+  },
+  {
+    "goldId": "G05",
+    "goldTitle": "第二幕探索与真相浮现",
+    "covered": true,
+    "matchedEventId": "tev_2cca36809c434e1e",
+    "matchedTitle": "第二幕探索与长生水真相浮现"
+  },
+  {
+    "goldId": "G06",
+    "goldTitle": "婴儿啼哭 / 晕倒危机",
+    "covered": false,
+    "matchedEventId": null,
+    "matchedTitle": null
+  },
+  {
+    "goldId": "G07",
+    "goldTitle": "第三幕身份揭示",
+    "covered": true,
+    "matchedEventId": "tev_c017b23795bd4304",
+    "matchedTitle": "第三幕揭示身份与阵法抉择"
+  },
+  {
+    "goldId": "G08",
+    "goldTitle": "杨峥人皮面具 / 傅月生点名",
+    "covered": false,
+    "matchedEventId": null,
+    "matchedTitle": null
+  },
+  {
+    "goldId": "G09",
+    "goldTitle": "长生水真相（公聊/揭示）",
+    "covered": true,
+    "matchedEventId": "tev_bf0f2ab1c6044a35",
+    "matchedTitle": "第二次炼制长生水，陆未晞沉睡"
+  },
+  {
+    "goldId": "G10",
+    "goldTitle": "阵法启动（局内抉择）",
+    "covered": true,
+    "matchedEventId": "tev_7a3629bf140a499a",
+    "matchedTitle": "阵法启动与抉择规则"
+  },
+  {
+    "goldId": "G11",
+    "goldTitle": "生门/死门抉择",
+    "covered": false,
+    "matchedEventId": null,
+    "matchedTitle": null
+  },
+  {
+    "goldId": "G12",
+    "goldTitle": "结局分支框架",
+    "covered": true,
+    "matchedEventId": "tev_9b943044c6294c13",
+    "matchedTitle": "结局触发与旁白"
+  },
+  {
+    "goldId": "G13",
+    "goldTitle": "众人齐聚日月山庄（远因）",
+    "covered": true,
+    "matchedEventId": "tev_13063ec283e44eb4",
+    "matchedTitle": "民国18年诗人留下《长生叹》诗集"
+  },
+  {
+    "goldId": "G14",
+    "goldTitle": "长生水远史/炼制关键节点",
+    "covered": true,
+    "matchedEventId": "tev_2d807cfc9f774c65",
+    "matchedTitle": "苗王命人研制长生水"
+  }
+]
+```

@@ -26,11 +26,12 @@ const STAGE_RUNNERS = Object.freeze({
 
 /**
  * Run stages synchronously (caller schedules as background job).
- * @param {{ inputFiles?: object, toStage?: string }} options
+ * @param {{ inputFiles?: object, toStage?: string, enableTimelineLlm?: boolean }} options
  *   toStage — stop after this stage id (inclusive). Default: full pipeline to integrity_check.
+ *   enableTimelineLlm — Stage 3A Host TRUE Timeline LLM (default: env COMPILER_V2_ENABLE_TIMELINE_LLM=1).
  * Stops at integrity_check — does NOT auto-commit to runtime.
  */
-export async function runCompilerV2Pipeline(initialState, { inputFiles, toStage } = {}) {
+export async function runCompilerV2Pipeline(initialState, { inputFiles, toStage, enableTimelineLlm } = {}) {
   let state = initialState || createEmptyCompilerV2State();
   state = {
     ...state,
@@ -53,7 +54,9 @@ export async function runCompilerV2Pipeline(initialState, { inputFiles, toStage 
       ...state,
       job: { ...(state.job || {}), currentStage: stageId, status: "processing" }
     };
-    const ctx = stageId === "project_identify" ? { inputFiles } : {};
+    let ctx = {};
+    if (stageId === "project_identify") ctx = { inputFiles };
+    if (stageId === "timeline_compiler") ctx = { enableLlm: enableTimelineLlm };
     state = await runner(state, ctx);
   }
 
