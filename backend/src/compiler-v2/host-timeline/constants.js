@@ -1,0 +1,59 @@
+/**
+ * Stage 3A V2 — Host TRUE Timeline constants (Stateful Reader).
+ * Boundary / StageSchema untouched. HOST_BOOK only.
+ */
+
+export const EVENT_IMPORTANCE = Object.freeze({
+  CORE: "CORE",
+  SUPPORTING: "SUPPORTING",
+  DETAIL: "DETAIL"
+});
+
+export const CONFIDENCE = Object.freeze({
+  HIGH: "HIGH",
+  MEDIUM: "MEDIUM",
+  LOW: "LOW"
+});
+
+export const SOURCE_DISPOSITION_TYPE = Object.freeze({
+  TIMELINE: "TIMELINE",
+  BACKGROUND: "BACKGROUND",
+  RULE: "RULE",
+  META: "META",
+  ATMOSPHERE: "ATMOSPHERE",
+  SUMMARY: "SUMMARY",
+  NO_TIMELINE_CONTENT: "NO_TIMELINE_CONTENT"
+});
+
+export const CANDIDATE_DISPOSITION = Object.freeze({
+  CANONICAL: "CANONICAL",
+  MERGED_INTO: "MERGED_INTO",
+  CHILD_OF: "CHILD_OF",
+  REJECTED: "REJECTED"
+});
+
+export const TRANSITION_TYPE = Object.freeze({
+  NEXT: "NEXT",
+  BEFORE: "BEFORE",
+  CAUSES: "CAUSES",
+  TRIGGERS: "TRIGGERS",
+  REVEALS: "REVEALS",
+  ENABLES: "ENABLES",
+  INTERRUPTS: "INTERRUPTS",
+  PARALLEL_WITH: "PARALLEL_WITH"
+});
+
+export const TIMELINE_TRACK = Object.freeze({
+  TRUE: "TRUE"
+});
+
+export const HOST_TIMELINE_INVARIANTS = Object.freeze([
+  "HOST_BOOK_ONLY",
+  "NO_ROLE_SCRIPT_TRUTH",
+  "NO_CLUE_FILE_TRUTH",
+  "NO_MECHANISM_GUESS",
+  "SOURCE_DISPOSITION_100",
+  "SILENT_CANDIDATE_LOSS_0",
+  "NO_SOURCELESS_EVENT",
+  "DISPLAY_PRESERVES_CANONICAL"
+]);

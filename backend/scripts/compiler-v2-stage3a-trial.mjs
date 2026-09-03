@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Stage 3A trial: 长生叹 HostHandbook → TRUE Timeline (+ 5-metric score).
+ * Stage 3A V2 trial: 长生叹 HostHandbook → Stateful Host TRUE Timeline.
  *
  * Usage (from repo root):
  *   node backend/scripts/compiler-v2-stage3a-trial.mjs
@@ -15,7 +15,7 @@ import { createEmptyCompilerV2State } from "../src/compiler-v2/state.js";
 import { runCompilerV2Pipeline } from "../src/compiler-v2/index.js";
 import {
   CHANGSHENG_HOST_TRUE_GOLD,
-  scoreHostTrueTimeline
+  scoreHostTrueTimelineV2
 } from "../src/compiler-v2/benchmarks/changsheng-host-true-gold.js";
 import { deepseekConfig } from "../src/deepseek-config.js";
 
@@ -24,7 +24,7 @@ require("dotenv").config({ path: path.resolve(path.dirname(fileURLToPath(import.
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, "../..");
-const outDir = path.join(root, "captures", "compiler-v2-trial", "changsheng-stage3a-host-true");
+const outDir = path.join(root, "captures", "compiler-v2-trial", "changsheng-stage3a-v2-stateful");
 
 async function loadChangshengOpeningPackage() {
   const dir = path.join(root, "data-zhimu", "changsheng-tan");
@@ -40,33 +40,44 @@ async function loadChangshengOpeningPackage() {
     rightsConfirmed: true,
     creationType: "murder_mystery",
     hostHandbook: { filename: hostName, text: byName[hostName] },
-    // Include roles for Stage1 identity, but Stage 3A must ignore them
     roleScripts: roleFiles.map((f) => ({
       filename: f,
       characterName: f.replace(/\.txt$/i, ""),
       text: byName[f]
     })),
     clueTextFiles: [],
-    notes: "Stage 3A trial — host TRUE timeline only"
+    notes: "Stage 3A V2 trial — stateful host TRUE timeline only"
   };
 }
 
 function toMarkdown(report) {
   const s = report.score;
+  const v2 = s.v2 || {};
   const lines = [
-    `# Compiler V2 Stage 3A：长生叹 Host TRUE Timeline`,
+    `# Compiler V2 Stage 3A V2：长生叹 Host TRUE Timeline (Stateful)`,
     ``,
-    `状态：**${report.status}** · ${report.elapsedMs}ms · model chunks=${report.meta?.chunks ?? "?"} calls=${report.meta?.calls ?? "?"}`,
+    `状态：**${report.status}** · ${report.elapsedMs}ms · calls=${report.meta?.calls ?? "?"}`,
     ``,
-    `## Five metrics (primary)`,
+    `## Counts`,
     ``,
-    `| Metric | Score |`,
+    `| Layer | Count |`,
     `|---|---|`,
-    `| 1. 重大事件覆盖 | **${s.coverage.covered}/${s.coverage.total}** (${(s.coverage.rate * 100).toFixed(0)}%) |`,
-    `| 2. 幻觉率（启发式） | **${s.hallucination.flagged}/${s.eventCount}** (${(s.hallucination.rate * 100).toFixed(0)}%) |`,
-    `| 3. 微动作嫌疑（粒度） | **${s.granularity.microActionSuspects}**（结局碎片嫌疑 ${s.granularity.endingSplinterSuspects ?? 0}；目标约 15–35 条，实得 ${s.eventCount}） |`,
-    `| 4. Gold 相对顺序 | **${s.order.pairRate == null ? "n/a" : (s.order.pairRate * 100).toFixed(0) + "%"}** |`,
-    `| 5. SourceRefs 覆盖 | **${s.sourceRefs.withRefs}/${s.sourceRefs.total}** (${(s.sourceRefs.rate * 100).toFixed(0)}%) |`,
+    `| Candidates | **${v2.candidateCount ?? "?"}** |`,
+    `| Canonical | **${v2.canonicalEventCount ?? "?"}** |`,
+    `| Display Groups | **${v2.displayGroupCount ?? "?"}** |`,
+    ``,
+    `## V2 scorecard`,
+    ``,
+    `| Metric | Score | Target |`,
+    `|---|---|---|`,
+    `| Major Gold Recall | **${s.coverage.covered}/${s.coverage.total}** (${(s.coverage.rate * 100).toFixed(0)}%) | ≥13/14 |`,
+    `| Hallucination | **${s.hallucination.flagged}** | 0 |`,
+    `| SourceRef coverage | **${s.sourceRefs.withRefs}/${s.sourceRefs.total}** (${(s.sourceRefs.rate * 100).toFixed(0)}%) | 100% |`,
+    `| SourceDisposition coverage | **${v2.sourceDispositionCoverage?.covered}/${v2.sourceDispositionCoverage?.total}** (${((v2.sourceDispositionCoverage?.rate || 0) * 100).toFixed(0)}%) | 100% |`,
+    `| Silent candidate loss | **${v2.silentCandidateLoss ?? "?"}** | 0 |`,
+    `| Gold temporal consistency | **${s.order.pairRate == null ? "n/a" : (s.order.pairRate * 100).toFixed(0) + "%"}** | ≥90% |`,
+    `| Canonical→Display preservation | **${((v2.canonicalDisplayPreservation?.rate || 0) * 100).toFixed(0)}%** | 100% |`,
+    `| Sourceless events | **${v2.sourcelessEvents ?? 0}** | 0 |`,
     ``,
     `## Project / Acts`,
     ``,
@@ -74,10 +85,16 @@ function toMarkdown(report) {
     JSON.stringify({ project: report.project, acts: report.acts }, null, 2),
     "```",
     ``,
-    `## Timeline events (${report.events.length})`,
+    `## Canonical events (${report.events.length})`,
     ``,
     "```json",
     JSON.stringify(report.events, null, 2),
+    "```",
+    ``,
+    `## Display groups (${report.displayGroups?.length || 0})`,
+    ``,
+    "```json",
+    JSON.stringify(report.displayGroups || [], null, 2),
     "```",
     ``,
     `## Coverage detail`,
@@ -86,16 +103,10 @@ function toMarkdown(report) {
     JSON.stringify(s.coverage.detail, null, 2),
     "```",
     ``,
-    `## Hallucination flags`,
+    `## Meta`,
     ``,
     "```json",
-    JSON.stringify(s.hallucination.detail, null, 2),
-    "```",
-    ``,
-    `## Warnings / Unresolved`,
-    ``,
-    "```json",
-    JSON.stringify({ warnings: report.warnings, unresolved: report.unresolved }, null, 2),
+    JSON.stringify(report.meta, null, 2),
     "```",
     ``
   ];
@@ -107,12 +118,12 @@ if (!deepseekConfig().configured) {
   process.exit(1);
 }
 
-console.log("Loading Opening Package (长生叹)…");
+console.log("Loading Opening Package (长生叹)… Stage 3A V2 Stateful Reader");
 const inputFiles = await loadChangshengOpeningPackage();
 const started = Date.now();
 
 const state = await runCompilerV2Pipeline(
-  createEmptyCompilerV2State({ worldId: "trial_changsheng_stage3a", jobId: "stage3a" }),
+  createEmptyCompilerV2State({ worldId: "trial_changsheng_stage3a_v2", jobId: "stage3a_v2" }),
   {
     inputFiles,
     toStage: "timeline_compiler",
@@ -122,12 +133,24 @@ const state = await runCompilerV2Pipeline(
 
 const elapsedMs = Date.now() - started;
 const events = state.timelineEvents || [];
-const score = scoreHostTrueTimeline(events, CHANGSHENG_HOST_TRUE_GOLD, {
+const host = (state.documents || []).find((d) => d.kind === "HOST_BOOK");
+const hostSectionIds = (state.sourceSections || [])
+  .filter((s) => s.documentId === host?.id)
+  .map((s) => s.id);
+
+const score = scoreHostTrueTimelineV2({
+  candidates: state.eventCandidates || [],
+  canonicalEvents: events,
+  displayGroups: state.timelineDisplayGroups || [],
+  sourceDispositions: state.sourceDispositions || [],
+  candidateDispositions: state.candidateDispositions || [],
+  hostSectionIds,
+  gold: CHANGSHENG_HOST_TRUE_GOLD,
   sourceSections: state.sourceSections
 });
 
 const report = {
-  label: "changsheng-stage3a-host-true",
+  label: "changsheng-stage3a-v2-stateful",
   status: state.job?.status,
   elapsedMs,
   project: {
@@ -143,13 +166,15 @@ const report = {
     title: e.title,
     summary: e.summary,
     time: e.time,
-    actId: e.actId,
+    stageId: e.stageId,
     locationHint: e.locationHint,
-    participantNames: e.participantNames,
+    participantNames: e.participantNames || e.participants,
+    importance: e.importance,
     truthStatus: e.truthStatus,
     sourceSectionIds: e.sourceSectionIds,
     evidenceQuote: e.evidenceQuote
   })),
+  displayGroups: state.timelineDisplayGroups || [],
   score,
   warnings: state.warnings,
   unresolved: state.unresolved
@@ -160,7 +185,11 @@ await writeFile(path.join(outDir, "state.json"), JSON.stringify(state, null, 2),
 await writeFile(path.join(outDir, "report.json"), JSON.stringify(report, null, 2), "utf8");
 await writeFile(path.join(outDir, "REPORT.md"), toMarkdown(report), "utf8");
 
+const v2 = score.v2;
 console.log(`\nDone in ${elapsedMs}ms → ${outDir}`);
 console.log(
-  `events=${events.length} coverage=${score.coverage.covered}/${score.coverage.total} hallu=${score.hallucination.flagged} refs=${score.sourceRefs.withRefs}/${score.sourceRefs.total} order=${score.order.pairRate}`
+  `Candidates: ${v2.candidateCount} | Canonical: ${v2.canonicalEventCount} | Display Groups: ${v2.displayGroupCount}`
+);
+console.log(
+  `recall=${score.coverage.covered}/${score.coverage.total} hallu=${score.hallucination.flagged} refs=${score.sourceRefs.rate} disp=${v2.sourceDispositionCoverage.rate} silent=${v2.silentCandidateLoss} order=${score.order.pairRate}`
 );

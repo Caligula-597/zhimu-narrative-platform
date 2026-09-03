@@ -199,7 +199,7 @@ export function scoreHostTrueTimeline(events, gold = CHANGSHENG_HOST_TRUE_GOLD, 
       microActionSuspects: micro.length,
       endingSplinterSuspects: endingSplinters.length,
       detail: micro.map((e) => ({ id: e.id, title: e.title })),
-      targetBand: "15-35 events preferred for full host book"
+      targetBand: "canonical events preserved; display groups compress UI"
     },
     order: {
       pairRate: orderOk,
@@ -209,6 +209,89 @@ export function scoreHostTrueTimeline(events, gold = CHANGSHENG_HOST_TRUE_GOLD, 
       withRefs,
       total: list.length,
       rate: list.length ? withRefs / list.length : 0
+    }
+  };
+}
+
+/**
+ * Stage 3A V2 scorecard — recall + coverage audits (not final display count).
+ */
+export function scoreHostTrueTimelineV2({
+  candidates = [],
+  canonicalEvents = [],
+  displayGroups = [],
+  sourceDispositions = [],
+  candidateDispositions = [],
+  hostSectionIds = [],
+  gold = CHANGSHENG_HOST_TRUE_GOLD,
+  sourceSections = []
+} = {}) {
+  const base = scoreHostTrueTimeline(canonicalEvents, gold, { sourceSections });
+
+  const sectionIds =
+    hostSectionIds.length > 0
+      ? hostSectionIds
+      : (sourceSections || []).map((s) => s.id).filter(Boolean);
+  const dispSet = new Set((sourceDispositions || []).map((d) => d.sourceSectionId));
+  const missingDisp = sectionIds.filter((id) => !dispSet.has(id));
+
+  const candIds = new Set(
+    (candidates || []).map((c) => c.candidateId || c.id).filter(Boolean)
+  );
+  const dispCand = new Map(
+    (candidateDispositions || []).map((d) => [d.candidateId, d])
+  );
+  let silentLoss = 0;
+  for (const id of candIds) {
+    if (!dispCand.has(id)) silentLoss += 1;
+  }
+  const rejectedWithoutReason = (candidateDispositions || []).filter(
+    (d) => d.type === "REJECTED" && !d.reason
+  ).length;
+
+  const canonIds = new Set((canonicalEvents || []).map((e) => e.id));
+  const grouped = new Set((displayGroups || []).flatMap((g) => g.eventIds || []));
+  const missingInDisplay = [...canonIds].filter((id) => !grouped.has(id));
+
+  const sourceless = (canonicalEvents || []).filter(
+    (e) => !(e.sourceSectionIds || []).length
+  ).length;
+
+  return {
+    ...base,
+    v2: {
+      candidateCount: candidates.length,
+      canonicalEventCount: canonicalEvents.length,
+      displayGroupCount: displayGroups.length,
+      majorGoldRecall: base.coverage,
+      hallucination: base.hallucination,
+      sourceRefCoverage: base.sourceRefs,
+      sourceDispositionCoverage: {
+        covered: sectionIds.length - missingDisp.length,
+        total: sectionIds.length,
+        rate: sectionIds.length ? 1 - missingDisp.length / sectionIds.length : 1,
+        missing: missingDisp
+      },
+      silentCandidateLoss: silentLoss,
+      rejectedWithoutReason,
+      goldTemporalConsistency: base.order,
+      canonicalDisplayPreservation: {
+        covered: canonIds.size - missingInDisplay.length,
+        total: canonIds.size,
+        rate: canonIds.size ? 1 - missingInDisplay.length / canonIds.size : 1,
+        missing: missingInDisplay
+      },
+      sourcelessEvents: sourceless,
+      targets: {
+        majorGoldRecall: ">=13/14",
+        hallucination: 0,
+        sourceRefCoverage: 1,
+        sourceDispositionCoverage: 1,
+        silentCandidateLoss: 0,
+        goldTemporalConsistency: ">=0.9",
+        canonicalDisplayPreservation: 1,
+        sourcelessEvents: 0
+      }
     }
   };
 }

@@ -111,31 +111,36 @@ API 只用于：Host TRUE Timeline / Character tracks / CharacterCore / Mechanis
 
 ---
 
-## Stage 3A — Host TRUE Timeline（下一层 AI）
+## Stage 3A V2 — Host TRUE Timeline（Stateful Reader）
 
-**范围（仅此）：** HostHandbook + SourceSections + Acts → 一条 TRUE 主时间线。
+**范围（仅此）：** HostHandbook SourceSections → 一条 TRUE 主时间线。
 
-**不做：** 角色认知线、FABRICATED、全局合并、Scene ID、Mechanism、六角色并行。
+**输入：** `HostTimelineInput`（仅 `HOST_BOOK`）。禁止角色本/线索/机制补真相。
 
-**TimelineEvent 字段：**
+**四 Pass：**
 
 ```
-actId? | time? | order | locationHint? | title | summary | participantNames[] | sourceRefs[] | truthStatus
+Pass 0 Global Read     → GlobalStoryMap
+Pass 1 Coverage Read   → EventCandidates + StoryMemory patches + SourceDispositions
+Pass 2 Temporal        → CanonicalEvents + Transitions（禁止 silent drop）
+Pass 3 Display Group   → TimelineDisplayGroups（只压视觉，不删 Canonical）
 ```
 
-`truthStatus` ∈ `CONFIRMED | UNCERTAIN`（本阶段禁止 FABRICATED / CHARACTER_BELIEF）。
+**外部记忆：** `StoryMemory` 存在系统侧；每窗用 `selectRelevantMemory` 切片喂入。
 
-**启用：** `enableTimelineLlm: true` 或 `COMPILER_V2_ENABLE_TIMELINE_LLM=1`。未启用时 `timelineEvents=[]` + `NEEDS_LLM`。
+**Invariants：** SourceDisposition 100%；Silent candidate loss = 0；无来源 Event = 0；Canonical→Display 100%。
 
-**下一步方向（有状态阅读，替代单纯 chunk→consolidate）：**
-Host Handbook → Global Story Map → 按 source window 携带 StoryMemory 阅读 → EventCandidates + memoryPatch → Temporal Pass → Display Grouping。
+**不做：** 角色认知线、FABRICATED、Scene 正式实体、Mechanism、CharacterCore。
 
-**Benchmark（5 指标，不以条数为荣）：**
+**启用：** `enableTimelineLlm: true` 或 `COMPILER_V2_ENABLE_TIMELINE_LLM=1`。
 
-1. 重大事件覆盖（gold）
-2. 幻觉率
-3. 粒度（非微动作）
-4. 相对顺序
-5. SourceRefs 可回指原文
+**Benchmark（长生叹优先）：** Major Gold Recall ≥13/14、Hallucination 0、SourceRef/Disposition 100%、Silent loss 0。打印 `candidateCount / canonicalEventCount / displayGroupCount`。
 
 试跑：`node backend/scripts/compiler-v2-stage3a-trial.mjs`
+
+---
+
+## StageSchema Confirmation（已冻结）
+
+见上文 Product principles ②。启发式只建议，用户确认后才写入 `StageSchema`。
+

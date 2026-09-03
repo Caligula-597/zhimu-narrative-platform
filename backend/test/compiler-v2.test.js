@@ -355,22 +355,21 @@ describe("Compiler V2 Stage 3A Host TRUE Timeline (no live LLM)", () => {
     assert.ok(state.unresolved.some((u) => u.field === "timelineEvents"));
   });
 
-  it("chunks host source sections and scores gold coverage", async () => {
-    const { buildHostTimelineChunks } = await import("../src/compiler-v2/host-true-timeline.js");
+  it("builds overlapping coverage windows and scores gold coverage", async () => {
+    const { buildCoverageWindows } = await import("../src/compiler-v2/host-timeline/windows.js");
     const {
-      scoreHostTrueTimeline,
+      scoreHostTrueTimelineV2,
       CHANGSHENG_HOST_TRUE_GOLD
     } = await import("../src/compiler-v2/benchmarks/changsheng-host-true-gold.js");
 
-    const state = createEmptyCompilerV2State({ worldId: "w4" });
-    state.documents = [{ id: "doc_host", kind: "HOST_BOOK", text: "x".repeat(100) }];
-    state.sourceSections = [
-      { id: "s1", documentId: "doc_host", originalText: "a".repeat(3000) },
-      { id: "s2", documentId: "doc_host", originalText: "b".repeat(3000) },
-      { id: "s3", documentId: "doc_host", originalText: "c".repeat(3000) }
-    ];
-    const chunks = buildHostTimelineChunks(state, { maxChars: 5500 });
-    assert.ok(chunks.length >= 2);
+    const sections = Array.from({ length: 10 }, (_, i) => ({
+      id: `s${i + 1}`,
+      originalText: `section ${i + 1}`
+    }));
+    const windows = buildCoverageWindows(sections, { windowSize: 6, overlap: 2 });
+    assert.ok(windows.length >= 2);
+    assert.equal(windows[0].sections.length, 6);
+    assert.ok(windows[1].sectionIds.includes("s5"));
 
     const fakeEvents = [
       {
@@ -390,7 +389,20 @@ describe("Compiler V2 Stage 3A Host TRUE Timeline (no live LLM)", () => {
         evidenceQuote: "人皮面具"
       }
     ];
-    const score = scoreHostTrueTimeline(fakeEvents, CHANGSHENG_HOST_TRUE_GOLD, {
+    const score = scoreHostTrueTimelineV2({
+      candidates: fakeEvents.map((e, i) => ({ candidateId: `c${i}`, ...e })),
+      canonicalEvents: fakeEvents,
+      displayGroups: [{ id: "g1", eventIds: ["e1", "e2"], title: "主线" }],
+      sourceDispositions: [
+        { sourceSectionId: "s1", type: "TIMELINE" },
+        { sourceSectionId: "s2", type: "TIMELINE" }
+      ],
+      candidateDispositions: [
+        { candidateId: "c0", type: "CANONICAL" },
+        { candidateId: "c1", type: "CANONICAL" }
+      ],
+      hostSectionIds: ["s1", "s2"],
+      gold: CHANGSHENG_HOST_TRUE_GOLD,
       sourceSections: [
         { id: "s1", originalText: "拍卖会玻璃吊灯砸死陶老板" },
         { id: "s2", originalText: "杨峥揭下人皮面具" }
@@ -398,6 +410,184 @@ describe("Compiler V2 Stage 3A Host TRUE Timeline (no live LLM)", () => {
     });
     assert.ok(score.coverage.covered >= 2);
     assert.equal(score.sourceRefs.withRefs, 2);
+    assert.equal(score.v2.silentCandidateLoss, 0);
+    assert.equal(score.v2.canonicalDisplayPreservation.rate, 1);
+  });
+
+  it("StoryMemory patch + relevant select + no silent candidate loss", async () => {
+    const {
+      createEmptyStoryMemory,
+      applyMemoryPatch,
+      selectRelevantMemory
+    } = await import("../src/compiler-v2/host-timeline/story-memory.js");
+    const {
+      ensureCandidateDispositions,
+      ensureFullSourceDispositions
+    } = await import("../src/compiler-v2/host-timeline/audit.js");
+    const { buildTimelineDisplayGroups } = await import(
+      "../src/compiler-v2/host-timeline/pass3-display.js"
+    );
+    const { reconcileCandidatesDeterministic } = await import(
+      "../src/compiler-v2/host-timeline/pass2-temporal.js"
+    );
+
+    let mem = createEmptyStoryMemory();
+    mem = applyMemoryPatch(mem, {
+      addEvents: [{ id: "m1", title: "陶老板之死", summary: "吊灯" }],
+      addCharacters: [{ name: "杨峥" }],
+      addLocations: [{ name: "墓室" }]
+    });
+    assert.equal(mem.version, 1);
+    assert.equal(mem.knownEvents.length, 1);
+
+    const slice = selectRelevantMemory(mem, {
+      mentionedCharacters: ["杨峥"],
+      recentEventLimit: 5
+    });
+    assert.ok(slice.characters.some((c) => c.name === "杨峥"));
+
+    const candidates = [
+      {
+        candidateId: "cand_a",
+        title: "啼哭危机",
+        summary: "婴儿啼哭导致晕倒",
+        importance: "DETAIL",
+        sourceSectionIds: ["src1"],
+        participantNames: [],
+        confidence: "HIGH"
+      },
+      {
+        candidateId: "cand_b",
+        title: "人皮面具",
+        summary: "杨峥揭面具",
+        importance: "CORE",
+        sourceSectionIds: ["src2"],
+        participantNames: ["杨峥"],
+        confidence: "HIGH"
+      }
+    ];
+    // Pass2 omitted cand_a → must recover, not silent drop
+    const ensured = ensureCandidateDispositions(candidates, [
+      { candidateId: "cand_b", type: "CANONICAL" }
+    ]);
+    assert.equal(ensured.silentLossCount, 1);
+    assert.ok(ensured.dispositions.some((d) => d.candidateId === "cand_a"));
+
+    const disp = ensureFullSourceDispositions(["src1", "src2", "src3"], [
+      { sourceSectionId: "src1", type: "TIMELINE", linkedCandidateIds: ["cand_a"] }
+    ]);
+    assert.equal(disp.missingSectionIds.length, 2);
+    assert.equal(disp.dispositions.length, 3);
+
+    const recon = reconcileCandidatesDeterministic(candidates);
+    assert.equal(recon.canonicalEvents.length, 2);
+    const groups = buildTimelineDisplayGroups(recon.canonicalEvents);
+    const covered = new Set(groups.flatMap((g) => g.eventIds));
+    assert.equal(covered.size, recon.canonicalEvents.length);
+  });
+
+  it("V2 pipeline with mocked LLM keeps host-only + disposition coverage", async () => {
+    const { extractHostTrueTimelineV2 } = await import(
+      "../src/compiler-v2/host-timeline/pipeline.js"
+    );
+    const state = createEmptyCompilerV2State({ worldId: "w5" });
+    state.documents = [
+      { id: "doc_host", kind: "HOST_BOOK", text: "主持全文" },
+      { id: "doc_role", kind: "CHARACTER_BOOK", text: "角色私货：其实是凶手" }
+    ];
+    state.characters = [{ id: "c1", name: "杨峥" }];
+    state.sourceSections = [
+      {
+        id: "src1",
+        documentId: "doc_host",
+        headingPath: ["开场"],
+        originalText: "众人在墓室苏醒，失忆。"
+      },
+      {
+        id: "src2",
+        documentId: "doc_host",
+        headingPath: ["案发"],
+        originalText: "拍卖会陶老板被吊灯砸死。"
+      },
+      {
+        id: "src3",
+        documentId: "doc_host",
+        headingPath: ["规则"],
+        originalText: "搜证规则说明。"
+      },
+      {
+        id: "src_role",
+        documentId: "doc_role",
+        headingPath: ["私货"],
+        originalText: "角色本不应进入真相。"
+      }
+    ];
+
+    let call = 0;
+    const requestJson = async () => {
+      call += 1;
+      if (call === 1) {
+        // Pass 0
+        return {
+          value: {
+            characters: [{ name: "杨峥", aliases: [], roleHint: null }],
+            locations: ["墓室"],
+            historicalPhases: [],
+            plotPhases: [{ id: "p1", label: "开场", summary: "苏醒" }],
+            majorIncidents: [{ label: "陶老板之死", hint: "吊灯" }],
+            truthSections: ["真相章"],
+            unresolvedTopics: []
+          },
+          usage: null
+        };
+      }
+      // Pass 1 windows — return events for current call sections via generic payload
+      return {
+        value: {
+          events: [
+            {
+              title: "墓室苏醒",
+              summary: "众人在墓室苏醒失忆",
+              importance: "CORE",
+              confidence: "HIGH",
+              sourceSectionIds: ["src1"],
+              participantNames: [],
+              evidenceQuote: "墓室苏醒"
+            },
+            {
+              title: "陶老板被砸死",
+              summary: "拍卖会吊灯砸死陶老板",
+              importance: "CORE",
+              confidence: "HIGH",
+              sourceSectionIds: ["src2"],
+              participantNames: [],
+              evidenceQuote: "吊灯"
+            }
+          ],
+          memoryPatch: { addEvents: [{ title: "墓室苏醒" }] },
+          sourceDispositions: [
+            { sourceSectionId: "src1", type: "TIMELINE", linkedCandidateIds: [] },
+            { sourceSectionId: "src2", type: "TIMELINE", linkedCandidateIds: [] },
+            { sourceSectionId: "src3", type: "RULE", linkedCandidateIds: [] }
+          ]
+        },
+        usage: null
+      };
+    };
+
+    const result = await extractHostTrueTimelineV2(state, {
+      requestJson,
+      forceDeterministicPass2: true
+    });
+
+    assert.ok(result.events.length >= 1);
+    assert.equal(result.meta.hostOnly, true);
+    assert.equal(result.meta.sourceDispositionCoverage.rate, 1);
+    assert.equal(result.meta.silentCandidateLoss, 0);
+    assert.equal(result.meta.displayGroupCount, result.timelineDisplayGroups.length);
+    // Role section must not appear in host dispositions
+    assert.ok(!result.sourceDispositions.some((d) => d.sourceSectionId === "src_role"));
+    assert.ok(!result.events.some((e) => (e.summary || "").includes("私货")));
   });
 });
 
