@@ -84,7 +84,7 @@ test("three runtime portals retain reflow-safe layouts at 200 percent zoom", () 
 });
 
 test("lazy view loading is announced without taking keyboard focus", () => {
-  const html = loading("创作驾驶舱", "正在加载该功能模块");
+  const html = loading("创作", "正在加载该功能模块");
   assert.match(html, /role="status"/);
   assert.match(html, /aria-live="polite"/);
   assert.match(html, /aria-busy="true"/);

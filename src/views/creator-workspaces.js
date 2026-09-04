@@ -79,18 +79,21 @@ export function production() {
   }
   const roleCount = data.roles?.length || 0;
   const sectionCount = data.sections?.length || 0;
-  return `${workspaceHero("CONTENT PRODUCTION", "内容生产", "从完整剧情、角色私人分幕或已有文稿进入；各编辑器独立保存，不规定创作顺序。")}
+  return `${workspaceHero("CONTENT PRODUCTION", "写成品", "角色本、主持本、导入与导出。世界账本与细编辑器已收入高级工具，不在主路径平铺。")}
   ${contentLayerMapHtml({ open: false })}
   <section class="workspace-action-grid">
-    <button type="button" class="workspace-action-card primary" data-action="world-engine"><strong>世界引擎</strong><span>从场所方向生成可运行历史，再写角色本</span></button>
-    <button type="button" class="workspace-action-card primary" data-action="story-manuscript"><strong>完整剧情</strong><span>母稿与章节总览</span></button>
-    <button type="button" class="workspace-action-card primary" data-action="opening-package"><strong>上传开本包</strong><span>主持手册 · 角色本 · 线索文字 · 线索图</span></button>
+    <button type="button" class="workspace-action-card primary" data-action="opening-package"><strong>导入已有剧本</strong><span>主持手册 · 角色本 · 线索 · 保留原稿</span></button>
+    <button type="button" class="workspace-action-card primary" data-action="story-manuscript"><strong>完整剧情母稿</strong><span>母稿与章节总览</span></button>
+    <button type="button" class="workspace-action-card" data-go="writer"><strong>角色本</strong><span>${roleCount} 角色 · ${sectionCount} 分幕</span></button>
     <button type="button" class="workspace-action-card" data-action="creator-import"><strong>导入内容包</strong><span>JSON 备份迁移</span></button>
-    <button type="button" class="workspace-action-card" data-go="writer"><strong>角色私人剧本</strong><span>${roleCount} 角色 · ${sectionCount} 分幕</span></button>
     <button type="button" class="workspace-action-card" data-action="creator-export"><strong>交付包导出</strong><span>玩家本 · 线索清单 · 主持手册 · JSON</span></button>
-    <button type="button" class="workspace-action-card" data-action="story-assistant"><strong>剧情结构提取</strong><span>从文本提取场景、调查点、线索和建议连线</span></button>
   </section>
-  <section class="card" style="margin-top:14px"><div class="section-head"><div><h3>下一步</h3><p>内容就绪后绑定主持运行段落。</p></div><button class="secondary-btn" data-go="structure">打开运行段落工作台 →</button></div></section>`;
+  <section class="card" style="margin-top:14px">
+    <div class="section-head"><div><h3>高级工具已收纳</h3>
+    <p class="muted-note">时间线、误认、关系过程、地点、经济、NPC 等世界账本编辑器仍可用，但不在主创作路径展示。请从侧栏「高级工具」或驾驶舱上下文进入。</p></div></div>
+  </section>
+  <section class="card" style="margin-top:14px"><div class="section-head"><div><h3>下一步</h3><p>内容就绪后去试跑或打开房间。</p></div>
+    <button class="secondary-btn" data-go="playtest">打开试跑 →</button></div></section>`;
 }
 
 function selectedSegment(segments = [], selectedId) {

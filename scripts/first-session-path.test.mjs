@@ -4,15 +4,16 @@ import test from "node:test";
 
 const read = (path) => fs.readFileSync(new URL(path, import.meta.url), "utf8");
 
-test("zero-world creator landing offers upload vs world-planning journey", () => {
+test("zero-world creator landing offers create vs import journey", () => {
   const firstRun = read("../src/components/first-run-chooser.js");
   const emptyState = read("../src/components/emptyState.js");
-  assert.match(firstRun, /你是第一次来织幕吗/);
-  assert.match(firstRun, /上传开本包/);
-  assert.match(firstRun, /先做世界规划/);
+  assert.match(firstRun, /你今天想做什么/);
+  assert.match(firstRun, /从零创作一个剧本/);
+  assert.match(firstRun, /导入已有剧本/);
   assert.match(firstRun, /creator-journey-upload/);
   assert.match(firstRun, /creator-journey-plan/);
   assert.doesNotMatch(firstRun, /open-play-official|data-go="writer"/);
+  assert.doesNotMatch(firstRun, /先做世界规划|上传开本包/);
   assert.match(emptyState, /renderFirstRunChooser/);
   assert.match(emptyState, /if\(firstRunChooser\)return firstRunChooser/);
 });

@@ -62,11 +62,11 @@ import { accountScopedStorageKey, currentStorageUserId } from "../runtime/storag
           <div class="journey-bubble journey-bubble-host">
             <span class="journey-avatar" aria-hidden="true">织</span>
             <div class="journey-bubble-body">
-              <p class="section-kicker">欢迎 · 创作台</p>
-              <h2>${compact ? "接着把这个世界填满吧" : "你是第一次来织幕吗？"}</h2>
+              <p class="section-kicker">织幕</p>
+              <h2>${compact ? "这个项目还是空白——你今天想做什么？" : "你今天想做什么？"}</h2>
               <p>${compact
-                ? "可以从已有稿件上传，也可以先聊聊你想要什么样的世界。"
-                : "不管有没有完整稿件，都可以从这里开始。有稿就上传拆稿；没稿咱们一起从世界规划做起。"}</p>
+                ? "从零一步步搭剧情，或导入已有剧本继续修改和运行。正文会保留原稿。"
+                : "织幕只服务两件事：最快从零做出一个剧本，或把已有剧本无损搬进来继续改。"}</p>
               ${contextLine}
             </div>
           </div>
@@ -74,20 +74,20 @@ import { accountScopedStorageKey, currentStorageUserId } from "../runtime/storag
         <button type="button" class="text-btn" data-action="dismiss-first-run">我先自己逛逛</button>
       </div>
       <div class="creator-journey-paths first-run-grid">
-        ${isMurderMystery ? `<article class="creator-journey-card first-run-card first-run-card-upload">
-          <div class="first-run-card-head"><p class="eyebrow">已有稿件</p><span>约 5 分钟</span></div>
-          <h3>已经有让大家见识的剧本了</h3>
-          <p>主持手册、角色本、线索文字和线索图都准备好了？上传后自动拆稿入库，原文稿也会保留。</p>
-          <ul><li>主持手册 + 多角色 Word / 压缩包</li><li>线索 docx 与 jpg/png 按文件名配对</li></ul>
-          <button type="button" class="primary-btn" data-action="creator-journey-upload">上传开本包 →</button>
-        </article>` : ""}
-        <article class="creator-journey-card first-run-card first-run-card-plan${isMurderMystery ? "" : " first-run-card-primary"}">
-          <div class="first-run-card-head"><p class="eyebrow">${isMurderMystery ? "从零开始" : "推荐"}</p><span>一起写</span></div>
-          <h3>那咱们一起做一个剧本吧</h3>
-          <p>先定世界规划：你想要什么样的时代、氛围和核心谜题？写清楚之后，再补角色、章节和机制。</p>
-          <ul><li>灵感卡与世界简介</li><li>之后可用世界引擎与要点补齐</li></ul>
-          <button type="button" class="${isMurderMystery ? "secondary-btn" : "primary-btn"}" data-action="creator-journey-plan">先做世界规划 →</button>
+        <article class="creator-journey-card first-run-card first-run-card-plan first-run-card-primary">
+          <div class="first-run-card-head"><p class="eyebrow">从零创作</p><span>带你走完</span></div>
+          <h3>从零创作一个剧本</h3>
+          <p>我会带你一步步完成：定方向、搭剧情、整母稿、加玩法、写成成品、试跑发布。</p>
+          <ul><li>只问你能回答的问题（人数、题材、体验）</li><li>用剧情积木搭骨架，再写成成品</li></ul>
+          <button type="button" class="primary-btn" data-action="creator-journey-plan">开始创作 →</button>
         </article>
+        ${isMurderMystery ? `<article class="creator-journey-card first-run-card first-run-card-upload">
+          <div class="first-run-card-head"><p class="eyebrow">导入已有</p><span>保留原稿</span></div>
+          <h3>导入已有剧本</h3>
+          <p>上传主持手册、角色本与线索后入库。正文永远显示你的原稿；AI 摘要与结构只作辅助层。</p>
+          <ul><li>主持手册 + 多角色 Word / 压缩包</li><li>线索文字与图片按文件名配对</li></ul>
+          <button type="button" class="secondary-btn" data-action="creator-journey-upload">导入剧本 →</button>
+        </article>` : ""}
         ${!compact && !isMurderMystery ? `<article class="creator-journey-card first-run-card">
           <div class="first-run-card-head"><p class="eyebrow">快捷</p><span>空白项目</span></div>
           <h3>先建一个空项目</h3>

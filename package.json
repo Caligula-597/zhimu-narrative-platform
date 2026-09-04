@@ -117,7 +117,7 @@
     "test:staging-voice-media": "node --test scripts/staging-voice-media-e2e.test.mjs",
     "test:studio-drag:browser": "playwright test --config config/playwright.studio.config.mjs",
     "test:creator-interactions:browser": "playwright test --config config/playwright.studio.config.mjs",
-    "test:first-session-path": "node --test scripts/first-session-path.test.mjs",
+    "test:first-session-path": "node --test scripts/first-session-path.test.mjs scripts/creator-ia-v1.test.mjs",
     "test:play": "npm run build --prefix play && node --test play/test/*.test.mjs",
     "test:host": "npm run build --prefix host && node --test host/test/*.test.mjs",
     "test:permissions-matrix": "npm run test:permissions-matrix --prefix backend",

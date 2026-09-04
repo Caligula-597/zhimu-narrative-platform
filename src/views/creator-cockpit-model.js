@@ -10,74 +10,73 @@ export function creatorCockpitAccessMode(role = "") {
 export const STAGE_DEFS = [
   {
     id: "concept",
-    title: "灵魂的种子",
-    short: "概念",
-    subtitle: "故事总览、灵感、梗概、核心卖点、商业定位",
+    title: "定方向",
+    short: "方向",
+    subtitle: "人数、题材、体验倾向——只问你能回答的问题",
     items: [
-      { id: "spark", title: "灵感卡", link: { canvas: "inspiration" } },
+      { id: "spark", title: "灵感与题材", link: { canvas: "inspiration" } },
       { id: "logline", title: "一句话梗概", link: { canvas: "logline", view: "settings", label: "世界设置" } },
-      { id: "selling", title: "核心卖点", link: { canvas: "selling" } },
-      { id: "positioning", title: "商业定位", link: { canvas: "positioning", view: "settings", label: "世界设置" } }
+      { id: "selling", title: "体验倾向", link: { canvas: "selling" } },
+      { id: "positioning", title: "人数与时长", link: { canvas: "positioning", view: "settings", label: "世界设置" } }
     ]
   },
   {
     id: "architecture",
-    title: "骨架的搭建",
-    short: "架构",
-    subtitle: "核心事实、人物关系、案件时间线、线索",
+    title: "搭剧情",
+    short: "剧情",
+    subtitle: "选你想要的剧情结构，放进积木篮，再逐条微调",
     items: [
-      { id: "trick", title: "核心事实", link: { canvas: "trick", view: "truth", label: "谜底与关系" } },
-      { id: "relations", title: "人物关系", link: { canvas: "relations", view: "truth", label: "谜底与关系" } },
-      { id: "timeline", title: "章节结构", link: { canvas: "timeline", view: "studio", label: "编排图谱" } },
-      { id: "evidence", title: "线索", link: { canvas: "trick", view: "clues", label: "线索管理" } }
+      { id: "story-mechanics", title: "剧情积木篮", link: { canvas: "sandbox", action: "cockpit-open-story-mechanism-workbench", label: "打开剧情积木篮" } },
+      { id: "trick", title: "核心事实（高级）", link: { canvas: "trick", view: "truth", label: "高级：谜底与关系" } },
+      { id: "relations", title: "人物关系（高级）", link: { canvas: "relations", view: "truth", label: "高级：谜底与关系" } },
+      { id: "evidence", title: "线索（高级）", link: { canvas: "trick", view: "clues", label: "高级：线索管理" } }
     ]
   },
   {
     id: "characters",
-    title: "血肉的填充",
-    short: "人物",
-    subtitle: "角色席位、私人分幕、发布节奏",
+    title: "整母稿",
+    short: "母稿",
+    subtitle: "把积木交织成整本剧情骨架（Integrator 即将接入；现可预览章节）",
     items: [
-      { id: "profiles", title: "角色与分幕", link: { canvas: "profiles", view: "writer", label: "角色私人剧本" } },
-      { id: "arcs", title: "分幕与发布", link: { canvas: "profiles", view: "writer", label: "角色私人剧本" } },
-      { id: "foreshadow", title: "谜底与伏笔", link: { canvas: "profiles", view: "truth", label: "谜底与关系" } }
+      { id: "timeline", title: "母稿预览", link: { canvas: "timeline", view: "studio", label: "编排图谱" } },
+      { id: "profiles", title: "角色席位", link: { canvas: "profiles", view: "writer", label: "角色私人剧本" } },
+      { id: "arcs", title: "分幕节奏", link: { canvas: "profiles", view: "writer", label: "角色私人剧本" } }
     ]
   },
   {
     id: "flow",
-    title: "游戏的规则",
-    short: "流程",
-    subtitle: "运行段落、线索矩阵、自动化规则、主持预演",
+    title: "加玩法",
+    short: "玩法",
+    subtitle: "在母稿某一幕里添加幕内玩法（竞价、投票、交易等）",
     items: [
+      { id: "mechanics", title: "添加幕内玩法", link: { canvas: "sandbox", action: "cockpit-open-mechanism-workbench", label: "选择幕内玩法" } },
       { id: "beats", title: "运行段落", link: { canvas: "beats", view: "structure", label: "运行段落工作台" } },
       { id: "clue-matrix", title: "线索分发", link: { canvas: "matrix", view: "clues", label: "线索管理" } },
-      { id: "mechanics", title: "机制设计", link: { canvas: "sandbox", action: "cockpit-open-mechanism-workbench", label: "打开机制工作台" } },
-      { id: "story-mechanics", title: "剧情机制骨架", link: { canvas: "sandbox", action: "cockpit-open-story-mechanism-workbench", label: "打开剧情机制工作台" } },
       { id: "dm-sandbox", title: "主持预演", link: { canvas: "sandbox", action: "open-host-console", label: "打开主持端" } }
     ]
   },
   {
     id: "manuscript",
-    title: "肌肤的裁剪",
-    short: "文稿",
-    subtitle: "创作入口、物料、导入导出",
+    title: "写成品",
+    short: "成品",
+    subtitle: "角色本、主持本、线索物料与导入导出",
     items: [
-      { id: "player-book", title: "内容生产", link: { canvas: "writing", view: "writer", label: "角色私人剧本" } },
-      { id: "dm-manual", title: "主持手册", link: { canvas: "writing", view: "truth", label: "主持手册全文" } },
-      { id: "import-hub", title: "来源与拆稿", link: { canvas: "writing", view: "importSource", label: "来源稿与模块" } },
+      { id: "player-book", title: "角色本", link: { canvas: "writing", view: "writer", label: "角色私人剧本" } },
+      { id: "dm-manual", title: "主持本", link: { canvas: "writing", view: "truth", label: "主持手册全文" } },
+      { id: "import-hub", title: "导入已有剧本", link: { canvas: "writing", view: "importSource", label: "来源稿与模块" } },
       { id: "props", title: "线索与场景", link: { canvas: "cards", view: "studio", label: "编排图谱" } },
       { id: "package", title: "导入导出", link: { canvas: "package", action: "creator-export", label: "导出备份" } }
     ]
   },
   {
     id: "launch",
-    title: "测试与发布",
-    short: "测试",
-    subtitle: "结构诊断、机器压力测试、真人运行房、系统检查、跑局数据",
+    title: "试跑发布",
+    short: "试跑",
+    subtitle: "压力测试、真人房间、检查与跑局数据",
     items: [
-      { id: "diagnostics", title: "作品诊断", link: { canvas: "diagnostics", view: "diagnostics", label: "作品诊断中心" } },
-      { id: "ai-playtest", title: "机器压力测试", link: { canvas: "ai-playtest", view: "playtest", label: "打开压力测试" } },
-      { id: "test-room", title: "测试运行房", link: { canvas: "test", action: "world-rooms", label: "管理运行房" } },
+      { id: "ai-playtest", title: "机器试跑", link: { canvas: "ai-playtest", view: "playtest", label: "打开试跑" } },
+      { id: "test-room", title: "真人房间", link: { canvas: "test", action: "world-rooms", label: "管理房间" } },
+      { id: "diagnostics", title: "作品诊断（高级）", link: { canvas: "diagnostics", view: "diagnostics", label: "作品诊断" } },
       { id: "feedback", title: "跑局数据", link: { canvas: "feedback", view: "insights", label: "完整数据页" } },
       { id: "readiness", title: "系统检查", link: { canvas: "readiness", action: "creator-check", label: "刷新检查" } }
     ]
@@ -86,11 +85,11 @@ export const STAGE_DEFS = [
 
 export const CANVAS_MODES = {
   concept: ["inspiration", "logline", "selling", "positioning", "overview"],
-  architecture: ["trick", "relations", "timeline"],
-  characters: ["profiles", "arcs"],
-  flow: ["beats", "matrix", "sandbox"],
+  architecture: ["sandbox", "trick", "relations"],
+  characters: ["timeline", "profiles", "arcs"],
+  flow: ["sandbox", "beats", "matrix"],
   manuscript: ["writing", "cards", "package"],
-  launch: ["diagnostics", "ai-playtest", "test", "feedback", "readiness"]
+  launch: ["ai-playtest", "test", "diagnostics", "feedback", "readiness"]
 };
 
 export const CANVAS_LABELS = {
@@ -251,12 +250,12 @@ export const LOGLINE_TEMPLATE =
 const CHECK_TARGET_MAP = {
   roles: { stage: "characters", item: "profiles" },
   sections: { stage: "characters", item: "arcs", view: "writer" },
-  chapters: { stage: "architecture", item: "timeline" },
+  chapters: { stage: "characters", item: "timeline" },
   segments: { stage: "flow", item: "beats" },
   scenes: { stage: "manuscript", item: "props", view: "studio" },
   clues: { stage: "architecture", item: "evidence", view: "clues" },
   investigation_points: { stage: "manuscript", item: "props", view: "studio" },
-  studio_graph: { stage: "architecture", item: "timeline", view: "studio" },
+  studio_graph: { stage: "characters", item: "timeline", view: "studio" },
   rules: { stage: "flow", item: "mechanics", view: "rules" },
   rooms: { stage: "launch", item: "test-room", action: "world-rooms" }
 };

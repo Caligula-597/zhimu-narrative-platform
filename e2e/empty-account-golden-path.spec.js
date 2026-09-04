@@ -17,7 +17,7 @@ test("zero-world account creates an empty board-game world with only type and na
   await expect(page.locator("[data-first-run-chooser]")).toBeVisible();
   await expect(page.getByRole("heading", { name: "你是第一次来织幕吗？" })).toBeVisible();
   await expect(page.locator("[data-first-run-chooser]")).toContainText("上传开本包");
-  await expect(page.locator("[data-first-run-chooser]")).toContainText("先做世界规划");
+  await expect(page.locator("[data-first-run-chooser]")).toContainText("从零创作一个剧本");
   await expect(page.locator("#preview-btn")).toBeHidden();
   await expect(page.locator("#run-btn")).toBeHidden();
   await expect(page.locator("body")).toHaveAttribute("data-product-active", "0");

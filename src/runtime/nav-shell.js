@@ -2,10 +2,10 @@
 import * as zhimuApi from "../api/index.js";
 import { uiStore, userStore, studioStore, worldStore } from "../state/index.js";
 import { narrativeProfileFromWorld } from "../../shared/narrative-profile.js";
-import { productAllowsShellView, productSupportsView, productToolCapabilities, productToolLabel } from "../../shared/product-capabilities.js";
+import { productAllowsShellView, productSupportsView, productToolLabel } from "../../shared/product-capabilities.js";
 import { productModuleForWorld } from "../products/product-registry.js";
 (function (window) {
-  const ADVANCED_VIEWS = ["writer", "truth", "studio", "clues", "rules", "miniGames", "archive"];
+  const ADVANCED_VIEWS = ["writer", "truth", "studio", "clues", "rules", "miniGames", "archive", "diagnostics"];
 
   function currentWorld() {
     const { cloudStudio } = studioStore.get();
@@ -159,11 +159,10 @@ import { productModuleForWorld } from "../products/product-registry.js";
       return;
     }
     const profile = narrativeProfileFromWorld(world);
-    const capabilities = productToolCapabilities(profile.creationType);
     const productScope = panel.querySelector("[data-nav-product-scope]");
     const sharedScope = panel.querySelector("[data-nav-shared-scope]");
-    if (productScope) productScope.textContent = `${capabilities.label}专属工具`;
-    if (sharedScope) sharedScope.textContent = product.shell.advancedSharedScopeLabel || "运行工具";
+    if (productScope) productScope.textContent = "创作高级工具";
+    if (sharedScope) sharedScope.textContent = product.shell.advancedSharedScopeLabel || "试跑与运行";
     panel.querySelectorAll("[data-view]").forEach((button) => {
       const productHidden = !productSupportsView(profile.creationType, button.dataset.view);
       button.hidden = productHidden || (reviewerMode && button.dataset.view !== "writer");
@@ -178,10 +177,10 @@ import { productModuleForWorld } from "../products/product-registry.js";
       stored === "1" || (stored !== "0" && ADVANCED_VIEWS.includes(view));
     panel.hidden = !expanded;
     toggle.setAttribute("aria-expanded", expanded ? "true" : "false");
-    toggle.setAttribute("aria-label", expanded ? "收起精细编辑器" : "展开精细编辑器");
+    toggle.setAttribute("aria-label", expanded ? "收起高级工具" : "展开高级工具");
     toggle.classList.toggle("contains-active", ADVANCED_VIEWS.includes(view));
-    if (label) label.textContent = expanded ? `收起${capabilities.label}工具` : `${capabilities.label}精细工具`;
-    toggle.title = expanded ? `收起${capabilities.label}精细工具` : `展开${capabilities.label}精细工具`;
+    if (label) label.textContent = expanded ? "收起高级工具" : "高级工具";
+    toggle.title = expanded ? "收起高级工具" : "展开高级工具";
   }
 
   window.zhimuNavShell = { syncNavAdvanced, syncProductShell, syncWorldSwitcher, ADVANCED_VIEWS };

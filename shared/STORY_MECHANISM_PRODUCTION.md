@@ -58,6 +58,8 @@ Registry 自动可生成 / UI 自动可展示 / swap·edit 自动可用
 
 M07 内容包见 `M07_CONTENT_COVERAGE.md`。
 
+产品表面收束见 `docs/CREATOR_IA_V1_ZH.md`（积木篮 / 加玩法 / Advanced；世界域 HIDDEN）。
+
 ## 明确不做（本阶段）
 
 - Master Outline Integrator

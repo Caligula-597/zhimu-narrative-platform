@@ -270,11 +270,18 @@ export function renderFlowCanvas(ctx, cockpit, findItemLink) {
         .join("")}</tbody></table></section>`;
   }
   if (cockpit.activeCanvas === "sandbox") {
-    const secondary = cockpit.activeItem === "mechanics"
-      ? { view: "rules", label: "自动化规则" }
-      : { action: "world-rooms", label: "管理运行房" };
-    return `<section class="cockpit-panel"><div class="panel-heading"><div><p>机制与主持预演</p><h3>${counts.rooms || 0} 个运行房</h3></div></div>
-      <div class="row">${linkButton(link, "primary-btn")}${linkButton(secondary)}</div></section>`;
+    if (cockpit.activeItem === "story-mechanics") {
+      return `<section class="cockpit-panel"><div class="panel-heading"><div><p>搭剧情</p><h3>剧情积木篮</h3></div></div>
+        <p class="muted-note">选择你希望本里有的剧情结构，生成后放进积木篮；可换结构、只换一槽或手动修改。</p>
+        <div class="row">${linkButton({ action: "cockpit-open-story-mechanism-workbench", label: "打开剧情积木篮" }, "primary-btn")}</div></section>`;
+    }
+    if (cockpit.activeItem === "mechanics") {
+      return `<section class="cockpit-panel"><div class="panel-heading"><div><p>加玩法</p><h3>幕内玩法</h3></div></div>
+        <p class="muted-note">在某一幕里添加竞价、交易、投票等玩法。不必理解内部机制术语。</p>
+        <div class="row">${linkButton({ action: "cockpit-open-mechanism-workbench", label: "添加幕内玩法" }, "primary-btn")}${linkButton({ view: "rules", label: "自动化规则（高级）" })}</div></section>`;
+    }
+    return `<section class="cockpit-panel"><div class="panel-heading"><div><p>主持预演</p><h3>${counts.rooms || 0} 个房间</h3></div></div>
+      <div class="row">${linkButton(link, "primary-btn")}${linkButton({ action: "world-rooms", label: "管理房间" })}</div></section>`;
   }
   const segRows = segments.length
     ? segments
@@ -318,14 +325,13 @@ export function renderManuscriptCanvas(ctx, cockpit) {
     return `<section class="cockpit-panel"><div class="panel-heading"><div><p>导入导出</p><h3>内容包与备份</h3></div></div>
       <div class="row">${linkButton({ action: "creator-import", label: "导入内容包" }, "secondary-btn")}${linkButton({ action: "creator-export", label: "导出备份" }, "primary-btn")}</div></section>`;
   }
-  return `<section class="cockpit-panel"><div class="panel-heading"><div><p>内容生产</p><h3>${counts.sections || 0} 分幕 · ${counts.chapters || 0} 章节</h3></div></div>
-    <p class="muted-note">两条入口：空白世界从要点补齐；已有完整稿件走上传拆稿。</p>
+  return `<section class="cockpit-panel"><div class="panel-heading"><div><p>写成品</p><h3>${counts.sections || 0} 分幕 · ${counts.chapters || 0} 章节</h3></div></div>
+    <p class="muted-note">从零创作请先搭剧情积木；已有剧本请导入并保留原稿。</p>
     <div class="workspace-action-grid" style="margin-top:12px">
-      <button type="button" class="workspace-action-card primary" data-action="cockpit-open-document-import"><strong>上传开本包</strong><span>主持手册 · 角色本 · 线索文字 · 线索图</span></button>
-      <button type="button" class="workspace-action-card" data-action="cockpit-open-mechanism-workbench"><strong>从要点补齐</strong><span>机制与世界引擎填空</span></button>
-      <button type="button" class="workspace-action-card" data-go="importSource"><strong>来源稿与拆稿</strong><span>快照 + 模块导航</span></button>
-      <button type="button" class="workspace-action-card" data-go="truth"><strong>主持手册</strong><span>全文 / 结局 / 关系</span></button>
-      <button type="button" class="workspace-action-card" data-go="writer"><strong>角色私人剧本</strong><span>Markdown 分幕</span></button>
+      <button type="button" class="workspace-action-card primary" data-action="cockpit-open-document-import"><strong>导入已有剧本</strong><span>主持手册 · 角色本 · 线索 · 保留原稿</span></button>
+      <button type="button" class="workspace-action-card primary" data-action="cockpit-open-story-mechanism-workbench"><strong>剧情积木篮</strong><span>搭追凶、身份、阵营等结构</span></button>
+      <button type="button" class="workspace-action-card" data-go="writer"><strong>角色本</strong><span>私人分幕写作</span></button>
+      <button type="button" class="workspace-action-card" data-go="truth"><strong>主持本</strong><span>全文 / 结局 / 关系</span></button>
       <button type="button" class="workspace-action-card" data-action="story-manuscript"><strong>完整剧情母稿</strong><span>母稿与编排同步</span></button>
     </div></section>`;
 }
