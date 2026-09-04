@@ -63,6 +63,11 @@ const showError = (error, fallback = "操作失败") => showToast(normalizeError
           .openCurrentCreatorMechanismWorkbench();
         return true;
 
+      case "cockpit-open-story-mechanism-workbench":
+        await (await import("../views/creator-story-mechanism-workbench.js"))
+          .openCurrentCreatorStoryMechanismWorkbench();
+        return true;
+
       case "cockpit-open-document-import":
         callView("writer", "openOpeningPackage");
         return true;

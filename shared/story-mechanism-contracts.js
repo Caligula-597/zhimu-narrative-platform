@@ -111,10 +111,27 @@ export function normalizeStoryFact(value = {}) {
 export function normalizeEditableSlot(value = {}) {
   const src = record(value);
   return {
-    key: cleanText(src.key, 80),
+    key: cleanText(src.key || src.id, 80),
+    id: cleanText(src.id || src.key, 80),
     kind: cleanText(src.kind, 40) || "plot", // role | plot | clue
+    type: cleanText(src.type, 40) || (src.kind === "role" ? "CHARACTER" : "TEXT_OR_PRESET"),
     label: cleanText(src.label, 120),
     locked: Boolean(src.locked),
+    actions: asArray(src.actions).map(String),
+    source: cleanText(src.source, 40) || "SYSTEM", // SYSTEM | USER
+  };
+}
+
+export function normalizeRoleAssignment(value = {}) {
+  const src = record(value);
+  return {
+    mechanismBlockId: cleanId(src.mechanismBlockId),
+    mechanismId: cleanId(src.mechanismId),
+    slotId: cleanText(src.slotId, 80),
+    characterId: cleanId(src.characterId),
+    intensity: Number.isFinite(Number(src.intensity)) ? Number(src.intensity) : 1,
+    intentionalOverlap: Boolean(src.intentionalOverlap),
+    narrativeRole: cleanText(src.narrativeRole, 80),
   };
 }
 
@@ -125,6 +142,11 @@ export function normalizeStoryMechanismBlock(value = {}) {
   for (const [key, ref] of Object.entries(record(src.roleBindings))) {
     roleBindings[key] = normalizeCharacterRef(ref);
   }
+  const lockedSlots = asArray(src.lockedSlots).map(String);
+  const editableSlots = asArray(src.editableSlots).map(normalizeEditableSlot).map((slot) => ({
+    ...slot,
+    locked: slot.locked || lockedSlots.includes(slot.key),
+  }));
   return {
     id: cleanId(src.id),
     mechanismId: cleanId(src.mechanismId),
@@ -133,8 +155,10 @@ export function normalizeStoryMechanismBlock(value = {}) {
     title: cleanText(src.title, 160),
     purpose: cleanText(src.purpose, 800),
     variantId: cleanId(src.variantId),
+    revision: Number.isFinite(Number(src.revision)) ? Number(src.revision) : 1,
     roleBindings,
     plotBindings: { ...record(src.plotBindings) },
+    slotSources: { ...record(src.slotSources) },
     clueBindings: asArray(src.clueBindings).map(normalizeStoryClueBinding),
     stageBindings: asArray(src.stageBindings).map(normalizeStoryStageBinding),
     setup: asArray(src.setup).map(normalizeStoryBeat),
@@ -145,7 +169,9 @@ export function normalizeStoryMechanismBlock(value = {}) {
     consequences: asArray(src.consequences),
     exposedFacts: asArray(src.exposedFacts).map(normalizeStoryFact),
     reservedFacts: asArray(src.reservedFacts).map(normalizeStoryFact),
-    editableSlots: asArray(src.editableSlots).map(normalizeEditableSlot),
+    editableSlots,
+    lockedSlots,
+    integrationHints: record(src.integrationHints),
     status,
   };
 }
@@ -181,9 +207,61 @@ export function emptyAssignments() {
   };
 }
 
+/** 从 roleAssignments 重建兼容字段（M01 测试与旧读取路径）。 */
+export function rebuildLegacyAssignments(roleAssignments = []) {
+  const a = emptyAssignments();
+  const loadCount = new Map();
+  for (const row of roleAssignments) {
+    const id = row.characterId;
+    if (!id) continue;
+    loadCount.set(id, (loadCount.get(id) || 0) + 1);
+    const role = String(row.narrativeRole || row.slotId || "");
+    if (role === "killer" || row.slotId === "culprit") {
+      if (!a.killerCharacterIds.includes(id)) a.killerCharacterIds.push(id);
+    }
+    if (role === "victim" || row.slotId === "victim") {
+      if (!a.victimCharacterIds.includes(id)) a.victimCharacterIds.push(id);
+    }
+    if (role === "framed" || row.slotId === "framedCharacter") {
+      if (!a.framedCharacterIds.includes(id)) a.framedCharacterIds.push(id);
+    }
+    if (role === "identity_bearer" || row.slotId === "bearer") {
+      if (!a.hiddenIdentityCharacterIds.includes(id)) a.hiddenIdentityCharacterIds.push(id);
+    }
+    if (role === "faction_lead" || String(row.slotId).startsWith("factionLead")) {
+      if (!a.factionLeaderCharacterIds.includes(id)) a.factionLeaderCharacterIds.push(id);
+    }
+  }
+  for (const [id, n] of loadCount) {
+    if (n >= 2 && !a.overloadedCharacterIds.includes(id)) a.overloadedCharacterIds.push(id);
+  }
+  return a;
+}
+
 export function createProjectStoryState(input = {}) {
   const src = record(input);
   const premise = record(src.premise);
+  let roleAssignments = asArray(src.roleAssignments).map(normalizeRoleAssignment);
+  // 兼容：若只有 legacy assignments、无 roleAssignments，保留 legacy
+  const legacyIn = record(src.assignments);
+  const hasLegacy =
+    asArray(legacyIn.killerCharacterIds).length ||
+    asArray(legacyIn.victimCharacterIds).length ||
+    asArray(legacyIn.framedCharacterIds).length;
+  const assignments = roleAssignments.length
+    ? rebuildLegacyAssignments(roleAssignments)
+    : {
+        ...emptyAssignments(),
+        killerCharacterIds: asArray(legacyIn.killerCharacterIds).map(String),
+        victimCharacterIds: asArray(legacyIn.victimCharacterIds).map(String),
+        framedCharacterIds: asArray(legacyIn.framedCharacterIds).map(String),
+        hiddenIdentityCharacterIds: asArray(legacyIn.hiddenIdentityCharacterIds).map(String),
+        factionLeaderCharacterIds: asArray(legacyIn.factionLeaderCharacterIds).map(String),
+        overloadedCharacterIds: asArray(legacyIn.overloadedCharacterIds).map(String),
+      };
+  if (!roleAssignments.length && hasLegacy) {
+    // 不伪造 roleAssignments；仅保留兼容字段
+  }
   return {
     version: STORY_MECHANISM_CONTRACT_VERSION,
     projectId: cleanId(src.projectId) || "project",
@@ -200,16 +278,8 @@ export function createProjectStoryState(input = {}) {
     stages: asArray(src.stages).map(normalizeStoryStageState),
     locations: asArray(src.locations),
     mechanismBlocks: asArray(src.mechanismBlocks).map(normalizeStoryMechanismBlock),
-    assignments: {
-      ...emptyAssignments(),
-      ...record(src.assignments),
-      killerCharacterIds: asArray(record(src.assignments).killerCharacterIds).map(String),
-      victimCharacterIds: asArray(record(src.assignments).victimCharacterIds).map(String),
-      framedCharacterIds: asArray(record(src.assignments).framedCharacterIds).map(String),
-      hiddenIdentityCharacterIds: asArray(record(src.assignments).hiddenIdentityCharacterIds).map(String),
-      factionLeaderCharacterIds: asArray(record(src.assignments).factionLeaderCharacterIds).map(String),
-      overloadedCharacterIds: asArray(record(src.assignments).overloadedCharacterIds).map(String),
-    },
+    roleAssignments,
+    assignments,
     facts: asArray(src.facts).map(normalizeStoryFact),
     clues: asArray(src.clues),
     constraints: asArray(src.constraints),
@@ -221,17 +291,36 @@ export function normalizeProjectStoryState(value = {}) {
   return createProjectStoryState(value);
 }
 
-/** 角色是否已被核心职责占用（除非 INTENTIONAL_OVERLAP）。 */
+/** 角色叙事负载：优先 roleAssignments，兼容 legacy assignments。 */
 export function characterLoadScore(state, characterId) {
-  const a = state.assignments;
+  const rows = asArray(state.roleAssignments).filter((r) => r.characterId === characterId);
+  if (rows.length) {
+    return rows.reduce((sum, r) => sum + (r.intentionalOverlap ? 0.5 : Number(r.intensity) || 1), 0);
+  }
+  const a = state.assignments || emptyAssignments();
   let score = 0;
-  if (a.killerCharacterIds.includes(characterId)) score += 3;
-  if (a.victimCharacterIds.includes(characterId)) score += 2;
-  if (a.framedCharacterIds.includes(characterId)) score += 2;
-  if (a.hiddenIdentityCharacterIds.includes(characterId)) score += 2;
-  if (a.factionLeaderCharacterIds.includes(characterId)) score += 1;
-  if (a.overloadedCharacterIds.includes(characterId)) score += 1;
+  if (a.killerCharacterIds?.includes(characterId)) score += 3;
+  if (a.victimCharacterIds?.includes(characterId)) score += 2;
+  if (a.framedCharacterIds?.includes(characterId)) score += 2;
+  if (a.hiddenIdentityCharacterIds?.includes(characterId)) score += 2;
+  if (a.factionLeaderCharacterIds?.includes(characterId)) score += 1;
+  if (a.overloadedCharacterIds?.includes(characterId)) score += 1;
   return score;
+}
+
+export function listCharacterNarrativeRoles(state, characterId) {
+  return asArray(state.roleAssignments).filter((r) => r.characterId === characterId);
+}
+
+export function detectNarrativeOverload(state, { threshold = 3 } = {}) {
+  const byChar = new Map();
+  for (const row of asArray(state.roleAssignments)) {
+    if (!row.characterId || row.intentionalOverlap) continue;
+    byChar.set(row.characterId, (byChar.get(row.characterId) || 0) + (Number(row.intensity) || 1));
+  }
+  return [...byChar.entries()]
+    .filter(([, score]) => score >= threshold)
+    .map(([characterId, score]) => ({ characterId, score }));
 }
 
 export function listAvailableCharacters(state, { allowNpc = true, maxLoad = 1 } = {}) {
@@ -250,4 +339,15 @@ export function replaceBlock(state, block) {
   const blocks = state.mechanismBlocks.map((b) => (b.id === next.id ? next : b));
   if (!blocks.some((b) => b.id === next.id)) blocks.push(next);
   return { ...state, mechanismBlocks: blocks };
+}
+
+export function removeBlockFromState(state, blockId) {
+  const id = String(blockId);
+  return {
+    ...state,
+    mechanismBlocks: state.mechanismBlocks.filter((b) => b.id !== id),
+    roleAssignments: asArray(state.roleAssignments).filter((r) => r.mechanismBlockId !== id),
+    facts: asArray(state.facts).filter((f) => !String(f.id).includes(id)),
+    clues: asArray(state.clues).filter((c) => c.sourceBlockId !== id),
+  };
 }

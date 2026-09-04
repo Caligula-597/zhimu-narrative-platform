@@ -1,0 +1,151 @@
+.creator-story-mechanism-workbench {
+  display: grid;
+  gap: 18px;
+  padding: 18px 20px 28px;
+  color: var(--ink, #1c1915);
+}
+
+.story-mech-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.story-mech-head p {
+  margin: 0;
+  letter-spacing: 0.08em;
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+.story-mech-head h2 {
+  margin: 4px 0;
+  font-size: 28px;
+}
+
+.story-mech-head span,
+.story-mech-meta,
+.story-mech-empty,
+.story-mech-msg {
+  font-size: 13px;
+  opacity: 0.78;
+}
+
+.story-mech-maturity {
+  display: grid;
+  grid-template-columns: auto auto;
+  gap: 2px 10px;
+  text-align: right;
+}
+
+.story-mech-maturity strong {
+  font-size: 22px;
+}
+
+.story-mech-section h3 {
+  margin: 0 0 10px;
+  font-size: 16px;
+}
+
+.story-mech-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.story-mech-chip {
+  border: 1px solid var(--line, #d9d1c5);
+  background: #fff;
+  border-radius: 999px;
+  padding: 6px 12px;
+  cursor: pointer;
+}
+
+.story-mech-chip.active,
+.story-mech-template.active {
+  border-color: #2f5d50;
+  background: #eef6f2;
+}
+
+.story-mech-template-grid,
+.story-mech-slot-grid {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+}
+
+.story-mech-template,
+.story-mech-slot {
+  text-align: left;
+  border: 1px solid var(--line, #d9d1c5);
+  border-radius: 12px;
+  padding: 12px;
+  background: #fff;
+  cursor: pointer;
+}
+
+.story-mech-template {
+  display: grid;
+  gap: 4px;
+}
+
+.story-mech-template span,
+.story-mech-slot span {
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+.story-mech-template small,
+.story-mech-slot p {
+  font-size: 12px;
+  line-height: 1.45;
+  opacity: 0.85;
+}
+
+.story-mech-slot-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.story-mech-slot-actions button {
+  border: 1px solid var(--line, #d9d1c5);
+  background: #f7f3ec;
+  border-radius: 8px;
+  padding: 4px 8px;
+  cursor: pointer;
+}
+
+.story-mech-slot.is-locked {
+  opacity: 0.65;
+}
+
+.story-mech-actions-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+.story-mech-beats {
+  display: grid;
+  gap: 12px;
+}
+
+.story-mech-beats article {
+  border-left: 3px solid #2f5d50;
+  padding-left: 10px;
+}
+
+.story-mech-beats h4 {
+  margin: 0 0 6px;
+  text-transform: uppercase;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+}
+
+.story-mech-beats ul {
+  margin: 0;
+  padding-left: 18px;
+}

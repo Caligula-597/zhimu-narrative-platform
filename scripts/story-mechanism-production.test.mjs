@@ -3,6 +3,7 @@ import test from "node:test";
 import {
   FAMILY_MECHANISM_ROLE,
   createProjectStoryState,
+  detectNarrativeOverload,
   mechanismRoleForFamily,
 } from "../shared/story-mechanism-contracts.js";
 import {
@@ -11,13 +12,22 @@ import {
   listM01FramingVariants,
 } from "../shared/story-mechanism-m01-framing.js";
 import {
+  CATALOG_STORY_TEMPLATE_IDS,
+  contentMaturityTable,
+  getStoryTemplate,
+  validateStoryRegistry,
+} from "../shared/story-mechanism-registry.js";
+import {
   acceptStoryBlock,
   createDemoProjectState,
   editStorySlot,
   generateM01Framing,
+  generateStoryMechanism,
+  lockStorySlot,
+  removeStoryBlock,
   swapStorySlot,
   swapStoryVariant,
-} from "../shared/story-mechanism-producer.js";
+} from "../shared/story-mechanism-engine.js";
 
 test("家族用途标签：39 GAME + 37 STORY 映射冻结", () => {
   const story = ["M01", "M07", "M08", "M10", "M11"];
@@ -25,6 +35,23 @@ test("家族用途标签：39 GAME + 37 STORY 映射冻结", () => {
   for (const id of story) assert.equal(mechanismRoleForFamily(id), "STORY_MECHANISM");
   for (const id of game) assert.equal(mechanismRoleForFamily(id), "GAME_MECHANISM");
   assert.equal(Object.keys(FAMILY_MECHANISM_ROLE).length, 11);
+});
+
+test("Registry：37/37 catalog STORY 对齐，无校验问题", () => {
+  assert.equal(CATALOG_STORY_TEMPLATE_IDS.length, 37);
+  assert.deepEqual(validateStoryRegistry(), []);
+  for (const id of CATALOG_STORY_TEMPLATE_IDS) {
+    assert.ok(getStoryTemplate(id), `missing ${id}`);
+  }
+  assert.equal(getStoryTemplate("M02-1"), null);
+  assert.equal(getStoryTemplate("M09-1"), null);
+});
+
+test("contentMaturity 表：M01-FRAMING COMPLETE，其余 catalog FOUNDATION", () => {
+  const table = contentMaturityTable();
+  assert.equal(table.length, 38);
+  assert.equal(table.find((r) => r.id === "M01-FRAMING").contentMaturity, "COMPLETE");
+  assert.ok(table.filter((r) => r.inCatalog).every((r) => r.contentMaturity === "FOUNDATION"));
 });
 
 test("M01-FRAMING 合同与 10 个结构变体就绪", () => {
@@ -53,6 +80,7 @@ test("最小环：生成嫁祸型 → 写回 ProjectStoryState 占位", () => {
   assert.ok(block.plotBindings.plantedEvidence);
   assert.ok(state.assignments.killerCharacterIds.includes(block.roleBindings.culprit.id));
   assert.ok(state.assignments.framedCharacterIds.includes(block.roleBindings.framedCharacter.id));
+  assert.ok(state.roleAssignments.some((r) => r.slotId === "culprit"));
   assert.ok(state.facts.some((f) => f.kind === "culprit" && f.secret));
 });
 
@@ -85,7 +113,6 @@ test("最小环：只换栽赃物品槽，其它剧情锁定意图下可局部�
   const beforeMotive = state.mechanismBlocks[0].plotBindings.trueMotive;
   state = swapStorySlot(state, id, "plantedEvidence");
   assert.notEqual(state.mechanismBlocks[0].plotBindings.plantedEvidence, beforeEvidence);
-  // 动机仍在候选池内（可能相同若未换该槽）
   assert.ok(state.mechanismBlocks[0].plotBindings.trueMotive);
   assert.equal(state.mechanismBlocks[0].plotBindings.trueMotive, beforeMotive);
 });
@@ -104,6 +131,59 @@ test("最小环：手动改凶手 + 写回 assignments", () => {
   assert.ok(state.assignments.killerCharacterIds.includes(alt.id));
 });
 
+test("用户锁定槽不被换结构覆盖", () => {
+  let state = generateM01Framing(createDemoProjectState(), { variantId: "V02" });
+  const id = state.mechanismBlocks[0].id;
+  state = editStorySlot(state, id, "plantedEvidence", "账册残页");
+  state = lockStorySlot(state, id, "plantedEvidence", true);
+  state = swapStoryVariant(state, id, "V06");
+  assert.equal(state.mechanismBlocks[0].plotBindings.plantedEvidence, "账册残页");
+  assert.equal(state.mechanismBlocks[0].variantId, "V06");
+});
+
+test("通用 generate 任意 FOUNDATION 模板", () => {
+  let state = createDemoProjectState();
+  state = generateStoryMechanism({
+    templateId: "M07-1",
+    projectStoryState: state,
+  });
+  assert.equal(state.mechanismBlocks[0].templateId, "M07-1");
+  assert.ok(state.mechanismBlocks[0].roleBindings.bearer?.id);
+});
+
+test("连续生成两个 STORY block 不互相覆盖 + overload 可检测", () => {
+  let state = createDemoProjectState();
+  state = generateStoryMechanism({
+    templateId: "M01-FRAMING",
+    projectStoryState: state,
+    preferredVariantId: "V02",
+  });
+  const firstId = state.mechanismBlocks[0].id;
+  const firstKiller = state.mechanismBlocks[0].roleBindings.culprit.id;
+  state = generateStoryMechanism({
+    templateId: "M07-5",
+    projectStoryState: state,
+  });
+  assert.equal(state.mechanismBlocks.length, 2);
+  assert.equal(findStill(state, firstId).roleBindings.culprit.id, firstKiller);
+  assert.ok(state.roleAssignments.length >= 3);
+  void detectNarrativeOverload(state);
+});
+
+function findStill(state, id) {
+  return state.mechanismBlocks.find((b) => b.id === id);
+}
+
+test("删除 block 后 ProjectStoryState 恢复一致", () => {
+  let state = createDemoProjectState();
+  state = generateM01Framing(state, { variantId: "V02" });
+  const id = state.mechanismBlocks[0].id;
+  state = removeStoryBlock(state, id);
+  assert.equal(state.mechanismBlocks.length, 0);
+  assert.equal(state.roleAssignments.length, 0);
+  assert.deepEqual(state.assignments.killerCharacterIds, []);
+});
+
 test("ProjectStoryState 规范化：空输入可建白板", () => {
   const state = createProjectStoryState({
     projectId: "p1",
@@ -114,4 +194,5 @@ test("ProjectStoryState 规范化：空输入可建白板", () => {
   assert.equal(state.premise.playerCount, 6);
   assert.deepEqual(state.assignments.killerCharacterIds, []);
   assert.equal(state.mechanismBlocks.length, 0);
+  assert.deepEqual(state.roleAssignments, []);
 });
