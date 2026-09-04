@@ -1,0 +1,579 @@
+{
+  "case": {
+    "id": "E-low-affinity",
+    "title": "Case E：低相关积木",
+    "intent": "应诚实 KEEP_PARALLEL，禁止为「织」而强缝"
+  },
+  "stats": {
+    "byKind": {
+      "WEAVE_SHARED_SCENE": 4,
+      "WEAVE_SHARED_CHARACTER": 3
+    },
+    "interwoven": 4,
+    "colocatedOnly": 0,
+    "parallel": 0,
+    "sharedChar": 3,
+    "multiFamilyStages": 4,
+    "singleFamilyStages": 0,
+    "stageCount": 5,
+    "beatCount": 8
+  },
+  "agency": {
+    "goalDriven": 0,
+    "containerLike": 0,
+    "sample": [
+      "阵营关系进入可观察状态；焦点：白斋子。",
+      "权限与内容绑定；焦点：莫玄宗。",
+      "压力与信息差推动成员选择 维护秩序",
+      "权限被合法使用",
+      "归属或目标变化产生剧情后果",
+      "内容发放给指定接收者",
+      "固定公开阵营阶段完成。",
+      "条件触发开放阶段完成。"
+    ]
+  },
+  "draft": {
+    "id": "mod-mtmyzd9p-q1gk",
+    "version": 1,
+    "sourceStoryStateRevision": 2,
+    "sourceBlockIds": [
+      "smb-mtmyzd9p-5fnc2",
+      "smb-mtmyzd9p-ynso9"
+    ],
+    "createdAt": "2026-09-04T13:08:30.829Z",
+    "updatedAt": "2026-09-04T13:08:30.829Z",
+    "status": "DRAFT",
+    "stages": [
+      {
+        "id": "act1",
+        "label": "第一幕",
+        "order": 0,
+        "beats": [
+          {
+            "id": "ob-mtmyzd9p-u0bk",
+            "sourceBlockId": "smb-mtmyzd9p-5fnc2",
+            "sourceBeatId": "beat-setup",
+            "familyId": "M08",
+            "templateId": "M08-1",
+            "blockTitle": "固定公开阵营｜公开阵营加公共任务赛道",
+            "summary": "阵营关系进入可观察状态；焦点：白斋子。",
+            "phaseBand": 0,
+            "stageKey": "LATENT",
+            "characterIds": [
+              "A",
+              "B"
+            ],
+            "clueIds": [
+              "smb-mtmyzd9p-5fnc2-faction_foreshadow-0"
+            ],
+            "weaveGroupId": null
+          },
+          {
+            "id": "ob-mtmyzd9p-jkxh",
+            "sourceBlockId": "smb-mtmyzd9p-ynso9",
+            "sourceBeatId": "beat-setup",
+            "familyId": "M07",
+            "templateId": "M07-2",
+            "blockTitle": "条件触发开放｜权限使用触发",
+            "summary": "权限与内容绑定；焦点：莫玄宗。",
+            "phaseBand": 0,
+            "stageKey": "HIDDEN",
+            "characterIds": [
+              "F",
+              "B"
+            ],
+            "clueIds": [
+              "smb-mtmyzd9p-ynso9-foreshadow-0"
+            ],
+            "weaveGroupId": null
+          }
+        ]
+      },
+      {
+        "id": "act2",
+        "label": "第二幕",
+        "order": 1,
+        "beats": [
+          {
+            "id": "ob-mtmyzd9p-wi6c",
+            "sourceBlockId": "smb-mtmyzd9p-5fnc2",
+            "sourceBeatId": "beat-develop",
+            "familyId": "M08",
+            "templateId": "M08-1",
+            "blockTitle": "固定公开阵营｜公开阵营加公共任务赛道",
+            "summary": "压力与信息差推动成员选择 维护秩序",
+            "phaseBand": 1,
+            "stageKey": "CONTACT",
+            "characterIds": [
+              "A",
+              "B",
+              "C",
+              "D",
+              "E"
+            ],
+            "clueIds": [
+              "smb-mtmyzd9p-5fnc2-faction_foreshadow-0"
+            ],
+            "weaveGroupId": null
+          },
+          {
+            "id": "ob-mtmyzd9p-2zo0",
+            "sourceBlockId": "smb-mtmyzd9p-ynso9",
+            "sourceBeatId": "beat-develop",
+            "familyId": "M07",
+            "templateId": "M07-2",
+            "blockTitle": "条件触发开放｜权限使用触发",
+            "summary": "权限被合法使用",
+            "phaseBand": 1,
+            "stageKey": "FIRST_ANOMALY",
+            "characterIds": [
+              "F",
+              "B",
+              "C",
+              "D",
+              "NPC_LU"
+            ],
+            "clueIds": [
+              "smb-mtmyzd9p-ynso9-foreshadow-0"
+            ],
+            "weaveGroupId": null
+          }
+        ]
+      },
+      {
+        "id": "act3",
+        "label": "第三幕",
+        "order": 2,
+        "beats": []
+      },
+      {
+        "id": "act4",
+        "label": "第四幕",
+        "order": 3,
+        "beats": [
+          {
+            "id": "ob-mtmyzd9p-t13r",
+            "sourceBlockId": "smb-mtmyzd9p-5fnc2",
+            "sourceBeatId": "beat-climax",
+            "familyId": "M08",
+            "templateId": "M08-1",
+            "blockTitle": "固定公开阵营｜公开阵营加公共任务赛道",
+            "summary": "归属或目标变化产生剧情后果",
+            "phaseBand": 2,
+            "stageKey": "CONSEQUENCE",
+            "characterIds": [
+              "A",
+              "B",
+              "C",
+              "D",
+              "E"
+            ],
+            "clueIds": [
+              "smb-mtmyzd9p-5fnc2-membership_hint-1",
+              "smb-mtmyzd9p-5fnc2-secret_signal-2",
+              "smb-mtmyzd9p-5fnc2-recruitment_evidence-3",
+              "smb-mtmyzd9p-5fnc2-loyalty_test-4",
+              "smb-mtmyzd9p-5fnc2-betrayal_hint-5",
+              "smb-mtmyzd9p-5fnc2-internal_conflict-6",
+              "smb-mtmyzd9p-5fnc2-hidden_goal_hint-7",
+              "smb-mtmyzd9p-5fnc2-membership_confirmation-8",
+              "smb-mtmyzd9p-5fnc2-faction_exposure-9"
+            ],
+            "weaveGroupId": null
+          },
+          {
+            "id": "ob-mtmyzd9p-rfkl",
+            "sourceBlockId": "smb-mtmyzd9p-ynso9",
+            "sourceBeatId": "beat-climax",
+            "familyId": "M07",
+            "templateId": "M07-2",
+            "blockTitle": "条件触发开放｜权限使用触发",
+            "summary": "内容发放给指定接收者",
+            "phaseBand": 2,
+            "stageKey": "CONSEQUENCE",
+            "characterIds": [
+              "F",
+              "B",
+              "C",
+              "D",
+              "NPC_LU"
+            ],
+            "clueIds": [
+              "smb-mtmyzd9p-ynso9-memory_fragment-1",
+              "smb-mtmyzd9p-ynso9-identity_hint-2",
+              "smb-mtmyzd9p-ynso9-misdirection-3",
+              "smb-mtmyzd9p-ynso9-confirmation-4",
+              "smb-mtmyzd9p-ynso9-decisive_reveal-5"
+            ],
+            "weaveGroupId": null
+          }
+        ]
+      },
+      {
+        "id": "act5",
+        "label": "终局",
+        "order": 4,
+        "beats": [
+          {
+            "id": "ob-mtmyzd9p-t79l",
+            "sourceBlockId": "smb-mtmyzd9p-5fnc2",
+            "sourceBeatId": "beat-res",
+            "familyId": "M08",
+            "templateId": "M08-1",
+            "blockTitle": "固定公开阵营｜公开阵营加公共任务赛道",
+            "summary": "固定公开阵营阶段完成。",
+            "phaseBand": 3,
+            "stageKey": "CONSEQUENCE",
+            "characterIds": [
+              "A",
+              "B",
+              "C",
+              "D",
+              "E"
+            ],
+            "clueIds": [],
+            "weaveGroupId": null
+          },
+          {
+            "id": "ob-mtmyzd9p-0232",
+            "sourceBlockId": "smb-mtmyzd9p-ynso9",
+            "sourceBeatId": "beat-res",
+            "familyId": "M07",
+            "templateId": "M07-2",
+            "blockTitle": "条件触发开放｜权限使用触发",
+            "summary": "条件触发开放阶段完成。",
+            "phaseBand": 3,
+            "stageKey": "CONSEQUENCE",
+            "characterIds": [
+              "F",
+              "B",
+              "C",
+              "D",
+              "NPC_LU"
+            ],
+            "clueIds": [],
+            "weaveGroupId": null
+          }
+        ]
+      }
+    ],
+    "weaveLinks": [
+      {
+        "id": "wl-mtmyzd9p-kgu7",
+        "kind": "WEAVE_SHARED_SCENE",
+        "status": "PROPOSED",
+        "beatIds": [
+          "ob-mtmyzd9p-u0bk",
+          "ob-mtmyzd9p-jkxh"
+        ],
+        "blockIds": [
+          "smb-mtmyzd9p-5fnc2",
+          "smb-mtmyzd9p-ynso9"
+        ],
+        "reason": "同阶段共享角色 B，适合合并为同一场景推进。",
+        "sharedCharacterIds": [
+          "B"
+        ],
+        "sharedFactKinds": []
+      },
+      {
+        "id": "wl-mtmyzd9p-k6km",
+        "kind": "WEAVE_SHARED_CHARACTER",
+        "status": "PROPOSED",
+        "beatIds": [
+          "ob-mtmyzd9p-u0bk",
+          "ob-mtmyzd9p-2zo0"
+        ],
+        "blockIds": [
+          "smb-mtmyzd9p-5fnc2",
+          "smb-mtmyzd9p-ynso9"
+        ],
+        "reason": "共享角色 B，可弱交织。",
+        "sharedCharacterIds": [
+          "B"
+        ],
+        "sharedFactKinds": []
+      },
+      {
+        "id": "wl-mtmyzd9p-hxjv",
+        "kind": "WEAVE_SHARED_SCENE",
+        "status": "PROPOSED",
+        "beatIds": [
+          "ob-mtmyzd9p-wi6c",
+          "ob-mtmyzd9p-2zo0"
+        ],
+        "blockIds": [
+          "smb-mtmyzd9p-5fnc2",
+          "smb-mtmyzd9p-ynso9"
+        ],
+        "reason": "同阶段共享角色 B、C、D，适合合并为同一场景推进。",
+        "sharedCharacterIds": [
+          "B",
+          "C",
+          "D"
+        ],
+        "sharedFactKinds": []
+      },
+      {
+        "id": "wl-mtmyzd9p-ku63",
+        "kind": "WEAVE_SHARED_CHARACTER",
+        "status": "PROPOSED",
+        "beatIds": [
+          "ob-mtmyzd9p-wi6c",
+          "ob-mtmyzd9p-rfkl"
+        ],
+        "blockIds": [
+          "smb-mtmyzd9p-5fnc2",
+          "smb-mtmyzd9p-ynso9"
+        ],
+        "reason": "共享角色 B、C、D，可弱交织。",
+        "sharedCharacterIds": [
+          "B",
+          "C",
+          "D"
+        ],
+        "sharedFactKinds": []
+      },
+      {
+        "id": "wl-mtmyzd9p-h5ml",
+        "kind": "WEAVE_SHARED_SCENE",
+        "status": "PROPOSED",
+        "beatIds": [
+          "ob-mtmyzd9p-t13r",
+          "ob-mtmyzd9p-rfkl"
+        ],
+        "blockIds": [
+          "smb-mtmyzd9p-5fnc2",
+          "smb-mtmyzd9p-ynso9"
+        ],
+        "reason": "同阶段共享角色 B、C、D，适合合并为同一场景推进。",
+        "sharedCharacterIds": [
+          "B",
+          "C",
+          "D"
+        ],
+        "sharedFactKinds": []
+      },
+      {
+        "id": "wl-mtmyzd9p-ixan",
+        "kind": "WEAVE_SHARED_CHARACTER",
+        "status": "PROPOSED",
+        "beatIds": [
+          "ob-mtmyzd9p-t13r",
+          "ob-mtmyzd9p-0232"
+        ],
+        "blockIds": [
+          "smb-mtmyzd9p-5fnc2",
+          "smb-mtmyzd9p-ynso9"
+        ],
+        "reason": "共享角色 B、C、D，可弱交织。",
+        "sharedCharacterIds": [
+          "B",
+          "C",
+          "D"
+        ],
+        "sharedFactKinds": []
+      },
+      {
+        "id": "wl-mtmyzd9p-9xuf",
+        "kind": "WEAVE_SHARED_SCENE",
+        "status": "PROPOSED",
+        "beatIds": [
+          "ob-mtmyzd9p-t79l",
+          "ob-mtmyzd9p-0232"
+        ],
+        "blockIds": [
+          "smb-mtmyzd9p-5fnc2",
+          "smb-mtmyzd9p-ynso9"
+        ],
+        "reason": "同阶段共享角色 B、C、D，适合合并为同一场景推进。",
+        "sharedCharacterIds": [
+          "B",
+          "C",
+          "D"
+        ],
+        "sharedFactKinds": []
+      }
+    ],
+    "conflictReport": [],
+    "characterLoadReport": [
+      {
+        "characterId": "A",
+        "name": "白斋子",
+        "totalLoad": 2,
+        "roles": [
+          {
+            "blockId": "smb-mtmyzd9p-5fnc2",
+            "slotId": "factionLead",
+            "narrativeRole": "faction_lead",
+            "intensity": 2,
+            "intentionalOverlap": false
+          }
+        ]
+      },
+      {
+        "characterId": "B",
+        "name": "沈孤鸿",
+        "totalLoad": 2,
+        "roles": [
+          {
+            "blockId": "smb-mtmyzd9p-5fnc2",
+            "slotId": "memberA",
+            "narrativeRole": "member",
+            "intensity": 1,
+            "intentionalOverlap": false
+          },
+          {
+            "blockId": "smb-mtmyzd9p-ynso9",
+            "slotId": "knower",
+            "narrativeRole": "witness",
+            "intensity": 1,
+            "intentionalOverlap": false
+          }
+        ]
+      },
+      {
+        "characterId": "C",
+        "name": "顾清商",
+        "totalLoad": 2,
+        "roles": [
+          {
+            "blockId": "smb-mtmyzd9p-5fnc2",
+            "slotId": "memberB",
+            "narrativeRole": "member",
+            "intensity": 1,
+            "intentionalOverlap": false
+          },
+          {
+            "blockId": "smb-mtmyzd9p-ynso9",
+            "slotId": "misled",
+            "narrativeRole": "misled",
+            "intensity": 1,
+            "intentionalOverlap": false
+          }
+        ]
+      },
+      {
+        "characterId": "D",
+        "name": "杜霄元",
+        "totalLoad": 2,
+        "roles": [
+          {
+            "blockId": "smb-mtmyzd9p-5fnc2",
+            "slotId": "outsider",
+            "narrativeRole": "outsider",
+            "intensity": 1,
+            "intentionalOverlap": false
+          },
+          {
+            "blockId": "smb-mtmyzd9p-ynso9",
+            "slotId": "revealer",
+            "narrativeRole": "discoverer",
+            "intensity": 1,
+            "intentionalOverlap": false
+          }
+        ]
+      },
+      {
+        "characterId": "E",
+        "name": "叶晚晴",
+        "totalLoad": 2,
+        "roles": [
+          {
+            "blockId": "smb-mtmyzd9p-5fnc2",
+            "slotId": "rivalLead",
+            "narrativeRole": "rival_lead",
+            "intensity": 2,
+            "intentionalOverlap": false
+          }
+        ]
+      },
+      {
+        "characterId": "F",
+        "name": "莫玄宗",
+        "totalLoad": 2,
+        "roles": [
+          {
+            "blockId": "smb-mtmyzd9p-ynso9",
+            "slotId": "bearer",
+            "narrativeRole": "identity_bearer",
+            "intensity": 2,
+            "intentionalOverlap": false
+          }
+        ]
+      },
+      {
+        "characterId": "NPC_LU",
+        "name": "陆老爷",
+        "totalLoad": 1,
+        "roles": [
+          {
+            "blockId": "smb-mtmyzd9p-ynso9",
+            "slotId": "related",
+            "narrativeRole": "support",
+            "intensity": 1,
+            "intentionalOverlap": false
+          }
+        ]
+      }
+    ]
+  },
+  "blocks": [
+    {
+      "id": "smb-mtmyzd9p-5fnc2",
+      "templateId": "M08-1",
+      "title": "固定公开阵营｜公开阵营加公共任务赛道",
+      "familyId": "M08",
+      "roleBindings": {
+        "factionLead": {
+          "id": "A",
+          "name": "白斋子"
+        },
+        "memberA": {
+          "id": "B",
+          "name": "沈孤鸿"
+        },
+        "memberB": {
+          "id": "C",
+          "name": "顾清商"
+        },
+        "outsider": {
+          "id": "D",
+          "name": "杜霄元"
+        },
+        "rivalLead": {
+          "id": "E",
+          "name": "叶晚晴"
+        }
+      }
+    },
+    {
+      "id": "smb-mtmyzd9p-ynso9",
+      "templateId": "M07-2",
+      "title": "条件触发开放｜权限使用触发",
+      "familyId": "M07",
+      "roleBindings": {
+        "bearer": {
+          "id": "F",
+          "name": "莫玄宗"
+        },
+        "knower": {
+          "id": "B",
+          "name": "沈孤鸿"
+        },
+        "misled": {
+          "id": "C",
+          "name": "顾清商"
+        },
+        "revealer": {
+          "id": "D",
+          "name": "杜霄元"
+        },
+        "related": {
+          "id": "NPC_LU",
+          "name": "陆老爷"
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,189 @@
+[
+  {
+    "caseDef": {
+      "id": "A-standard-mystery",
+      "title": "Case A：标准推理",
+      "intent": "M01 追凶 + M07 身份 + M08 隐藏阵营 → 应共享行动/线索，而非三条并排"
+    },
+    "stats": {
+      "byKind": {
+        "WEAVE_CAUSAL": 4,
+        "WEAVE_SHARED_SCENE": 10,
+        "WEAVE_SHARED_CHARACTER": 7
+      },
+      "interwoven": 14,
+      "colocatedOnly": 0,
+      "parallel": 0,
+      "sharedChar": 7,
+      "multiFamilyStages": 4,
+      "singleFamilyStages": 0,
+      "stageCount": 5,
+      "beatCount": 14
+    },
+    "agency": {
+      "goalDriven": 1,
+      "containerLike": 0,
+      "sample": [
+        "真凶取得与被嫁祸者相关的物品。真凶 沈孤鸿 动机：掩盖十年前的私吞行为",
+        "伪装态；焦点：叶晚晴。",
+        "阵营关系进入可观察状态；焦点：莫玄宗。",
+        "实施犯行并将物品放入现场（勒杀）",
+        "玩家第一轮形成对被嫁祸者的错误嫌疑 被嫁祸者进入过现场并与死者起过冲突",
+        "物品出现方式不合理（红蜡等） 玉佩沾有仅库房存在的红蜡",
+        "异常渗漏",
+        "压力与信息差推动成员选择 维护秩序"
+      ]
+    },
+    "conflictCount": 6,
+    "ok": true
+  },
+  {
+    "caseDef": {
+      "id": "B-identity-heavy",
+      "title": "Case B：身份为主",
+      "intent": "双 M07 + M08 → 警惕「异常→揭示」机械流水线"
+    },
+    "stats": {
+      "byKind": {
+        "WEAVE_SHARED_SCENE": 11,
+        "WEAVE_SHARED_CHARACTER": 9,
+        "WEAVE_CAUSAL": 1
+      },
+      "interwoven": 12,
+      "colocatedOnly": 0,
+      "parallel": 0,
+      "sharedChar": 9,
+      "multiFamilyStages": 4,
+      "singleFamilyStages": 0,
+      "stageCount": 5,
+      "beatCount": 12
+    },
+    "agency": {
+      "goalDriven": 0,
+      "containerLike": 0,
+      "sample": [
+        "内容处于隐藏态，仅系统登记接收范围=全体；焦点：白斋子。",
+        "假层1；焦点：莫玄宗。",
+        "阵营关系进入可观察状态；焦点：叶晚晴。",
+        "到达指定阶段，服务器自动发放",
+        "假层2崩解",
+        "压力与信息差推动成员选择 维护秩序",
+        "全员持有同一事实片段，后续可公开讨论",
+        "真身份+受限权限"
+      ]
+    },
+    "conflictCount": 6,
+    "ok": true
+  },
+  {
+    "caseDef": {
+      "id": "C-faction-ensemble",
+      "title": "Case C：群像阵营",
+      "intent": "双 M08 + M07 → 多角色负载与阵营是否爆炸"
+    },
+    "stats": {
+      "byKind": {
+        "WEAVE_SHARED_SCENE": 12,
+        "WEAVE_SHARED_CHARACTER": 9
+      },
+      "interwoven": 12,
+      "colocatedOnly": 0,
+      "parallel": 0,
+      "sharedChar": 9,
+      "multiFamilyStages": 4,
+      "singleFamilyStages": 0,
+      "stageCount": 5,
+      "beatCount": 12
+    },
+    "agency": {
+      "goalDriven": 0,
+      "containerLike": 0,
+      "sample": [
+        "阵营关系进入可观察状态；焦点：白斋子。",
+        "阵营关系进入可观察状态；焦点：莫玄宗。",
+        "登记结算码条件；焦点：沈孤鸿。",
+        "压力与信息差推动成员选择 维护秩序",
+        "压力与信息差推动成员选择 维护秩序",
+        "等待正式结算",
+        "归属或目标变化产生剧情后果",
+        "归属或目标变化产生剧情后果"
+      ]
+    },
+    "conflictCount": 6,
+    "ok": true
+  },
+  {
+    "caseDef": {
+      "id": "D-high-weave-overlap",
+      "title": "Case D：高交织 / 有意重叠",
+      "intent": "同一角色 = 真凶 + 阵营领袖 + 身份承担者 → 复杂人物还是负载爆表"
+    },
+    "stats": {
+      "byKind": {
+        "WEAVE_SHARED_SCENE": 12,
+        "WEAVE_SHARED_CHARACTER": 9
+      },
+      "interwoven": 12,
+      "colocatedOnly": 0,
+      "parallel": 0,
+      "sharedChar": 9,
+      "multiFamilyStages": 4,
+      "singleFamilyStages": 0,
+      "stageCount": 5,
+      "beatCount": 14
+    },
+    "agency": {
+      "goalDriven": 1,
+      "containerLike": 0,
+      "sample": [
+        "真凶取得与被嫁祸者相关的物品。真凶 沈孤鸿 动机：掩盖十年前的私吞行为",
+        "伪装态；焦点：沈孤鸿。",
+        "阵营关系进入可观察状态；焦点：沈孤鸿。",
+        "实施犯行并将物品放入现场（勒杀）",
+        "玩家第一轮形成对被嫁祸者的错误嫌疑 被嫁祸者进入过现场并与死者起过冲突",
+        "物品出现方式不合理（红蜡等） 玉佩沾有仅库房存在的红蜡",
+        "异常渗漏",
+        "压力与信息差推动成员选择 维护秩序"
+      ]
+    },
+    "conflictCount": 5,
+    "ok": true
+  },
+  {
+    "caseDef": {
+      "id": "E-low-affinity",
+      "title": "Case E：低相关积木",
+      "intent": "应诚实 KEEP_PARALLEL，禁止为「织」而强缝"
+    },
+    "stats": {
+      "byKind": {
+        "WEAVE_SHARED_SCENE": 4,
+        "WEAVE_SHARED_CHARACTER": 3
+      },
+      "interwoven": 4,
+      "colocatedOnly": 0,
+      "parallel": 0,
+      "sharedChar": 3,
+      "multiFamilyStages": 4,
+      "singleFamilyStages": 0,
+      "stageCount": 5,
+      "beatCount": 8
+    },
+    "agency": {
+      "goalDriven": 0,
+      "containerLike": 0,
+      "sample": [
+        "阵营关系进入可观察状态；焦点：白斋子。",
+        "权限与内容绑定；焦点：莫玄宗。",
+        "压力与信息差推动成员选择 维护秩序",
+        "权限被合法使用",
+        "归属或目标变化产生剧情后果",
+        "内容发放给指定接收者",
+        "固定公开阵营阶段完成。",
+        "条件触发开放阶段完成。"
+      ]
+    },
+    "conflictCount": 0,
+    "ok": true
+  }
+]
