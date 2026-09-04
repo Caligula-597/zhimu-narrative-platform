@@ -217,6 +217,17 @@ function renderBasket(root, state, ui) {
     return acc;
   }, {});
 
+  const accepted = blocks.filter((b) => ["USER_ACCEPTED", "USER_MODIFIED", "LOCKED"].includes(b.status));
+  const acceptedList = accepted.length
+    ? `<div class="story-basket-integrate">
+        <p>已选择 <strong>${accepted.length}</strong> 条剧情结构</p>
+        <ul>${accepted
+          .map((b) => `<li>✓ ${escapeHtml(b.title || b.templateId)}</li>`)
+          .join("")}</ul>
+        <button type="button" class="primary-btn" data-story-integrate>尝试交织成整本骨架</button>
+      </div>`
+    : "";
+
   root.innerHTML = `<section class="creator-story-mechanism-workbench" data-workspace-editor aria-label="剧情积木篮">
     <header class="story-mech-head">
       <div>
@@ -237,6 +248,7 @@ function renderBasket(root, state, ui) {
         <div class="story-basket-list">${list}</div>
         ${renderLoadBars(state)}
       </div>
+      ${acceptedList}
     </section>
     <section class="story-mech-section story-mech-actions-bar">
       <button type="button" class="primary-btn" data-story-open-compose>+ 添加剧情结构</button>
@@ -365,7 +377,7 @@ async function mountStoryMechanismWorkbench(root, { onClose } = {}) {
     if (!(t instanceof HTMLElement)) return;
     const { state, ui } = ensureState(root);
     const hit = t.closest(
-      "[data-story-close],[data-story-open-compose],[data-story-back-basket],[data-story-family],[data-story-template],[data-story-generate],[data-story-accept],[data-story-variant],[data-story-swap-slot],[data-story-edit-slot],[data-story-lock-slot],[data-story-edit-block],[data-story-select-block],[data-story-retry-save]",
+      "[data-story-close],[data-story-open-compose],[data-story-back-basket],[data-story-family],[data-story-template],[data-story-generate],[data-story-accept],[data-story-variant],[data-story-swap-slot],[data-story-edit-slot],[data-story-lock-slot],[data-story-edit-block],[data-story-select-block],[data-story-retry-save],[data-story-integrate]",
     );
     if (!hit) return;
     const el = hit instanceof HTMLElement ? hit : t;
@@ -373,6 +385,17 @@ async function mountStoryMechanismWorkbench(root, { onClose } = {}) {
     try {
       if (el.matches("[data-story-close]")) {
         onClose?.();
+        return;
+      }
+      if (el.matches("[data-story-integrate]")) {
+        const { integrateMasterOutline } = await import("../../shared/master-outline-integrator.js");
+        const { openCurrentCreatorMasterOutlineWorkbench } = await import("./creator-master-outline-workbench.js");
+        root.__storyMechState = integrateMasterOutline(root.__storyMechState);
+        await persistState(root, { reason: "交织骨架已写入并保存" });
+        await openCurrentCreatorMasterOutlineWorkbench({
+          worldId: currentWorldId() || "",
+          projectStoryState: root.__storyMechState,
+        });
         return;
       }
       if (el.matches("[data-story-retry-save]")) {

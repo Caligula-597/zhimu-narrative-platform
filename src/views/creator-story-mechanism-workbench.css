@@ -256,3 +256,18 @@
   letter-spacing: 0.02em;
   opacity: 0.85;
 }
+
+.story-basket-integrate {
+  margin-top: 16px;
+  padding: 14px 16px;
+  border: 1px solid var(--line, #d9d1c5);
+  border-radius: 8px;
+  background: #fffaf2;
+}
+
+.story-basket-integrate ul {
+  margin: 8px 0 12px;
+  padding-left: 1.1em;
+  font-size: 14px;
+}
+

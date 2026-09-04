@@ -216,6 +216,13 @@ export function renderCharactersCanvas(ctx, cockpit, findItemLink) {
   const sections = studio?.sections || [];
   const counts = bibleSummary?.counts || {};
   const link = findItemLink("characters", cockpit.activeItem);
+
+  if (cockpit.activeItem === "integrate") {
+    return `<section class="cockpit-panel"><div class="panel-heading"><div><p>整母稿</p><h3>交织成整本剧情骨架</h3></div></div>
+      <p class="muted-note">先编排积木的阶段、共享角色与冲突，再考虑文学展开。不会把全部积木丢给 AI 重写大纲。</p>
+      <div class="row">${linkButton({ action: "cockpit-open-master-outline", label: "打开交织预览" }, "primary-btn")}${linkButton({ action: "cockpit-open-story-mechanism-workbench", label: "回剧情积木篮" })}</div></section>`;
+  }
+
   const cards = roles.length
     ? roles
         .map((role) => {

@@ -24,7 +24,7 @@
 |---|---|
 | concept | 定方向 |
 | architecture | 搭剧情（积木篮） |
-| characters | 整母稿（Integrator 占位） |
+| characters | 整母稿（Integrator 原型：交织骨架） |
 | flow | 加玩法（幕内玩法） |
 | manuscript | 写成品 |
 | launch | 试跑发布 |
@@ -46,7 +46,7 @@
 
 **本刀非目标（IA V1 当时）**
 
-- Integrator 真实交织
+- ~~Integrator 真实交织~~ → 见 **P5** `docs/MASTER_OUTLINE_INTEGRATOR_V1_ZH.md`
 - 世界域 routes 挂载、v42 / Canon 主 UI
 - STORY runtime、mechanism_chain、GAME 重构、删 legacy backend
 
@@ -54,4 +54,4 @@
 
 ## 后续顺序
 
-~~P3 持久化~~ ✅ → P4 M08 → P5 Integrator 原型 → P6 GAME 幕内插入 → P7 世界账本按需恢复
+~~P3 持久化~~ ✅ → ~~P4 M08~~ ✅ → ~~P5 Integrator 原型~~ ✅ → P6 GAME 幕内插入 → P7 世界账本按需恢复 / 按 Integrator 反馈补 M10·M11

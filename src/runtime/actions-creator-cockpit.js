@@ -68,6 +68,11 @@ const showError = (error, fallback = "操作失败") => showToast(normalizeError
           .openCurrentCreatorStoryMechanismWorkbench();
         return true;
 
+      case "cockpit-open-master-outline":
+        await (await import("../views/creator-master-outline-workbench.js"))
+          .openCurrentCreatorMasterOutlineWorkbench();
+        return true;
+
       case "cockpit-open-document-import":
         callView("writer", "openOpeningPackage");
         return true;

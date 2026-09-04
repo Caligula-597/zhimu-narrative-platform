@@ -45,6 +45,15 @@ test("Creator IA V1：剧情积木篮默认列表壳", () => {
   assert.match(wb, /添加剧情结构/);
   assert.match(wb, /角色负载/);
   assert.match(wb, /你希望这本里有什么/);
+  assert.match(wb, /尝试交织成整本骨架/);
   assert.match(wb, /persistState|apiSaveProjectStoryState|getProjectStoryState/);
   assert.doesNotMatch(wb, /STORY MECHANISM WORKBENCH/);
+});
+
+test("Creator IA V1：整母稿交织入口", () => {
+  const model = read("../src/views/creator-cockpit-model.js");
+  assert.match(model, /交织骨架/);
+  assert.match(model, /cockpit-open-master-outline/);
+  const outline = read("../src/views/creator-master-outline-workbench.js");
+  assert.match(outline, /先编排后写作|尝试交织成整本骨架|角色负载/);
 });

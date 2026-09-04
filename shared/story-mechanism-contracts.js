@@ -9,6 +9,8 @@
  * 每个 STORY 机制生成前必须 READ ProjectStoryState → 生成 Block → WRITE BACK。
  */
 
+import { normalizeMasterOutlineDraft } from "./master-outline-contracts.js";
+
 export const STORY_MECHANISM_CONTRACT_VERSION = 1;
 
 export const STORY_BLOCK_STATUSES = Object.freeze([
@@ -284,6 +286,7 @@ export function createProjectStoryState(input = {}) {
     clues: asArray(src.clues),
     constraints: asArray(src.constraints),
     unresolvedNeeds: asArray(src.unresolvedNeeds),
+    masterOutlineDraft: normalizeMasterOutlineDraft(src.masterOutlineDraft),
     revision: Math.max(0, Math.trunc(Number(src.revision) || 0)),
     updatedAt: src.updatedAt != null ? String(src.updatedAt) : null,
   };

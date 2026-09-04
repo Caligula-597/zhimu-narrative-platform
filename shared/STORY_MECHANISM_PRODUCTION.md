@@ -57,15 +57,18 @@ Registry 自动可生成 / UI 自动可展示 / swap·edit 自动可用
 | FOUNDATION | 21 | 其余 catalog STORY（M10/M11 + M01 catalog 子型） |
 | PARTIAL | 0 | — |
 
-M07 内容包见 `M07_CONTENT_COVERAGE.md`。
+M07 内容包见 `M07_CONTENT_COVERAGE.md`；M08 见 `M08_CONTENT_COVERAGE.md`。
+Integrator 原型见 `docs/MASTER_OUTLINE_INTEGRATOR_V1_ZH.md`（`masterOutlineDraft` 写入 ProjectStoryState）。
 
-产品表面收束见 `docs/CREATOR_IA_V1_ZH.md`（积木篮 / 加玩法 / Advanced；世界域 HIDDEN）。
+产品表面收束见 `docs/CREATOR_IA_V1_ZH.md`（积木篮 / 整母稿交织 / 加玩法 / Advanced；世界域 HIDDEN）。
 持久化见 `docs/PROJECT_STORY_STATE_PERSISTENCE_V1_ZH.md`。
 
 ## 明确不做（本阶段）
 
-- Master Outline Integrator
+- ~~Master Outline Integrator~~ → **P5 原型已接入**（编排骨架；非 LLM 整本重写）
 - STORY runtime / `mechanism_chain`
+- 角色本 / 主持本文学展开（写成品阶段）
+- M10/M11 Content Pack（等 Integrator 反馈再设计）
 - M11 新增 Atomic Effects
 - GAME `MECHANISM_TEMPLATES` 重构
 - M07/M08 专用 producer 或 Workbench 特判 UI
