@@ -99,5 +99,18 @@ MasterDraftDocument {
 P5 Integrator Prototype       ✅
 P5.1 Product Trial            ❌
 P5.2 Semantic Bridge          ✅ PASS
-P6 Master Draft Expander      ✅ 原型阶段开启（本文件为范围冻结）
+P6.0 Master Draft Expander    ✅ Deterministic First（见实现）
 ```
+
+## 实现入口
+
+| 层 | 路径 |
+|---|---|
+| 合同 | `shared/production-master-draft-contracts.js` |
+| 展开器 | `shared/production-master-draft-expander.js` |
+| 持久化字段 | `ProjectStoryState.productionMasterDraft` |
+| UI | `src/views/creator-production-master-draft-workbench.js` |
+| 测试 | `scripts/production-master-draft-expander.test.mjs` |
+| Fidelity | `scripts/production-master-draft-fidelity.mjs` → `captures/production-master-draft-p60/` |
+
+硬边界仍有效：只展开、不静默重排、不伪造交织；结构调整仅 `StructureChangeRequest`（PROPOSED）。

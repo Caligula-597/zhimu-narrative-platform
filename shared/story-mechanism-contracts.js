@@ -11,6 +11,10 @@
 
 import { normalizeMasterOutlineDraft } from "./master-outline-contracts.js";
 import { normalizeBeatSemantics } from "./story-beat-semantics.js";
+import {
+  normalizeProductionMasterDraft,
+  refreshProductionDraftStaleStatus,
+} from "./production-master-draft-contracts.js";
 
 export const STORY_MECHANISM_CONTRACT_VERSION = 1;
 
@@ -289,6 +293,14 @@ export function createProjectStoryState(input = {}) {
     constraints: asArray(src.constraints),
     unresolvedNeeds: asArray(src.unresolvedNeeds),
     masterOutlineDraft: normalizeMasterOutlineDraft(src.masterOutlineDraft),
+    productionMasterDraft: (() => {
+      const draft = normalizeProductionMasterDraft(src.productionMasterDraft);
+      if (!draft) return null;
+      return refreshProductionDraftStaleStatus(draft, {
+        storyRevision: Math.max(0, Math.trunc(Number(src.revision) || 0)),
+        outline: normalizeMasterOutlineDraft(src.masterOutlineDraft),
+      });
+    })(),
     revision: Math.max(0, Math.trunc(Number(src.revision) || 0)),
     updatedAt: src.updatedAt != null ? String(src.updatedAt) : null,
   };

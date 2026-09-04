@@ -1,0 +1,146 @@
+.creator-production-master-draft-host {
+  position: absolute;
+  inset: 0;
+  z-index: 40;
+  background: color-mix(in srgb, Canvas 96%, CanvasText 4%);
+  overflow: auto;
+}
+
+.creator-pmd-workbench {
+  display: grid;
+  gap: 12px;
+  padding: 16px 18px 28px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.pmd-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.pmd-head h2 {
+  margin: 0.15em 0;
+}
+
+.pmd-head-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.pmd-grid {
+  display: grid;
+  grid-template-columns: 140px minmax(0, 1fr) 240px;
+  gap: 12px;
+}
+
+.pmd-col {
+  min-width: 0;
+}
+
+.pmd-stage-tab,
+.pmd-view-tab {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  margin-bottom: 6px;
+  padding: 8px 10px;
+  border: 1px solid color-mix(in srgb, currentColor 16%, transparent);
+  background: transparent;
+  cursor: pointer;
+}
+
+.pmd-stage-tab.active,
+.pmd-view-tab.active {
+  border-color: currentColor;
+  font-weight: 600;
+}
+
+.pmd-view-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.pmd-view-tab {
+  width: auto;
+}
+
+.pmd-beat {
+  padding: 10px 12px;
+  margin-bottom: 10px;
+  border: 1px solid color-mix(in srgb, currentColor 14%, transparent);
+}
+
+.pmd-beat.is-needs {
+  border-style: dashed;
+}
+
+.pmd-prose {
+  margin: 0.4em 0;
+  line-height: 1.45;
+}
+
+.pmd-meta,
+.pmd-stage-summary {
+  font-size: 0.9em;
+  opacity: 0.85;
+}
+
+.pmd-q--INTERWOVEN {
+  color: #1a5f4a;
+}
+
+.pmd-q--COLOCATED {
+  color: #6b5a1e;
+}
+
+.pmd-q--PARALLEL {
+  color: #555;
+}
+
+.pmd-notes {
+  margin: 0.4em 0;
+  padding-left: 1.1em;
+  font-size: 0.88em;
+}
+
+.pmd-beat-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.pmd-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+  font-size: 0.9em;
+}
+
+.pmd-stale {
+  padding: 10px 12px;
+  background: #fff4e5;
+  border: 1px solid #e0b060;
+}
+
+.pmd-empty {
+  opacity: 0.7;
+}
+
+.pmd-msg {
+  margin: 0;
+}
+
+@media (max-width: 900px) {
+  .pmd-grid {
+    grid-template-columns: 1fr;
+  }
+}

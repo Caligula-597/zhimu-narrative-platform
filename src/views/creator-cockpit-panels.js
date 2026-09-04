@@ -219,8 +219,14 @@ export function renderCharactersCanvas(ctx, cockpit, findItemLink) {
 
   if (cockpit.activeItem === "integrate") {
     return `<section class="cockpit-panel"><div class="panel-heading"><div><p>整母稿</p><h3>交织成整本剧情骨架</h3></div></div>
-      <p class="muted-note">先编排积木的阶段、共享角色与冲突，再考虑文学展开。不会把全部积木丢给 AI 重写大纲。</p>
-      <div class="row">${linkButton({ action: "cockpit-open-master-outline", label: "打开交织预览" }, "primary-btn")}${linkButton({ action: "cockpit-open-story-mechanism-workbench", label: "回剧情积木篮" })}</div></section>`;
+      <p class="muted-note">先编排积木的阶段、共享角色与冲突，再展开详细母稿。不会把全部积木丢给 AI 重写大纲。</p>
+      <div class="row">${linkButton({ action: "cockpit-open-master-outline", label: "打开交织预览" }, "primary-btn")}${linkButton({ action: "cockpit-open-production-master-draft", label: "展开详细母稿" })}${linkButton({ action: "cockpit-open-story-mechanism-workbench", label: "回剧情积木篮" })}</div></section>`;
+  }
+
+  if (cockpit.activeItem === "master-draft") {
+    return `<section class="cockpit-panel"><div class="panel-heading"><div><p>整母稿</p><h3>详细生产母稿</h3></div></div>
+      <p class="muted-note">忠实展开交织骨架（真相 / 角色 / 线索 / 主持执行）。不改结构、不伪造交织。</p>
+      <div class="row">${linkButton({ action: "cockpit-open-production-master-draft", label: "打开详细母稿" }, "primary-btn")}${linkButton({ action: "cockpit-open-master-outline", label: "回交织骨架" })}</div></section>`;
   }
 
   const cards = roles.length

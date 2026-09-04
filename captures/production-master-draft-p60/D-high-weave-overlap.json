@@ -1,0 +1,3084 @@
+{
+  "case": "D-high-weave-overlap",
+  "set": "DEV",
+  "draft": {
+    "id": "pmd-mod-mtn0omam-gb66",
+    "version": 1,
+    "projectId": "fid-D",
+    "sourceStoryStateRevision": 0,
+    "sourceMasterOutlineId": "mod-mtn0omam-gb66",
+    "sourceMasterOutlineRevision": "v1:mod-mtn0omam-gb66:act1@0:{ob-mtn0omal-0117|smb-mtn0omaj-6me1y|beat-setup,ob-mtn0omal-phjt|smb-mtn0omaj-9lmpr|beat-setup,ob-mtn0omal-b168|smb-mtn0omak-i233f|beat-setup};act2@1:{ob-mtn0omal-y8ex|smb-mtn0omaj-6me1y|beat-crime,ob-mtn0omal-oy4d|smb-mtn0omaj-6me1y|beat-false,ob-mtn0omal-yye8|smb-mtn0omaj-6me1y|beat-contra,ob-mtn0omal-2qpn|smb-mtn0omaj-9lmpr|beat-develop,ob-mtn0omal-t0yf|smb-mtn0omak-i233f|beat-develop};act3@2:{ob-mtn0omal-6f47|smb-mtn0omaj-6me1y|beat-climax,ob-mtn0omal-ua8v|smb-mtn0omaj-9lmpr|beat-climax,ob-mtn0omal-fjiu|smb-mtn0omak-i233f|beat-climax};act4@3:{ob-mtn0omal-vjbh|smb-mtn0omaj-6me1y|beat-res,ob-mtn0omal-wh9o|smb-mtn0omaj-9lmpr|beat-res,ob-mtn0omal-ve2x|smb-mtn0omak-i233f|beat-res}#wl-mtn0omam-06h8:WEAVE_SHARED_CHARACTER:ob-mtn0omal-0117,ob-mtn0omal-t0yf|wl-mtn0omam-4wym:WEAVE_SHARED_SCENE:ob-mtn0omal-ua8v,ob-mtn0omal-fjiu|wl-mtn0omam-5bg3:WEAVE_SHARED_SCENE:ob-mtn0omal-y8ex,ob-mtn0omal-2qpn|wl-mtn0omam-8n7l:WEAVE_SHARED_SCENE:ob-mtn0omal-vjbh,ob-mtn0omal-wh9o|wl-mtn0omam-9u4k:WEAVE_SHARED_CHARACTER:ob-mtn0omal-y8ex,ob-mtn0omal-ua8v|wl-mtn0omam-9vs4:WEAVE_SHARED_CHARACTER:ob-mtn0omal-phjt,ob-mtn0omal-t0yf|wl-mtn0omam-a3c4:WEAVE_SHARED_SCENE:ob-mtn0omal-0117,ob-mtn0omal-b168|wl-mtn0omam-b1xi:WEAVE_SHARED_SCENE:ob-mtn0omal-phjt,ob-mtn0omal-b168|wl-mtn0omam-bx44:KEEP_PARALLEL:ob-mtn0omal-y8ex,ob-mtn0omal-t0yf|wl-mtn0omam-c4l6:WEAVE_SHARED_CHARACTER:ob-mtn0omal-0117,ob-mtn0omal-2qpn|wl-mtn0omam-c9ww:WEAVE_SHARED_CHARACTER:ob-mtn0omal-6f47,ob-mtn0omal-ve2x|wl-mtn0omam-hg0l:WEAVE_SHARED_CHARACTER:ob-mtn0omal-2qpn,ob-mtn0omal-fjiu|wl-mtn0omam-jcd9:KEEP_PARALLEL:ob-mtn0omal-y8ex,ob-mtn0omal-2qpn|wl-mtn0omam-jwrm:WEAVE_SHARED_SCENE:ob-mtn0omal-6f47,ob-mtn0omal-ua8v|wl-mtn0omam-klpe:WEAVE_SHARED_CHARACTER:ob-mtn0omal-y8ex,ob-mtn0omal-fjiu|wl-mtn0omam-q5vk:WEAVE_SHARED_SCENE:ob-mtn0omal-wh9o,ob-mtn0omal-ve2x|wl-mtn0omam-qxyk:WEAVE_SHARED_SCENE:ob-mtn0omal-0117,ob-mtn0omal-phjt|wl-mtn0omam-s402:WEAVE_SHARED_SCENE:ob-mtn0omal-y8ex,ob-mtn0omal-t0yf|wl-mtn0omam-t6ke:WEAVE_SHARED_SCENE:ob-mtn0omal-6f47,ob-mtn0omal-fjiu|wl-mtn0omam-ts9m:WEAVE_SHARED_CHARACTER:ob-mtn0omal-6f47,ob-mtn0omal-wh9o|wl-mtn0omam-w3j3:WEAVE_SHARED_ACTION:ob-mtn0omal-2qpn,ob-mtn0omal-t0yf|wl-mtn0omam-zlz2:WEAVE_SHARED_SCENE:ob-mtn0omal-vjbh,ob-mtn0omal-ve2x|wl-mtn0omam-zt1v:WEAVE_SHARED_CHARACTER:ob-mtn0omal-ua8v,ob-mtn0omal-ve2x",
+    "title": "生产母稿（详细展开）",
+    "premiseSummary": "古风推理 · 架空王朝 · 情感 · 推理",
+    "stages": [
+      {
+        "stageId": "act1",
+        "stageRole": "SETUP",
+        "title": "铺垫",
+        "order": 0,
+        "purpose": "沈孤鸿：准备可嫁祸的假象；沈孤鸿：隐藏或维持当前身份表象；沈孤鸿：公开亮明阵营归属与目标",
+        "beats": [
+          {
+            "id": "pbeat-ob-mtn0omal-0117",
+            "sourceBeatId": "beat-setup",
+            "sourceOutlineBeatId": "ob-mtn0omal-0117",
+            "sourceBlockId": "smb-mtn0omaj-6me1y",
+            "sourceMechanismId": "smb-mtn0omaj-6me1y",
+            "templateId": "M01-FRAMING",
+            "familyId": "M01",
+            "actors": [
+              {
+                "id": "B",
+                "name": "沈孤鸿"
+              },
+              {
+                "id": "C",
+                "name": "顾清商"
+              }
+            ],
+            "goal": "准备可嫁祸的假象",
+            "action": "布置与顾清商相关的误导物",
+            "target": "被嫁祸者遗失的玉佩",
+            "setupContext": "作案准备地",
+            "eventSummary": "沈孤鸿为了准备可嫁祸的假象，布置与顾清商相关的误导物（目标：被嫁祸者遗失的玉佩）",
+            "immediateConsequence": "误导物已就绪",
+            "requires": [],
+            "produces": [
+              {
+                "id": "false_lead_ready",
+                "kind": "false_lead",
+                "summary": "误导物已就绪"
+              }
+            ],
+            "playerKnowledge": "玩家可见：布置与顾清商相关的误导物（仅同场，不暗示因果）",
+            "hostTruth": "主持真相：沈孤鸿为了准备可嫁祸的假象，布置与顾清商相关的误导物（目标：被嫁祸者遗失的玉佩）",
+            "clueRefs": [],
+            "relatedCharacterIds": [
+              "B",
+              "C"
+            ],
+            "relationQuality": "COLOCATED",
+            "weaveLinkIds": [
+              "wl-mtn0omam-qxyk",
+              "wl-mtn0omam-c4l6",
+              "wl-mtn0omam-a3c4",
+              "wl-mtn0omam-06h8"
+            ],
+            "relationNotes": [
+              "【同场并列】同阶段共享角色 B——可同场并列，不算真正交织",
+              "【同场并列】共享角色 B——仅角色重合，保持同场并列而非强制合并",
+              "【同场并列】同阶段共享角色 B、C——可同场并列，不算真正交织",
+              "【同场并列】共享角色 B、C——仅角色重合，保持同场并列而非强制合并"
+            ],
+            "needsDetail": false,
+            "contentConfirmed": false
+          },
+          {
+            "id": "pbeat-ob-mtn0omal-phjt",
+            "sourceBeatId": "beat-setup",
+            "sourceOutlineBeatId": "ob-mtn0omal-phjt",
+            "sourceBlockId": "smb-mtn0omaj-9lmpr",
+            "sourceMechanismId": "smb-mtn0omaj-9lmpr",
+            "templateId": "M07-5",
+            "familyId": "M07",
+            "actors": [
+              {
+                "id": "B",
+                "name": "沈孤鸿"
+              },
+              {
+                "id": "F",
+                "name": "莫玄宗"
+              }
+            ],
+            "goal": "隐藏或维持当前身份表象",
+            "action": "按伪装/未知状态行动，避免过早暴露",
+            "target": "身份表象",
+            "setupContext": "日常活动场所",
+            "eventSummary": "沈孤鸿为了隐藏或维持当前身份表象，按伪装/未知状态行动，避免过早暴露（目标：身份表象）",
+            "immediateConsequence": "身份仍未公开",
+            "requires": [],
+            "produces": [
+              {
+                "id": "identity_latent",
+                "kind": "identity",
+                "summary": "身份仍未公开"
+              }
+            ],
+            "playerKnowledge": "玩家可见：按伪装/未知状态行动，避免过早暴露（仅同场，不暗示因果）",
+            "hostTruth": "主持真相：沈孤鸿为了隐藏或维持当前身份表象，按伪装/未知状态行动，避免过早暴露（目标：身份表象）",
+            "clueRefs": [
+              "smb-mtn0omaj-9lmpr-foreshadow-0"
+            ],
+            "relatedCharacterIds": [
+              "B",
+              "F"
+            ],
+            "relationQuality": "COLOCATED",
+            "weaveLinkIds": [
+              "wl-mtn0omam-qxyk",
+              "wl-mtn0omam-b1xi",
+              "wl-mtn0omam-9vs4"
+            ],
+            "relationNotes": [
+              "【同场并列】同阶段共享角色 B——可同场并列，不算真正交织",
+              "【同场并列】同阶段共享角色 B——可同场并列，不算真正交织",
+              "【同场并列】共享角色 B——仅角色重合，保持同场并列而非强制合并"
+            ],
+            "needsDetail": false,
+            "contentConfirmed": false
+          },
+          {
+            "id": "pbeat-ob-mtn0omal-b168",
+            "sourceBeatId": "beat-setup",
+            "sourceOutlineBeatId": "ob-mtn0omal-b168",
+            "sourceBlockId": "smb-mtn0omak-i233f",
+            "sourceMechanismId": "smb-mtn0omak-i233f",
+            "templateId": "M08-1",
+            "familyId": "M08",
+            "actors": [
+              {
+                "id": "B",
+                "name": "沈孤鸿"
+              },
+              {
+                "id": "C",
+                "name": "顾清商"
+              }
+            ],
+            "goal": "公开亮明阵营归属与目标",
+            "action": "确认成员知情范围与联络方式",
+            "target": "阵营名单/暗号",
+            "setupContext": "私下会合点",
+            "eventSummary": "沈孤鸿为了公开亮明阵营归属与目标，确认成员知情范围与联络方式（目标：阵营名单/暗号）",
+            "immediateConsequence": "阵营结构已成形",
+            "requires": [],
+            "produces": [
+              {
+                "id": "faction_latent",
+                "kind": "faction",
+                "summary": "阵营结构已成形"
+              }
+            ],
+            "playerKnowledge": "玩家可见：确认成员知情范围与联络方式（仅同场，不暗示因果）",
+            "hostTruth": "主持真相：沈孤鸿为了公开亮明阵营归属与目标，确认成员知情范围与联络方式（目标：阵营名单/暗号）",
+            "clueRefs": [
+              "smb-mtn0omak-i233f-faction_foreshadow-0"
+            ],
+            "relatedCharacterIds": [
+              "B",
+              "C"
+            ],
+            "relationQuality": "COLOCATED",
+            "weaveLinkIds": [
+              "wl-mtn0omam-a3c4",
+              "wl-mtn0omam-b1xi"
+            ],
+            "relationNotes": [
+              "【同场并列】同阶段共享角色 B、C——可同场并列，不算真正交织",
+              "【同场并列】同阶段共享角色 B——可同场并列，不算真正交织"
+            ],
+            "needsDetail": false,
+            "contentConfirmed": false
+          }
+        ],
+        "playerVisibleSummary": "玩家可见：布置与顾清商相关的误导物（仅同场，不暗示因果） / 玩家可见：按伪装/未知状态行动，避免过早暴露（仅同场，不暗示因果） / 玩家可见：确认成员知情范围与联络方式（仅同场，不暗示因果）",
+        "hostTruthSummary": "主持真相：沈孤鸿为了准备可嫁祸的假象，布置与顾清商相关的误导物（目标：被嫁祸者遗失的玉佩） / 主持真相：沈孤鸿为了隐藏或维持当前身份表象，按伪装/未知状态行动，避免过早暴露（目标：身份表象） / 主持真相：沈孤鸿为了公开亮明阵营归属与目标，确认成员知情范围与联络方式（目标：阵营名单/暗号）",
+        "stageStartState": "开局：各线按积木 setup 状态进入（不新增前提）",
+        "stageEndState": "误导物已就绪；身份仍未公开；阵营结构已成形",
+        "clueEntries": [
+          {
+            "clueId": "fact-interface:ob-mtn0omal-0117",
+            "label": "事实接口（尚无线索实体）",
+            "mechanismId": "smb-mtn0omaj-6me1y",
+            "templateId": "M01-FRAMING",
+            "stageId": "act1",
+            "possibleFinders": [
+              "B",
+              "C"
+            ],
+            "supportsFact": "误导物已就绪",
+            "isMisleading": false,
+            "isDecisive": false,
+            "missingDetail": true,
+            "detailNote": "这个剧情 beat 需要关键线索，但模板尚未提供具体线索内容。"
+          },
+          {
+            "clueId": "smb-mtn0omaj-9lmpr-foreshadow-0",
+            "label": "早期伏笔",
+            "mechanismId": "smb-mtn0omaj-9lmpr",
+            "templateId": "M07-5",
+            "stageId": "act1",
+            "possibleFinders": [
+              "B",
+              "F"
+            ],
+            "supportsFact": "早期伏笔",
+            "isMisleading": false,
+            "isDecisive": false,
+            "missingDetail": false
+          },
+          {
+            "clueId": "smb-mtn0omak-i233f-faction_foreshadow-0",
+            "label": "阵营伏笔",
+            "mechanismId": "smb-mtn0omak-i233f",
+            "templateId": "M08-1",
+            "stageId": "act1",
+            "possibleFinders": [
+              "B",
+              "C"
+            ],
+            "supportsFact": "阵营伏笔",
+            "isMisleading": false,
+            "isDecisive": false,
+            "missingDetail": false
+          }
+        ],
+        "characterEntries": [
+          {
+            "id": "B",
+            "name": "沈孤鸿"
+          },
+          {
+            "id": "C",
+            "name": "顾清商"
+          },
+          {
+            "id": "F",
+            "name": "莫玄宗"
+          }
+        ],
+        "unresolvedDetails": [],
+        "warnings": [
+          {
+            "id": "warn-low-weave",
+            "type": "LOW_WEAVE_DENSITY",
+            "severity": "info",
+            "message": "整本存在较少真正交织关系；当前母稿主要由平行剧情 + 同场并列构成。P6 未伪造额外因果。",
+            "stageIds": [
+              "act1",
+              "act2",
+              "act3",
+              "act4"
+            ],
+            "beatIds": []
+          },
+          {
+            "id": "warn-clue-ob-mtn0omal-0117",
+            "type": "MISSING_CLUE_DETAIL",
+            "severity": "info",
+            "message": "该剧情 beat 需要/产生事实接口，但模板尚未绑定具体线索内容。",
+            "stageIds": [
+              "act1"
+            ],
+            "beatIds": [
+              "ob-mtn0omal-0117"
+            ]
+          }
+        ]
+      },
+      {
+        "stageId": "act2",
+        "stageRole": "PRESSURE",
+        "title": "加压",
+        "order": 1,
+        "purpose": "沈孤鸿：完成犯行并指向顾清商；沈孤鸿：完成犯行并指向顾清商；杜霄元：推翻对顾清商的错误判断",
+        "beats": [
+          {
+            "id": "pbeat-ob-mtn0omal-y8ex",
+            "sourceBeatId": "beat-crime",
+            "sourceOutlineBeatId": "ob-mtn0omal-y8ex",
+            "sourceBlockId": "smb-mtn0omaj-6me1y",
+            "sourceMechanismId": "smb-mtn0omaj-6me1y",
+            "templateId": "M01-FRAMING",
+            "familyId": "M01",
+            "actors": [
+              {
+                "id": "B",
+                "name": "沈孤鸿"
+              },
+              {
+                "id": "A",
+                "name": "白斋子"
+              },
+              {
+                "id": "D",
+                "name": "杜霄元"
+              }
+            ],
+            "goal": "完成犯行并指向顾清商",
+            "action": "实施犯行并留下指向顾清商的痕迹",
+            "target": "被嫁祸者遗失的玉佩",
+            "setupContext": "案发现场",
+            "eventSummary": "沈孤鸿为了完成犯行并指向顾清商，实施犯行并留下指向顾清商的痕迹（目标：被嫁祸者遗失的玉佩）",
+            "immediateConsequence": "犯行已发生；错误嫌疑成立",
+            "requires": [
+              {
+                "id": "false_lead_ready",
+                "kind": "false_lead",
+                "summary": "误导物"
+              }
+            ],
+            "produces": [
+              {
+                "id": "crime_done",
+                "kind": "crime",
+                "summary": "犯行已发生"
+              },
+              {
+                "id": "false_suspicion",
+                "kind": "suspicion",
+                "summary": "错误嫌疑成立"
+              }
+            ],
+            "playerKnowledge": "玩家可见：实施犯行并留下指向顾清商的痕迹（仅同场，不暗示因果）",
+            "hostTruth": "主持真相：沈孤鸿为了完成犯行并指向顾清商，实施犯行并留下指向顾清商的痕迹（目标：被嫁祸者遗失的玉佩）",
+            "clueRefs": [
+              "smb-mtn0omaj-6me1y-false_lead-0"
+            ],
+            "relatedCharacterIds": [
+              "B",
+              "A",
+              "D"
+            ],
+            "relationQuality": "COLOCATED",
+            "weaveLinkIds": [
+              "wl-mtn0omam-5bg3",
+              "wl-mtn0omam-9u4k",
+              "wl-mtn0omam-s402",
+              "wl-mtn0omam-klpe",
+              "wl-mtn0omam-jcd9",
+              "wl-mtn0omam-bx44"
+            ],
+            "relationNotes": [
+              "【同场并列】同阶段共享角色 B、A、D——可同场并列，不算真正交织",
+              "【同场并列】共享角色 B、A、D——仅角色重合，保持同场并列而非强制合并",
+              "【同场并列】同阶段共享角色 B、A、D——可同场并列，不算真正交织",
+              "【同场并列】共享角色 B、A、D——仅角色重合，保持同场并列而非强制合并",
+              "【保持平行】嫁祸型追凶｜栽赃物品 与 身份权限变化｜本人早知，主动伪装到点揭开 无线索级交织证据，叙事线保持平行（同场/同角不算交织）",
+              "【保持平行】嫁祸型追凶｜栽赃物品 与 固定公开阵营｜开局全员互认公开阵营 无线索级交织证据，叙事线保持平行（同场/同角不算交织）"
+            ],
+            "needsDetail": false,
+            "contentConfirmed": false
+          },
+          {
+            "id": "pbeat-ob-mtn0omal-oy4d",
+            "sourceBeatId": "beat-false",
+            "sourceOutlineBeatId": "ob-mtn0omal-oy4d",
+            "sourceBlockId": "smb-mtn0omaj-6me1y",
+            "sourceMechanismId": "smb-mtn0omaj-6me1y",
+            "templateId": "M01-FRAMING",
+            "familyId": "M01",
+            "actors": [
+              {
+                "id": "B",
+                "name": "沈孤鸿"
+              },
+              {
+                "id": "C",
+                "name": "顾清商"
+              }
+            ],
+            "goal": "完成犯行并指向顾清商",
+            "action": "实施犯行并留下指向顾清商的痕迹",
+            "target": "被嫁祸者遗失的玉佩",
+            "setupContext": "案发现场",
+            "eventSummary": "沈孤鸿为了完成犯行并指向顾清商，实施犯行并留下指向顾清商的痕迹（目标：被嫁祸者遗失的玉佩）",
+            "immediateConsequence": "犯行已发生；错误嫌疑成立",
+            "requires": [
+              {
+                "id": "false_lead_ready",
+                "kind": "false_lead",
+                "summary": "误导物"
+              }
+            ],
+            "produces": [
+              {
+                "id": "crime_done",
+                "kind": "crime",
+                "summary": "犯行已发生"
+              },
+              {
+                "id": "false_suspicion",
+                "kind": "suspicion",
+                "summary": "错误嫌疑成立"
+              }
+            ],
+            "playerKnowledge": "玩家可见：实施犯行并留下指向顾清商的痕迹",
+            "hostTruth": "主持真相：沈孤鸿为了完成犯行并指向顾清商，实施犯行并留下指向顾清商的痕迹（目标：被嫁祸者遗失的玉佩）",
+            "clueRefs": [
+              "smb-mtn0omaj-6me1y-false_lead-0"
+            ],
+            "relatedCharacterIds": [
+              "B",
+              "C"
+            ],
+            "weaveLinkIds": [],
+            "relationNotes": [],
+            "needsDetail": false,
+            "contentConfirmed": false
+          },
+          {
+            "id": "pbeat-ob-mtn0omal-yye8",
+            "sourceBeatId": "beat-contra",
+            "sourceOutlineBeatId": "ob-mtn0omal-yye8",
+            "sourceBlockId": "smb-mtn0omaj-6me1y",
+            "sourceMechanismId": "smb-mtn0omaj-6me1y",
+            "templateId": "M01-FRAMING",
+            "familyId": "M01",
+            "actors": [
+              {
+                "id": "D",
+                "name": "杜霄元"
+              }
+            ],
+            "goal": "推翻对顾清商的错误判断",
+            "action": "对照现场与证物寻找矛盾",
+            "target": "被嫁祸者遗失的玉佩",
+            "setupContext": "案发现场",
+            "eventSummary": "杜霄元为了推翻对顾清商的错误判断，对照现场与证物寻找矛盾（目标：被嫁祸者遗失的玉佩）",
+            "immediateConsequence": "反证出现",
+            "requires": [
+              {
+                "id": "false_suspicion",
+                "kind": "suspicion",
+                "summary": "错误嫌疑"
+              }
+            ],
+            "produces": [
+              {
+                "id": "contradiction",
+                "kind": "contradiction",
+                "summary": "反证出现"
+              }
+            ],
+            "playerKnowledge": "玩家可见：对照现场与证物寻找矛盾",
+            "hostTruth": "主持真相：杜霄元为了推翻对顾清商的错误判断，对照现场与证物寻找矛盾（目标：被嫁祸者遗失的玉佩）",
+            "clueRefs": [
+              "smb-mtn0omaj-6me1y-contradiction-1"
+            ],
+            "relatedCharacterIds": [
+              "D"
+            ],
+            "weaveLinkIds": [],
+            "relationNotes": [],
+            "needsDetail": false,
+            "contentConfirmed": false
+          },
+          {
+            "id": "pbeat-ob-mtn0omal-2qpn",
+            "sourceBeatId": "beat-develop",
+            "sourceOutlineBeatId": "ob-mtn0omal-2qpn",
+            "sourceBlockId": "smb-mtn0omaj-9lmpr",
+            "sourceMechanismId": "smb-mtn0omaj-9lmpr",
+            "templateId": "M07-5",
+            "familyId": "M07",
+            "actors": [
+              {
+                "id": "B",
+                "name": "沈孤鸿"
+              },
+              {
+                "id": "F",
+                "name": "莫玄宗"
+              },
+              {
+                "id": "D",
+                "name": "杜霄元"
+              },
+              {
+                "id": "A",
+                "name": "白斋子"
+              },
+              {
+                "id": "NPC_LU",
+                "name": "陆老爷"
+              }
+            ],
+            "goal": "寻找能确认身份的记录或信物",
+            "action": "进入藏有记录的场所搜查身份相关物证",
+            "target": "身份记录",
+            "setupContext": "藏有记录的场所",
+            "eventSummary": "沈孤鸿为了寻找能确认身份的记录或信物，进入藏有记录的场所搜查身份相关物证（目标：身份记录）",
+            "immediateConsequence": "身份线索",
+            "requires": [
+              {
+                "id": "site_accessible",
+                "kind": "access",
+                "summary": "关键场所可进入"
+              }
+            ],
+            "produces": [
+              {
+                "id": "identity_clue",
+                "kind": "identity_clue",
+                "summary": "身份线索"
+              }
+            ],
+            "playerKnowledge": "玩家可见：进入藏有记录的场所搜查身份相关物证",
+            "hostTruth": "主持真相：沈孤鸿为了寻找能确认身份的记录或信物，进入藏有记录的场所搜查身份相关物证（目标：身份记录）",
+            "clueRefs": [
+              "smb-mtn0omaj-9lmpr-foreshadow-0"
+            ],
+            "relatedCharacterIds": [
+              "B",
+              "F",
+              "D",
+              "A",
+              "NPC_LU"
+            ],
+            "relationQuality": "INTERWOVEN",
+            "weaveLinkIds": [
+              "wl-mtn0omam-c4l6",
+              "wl-mtn0omam-5bg3",
+              "wl-mtn0omam-w3j3",
+              "wl-mtn0omam-hg0l",
+              "wl-mtn0omam-jcd9"
+            ],
+            "relationNotes": [
+              "【同场并列】共享角色 B——仅角色重合，保持同场并列而非强制合并",
+              "【同场并列】同阶段共享角色 B、A、D——可同场并列，不算真正交织",
+              "【真正交织】两条剧情都需要在「藏有记录的场所」执行相近行动（shared-site-search），可共享一次行动",
+              "【同场并列】共享角色 B、D、A——仅角色重合，保持同场并列而非强制合并",
+              "【保持平行】嫁祸型追凶｜栽赃物品 与 身份权限变化｜本人早知，主动伪装到点揭开 无线索级交织证据，叙事线保持平行（同场/同角不算交织）"
+            ],
+            "needsDetail": false,
+            "contentConfirmed": false
+          },
+          {
+            "id": "pbeat-ob-mtn0omal-t0yf",
+            "sourceBeatId": "beat-develop",
+            "sourceOutlineBeatId": "ob-mtn0omal-t0yf",
+            "sourceBlockId": "smb-mtn0omak-i233f",
+            "sourceMechanismId": "smb-mtn0omak-i233f",
+            "templateId": "M08-1",
+            "familyId": "M08",
+            "actors": [
+              {
+                "id": "B",
+                "name": "沈孤鸿"
+              },
+              {
+                "id": "C",
+                "name": "顾清商"
+              },
+              {
+                "id": "D",
+                "name": "杜霄元"
+              },
+              {
+                "id": "E",
+                "name": "叶晚晴"
+              },
+              {
+                "id": "A",
+                "name": "白斋子"
+              }
+            ],
+            "goal": "夺取关键资源",
+            "action": "组织成员夺取或销毁关键物证/资源",
+            "target": "关键账册或信物",
+            "setupContext": "关键场所",
+            "eventSummary": "沈孤鸿为了夺取关键资源，组织成员夺取或销毁关键物证/资源（目标：关键账册或信物）",
+            "immediateConsequence": "阵营压力升级",
+            "requires": [
+              {
+                "id": "site_accessible",
+                "kind": "access",
+                "summary": "关键场所可进入"
+              },
+              {
+                "id": "faction_latent",
+                "kind": "faction",
+                "summary": "阵营已成形"
+              }
+            ],
+            "produces": [
+              {
+                "id": "faction_pressure",
+                "kind": "faction",
+                "summary": "阵营压力升级"
+              }
+            ],
+            "playerKnowledge": "玩家可见：组织成员夺取或销毁关键物证/资源",
+            "hostTruth": "主持真相：沈孤鸿为了夺取关键资源，组织成员夺取或销毁关键物证/资源（目标：关键账册或信物）",
+            "clueRefs": [
+              "smb-mtn0omak-i233f-faction_foreshadow-0"
+            ],
+            "relatedCharacterIds": [
+              "B",
+              "C",
+              "D",
+              "E",
+              "A"
+            ],
+            "relationQuality": "INTERWOVEN",
+            "weaveLinkIds": [
+              "wl-mtn0omam-06h8",
+              "wl-mtn0omam-s402",
+              "wl-mtn0omam-9vs4",
+              "wl-mtn0omam-w3j3",
+              "wl-mtn0omam-bx44"
+            ],
+            "relationNotes": [
+              "【同场并列】共享角色 B、C——仅角色重合，保持同场并列而非强制合并",
+              "【同场并列】同阶段共享角色 B、A、D——可同场并列，不算真正交织",
+              "【同场并列】共享角色 B——仅角色重合，保持同场并列而非强制合并",
+              "【真正交织】两条剧情都需要在「藏有记录的场所」执行相近行动（shared-site-search），可共享一次行动",
+              "【保持平行】嫁祸型追凶｜栽赃物品 与 固定公开阵营｜开局全员互认公开阵营 无线索级交织证据，叙事线保持平行（同场/同角不算交织）"
+            ],
+            "needsDetail": false,
+            "contentConfirmed": false
+          }
+        ],
+        "playerVisibleSummary": "玩家可见：实施犯行并留下指向顾清商的痕迹（仅同场，不暗示因果） / 玩家可见：实施犯行并留下指向顾清商的痕迹 / 玩家可见：对照现场与证物寻找矛盾 / 玩家可见：进入藏有记录的场所搜查身份相关物证 / 玩家可见：组织成员夺取或销毁关键物证/资源",
+        "hostTruthSummary": "主持真相：沈孤鸿为了完成犯行并指向顾清商，实施犯行并留下指向顾清商的痕迹（目标：被嫁祸者遗失的玉佩） / 主持真相：沈孤鸿为了完成犯行并指向顾清商，实施犯行并留下指向顾清商的痕迹（目标：被嫁祸者遗失的玉佩） / 主持真相：杜霄元为了推翻对顾清商的错误判断，对照现场与证物寻找矛盾（目标：被嫁祸者遗失的玉佩） / 主持真相：沈孤鸿为了寻找能确认身份的记录或信物，进入藏有记录的场所搜查身份相关物证（目标：身份记录） / 主持真相：沈孤鸿为了夺取关键资源，组织成员夺取或销毁关键物证/资源（目标：关键账册或信物）",
+        "stageStartState": "承接上一阶段已声明后果；未声明者标 UNKNOWN",
+        "stageEndState": "犯行已发生；错误嫌疑成立；犯行已发生；错误嫌疑成立；反证出现；身份线索；阵营压力升级",
+        "clueEntries": [
+          {
+            "clueId": "smb-mtn0omaj-6me1y-false_lead-0",
+            "label": "误导",
+            "mechanismId": "smb-mtn0omaj-6me1y",
+            "templateId": "M01-FRAMING",
+            "stageId": "act2",
+            "possibleFinders": [
+              "B",
+              "A",
+              "D"
+            ],
+            "supportsFact": "被嫁祸者遗失的玉佩",
+            "isMisleading": false,
+            "isDecisive": false,
+            "missingDetail": false
+          },
+          {
+            "clueId": "smb-mtn0omaj-6me1y-contradiction-1",
+            "label": "反证",
+            "mechanismId": "smb-mtn0omaj-6me1y",
+            "templateId": "M01-FRAMING",
+            "stageId": "act2",
+            "possibleFinders": [
+              "D"
+            ],
+            "supportsFact": "玉佩沾有仅库房存在的红蜡",
+            "isMisleading": false,
+            "isDecisive": false,
+            "missingDetail": false
+          },
+          {
+            "clueId": "smb-mtn0omaj-9lmpr-foreshadow-0",
+            "label": "早期伏笔",
+            "mechanismId": "smb-mtn0omaj-9lmpr",
+            "templateId": "M07-5",
+            "stageId": "act2",
+            "possibleFinders": [
+              "B",
+              "F",
+              "D",
+              "A",
+              "NPC_LU"
+            ],
+            "supportsFact": "早期伏笔",
+            "isMisleading": false,
+            "isDecisive": false,
+            "missingDetail": false
+          },
+          {
+            "clueId": "smb-mtn0omak-i233f-faction_foreshadow-0",
+            "label": "阵营伏笔",
+            "mechanismId": "smb-mtn0omak-i233f",
+            "templateId": "M08-1",
+            "stageId": "act2",
+            "possibleFinders": [
+              "B",
+              "C",
+              "D",
+              "E",
+              "A"
+            ],
+            "supportsFact": "阵营伏笔",
+            "isMisleading": false,
+            "isDecisive": false,
+            "missingDetail": false
+          }
+        ],
+        "characterEntries": [
+          {
+            "id": "B",
+            "name": "沈孤鸿"
+          },
+          {
+            "id": "A",
+            "name": "白斋子"
+          },
+          {
+            "id": "D",
+            "name": "杜霄元"
+          },
+          {
+            "id": "C",
+            "name": "顾清商"
+          },
+          {
+            "id": "F",
+            "name": "莫玄宗"
+          },
+          {
+            "id": "NPC_LU",
+            "name": "陆老爷"
+          },
+          {
+            "id": "E",
+            "name": "叶晚晴"
+          }
+        ],
+        "unresolvedDetails": [],
+        "warnings": [
+          {
+            "id": "warn-low-weave",
+            "type": "LOW_WEAVE_DENSITY",
+            "severity": "info",
+            "message": "整本存在较少真正交织关系；当前母稿主要由平行剧情 + 同场并列构成。P6 未伪造额外因果。",
+            "stageIds": [
+              "act1",
+              "act2",
+              "act3",
+              "act4"
+            ],
+            "beatIds": []
+          }
+        ]
+      },
+      {
+        "stageId": "act3",
+        "stageRole": "ESCALATION",
+        "title": "升级",
+        "order": 2,
+        "purpose": "杜霄元：推翻对顾清商的错误判断；沈孤鸿：启用真实身份对应的权限；沈孤鸿：在暴露风险下改归属或保住秘密",
+        "beats": [
+          {
+            "id": "pbeat-ob-mtn0omal-6f47",
+            "sourceBeatId": "beat-climax",
+            "sourceOutlineBeatId": "ob-mtn0omal-6f47",
+            "sourceBlockId": "smb-mtn0omaj-6me1y",
+            "sourceMechanismId": "smb-mtn0omaj-6me1y",
+            "templateId": "M01-FRAMING",
+            "familyId": "M01",
+            "actors": [
+              {
+                "id": "D",
+                "name": "杜霄元"
+              },
+              {
+                "id": "B",
+                "name": "沈孤鸿"
+              },
+              {
+                "id": "C",
+                "name": "顾清商"
+              }
+            ],
+            "goal": "推翻对顾清商的错误判断",
+            "action": "对照现场与证物寻找矛盾",
+            "target": "被嫁祸者遗失的玉佩",
+            "setupContext": "案发现场",
+            "eventSummary": "杜霄元为了推翻对顾清商的错误判断，对照现场与证物寻找矛盾（目标：被嫁祸者遗失的玉佩）",
+            "immediateConsequence": "反证出现",
+            "requires": [
+              {
+                "id": "false_suspicion",
+                "kind": "suspicion",
+                "summary": "错误嫌疑"
+              }
+            ],
+            "produces": [
+              {
+                "id": "contradiction",
+                "kind": "contradiction",
+                "summary": "反证出现"
+              }
+            ],
+            "playerKnowledge": "玩家可见：对照现场与证物寻找矛盾（仅同场，不暗示因果）",
+            "hostTruth": "主持真相：杜霄元为了推翻对顾清商的错误判断，对照现场与证物寻找矛盾（目标：被嫁祸者遗失的玉佩）",
+            "clueRefs": [
+              "smb-mtn0omaj-6me1y-true_evidence-2",
+              "smb-mtn0omaj-6me1y-decisive_evidence-3"
+            ],
+            "relatedCharacterIds": [
+              "D",
+              "B",
+              "C"
+            ],
+            "relationQuality": "COLOCATED",
+            "weaveLinkIds": [
+              "wl-mtn0omam-jwrm",
+              "wl-mtn0omam-ts9m",
+              "wl-mtn0omam-t6ke",
+              "wl-mtn0omam-c9ww"
+            ],
+            "relationNotes": [
+              "【同场并列】同阶段共享角色 D、B——可同场并列，不算真正交织",
+              "【同场并列】共享角色 D、B——仅角色重合，保持同场并列而非强制合并",
+              "【同场并列】同阶段共享角色 D、B、C——可同场并列，不算真正交织",
+              "【同场并列】共享角色 D、B、C——仅角色重合，保持同场并列而非强制合并"
+            ],
+            "needsDetail": false,
+            "contentConfirmed": false
+          },
+          {
+            "id": "pbeat-ob-mtn0omal-ua8v",
+            "sourceBeatId": "beat-climax",
+            "sourceOutlineBeatId": "ob-mtn0omal-ua8v",
+            "sourceBlockId": "smb-mtn0omaj-9lmpr",
+            "sourceMechanismId": "smb-mtn0omaj-9lmpr",
+            "templateId": "M07-5",
+            "familyId": "M07",
+            "actors": [
+              {
+                "id": "B",
+                "name": "沈孤鸿"
+              },
+              {
+                "id": "F",
+                "name": "莫玄宗"
+              },
+              {
+                "id": "D",
+                "name": "杜霄元"
+              },
+              {
+                "id": "A",
+                "name": "白斋子"
+              },
+              {
+                "id": "NPC_LU",
+                "name": "陆老爷"
+              }
+            ],
+            "goal": "启用真实身份对应的权限",
+            "action": "在揭示后启用权限表并验证资格",
+            "target": "真实身份",
+            "setupContext": "藏有记录的场所",
+            "eventSummary": "沈孤鸿为了启用真实身份对应的权限，在揭示后启用权限表并验证资格（目标：真实身份）",
+            "immediateConsequence": "身份已确认；资格/权限状态；场所权限可能开放",
+            "requires": [
+              {
+                "id": "identity_clue",
+                "kind": "identity_clue",
+                "summary": "身份线索"
+              }
+            ],
+            "produces": [
+              {
+                "id": "identity_confirmed",
+                "kind": "identity",
+                "summary": "身份已确认"
+              },
+              {
+                "id": "family_status",
+                "kind": "status",
+                "summary": "资格/权限状态"
+              },
+              {
+                "id": "site_accessible",
+                "kind": "access",
+                "summary": "场所权限可能开放"
+              }
+            ],
+            "playerKnowledge": "玩家可见：在揭示后启用权限表并验证资格（仅同场，不暗示因果）",
+            "hostTruth": "主持真相：沈孤鸿为了启用真实身份对应的权限，在揭示后启用权限表并验证资格（目标：真实身份）",
+            "clueRefs": [
+              "smb-mtn0omaj-9lmpr-memory_fragment-1",
+              "smb-mtn0omaj-9lmpr-identity_hint-2",
+              "smb-mtn0omaj-9lmpr-misdirection-3",
+              "smb-mtn0omaj-9lmpr-confirmation-4",
+              "smb-mtn0omaj-9lmpr-decisive_reveal-5"
+            ],
+            "relatedCharacterIds": [
+              "B",
+              "F",
+              "D",
+              "A",
+              "NPC_LU"
+            ],
+            "relationQuality": "COLOCATED",
+            "weaveLinkIds": [
+              "wl-mtn0omam-9u4k",
+              "wl-mtn0omam-jwrm",
+              "wl-mtn0omam-4wym",
+              "wl-mtn0omam-zt1v"
+            ],
+            "relationNotes": [
+              "【同场并列】共享角色 B、A、D——仅角色重合，保持同场并列而非强制合并",
+              "【同场并列】同阶段共享角色 D、B——可同场并列，不算真正交织",
+              "【同场并列】同阶段共享角色 B、D、A——可同场并列，不算真正交织",
+              "【同场并列】共享角色 B、D、A——仅角色重合，保持同场并列而非强制合并"
+            ],
+            "needsDetail": false,
+            "contentConfirmed": false
+          },
+          {
+            "id": "pbeat-ob-mtn0omal-fjiu",
+            "sourceBeatId": "beat-climax",
+            "sourceOutlineBeatId": "ob-mtn0omal-fjiu",
+            "sourceBlockId": "smb-mtn0omak-i233f",
+            "sourceMechanismId": "smb-mtn0omak-i233f",
+            "templateId": "M08-1",
+            "familyId": "M08",
+            "actors": [
+              {
+                "id": "B",
+                "name": "沈孤鸿"
+              },
+              {
+                "id": "C",
+                "name": "顾清商"
+              },
+              {
+                "id": "D",
+                "name": "杜霄元"
+              },
+              {
+                "id": "E",
+                "name": "叶晚晴"
+              },
+              {
+                "id": "A",
+                "name": "白斋子"
+              }
+            ],
+            "goal": "在暴露风险下改归属或保住秘密",
+            "action": "在关键选择点背叛、退出或清洗异己",
+            "target": "归属状态",
+            "setupContext": "阵营关键据点",
+            "eventSummary": "沈孤鸿为了在暴露风险下改归属或保住秘密，在关键选择点背叛、退出或清洗异己（目标：归属状态）",
+            "immediateConsequence": "归属已改变；暴露风险上升",
+            "requires": [
+              {
+                "id": "faction_pressure",
+                "kind": "faction",
+                "summary": "阵营压力"
+              }
+            ],
+            "produces": [
+              {
+                "id": "allegiance_changed",
+                "kind": "faction",
+                "summary": "归属已改变"
+              },
+              {
+                "id": "faction_exposure_risk",
+                "kind": "exposure",
+                "summary": "暴露风险上升"
+              }
+            ],
+            "playerKnowledge": "玩家可见：在关键选择点背叛、退出或清洗异己（仅同场，不暗示因果）",
+            "hostTruth": "主持真相：沈孤鸿为了在暴露风险下改归属或保住秘密，在关键选择点背叛、退出或清洗异己（目标：归属状态）",
+            "clueRefs": [
+              "smb-mtn0omak-i233f-membership_hint-1",
+              "smb-mtn0omak-i233f-secret_signal-2",
+              "smb-mtn0omak-i233f-recruitment_evidence-3",
+              "smb-mtn0omak-i233f-loyalty_test-4",
+              "smb-mtn0omak-i233f-betrayal_hint-5",
+              "smb-mtn0omak-i233f-internal_conflict-6",
+              "smb-mtn0omak-i233f-hidden_goal_hint-7",
+              "smb-mtn0omak-i233f-membership_confirmation-8",
+              "smb-mtn0omak-i233f-faction_exposure-9"
+            ],
+            "relatedCharacterIds": [
+              "B",
+              "C",
+              "D",
+              "E",
+              "A"
+            ],
+            "relationQuality": "COLOCATED",
+            "weaveLinkIds": [
+              "wl-mtn0omam-klpe",
+              "wl-mtn0omam-t6ke",
+              "wl-mtn0omam-hg0l",
+              "wl-mtn0omam-4wym"
+            ],
+            "relationNotes": [
+              "【同场并列】共享角色 B、A、D——仅角色重合，保持同场并列而非强制合并",
+              "【同场并列】同阶段共享角色 D、B、C——可同场并列，不算真正交织",
+              "【同场并列】共享角色 B、D、A——仅角色重合，保持同场并列而非强制合并",
+              "【同场并列】同阶段共享角色 B、D、A——可同场并列，不算真正交织"
+            ],
+            "needsDetail": true,
+            "detailReason": "缺完整 actor/goal/action，或源 beat 已标 NEEDS_DETAIL",
+            "contentConfirmed": false
+          }
+        ],
+        "playerVisibleSummary": "玩家可见：对照现场与证物寻找矛盾（仅同场，不暗示因果） / 玩家可见：在揭示后启用权限表并验证资格（仅同场，不暗示因果） / 玩家可见：在关键选择点背叛、退出或清洗异己（仅同场，不暗示因果）",
+        "hostTruthSummary": "主持真相：杜霄元为了推翻对顾清商的错误判断，对照现场与证物寻找矛盾（目标：被嫁祸者遗失的玉佩） / 主持真相：沈孤鸿为了启用真实身份对应的权限，在揭示后启用权限表并验证资格（目标：真实身份） / 主持真相：沈孤鸿为了在暴露风险下改归属或保住秘密，在关键选择点背叛、退出或清洗异己（目标：归属状态）",
+        "stageStartState": "承接上一阶段已声明后果；未声明者标 UNKNOWN",
+        "stageEndState": "反证出现；身份已确认；资格/权限状态；场所权限可能开放；归属已改变；暴露风险上升",
+        "clueEntries": [
+          {
+            "clueId": "smb-mtn0omaj-6me1y-true_evidence-2",
+            "label": "真手法",
+            "mechanismId": "smb-mtn0omaj-6me1y",
+            "templateId": "M01-FRAMING",
+            "stageId": "act3",
+            "possibleFinders": [
+              "D",
+              "B",
+              "C"
+            ],
+            "supportsFact": "勒杀",
+            "isMisleading": false,
+            "isDecisive": false,
+            "missingDetail": false
+          },
+          {
+            "clueId": "smb-mtn0omaj-6me1y-decisive_evidence-3",
+            "label": "突破",
+            "mechanismId": "smb-mtn0omaj-6me1y",
+            "templateId": "M01-FRAMING",
+            "stageId": "act3",
+            "possibleFinders": [
+              "D",
+              "B",
+              "C"
+            ],
+            "supportsFact": "库房钥匙记录证明真凶曾移动该物",
+            "isMisleading": false,
+            "isDecisive": false,
+            "missingDetail": false
+          },
+          {
+            "clueId": "smb-mtn0omaj-9lmpr-memory_fragment-1",
+            "label": "记忆碎片",
+            "mechanismId": "smb-mtn0omaj-9lmpr",
+            "templateId": "M07-5",
+            "stageId": "act3",
+            "possibleFinders": [
+              "B",
+              "F",
+              "D",
+              "A",
+              "NPC_LU"
+            ],
+            "supportsFact": "记忆碎片",
+            "isMisleading": false,
+            "isDecisive": false,
+            "missingDetail": false
+          },
+          {
+            "clueId": "smb-mtn0omaj-9lmpr-identity_hint-2",
+            "label": "身份暗示",
+            "mechanismId": "smb-mtn0omaj-9lmpr",
+            "templateId": "M07-5",
+            "stageId": "act3",
+            "possibleFinders": [
+              "B",
+              "F",
+              "D",
+              "A",
+              "NPC_LU"
+            ],
+            "supportsFact": "身份暗示",
+            "isMisleading": false,
+            "isDecisive": false,
+            "missingDetail": false
+          },
+          {
+            "clueId": "smb-mtn0omaj-9lmpr-misdirection-3",
+            "label": "误导",
+            "mechanismId": "smb-mtn0omaj-9lmpr",
+            "templateId": "M07-5",
+            "stageId": "act3",
+            "possibleFinders": [
+              "B",
+              "F",
+              "D",
+              "A",
+              "NPC_LU"
+            ],
+            "supportsFact": "误导",
+            "isMisleading": false,
+            "isDecisive": false,
+            "missingDetail": false
+          },
+          {
+            "clueId": "smb-mtn0omaj-9lmpr-confirmation-4",
+            "label": "确认",
+            "mechanismId": "smb-mtn0omaj-9lmpr",
+            "templateId": "M07-5",
+            "stageId": "act3",
+            "possibleFinders": [
+              "B",
+              "F",
+              "D",
+              "A",
+              "NPC_LU"
+            ],
+            "supportsFact": "确认",
+            "isMisleading": false,
+            "isDecisive": false,
+            "missingDetail": false
+          },
+          {
+            "clueId": "smb-mtn0omaj-9lmpr-decisive_reveal-5",
+            "label": "决定性揭示",
+            "mechanismId": "smb-mtn0omaj-9lmpr",
+            "templateId": "M07-5",
+            "stageId": "act3",
+            "possibleFinders": [
+              "B",
+              "F",
+              "D",
+              "A",
+              "NPC_LU"
+            ],
+            "supportsFact": "决定性揭示",
+            "isMisleading": false,
+            "isDecisive": true,
+            "missingDetail": false
+          },
+          {
+            "clueId": "smb-mtn0omak-i233f-membership_hint-1",
+            "label": "成员暗示",
+            "mechanismId": "smb-mtn0omak-i233f",
+            "templateId": "M08-1",
+            "stageId": "act3",
+            "possibleFinders": [
+              "B",
+              "C",
+              "D",
+              "E",
+              "A"
+            ],
+            "supportsFact": "成员暗示",
+            "isMisleading": false,
+            "isDecisive": false,
+            "missingDetail": false
+          },
+          {
+            "clueId": "smb-mtn0omak-i233f-secret_signal-2",
+            "label": "秘密信号",
+            "mechanismId": "smb-mtn0omak-i233f",
+            "templateId": "M08-1",
+            "stageId": "act3",
+            "possibleFinders": [
+              "B",
+              "C",
+              "D",
+              "E",
+              "A"
+            ],
+            "supportsFact": "秘密信号",
+            "isMisleading": false,
+            "isDecisive": false,
+            "missingDetail": false
+          },
+          {
+            "clueId": "smb-mtn0omak-i233f-recruitment_evidence-3",
+            "label": "招募证据",
+            "mechanismId": "smb-mtn0omak-i233f",
+            "templateId": "M08-1",
+            "stageId": "act3",
+            "possibleFinders": [
+              "B",
+              "C",
+              "D",
+              "E",
+              "A"
+            ],
+            "supportsFact": "招募证据",
+            "isMisleading": false,
+            "isDecisive": false,
+            "missingDetail": false
+          },
+          {
+            "clueId": "smb-mtn0omak-i233f-loyalty_test-4",
+            "label": "忠诚考验",
+            "mechanismId": "smb-mtn0omak-i233f",
+            "templateId": "M08-1",
+            "stageId": "act3",
+            "possibleFinders": [
+              "B",
+              "C",
+              "D",
+              "E",
+              "A"
+            ],
+            "supportsFact": "忠诚考验",
+            "isMisleading": false,
+            "isDecisive": false,
+            "missingDetail": false
+          },
+          {
+            "clueId": "smb-mtn0omak-i233f-betrayal_hint-5",
+            "label": "背叛暗示",
+            "mechanismId": "smb-mtn0omak-i233f",
+            "templateId": "M08-1",
+            "stageId": "act3",
+            "possibleFinders": [
+              "B",
+              "C",
+              "D",
+              "E",
+              "A"
+            ],
+            "supportsFact": "背叛暗示",
+            "isMisleading": false,
+            "isDecisive": false,
+            "missingDetail": false
+          },
+          {
+            "clueId": "smb-mtn0omak-i233f-internal_conflict-6",
+            "label": "内部冲突",
+            "mechanismId": "smb-mtn0omak-i233f",
+            "templateId": "M08-1",
+            "stageId": "act3",
+            "possibleFinders": [
+              "B",
+              "C",
+              "D",
+              "E",
+              "A"
+            ],
+            "supportsFact": "内部冲突",
+            "isMisleading": false,
+            "isDecisive": false,
+            "missingDetail": false
+          },
+          {
+            "clueId": "smb-mtn0omak-i233f-hidden_goal_hint-7",
+            "label": "隐藏目标暗示",
+            "mechanismId": "smb-mtn0omak-i233f",
+            "templateId": "M08-1",
+            "stageId": "act3",
+            "possibleFinders": [
+              "B",
+              "C",
+              "D",
+              "E",
+              "A"
+            ],
+            "supportsFact": "隐藏目标暗示",
+            "isMisleading": false,
+            "isDecisive": false,
+            "missingDetail": false
+          },
+          {
+            "clueId": "smb-mtn0omak-i233f-membership_confirmation-8",
+            "label": "归属确认",
+            "mechanismId": "smb-mtn0omak-i233f",
+            "templateId": "M08-1",
+            "stageId": "act3",
+            "possibleFinders": [
+              "B",
+              "C",
+              "D",
+              "E",
+              "A"
+            ],
+            "supportsFact": "归属确认",
+            "isMisleading": false,
+            "isDecisive": false,
+            "missingDetail": false
+          },
+          {
+            "clueId": "smb-mtn0omak-i233f-faction_exposure-9",
+            "label": "阵营暴露",
+            "mechanismId": "smb-mtn0omak-i233f",
+            "templateId": "M08-1",
+            "stageId": "act3",
+            "possibleFinders": [
+              "B",
+              "C",
+              "D",
+              "E",
+              "A"
+            ],
+            "supportsFact": "阵营暴露",
+            "isMisleading": false,
+            "isDecisive": false,
+            "missingDetail": false
+          }
+        ],
+        "characterEntries": [
+          {
+            "id": "D",
+            "name": "杜霄元"
+          },
+          {
+            "id": "B",
+            "name": "沈孤鸿"
+          },
+          {
+            "id": "C",
+            "name": "顾清商"
+          },
+          {
+            "id": "F",
+            "name": "莫玄宗"
+          },
+          {
+            "id": "A",
+            "name": "白斋子"
+          },
+          {
+            "id": "NPC_LU",
+            "name": "陆老爷"
+          },
+          {
+            "id": "E",
+            "name": "叶晚晴"
+          }
+        ],
+        "unresolvedDetails": [
+          "缺完整 actor/goal/action，或源 beat 已标 NEEDS_DETAIL"
+        ],
+        "warnings": [
+          {
+            "id": "warn-low-weave",
+            "type": "LOW_WEAVE_DENSITY",
+            "severity": "info",
+            "message": "整本存在较少真正交织关系；当前母稿主要由平行剧情 + 同场并列构成。P6 未伪造额外因果。",
+            "stageIds": [
+              "act1",
+              "act2",
+              "act3",
+              "act4"
+            ],
+            "beatIds": []
+          },
+          {
+            "id": "warn-detail-ob-mtn0omal-fjiu",
+            "type": "NEEDS_DETAIL",
+            "severity": "info",
+            "message": "「沈孤鸿为了在暴露风险下改归属或保住秘密，在关键选择点背叛、退出或清洗异己（目标：归属状态）」仍缺具体细节。",
+            "stageIds": [
+              "act3"
+            ],
+            "beatIds": [
+              "ob-mtn0omal-fjiu"
+            ]
+          }
+        ]
+      },
+      {
+        "stageId": "act4",
+        "stageRole": "PAYOFF",
+        "title": "收束",
+        "order": 3,
+        "purpose": "杜霄元：锁定真凶沈孤鸿；沈孤鸿：承受身份公开后的关系后果；沈孤鸿：结算阵营目标并承受公开后果",
+        "beats": [
+          {
+            "id": "pbeat-ob-mtn0omal-vjbh",
+            "sourceBeatId": "beat-res",
+            "sourceOutlineBeatId": "ob-mtn0omal-vjbh",
+            "sourceBlockId": "smb-mtn0omaj-6me1y",
+            "sourceMechanismId": "smb-mtn0omaj-6me1y",
+            "templateId": "M01-FRAMING",
+            "familyId": "M01",
+            "actors": [
+              {
+                "id": "D",
+                "name": "杜霄元"
+              },
+              {
+                "id": "A",
+                "name": "白斋子"
+              },
+              {
+                "id": "B",
+                "name": "沈孤鸿"
+              },
+              {
+                "id": "C",
+                "name": "顾清商"
+              }
+            ],
+            "goal": "锁定真凶沈孤鸿",
+            "action": "用决定性证据揭穿嫁祸",
+            "target": "决定性证据",
+            "setupContext": "案发现场周边",
+            "eventSummary": "杜霄元为了锁定真凶沈孤鸿，用决定性证据揭穿嫁祸（目标：决定性证据）",
+            "immediateConsequence": "真凶锁定",
+            "requires": [
+              {
+                "id": "contradiction",
+                "kind": "contradiction",
+                "summary": "反证"
+              }
+            ],
+            "produces": [
+              {
+                "id": "truth_locked",
+                "kind": "truth",
+                "summary": "真凶锁定"
+              }
+            ],
+            "playerKnowledge": "玩家可见：用决定性证据揭穿嫁祸（仅同场，不暗示因果）",
+            "hostTruth": "主持真相：杜霄元为了锁定真凶沈孤鸿，用决定性证据揭穿嫁祸（目标：决定性证据）",
+            "clueRefs": [
+              "smb-mtn0omaj-6me1y-decisive_evidence-3"
+            ],
+            "relatedCharacterIds": [
+              "D",
+              "A",
+              "B",
+              "C"
+            ],
+            "relationQuality": "COLOCATED",
+            "weaveLinkIds": [
+              "wl-mtn0omam-8n7l",
+              "wl-mtn0omam-zlz2"
+            ],
+            "relationNotes": [
+              "【同场并列】同阶段共享角色 D、A、B——可同场并列，不算真正交织",
+              "【同场并列】同阶段共享角色 D、A、B、C——可同场并列，不算真正交织"
+            ],
+            "needsDetail": false,
+            "contentConfirmed": false
+          },
+          {
+            "id": "pbeat-ob-mtn0omal-wh9o",
+            "sourceBeatId": "beat-res",
+            "sourceOutlineBeatId": "ob-mtn0omal-wh9o",
+            "sourceBlockId": "smb-mtn0omaj-9lmpr",
+            "sourceMechanismId": "smb-mtn0omaj-9lmpr",
+            "templateId": "M07-5",
+            "familyId": "M07",
+            "actors": [
+              {
+                "id": "B",
+                "name": "沈孤鸿"
+              },
+              {
+                "id": "F",
+                "name": "莫玄宗"
+              },
+              {
+                "id": "D",
+                "name": "杜霄元"
+              },
+              {
+                "id": "A",
+                "name": "白斋子"
+              },
+              {
+                "id": "NPC_LU",
+                "name": "陆老爷"
+              }
+            ],
+            "goal": "承受身份公开后的关系后果",
+            "action": "面对知情者与阵营/调查方的反应",
+            "target": "关系重组",
+            "setupContext": "藏有记录的场所",
+            "eventSummary": "沈孤鸿为了承受身份公开后的关系后果，面对知情者与阵营/调查方的反应（目标：关系重组）",
+            "immediateConsequence": "身份进入公开层",
+            "requires": [
+              {
+                "id": "identity_confirmed",
+                "kind": "identity",
+                "summary": "身份确认"
+              }
+            ],
+            "produces": [
+              {
+                "id": "identity_public",
+                "kind": "identity",
+                "summary": "身份进入公开层"
+              }
+            ],
+            "playerKnowledge": "玩家可见：面对知情者与阵营/调查方的反应（仅同场，不暗示因果）",
+            "hostTruth": "主持真相：沈孤鸿为了承受身份公开后的关系后果，面对知情者与阵营/调查方的反应（目标：关系重组）",
+            "clueRefs": [],
+            "relatedCharacterIds": [
+              "B",
+              "F",
+              "D",
+              "A",
+              "NPC_LU"
+            ],
+            "relationQuality": "COLOCATED",
+            "weaveLinkIds": [
+              "wl-mtn0omam-ts9m",
+              "wl-mtn0omam-8n7l",
+              "wl-mtn0omam-q5vk"
+            ],
+            "relationNotes": [
+              "【同场并列】共享角色 D、B——仅角色重合，保持同场并列而非强制合并",
+              "【同场并列】同阶段共享角色 D、A、B——可同场并列，不算真正交织",
+              "【同场并列】同阶段共享角色 B、D、A——可同场并列，不算真正交织"
+            ],
+            "needsDetail": false,
+            "contentConfirmed": false
+          },
+          {
+            "id": "pbeat-ob-mtn0omal-ve2x",
+            "sourceBeatId": "beat-res",
+            "sourceOutlineBeatId": "ob-mtn0omal-ve2x",
+            "sourceBlockId": "smb-mtn0omak-i233f",
+            "sourceMechanismId": "smb-mtn0omak-i233f",
+            "templateId": "M08-1",
+            "familyId": "M08",
+            "actors": [
+              {
+                "id": "B",
+                "name": "沈孤鸿"
+              },
+              {
+                "id": "C",
+                "name": "顾清商"
+              },
+              {
+                "id": "D",
+                "name": "杜霄元"
+              },
+              {
+                "id": "E",
+                "name": "叶晚晴"
+              },
+              {
+                "id": "A",
+                "name": "白斋子"
+              }
+            ],
+            "goal": "结算阵营目标并承受公开后果",
+            "action": "公开站队或接受阵营败露后的关系重排",
+            "target": "阵营胜负条件",
+            "setupContext": "阵营关键据点",
+            "eventSummary": "沈孤鸿为了结算阵营目标并承受公开后果，公开站队或接受阵营败露后的关系重排（目标：阵营胜负条件）",
+            "immediateConsequence": "阵营线结算",
+            "requires": [
+              {
+                "id": "allegiance_changed",
+                "kind": "faction",
+                "summary": "归属变化"
+              }
+            ],
+            "produces": [
+              {
+                "id": "faction_settled",
+                "kind": "faction",
+                "summary": "阵营线结算"
+              }
+            ],
+            "playerKnowledge": "玩家可见：公开站队或接受阵营败露后的关系重排（仅同场，不暗示因果）",
+            "hostTruth": "主持真相：沈孤鸿为了结算阵营目标并承受公开后果，公开站队或接受阵营败露后的关系重排（目标：阵营胜负条件）",
+            "clueRefs": [],
+            "relatedCharacterIds": [
+              "B",
+              "C",
+              "D",
+              "E",
+              "A"
+            ],
+            "relationQuality": "COLOCATED",
+            "weaveLinkIds": [
+              "wl-mtn0omam-c9ww",
+              "wl-mtn0omam-zlz2",
+              "wl-mtn0omam-zt1v",
+              "wl-mtn0omam-q5vk"
+            ],
+            "relationNotes": [
+              "【同场并列】共享角色 D、B、C——仅角色重合，保持同场并列而非强制合并",
+              "【同场并列】同阶段共享角色 D、A、B、C——可同场并列，不算真正交织",
+              "【同场并列】共享角色 B、D、A——仅角色重合，保持同场并列而非强制合并",
+              "【同场并列】同阶段共享角色 B、D、A——可同场并列，不算真正交织"
+            ],
+            "needsDetail": false,
+            "contentConfirmed": false
+          }
+        ],
+        "playerVisibleSummary": "玩家可见：用决定性证据揭穿嫁祸（仅同场，不暗示因果） / 玩家可见：面对知情者与阵营/调查方的反应（仅同场，不暗示因果） / 玩家可见：公开站队或接受阵营败露后的关系重排（仅同场，不暗示因果）",
+        "hostTruthSummary": "主持真相：杜霄元为了锁定真凶沈孤鸿，用决定性证据揭穿嫁祸（目标：决定性证据） / 主持真相：沈孤鸿为了承受身份公开后的关系后果，面对知情者与阵营/调查方的反应（目标：关系重组） / 主持真相：沈孤鸿为了结算阵营目标并承受公开后果，公开站队或接受阵营败露后的关系重排（目标：阵营胜负条件）",
+        "stageStartState": "承接上一阶段已声明后果；未声明者标 UNKNOWN",
+        "stageEndState": "真凶锁定；身份进入公开层；阵营线结算",
+        "clueEntries": [
+          {
+            "clueId": "smb-mtn0omaj-6me1y-decisive_evidence-3",
+            "label": "突破",
+            "mechanismId": "smb-mtn0omaj-6me1y",
+            "templateId": "M01-FRAMING",
+            "stageId": "act4",
+            "possibleFinders": [
+              "D",
+              "A",
+              "B",
+              "C"
+            ],
+            "supportsFact": "库房钥匙记录证明真凶曾移动该物",
+            "isMisleading": false,
+            "isDecisive": false,
+            "missingDetail": false
+          },
+          {
+            "clueId": "fact-interface:ob-mtn0omal-wh9o",
+            "label": "事实接口（尚无线索实体）",
+            "mechanismId": "smb-mtn0omaj-9lmpr",
+            "templateId": "M07-5",
+            "stageId": "act4",
+            "possibleFinders": [
+              "B",
+              "F",
+              "D",
+              "A",
+              "NPC_LU"
+            ],
+            "supportsFact": "身份确认；身份进入公开层",
+            "isMisleading": false,
+            "isDecisive": false,
+            "missingDetail": true,
+            "detailNote": "这个剧情 beat 需要关键线索，但模板尚未提供具体线索内容。"
+          },
+          {
+            "clueId": "fact-interface:ob-mtn0omal-ve2x",
+            "label": "事实接口（尚无线索实体）",
+            "mechanismId": "smb-mtn0omak-i233f",
+            "templateId": "M08-1",
+            "stageId": "act4",
+            "possibleFinders": [
+              "B",
+              "C",
+              "D",
+              "E",
+              "A"
+            ],
+            "supportsFact": "归属变化；阵营线结算",
+            "isMisleading": false,
+            "isDecisive": false,
+            "missingDetail": true,
+            "detailNote": "这个剧情 beat 需要关键线索，但模板尚未提供具体线索内容。"
+          }
+        ],
+        "characterEntries": [
+          {
+            "id": "D",
+            "name": "杜霄元"
+          },
+          {
+            "id": "A",
+            "name": "白斋子"
+          },
+          {
+            "id": "B",
+            "name": "沈孤鸿"
+          },
+          {
+            "id": "C",
+            "name": "顾清商"
+          },
+          {
+            "id": "F",
+            "name": "莫玄宗"
+          },
+          {
+            "id": "NPC_LU",
+            "name": "陆老爷"
+          },
+          {
+            "id": "E",
+            "name": "叶晚晴"
+          }
+        ],
+        "unresolvedDetails": [],
+        "warnings": [
+          {
+            "id": "warn-low-weave",
+            "type": "LOW_WEAVE_DENSITY",
+            "severity": "info",
+            "message": "整本存在较少真正交织关系；当前母稿主要由平行剧情 + 同场并列构成。P6 未伪造额外因果。",
+            "stageIds": [
+              "act1",
+              "act2",
+              "act3",
+              "act4"
+            ],
+            "beatIds": []
+          },
+          {
+            "id": "warn-clue-ob-mtn0omal-wh9o",
+            "type": "MISSING_CLUE_DETAIL",
+            "severity": "info",
+            "message": "该剧情 beat 需要/产生事实接口，但模板尚未绑定具体线索内容。",
+            "stageIds": [
+              "act4"
+            ],
+            "beatIds": [
+              "ob-mtn0omal-wh9o"
+            ]
+          },
+          {
+            "id": "warn-clue-ob-mtn0omal-ve2x",
+            "type": "MISSING_CLUE_DETAIL",
+            "severity": "info",
+            "message": "该剧情 beat 需要/产生事实接口，但模板尚未绑定具体线索内容。",
+            "stageIds": [
+              "act4"
+            ],
+            "beatIds": [
+              "ob-mtn0omal-ve2x"
+            ]
+          }
+        ]
+      }
+    ],
+    "truthView": {
+      "events": [
+        {
+          "beatId": "ob-mtn0omal-0117",
+          "stageId": "act1",
+          "whatHappened": "沈孤鸿为了准备可嫁祸的假象，布置与顾清商相关的误导物（目标：被嫁祸者遗失的玉佩）",
+          "who": [
+            "B",
+            "C"
+          ],
+          "why": "准备可嫁祸的假象",
+          "consequence": "误导物已就绪",
+          "isMisleading": true,
+          "isTruth": false,
+          "needsDetail": false
+        },
+        {
+          "beatId": "ob-mtn0omal-phjt",
+          "stageId": "act1",
+          "whatHappened": "沈孤鸿为了隐藏或维持当前身份表象，按伪装/未知状态行动，避免过早暴露（目标：身份表象）",
+          "who": [
+            "B",
+            "F"
+          ],
+          "why": "隐藏或维持当前身份表象",
+          "consequence": "身份仍未公开",
+          "isMisleading": false,
+          "isTruth": true,
+          "needsDetail": false
+        },
+        {
+          "beatId": "ob-mtn0omal-b168",
+          "stageId": "act1",
+          "whatHappened": "沈孤鸿为了公开亮明阵营归属与目标，确认成员知情范围与联络方式（目标：阵营名单/暗号）",
+          "who": [
+            "B",
+            "C"
+          ],
+          "why": "公开亮明阵营归属与目标",
+          "consequence": "阵营结构已成形",
+          "isMisleading": false,
+          "isTruth": true,
+          "needsDetail": false
+        },
+        {
+          "beatId": "ob-mtn0omal-y8ex",
+          "stageId": "act2",
+          "whatHappened": "沈孤鸿为了完成犯行并指向顾清商，实施犯行并留下指向顾清商的痕迹（目标：被嫁祸者遗失的玉佩）",
+          "who": [
+            "B",
+            "A",
+            "D"
+          ],
+          "why": "完成犯行并指向顾清商",
+          "consequence": "犯行已发生；错误嫌疑成立",
+          "isMisleading": true,
+          "isTruth": false,
+          "needsDetail": false
+        },
+        {
+          "beatId": "ob-mtn0omal-oy4d",
+          "stageId": "act2",
+          "whatHappened": "沈孤鸿为了完成犯行并指向顾清商，实施犯行并留下指向顾清商的痕迹（目标：被嫁祸者遗失的玉佩）",
+          "who": [
+            "B",
+            "C"
+          ],
+          "why": "完成犯行并指向顾清商",
+          "consequence": "犯行已发生；错误嫌疑成立",
+          "isMisleading": true,
+          "isTruth": false,
+          "needsDetail": false
+        },
+        {
+          "beatId": "ob-mtn0omal-yye8",
+          "stageId": "act2",
+          "whatHappened": "杜霄元为了推翻对顾清商的错误判断，对照现场与证物寻找矛盾（目标：被嫁祸者遗失的玉佩）",
+          "who": [
+            "D"
+          ],
+          "why": "推翻对顾清商的错误判断",
+          "consequence": "反证出现",
+          "isMisleading": false,
+          "isTruth": true,
+          "needsDetail": false
+        },
+        {
+          "beatId": "ob-mtn0omal-2qpn",
+          "stageId": "act2",
+          "whatHappened": "沈孤鸿为了寻找能确认身份的记录或信物，进入藏有记录的场所搜查身份相关物证（目标：身份记录）",
+          "who": [
+            "B",
+            "F",
+            "D",
+            "A",
+            "NPC_LU"
+          ],
+          "why": "寻找能确认身份的记录或信物",
+          "consequence": "身份线索",
+          "isMisleading": false,
+          "isTruth": true,
+          "needsDetail": false
+        },
+        {
+          "beatId": "ob-mtn0omal-t0yf",
+          "stageId": "act2",
+          "whatHappened": "沈孤鸿为了夺取关键资源，组织成员夺取或销毁关键物证/资源（目标：关键账册或信物）",
+          "who": [
+            "B",
+            "C",
+            "D",
+            "E",
+            "A"
+          ],
+          "why": "夺取关键资源",
+          "consequence": "阵营压力升级",
+          "isMisleading": false,
+          "isTruth": true,
+          "needsDetail": false
+        },
+        {
+          "beatId": "ob-mtn0omal-6f47",
+          "stageId": "act3",
+          "whatHappened": "杜霄元为了推翻对顾清商的错误判断，对照现场与证物寻找矛盾（目标：被嫁祸者遗失的玉佩）",
+          "who": [
+            "D",
+            "B",
+            "C"
+          ],
+          "why": "推翻对顾清商的错误判断",
+          "consequence": "反证出现",
+          "isMisleading": false,
+          "isTruth": true,
+          "needsDetail": false
+        },
+        {
+          "beatId": "ob-mtn0omal-ua8v",
+          "stageId": "act3",
+          "whatHappened": "沈孤鸿为了启用真实身份对应的权限，在揭示后启用权限表并验证资格（目标：真实身份）",
+          "who": [
+            "B",
+            "F",
+            "D",
+            "A",
+            "NPC_LU"
+          ],
+          "why": "启用真实身份对应的权限",
+          "consequence": "身份已确认；资格/权限状态；场所权限可能开放",
+          "isMisleading": false,
+          "isTruth": true,
+          "needsDetail": false
+        },
+        {
+          "beatId": "ob-mtn0omal-fjiu",
+          "stageId": "act3",
+          "whatHappened": "沈孤鸿为了在暴露风险下改归属或保住秘密，在关键选择点背叛、退出或清洗异己（目标：归属状态）",
+          "who": [
+            "B",
+            "C",
+            "D",
+            "E",
+            "A"
+          ],
+          "why": "在暴露风险下改归属或保住秘密",
+          "consequence": "归属已改变；暴露风险上升",
+          "isMisleading": false,
+          "isTruth": true,
+          "needsDetail": true
+        },
+        {
+          "beatId": "ob-mtn0omal-vjbh",
+          "stageId": "act4",
+          "whatHappened": "杜霄元为了锁定真凶沈孤鸿，用决定性证据揭穿嫁祸（目标：决定性证据）",
+          "who": [
+            "D",
+            "A",
+            "B",
+            "C"
+          ],
+          "why": "锁定真凶沈孤鸿",
+          "consequence": "真凶锁定",
+          "isMisleading": false,
+          "isTruth": true,
+          "needsDetail": false
+        },
+        {
+          "beatId": "ob-mtn0omal-wh9o",
+          "stageId": "act4",
+          "whatHappened": "沈孤鸿为了承受身份公开后的关系后果，面对知情者与阵营/调查方的反应（目标：关系重组）",
+          "who": [
+            "B",
+            "F",
+            "D",
+            "A",
+            "NPC_LU"
+          ],
+          "why": "承受身份公开后的关系后果",
+          "consequence": "身份进入公开层",
+          "isMisleading": false,
+          "isTruth": true,
+          "needsDetail": false
+        },
+        {
+          "beatId": "ob-mtn0omal-ve2x",
+          "stageId": "act4",
+          "whatHappened": "沈孤鸿为了结算阵营目标并承受公开后果，公开站队或接受阵营败露后的关系重排（目标：阵营胜负条件）",
+          "who": [
+            "B",
+            "C",
+            "D",
+            "E",
+            "A"
+          ],
+          "why": "结算阵营目标并承受公开后果",
+          "consequence": "阵营线结算",
+          "isMisleading": false,
+          "isTruth": true,
+          "needsDetail": false
+        }
+      ]
+    },
+    "characterViews": {
+      "characters": [
+        {
+          "characterId": "B",
+          "name": "沈孤鸿",
+          "stages": [
+            {
+              "stageId": "act1",
+              "knows": "本阶段可见行动相关：确认成员知情范围与联络方式",
+              "goal": "公开亮明阵营归属与目标",
+              "action": "确认成员知情范围与联络方式",
+              "relationChanges": [
+                "同场出现（非因果）",
+                "同场出现（非因果）",
+                "同场出现（非因果）"
+              ],
+              "gainedInfo": "阵营结构已成形",
+              "misunderstanding": "NEEDS_DETAIL",
+              "endChange": "阵营结构已成形",
+              "needsDetail": false
+            },
+            {
+              "stageId": "act2",
+              "knows": "本阶段可见行动相关：组织成员夺取或销毁关键物证/资源",
+              "goal": "夺取关键资源",
+              "action": "组织成员夺取或销毁关键物证/资源",
+              "relationChanges": [
+                "同场出现（非因果）",
+                "参与真正交织行动",
+                "参与真正交织行动"
+              ],
+              "gainedInfo": "阵营压力升级",
+              "misunderstanding": "NEEDS_DETAIL",
+              "endChange": "阵营压力升级",
+              "needsDetail": false
+            },
+            {
+              "stageId": "act3",
+              "knows": "本阶段可见行动相关：在关键选择点背叛、退出或清洗异己",
+              "goal": "在暴露风险下改归属或保住秘密",
+              "action": "在关键选择点背叛、退出或清洗异己",
+              "relationChanges": [
+                "同场出现（非因果）",
+                "同场出现（非因果）",
+                "同场出现（非因果）"
+              ],
+              "gainedInfo": "归属已改变；暴露风险上升",
+              "misunderstanding": "NEEDS_DETAIL",
+              "endChange": "归属已改变；暴露风险上升",
+              "needsDetail": false
+            },
+            {
+              "stageId": "act4",
+              "knows": "本阶段可见行动相关：公开站队或接受阵营败露后的关系重排",
+              "goal": "结算阵营目标并承受公开后果",
+              "action": "公开站队或接受阵营败露后的关系重排",
+              "relationChanges": [
+                "同场出现（非因果）",
+                "同场出现（非因果）",
+                "同场出现（非因果）"
+              ],
+              "gainedInfo": "阵营线结算",
+              "misunderstanding": "NEEDS_DETAIL",
+              "endChange": "阵营线结算",
+              "needsDetail": false
+            }
+          ]
+        },
+        {
+          "characterId": "C",
+          "name": "顾清商",
+          "stages": [
+            {
+              "stageId": "act1",
+              "knows": "本阶段可见行动相关：确认成员知情范围与联络方式",
+              "goal": "公开亮明阵营归属与目标",
+              "action": "确认成员知情范围与联络方式",
+              "relationChanges": [
+                "同场出现（非因果）",
+                "同场出现（非因果）"
+              ],
+              "gainedInfo": "阵营结构已成形",
+              "misunderstanding": "NEEDS_DETAIL",
+              "endChange": "阵营结构已成形",
+              "needsDetail": false
+            },
+            {
+              "stageId": "act2",
+              "knows": "本阶段可见行动相关：组织成员夺取或销毁关键物证/资源",
+              "goal": "夺取关键资源",
+              "action": "组织成员夺取或销毁关键物证/资源",
+              "relationChanges": [
+                "参与真正交织行动"
+              ],
+              "gainedInfo": "阵营压力升级",
+              "misunderstanding": "NEEDS_DETAIL",
+              "endChange": "阵营压力升级",
+              "needsDetail": false
+            },
+            {
+              "stageId": "act3",
+              "knows": "本阶段可见行动相关：在关键选择点背叛、退出或清洗异己",
+              "goal": "在暴露风险下改归属或保住秘密",
+              "action": "在关键选择点背叛、退出或清洗异己",
+              "relationChanges": [
+                "同场出现（非因果）",
+                "同场出现（非因果）"
+              ],
+              "gainedInfo": "归属已改变；暴露风险上升",
+              "misunderstanding": "NEEDS_DETAIL",
+              "endChange": "归属已改变；暴露风险上升",
+              "needsDetail": false
+            },
+            {
+              "stageId": "act4",
+              "knows": "本阶段可见行动相关：公开站队或接受阵营败露后的关系重排",
+              "goal": "结算阵营目标并承受公开后果",
+              "action": "公开站队或接受阵营败露后的关系重排",
+              "relationChanges": [
+                "同场出现（非因果）",
+                "同场出现（非因果）"
+              ],
+              "gainedInfo": "阵营线结算",
+              "misunderstanding": "NEEDS_DETAIL",
+              "endChange": "阵营线结算",
+              "needsDetail": false
+            }
+          ]
+        },
+        {
+          "characterId": "F",
+          "name": "莫玄宗",
+          "stages": [
+            {
+              "stageId": "act1",
+              "knows": "本阶段可见行动相关：按伪装/未知状态行动，避免过早暴露",
+              "goal": "隐藏或维持当前身份表象",
+              "action": "按伪装/未知状态行动，避免过早暴露",
+              "relationChanges": [
+                "同场出现（非因果）"
+              ],
+              "gainedInfo": "身份仍未公开",
+              "misunderstanding": "NEEDS_DETAIL",
+              "endChange": "身份仍未公开",
+              "needsDetail": false
+            },
+            {
+              "stageId": "act2",
+              "knows": "本阶段可见行动相关：进入藏有记录的场所搜查身份相关物证",
+              "goal": "寻找能确认身份的记录或信物",
+              "action": "进入藏有记录的场所搜查身份相关物证",
+              "relationChanges": [
+                "参与真正交织行动"
+              ],
+              "gainedInfo": "身份线索",
+              "misunderstanding": "NEEDS_DETAIL",
+              "endChange": "身份线索",
+              "needsDetail": false
+            },
+            {
+              "stageId": "act3",
+              "knows": "本阶段可见行动相关：在揭示后启用权限表并验证资格",
+              "goal": "启用真实身份对应的权限",
+              "action": "在揭示后启用权限表并验证资格",
+              "relationChanges": [
+                "同场出现（非因果）"
+              ],
+              "gainedInfo": "身份已确认；资格/权限状态；场所权限可能开放",
+              "misunderstanding": "NEEDS_DETAIL",
+              "endChange": "身份已确认；资格/权限状态；场所权限可能开放",
+              "needsDetail": false
+            },
+            {
+              "stageId": "act4",
+              "knows": "本阶段可见行动相关：面对知情者与阵营/调查方的反应",
+              "goal": "承受身份公开后的关系后果",
+              "action": "面对知情者与阵营/调查方的反应",
+              "relationChanges": [
+                "同场出现（非因果）"
+              ],
+              "gainedInfo": "身份进入公开层",
+              "misunderstanding": "NEEDS_DETAIL",
+              "endChange": "身份进入公开层",
+              "needsDetail": false
+            }
+          ]
+        },
+        {
+          "characterId": "A",
+          "name": "白斋子",
+          "stages": [
+            {
+              "stageId": "act2",
+              "knows": "本阶段可见行动相关：组织成员夺取或销毁关键物证/资源",
+              "goal": "夺取关键资源",
+              "action": "组织成员夺取或销毁关键物证/资源",
+              "relationChanges": [
+                "同场出现（非因果）",
+                "参与真正交织行动",
+                "参与真正交织行动"
+              ],
+              "gainedInfo": "阵营压力升级",
+              "misunderstanding": "NEEDS_DETAIL",
+              "endChange": "阵营压力升级",
+              "needsDetail": false
+            },
+            {
+              "stageId": "act3",
+              "knows": "本阶段可见行动相关：在关键选择点背叛、退出或清洗异己",
+              "goal": "在暴露风险下改归属或保住秘密",
+              "action": "在关键选择点背叛、退出或清洗异己",
+              "relationChanges": [
+                "同场出现（非因果）",
+                "同场出现（非因果）"
+              ],
+              "gainedInfo": "归属已改变；暴露风险上升",
+              "misunderstanding": "NEEDS_DETAIL",
+              "endChange": "归属已改变；暴露风险上升",
+              "needsDetail": false
+            },
+            {
+              "stageId": "act4",
+              "knows": "本阶段可见行动相关：公开站队或接受阵营败露后的关系重排",
+              "goal": "结算阵营目标并承受公开后果",
+              "action": "公开站队或接受阵营败露后的关系重排",
+              "relationChanges": [
+                "同场出现（非因果）",
+                "同场出现（非因果）",
+                "同场出现（非因果）"
+              ],
+              "gainedInfo": "阵营线结算",
+              "misunderstanding": "NEEDS_DETAIL",
+              "endChange": "阵营线结算",
+              "needsDetail": false
+            }
+          ]
+        },
+        {
+          "characterId": "D",
+          "name": "杜霄元",
+          "stages": [
+            {
+              "stageId": "act2",
+              "knows": "本阶段可见行动相关：组织成员夺取或销毁关键物证/资源",
+              "goal": "夺取关键资源",
+              "action": "组织成员夺取或销毁关键物证/资源",
+              "relationChanges": [
+                "同场出现（非因果）",
+                "参与真正交织行动",
+                "参与真正交织行动"
+              ],
+              "gainedInfo": "阵营压力升级",
+              "misunderstanding": "NEEDS_DETAIL",
+              "endChange": "阵营压力升级",
+              "needsDetail": false
+            },
+            {
+              "stageId": "act3",
+              "knows": "本阶段可见行动相关：在关键选择点背叛、退出或清洗异己",
+              "goal": "在暴露风险下改归属或保住秘密",
+              "action": "在关键选择点背叛、退出或清洗异己",
+              "relationChanges": [
+                "同场出现（非因果）",
+                "同场出现（非因果）",
+                "同场出现（非因果）"
+              ],
+              "gainedInfo": "归属已改变；暴露风险上升",
+              "misunderstanding": "NEEDS_DETAIL",
+              "endChange": "归属已改变；暴露风险上升",
+              "needsDetail": false
+            },
+            {
+              "stageId": "act4",
+              "knows": "本阶段可见行动相关：公开站队或接受阵营败露后的关系重排",
+              "goal": "结算阵营目标并承受公开后果",
+              "action": "公开站队或接受阵营败露后的关系重排",
+              "relationChanges": [
+                "同场出现（非因果）",
+                "同场出现（非因果）",
+                "同场出现（非因果）"
+              ],
+              "gainedInfo": "阵营线结算",
+              "misunderstanding": "NEEDS_DETAIL",
+              "endChange": "阵营线结算",
+              "needsDetail": false
+            }
+          ]
+        },
+        {
+          "characterId": "NPC_LU",
+          "name": "陆老爷",
+          "stages": [
+            {
+              "stageId": "act2",
+              "knows": "本阶段可见行动相关：进入藏有记录的场所搜查身份相关物证",
+              "goal": "寻找能确认身份的记录或信物",
+              "action": "进入藏有记录的场所搜查身份相关物证",
+              "relationChanges": [
+                "参与真正交织行动"
+              ],
+              "gainedInfo": "身份线索",
+              "misunderstanding": "NEEDS_DETAIL",
+              "endChange": "身份线索",
+              "needsDetail": false
+            },
+            {
+              "stageId": "act3",
+              "knows": "本阶段可见行动相关：在揭示后启用权限表并验证资格",
+              "goal": "启用真实身份对应的权限",
+              "action": "在揭示后启用权限表并验证资格",
+              "relationChanges": [
+                "同场出现（非因果）"
+              ],
+              "gainedInfo": "身份已确认；资格/权限状态；场所权限可能开放",
+              "misunderstanding": "NEEDS_DETAIL",
+              "endChange": "身份已确认；资格/权限状态；场所权限可能开放",
+              "needsDetail": false
+            },
+            {
+              "stageId": "act4",
+              "knows": "本阶段可见行动相关：面对知情者与阵营/调查方的反应",
+              "goal": "承受身份公开后的关系后果",
+              "action": "面对知情者与阵营/调查方的反应",
+              "relationChanges": [
+                "同场出现（非因果）"
+              ],
+              "gainedInfo": "身份进入公开层",
+              "misunderstanding": "NEEDS_DETAIL",
+              "endChange": "身份进入公开层",
+              "needsDetail": false
+            }
+          ]
+        },
+        {
+          "characterId": "E",
+          "name": "叶晚晴",
+          "stages": [
+            {
+              "stageId": "act2",
+              "knows": "本阶段可见行动相关：组织成员夺取或销毁关键物证/资源",
+              "goal": "夺取关键资源",
+              "action": "组织成员夺取或销毁关键物证/资源",
+              "relationChanges": [
+                "参与真正交织行动"
+              ],
+              "gainedInfo": "阵营压力升级",
+              "misunderstanding": "NEEDS_DETAIL",
+              "endChange": "阵营压力升级",
+              "needsDetail": false
+            },
+            {
+              "stageId": "act3",
+              "knows": "本阶段可见行动相关：在关键选择点背叛、退出或清洗异己",
+              "goal": "在暴露风险下改归属或保住秘密",
+              "action": "在关键选择点背叛、退出或清洗异己",
+              "relationChanges": [
+                "同场出现（非因果）"
+              ],
+              "gainedInfo": "归属已改变；暴露风险上升",
+              "misunderstanding": "NEEDS_DETAIL",
+              "endChange": "归属已改变；暴露风险上升",
+              "needsDetail": false
+            },
+            {
+              "stageId": "act4",
+              "knows": "本阶段可见行动相关：公开站队或接受阵营败露后的关系重排",
+              "goal": "结算阵营目标并承受公开后果",
+              "action": "公开站队或接受阵营败露后的关系重排",
+              "relationChanges": [
+                "同场出现（非因果）"
+              ],
+              "gainedInfo": "阵营线结算",
+              "misunderstanding": "NEEDS_DETAIL",
+              "endChange": "阵营线结算",
+              "needsDetail": false
+            }
+          ]
+        }
+      ]
+    },
+    "clueView": {
+      "clues": [
+        {
+          "clueId": "fact-interface:ob-mtn0omal-0117",
+          "label": "事实接口（尚无线索实体）",
+          "mechanismId": "smb-mtn0omaj-6me1y",
+          "templateId": "M01-FRAMING",
+          "stageId": "act1",
+          "possibleFinders": [
+            "B",
+            "C"
+          ],
+          "supportsFact": "误导物已就绪",
+          "isMisleading": false,
+          "isDecisive": false,
+          "missingDetail": true,
+          "detailNote": "这个剧情 beat 需要关键线索，但模板尚未提供具体线索内容。"
+        },
+        {
+          "clueId": "smb-mtn0omaj-9lmpr-foreshadow-0",
+          "label": "早期伏笔",
+          "mechanismId": "smb-mtn0omaj-9lmpr",
+          "templateId": "M07-5",
+          "stageId": "act1",
+          "possibleFinders": [
+            "B",
+            "F"
+          ],
+          "supportsFact": "早期伏笔",
+          "isMisleading": false,
+          "isDecisive": false,
+          "missingDetail": false
+        },
+        {
+          "clueId": "smb-mtn0omak-i233f-faction_foreshadow-0",
+          "label": "阵营伏笔",
+          "mechanismId": "smb-mtn0omak-i233f",
+          "templateId": "M08-1",
+          "stageId": "act1",
+          "possibleFinders": [
+            "B",
+            "C"
+          ],
+          "supportsFact": "阵营伏笔",
+          "isMisleading": false,
+          "isDecisive": false,
+          "missingDetail": false
+        },
+        {
+          "clueId": "smb-mtn0omaj-6me1y-false_lead-0",
+          "label": "误导",
+          "mechanismId": "smb-mtn0omaj-6me1y",
+          "templateId": "M01-FRAMING",
+          "stageId": "act2",
+          "possibleFinders": [
+            "B",
+            "A",
+            "D"
+          ],
+          "supportsFact": "被嫁祸者遗失的玉佩",
+          "isMisleading": false,
+          "isDecisive": false,
+          "missingDetail": false
+        },
+        {
+          "clueId": "smb-mtn0omaj-6me1y-contradiction-1",
+          "label": "反证",
+          "mechanismId": "smb-mtn0omaj-6me1y",
+          "templateId": "M01-FRAMING",
+          "stageId": "act2",
+          "possibleFinders": [
+            "D"
+          ],
+          "supportsFact": "玉佩沾有仅库房存在的红蜡",
+          "isMisleading": false,
+          "isDecisive": false,
+          "missingDetail": false
+        },
+        {
+          "clueId": "smb-mtn0omaj-9lmpr-foreshadow-0",
+          "label": "早期伏笔",
+          "mechanismId": "smb-mtn0omaj-9lmpr",
+          "templateId": "M07-5",
+          "stageId": "act2",
+          "possibleFinders": [
+            "B",
+            "F",
+            "D",
+            "A",
+            "NPC_LU"
+          ],
+          "supportsFact": "早期伏笔",
+          "isMisleading": false,
+          "isDecisive": false,
+          "missingDetail": false
+        },
+        {
+          "clueId": "smb-mtn0omak-i233f-faction_foreshadow-0",
+          "label": "阵营伏笔",
+          "mechanismId": "smb-mtn0omak-i233f",
+          "templateId": "M08-1",
+          "stageId": "act2",
+          "possibleFinders": [
+            "B",
+            "C",
+            "D",
+            "E",
+            "A"
+          ],
+          "supportsFact": "阵营伏笔",
+          "isMisleading": false,
+          "isDecisive": false,
+          "missingDetail": false
+        },
+        {
+          "clueId": "smb-mtn0omaj-6me1y-true_evidence-2",
+          "label": "真手法",
+          "mechanismId": "smb-mtn0omaj-6me1y",
+          "templateId": "M01-FRAMING",
+          "stageId": "act3",
+          "possibleFinders": [
+            "D",
+            "B",
+            "C"
+          ],
+          "supportsFact": "勒杀",
+          "isMisleading": false,
+          "isDecisive": false,
+          "missingDetail": false
+        },
+        {
+          "clueId": "smb-mtn0omaj-6me1y-decisive_evidence-3",
+          "label": "突破",
+          "mechanismId": "smb-mtn0omaj-6me1y",
+          "templateId": "M01-FRAMING",
+          "stageId": "act3",
+          "possibleFinders": [
+            "D",
+            "B",
+            "C"
+          ],
+          "supportsFact": "库房钥匙记录证明真凶曾移动该物",
+          "isMisleading": false,
+          "isDecisive": false,
+          "missingDetail": false
+        },
+        {
+          "clueId": "smb-mtn0omaj-9lmpr-memory_fragment-1",
+          "label": "记忆碎片",
+          "mechanismId": "smb-mtn0omaj-9lmpr",
+          "templateId": "M07-5",
+          "stageId": "act3",
+          "possibleFinders": [
+            "B",
+            "F",
+            "D",
+            "A",
+            "NPC_LU"
+          ],
+          "supportsFact": "记忆碎片",
+          "isMisleading": false,
+          "isDecisive": false,
+          "missingDetail": false
+        },
+        {
+          "clueId": "smb-mtn0omaj-9lmpr-identity_hint-2",
+          "label": "身份暗示",
+          "mechanismId": "smb-mtn0omaj-9lmpr",
+          "templateId": "M07-5",
+          "stageId": "act3",
+          "possibleFinders": [
+            "B",
+            "F",
+            "D",
+            "A",
+            "NPC_LU"
+          ],
+          "supportsFact": "身份暗示",
+          "isMisleading": false,
+          "isDecisive": false,
+          "missingDetail": false
+        },
+        {
+          "clueId": "smb-mtn0omaj-9lmpr-misdirection-3",
+          "label": "误导",
+          "mechanismId": "smb-mtn0omaj-9lmpr",
+          "templateId": "M07-5",
+          "stageId": "act3",
+          "possibleFinders": [
+            "B",
+            "F",
+            "D",
+            "A",
+            "NPC_LU"
+          ],
+          "supportsFact": "误导",
+          "isMisleading": false,
+          "isDecisive": false,
+          "missingDetail": false
+        },
+        {
+          "clueId": "smb-mtn0omaj-9lmpr-confirmation-4",
+          "label": "确认",
+          "mechanismId": "smb-mtn0omaj-9lmpr",
+          "templateId": "M07-5",
+          "stageId": "act3",
+          "possibleFinders": [
+            "B",
+            "F",
+            "D",
+            "A",
+            "NPC_LU"
+          ],
+          "supportsFact": "确认",
+          "isMisleading": false,
+          "isDecisive": false,
+          "missingDetail": false
+        },
+        {
+          "clueId": "smb-mtn0omaj-9lmpr-decisive_reveal-5",
+          "label": "决定性揭示",
+          "mechanismId": "smb-mtn0omaj-9lmpr",
+          "templateId": "M07-5",
+          "stageId": "act3",
+          "possibleFinders": [
+            "B",
+            "F",
+            "D",
+            "A",
+            "NPC_LU"
+          ],
+          "supportsFact": "决定性揭示",
+          "isMisleading": false,
+          "isDecisive": true,
+          "missingDetail": false
+        },
+        {
+          "clueId": "smb-mtn0omak-i233f-membership_hint-1",
+          "label": "成员暗示",
+          "mechanismId": "smb-mtn0omak-i233f",
+          "templateId": "M08-1",
+          "stageId": "act3",
+          "possibleFinders": [
+            "B",
+            "C",
+            "D",
+            "E",
+            "A"
+          ],
+          "supportsFact": "成员暗示",
+          "isMisleading": false,
+          "isDecisive": false,
+          "missingDetail": false
+        },
+        {
+          "clueId": "smb-mtn0omak-i233f-secret_signal-2",
+          "label": "秘密信号",
+          "mechanismId": "smb-mtn0omak-i233f",
+          "templateId": "M08-1",
+          "stageId": "act3",
+          "possibleFinders": [
+            "B",
+            "C",
+            "D",
+            "E",
+            "A"
+          ],
+          "supportsFact": "秘密信号",
+          "isMisleading": false,
+          "isDecisive": false,
+          "missingDetail": false
+        },
+        {
+          "clueId": "smb-mtn0omak-i233f-recruitment_evidence-3",
+          "label": "招募证据",
+          "mechanismId": "smb-mtn0omak-i233f",
+          "templateId": "M08-1",
+          "stageId": "act3",
+          "possibleFinders": [
+            "B",
+            "C",
+            "D",
+            "E",
+            "A"
+          ],
+          "supportsFact": "招募证据",
+          "isMisleading": false,
+          "isDecisive": false,
+          "missingDetail": false
+        },
+        {
+          "clueId": "smb-mtn0omak-i233f-loyalty_test-4",
+          "label": "忠诚考验",
+          "mechanismId": "smb-mtn0omak-i233f",
+          "templateId": "M08-1",
+          "stageId": "act3",
+          "possibleFinders": [
+            "B",
+            "C",
+            "D",
+            "E",
+            "A"
+          ],
+          "supportsFact": "忠诚考验",
+          "isMisleading": false,
+          "isDecisive": false,
+          "missingDetail": false
+        },
+        {
+          "clueId": "smb-mtn0omak-i233f-betrayal_hint-5",
+          "label": "背叛暗示",
+          "mechanismId": "smb-mtn0omak-i233f",
+          "templateId": "M08-1",
+          "stageId": "act3",
+          "possibleFinders": [
+            "B",
+            "C",
+            "D",
+            "E",
+            "A"
+          ],
+          "supportsFact": "背叛暗示",
+          "isMisleading": false,
+          "isDecisive": false,
+          "missingDetail": false
+        },
+        {
+          "clueId": "smb-mtn0omak-i233f-internal_conflict-6",
+          "label": "内部冲突",
+          "mechanismId": "smb-mtn0omak-i233f",
+          "templateId": "M08-1",
+          "stageId": "act3",
+          "possibleFinders": [
+            "B",
+            "C",
+            "D",
+            "E",
+            "A"
+          ],
+          "supportsFact": "内部冲突",
+          "isMisleading": false,
+          "isDecisive": false,
+          "missingDetail": false
+        },
+        {
+          "clueId": "smb-mtn0omak-i233f-hidden_goal_hint-7",
+          "label": "隐藏目标暗示",
+          "mechanismId": "smb-mtn0omak-i233f",
+          "templateId": "M08-1",
+          "stageId": "act3",
+          "possibleFinders": [
+            "B",
+            "C",
+            "D",
+            "E",
+            "A"
+          ],
+          "supportsFact": "隐藏目标暗示",
+          "isMisleading": false,
+          "isDecisive": false,
+          "missingDetail": false
+        },
+        {
+          "clueId": "smb-mtn0omak-i233f-membership_confirmation-8",
+          "label": "归属确认",
+          "mechanismId": "smb-mtn0omak-i233f",
+          "templateId": "M08-1",
+          "stageId": "act3",
+          "possibleFinders": [
+            "B",
+            "C",
+            "D",
+            "E",
+            "A"
+          ],
+          "supportsFact": "归属确认",
+          "isMisleading": false,
+          "isDecisive": false,
+          "missingDetail": false
+        },
+        {
+          "clueId": "smb-mtn0omak-i233f-faction_exposure-9",
+          "label": "阵营暴露",
+          "mechanismId": "smb-mtn0omak-i233f",
+          "templateId": "M08-1",
+          "stageId": "act3",
+          "possibleFinders": [
+            "B",
+            "C",
+            "D",
+            "E",
+            "A"
+          ],
+          "supportsFact": "阵营暴露",
+          "isMisleading": false,
+          "isDecisive": false,
+          "missingDetail": false
+        },
+        {
+          "clueId": "smb-mtn0omaj-6me1y-decisive_evidence-3",
+          "label": "突破",
+          "mechanismId": "smb-mtn0omaj-6me1y",
+          "templateId": "M01-FRAMING",
+          "stageId": "act4",
+          "possibleFinders": [
+            "D",
+            "A",
+            "B",
+            "C"
+          ],
+          "supportsFact": "库房钥匙记录证明真凶曾移动该物",
+          "isMisleading": false,
+          "isDecisive": false,
+          "missingDetail": false
+        },
+        {
+          "clueId": "fact-interface:ob-mtn0omal-wh9o",
+          "label": "事实接口（尚无线索实体）",
+          "mechanismId": "smb-mtn0omaj-9lmpr",
+          "templateId": "M07-5",
+          "stageId": "act4",
+          "possibleFinders": [
+            "B",
+            "F",
+            "D",
+            "A",
+            "NPC_LU"
+          ],
+          "supportsFact": "身份确认；身份进入公开层",
+          "isMisleading": false,
+          "isDecisive": false,
+          "missingDetail": true,
+          "detailNote": "这个剧情 beat 需要关键线索，但模板尚未提供具体线索内容。"
+        },
+        {
+          "clueId": "fact-interface:ob-mtn0omal-ve2x",
+          "label": "事实接口（尚无线索实体）",
+          "mechanismId": "smb-mtn0omak-i233f",
+          "templateId": "M08-1",
+          "stageId": "act4",
+          "possibleFinders": [
+            "B",
+            "C",
+            "D",
+            "E",
+            "A"
+          ],
+          "supportsFact": "归属变化；阵营线结算",
+          "isMisleading": false,
+          "isDecisive": false,
+          "missingDetail": true,
+          "detailNote": "这个剧情 beat 需要关键线索，但模板尚未提供具体线索内容。"
+        }
+      ]
+    },
+    "executionView": {
+      "stages": [
+        {
+          "stageId": "act1",
+          "openingState": "开局：各线按积木 setup 状态进入（不新增前提）",
+          "stageGoal": "沈孤鸿：准备可嫁祸的假象；沈孤鸿：隐藏或维持当前身份表象；沈孤鸿：公开亮明阵营归属与目标",
+          "beatsToAdvance": [
+            "ob-mtn0omal-0117",
+            "ob-mtn0omal-phjt",
+            "ob-mtn0omal-b168"
+          ],
+          "cluesAvailable": [
+            "fact-interface:ob-mtn0omal-0117",
+            "smb-mtn0omaj-9lmpr-foreshadow-0",
+            "smb-mtn0omak-i233f-faction_foreshadow-0"
+          ],
+          "charactersInPlay": [
+            "B",
+            "C",
+            "F"
+          ],
+          "gameMechanismSlots": [
+            {
+              "placementId": "game-slot-ob-mtn0omal-0117",
+              "hint": "预留：可在此 beat 后插入 GAME mechanism（本轮不接 runtime）",
+              "afterBeatId": "ob-mtn0omal-0117"
+            },
+            {
+              "placementId": "game-slot-ob-mtn0omal-phjt",
+              "hint": "预留：可在此 beat 后插入 GAME mechanism（本轮不接 runtime）",
+              "afterBeatId": "ob-mtn0omal-phjt"
+            },
+            {
+              "placementId": "game-slot-ob-mtn0omal-b168",
+              "hint": "预留：可在此 beat 后插入 GAME mechanism（本轮不接 runtime）",
+              "afterBeatId": "ob-mtn0omal-b168"
+            }
+          ],
+          "requiredStateBeforeNext": "误导物已就绪；身份仍未公开；阵营结构已成形"
+        },
+        {
+          "stageId": "act2",
+          "openingState": "承接上一阶段已声明后果；未声明者标 UNKNOWN",
+          "stageGoal": "沈孤鸿：完成犯行并指向顾清商；沈孤鸿：完成犯行并指向顾清商；杜霄元：推翻对顾清商的错误判断",
+          "beatsToAdvance": [
+            "ob-mtn0omal-y8ex",
+            "ob-mtn0omal-oy4d",
+            "ob-mtn0omal-yye8",
+            "ob-mtn0omal-2qpn",
+            "ob-mtn0omal-t0yf"
+          ],
+          "cluesAvailable": [
+            "smb-mtn0omaj-6me1y-false_lead-0",
+            "smb-mtn0omaj-6me1y-contradiction-1",
+            "smb-mtn0omaj-9lmpr-foreshadow-0",
+            "smb-mtn0omak-i233f-faction_foreshadow-0"
+          ],
+          "charactersInPlay": [
+            "B",
+            "A",
+            "D",
+            "C",
+            "F",
+            "NPC_LU",
+            "E"
+          ],
+          "gameMechanismSlots": [
+            {
+              "placementId": "game-slot-ob-mtn0omal-y8ex",
+              "hint": "预留：可在此 beat 后插入 GAME mechanism（本轮不接 runtime）",
+              "afterBeatId": "ob-mtn0omal-y8ex"
+            },
+            {
+              "placementId": "game-slot-ob-mtn0omal-oy4d",
+              "hint": "预留：可在此 beat 后插入 GAME mechanism（本轮不接 runtime）",
+              "afterBeatId": "ob-mtn0omal-oy4d"
+            },
+            {
+              "placementId": "game-slot-ob-mtn0omal-yye8",
+              "hint": "预留：可在此 beat 后插入 GAME mechanism（本轮不接 runtime）",
+              "afterBeatId": "ob-mtn0omal-yye8"
+            },
+            {
+              "placementId": "game-slot-ob-mtn0omal-2qpn",
+              "hint": "预留：可在此 beat 后插入 GAME mechanism（本轮不接 runtime）",
+              "afterBeatId": "ob-mtn0omal-2qpn"
+            },
+            {
+              "placementId": "game-slot-ob-mtn0omal-t0yf",
+              "hint": "预留：可在此 beat 后插入 GAME mechanism（本轮不接 runtime）",
+              "afterBeatId": "ob-mtn0omal-t0yf"
+            }
+          ],
+          "requiredStateBeforeNext": "犯行已发生；错误嫌疑成立；犯行已发生；错误嫌疑成立；反证出现；身份线索；阵营压力升级"
+        },
+        {
+          "stageId": "act3",
+          "openingState": "承接上一阶段已声明后果；未声明者标 UNKNOWN",
+          "stageGoal": "杜霄元：推翻对顾清商的错误判断；沈孤鸿：启用真实身份对应的权限；沈孤鸿：在暴露风险下改归属或保住秘密",
+          "beatsToAdvance": [
+            "ob-mtn0omal-6f47",
+            "ob-mtn0omal-ua8v",
+            "ob-mtn0omal-fjiu"
+          ],
+          "cluesAvailable": [
+            "smb-mtn0omaj-6me1y-true_evidence-2",
+            "smb-mtn0omaj-6me1y-decisive_evidence-3",
+            "smb-mtn0omaj-9lmpr-memory_fragment-1",
+            "smb-mtn0omaj-9lmpr-identity_hint-2",
+            "smb-mtn0omaj-9lmpr-misdirection-3",
+            "smb-mtn0omaj-9lmpr-confirmation-4",
+            "smb-mtn0omaj-9lmpr-decisive_reveal-5",
+            "smb-mtn0omak-i233f-membership_hint-1",
+            "smb-mtn0omak-i233f-secret_signal-2",
+            "smb-mtn0omak-i233f-recruitment_evidence-3",
+            "smb-mtn0omak-i233f-loyalty_test-4",
+            "smb-mtn0omak-i233f-betrayal_hint-5",
+            "smb-mtn0omak-i233f-internal_conflict-6",
+            "smb-mtn0omak-i233f-hidden_goal_hint-7",
+            "smb-mtn0omak-i233f-membership_confirmation-8",
+            "smb-mtn0omak-i233f-faction_exposure-9"
+          ],
+          "charactersInPlay": [
+            "D",
+            "B",
+            "C",
+            "F",
+            "A",
+            "NPC_LU",
+            "E"
+          ],
+          "gameMechanismSlots": [
+            {
+              "placementId": "game-slot-ob-mtn0omal-6f47",
+              "hint": "预留：可在此 beat 后插入 GAME mechanism（本轮不接 runtime）",
+              "afterBeatId": "ob-mtn0omal-6f47"
+            },
+            {
+              "placementId": "game-slot-ob-mtn0omal-ua8v",
+              "hint": "预留：可在此 beat 后插入 GAME mechanism（本轮不接 runtime）",
+              "afterBeatId": "ob-mtn0omal-ua8v"
+            },
+            {
+              "placementId": "game-slot-ob-mtn0omal-fjiu",
+              "hint": "预留：可在此 beat 后插入 GAME mechanism（本轮不接 runtime）",
+              "afterBeatId": "ob-mtn0omal-fjiu"
+            }
+          ],
+          "requiredStateBeforeNext": "反证出现；身份已确认；资格/权限状态；场所权限可能开放；归属已改变；暴露风险上升"
+        },
+        {
+          "stageId": "act4",
+          "openingState": "承接上一阶段已声明后果；未声明者标 UNKNOWN",
+          "stageGoal": "杜霄元：锁定真凶沈孤鸿；沈孤鸿：承受身份公开后的关系后果；沈孤鸿：结算阵营目标并承受公开后果",
+          "beatsToAdvance": [
+            "ob-mtn0omal-vjbh",
+            "ob-mtn0omal-wh9o",
+            "ob-mtn0omal-ve2x"
+          ],
+          "cluesAvailable": [
+            "smb-mtn0omaj-6me1y-decisive_evidence-3",
+            "fact-interface:ob-mtn0omal-wh9o",
+            "fact-interface:ob-mtn0omal-ve2x"
+          ],
+          "charactersInPlay": [
+            "D",
+            "A",
+            "B",
+            "C",
+            "F",
+            "NPC_LU",
+            "E"
+          ],
+          "gameMechanismSlots": [
+            {
+              "placementId": "game-slot-ob-mtn0omal-vjbh",
+              "hint": "预留：可在此 beat 后插入 GAME mechanism（本轮不接 runtime）",
+              "afterBeatId": "ob-mtn0omal-vjbh"
+            },
+            {
+              "placementId": "game-slot-ob-mtn0omal-wh9o",
+              "hint": "预留：可在此 beat 后插入 GAME mechanism（本轮不接 runtime）",
+              "afterBeatId": "ob-mtn0omal-wh9o"
+            },
+            {
+              "placementId": "game-slot-ob-mtn0omal-ve2x",
+              "hint": "预留：可在此 beat 后插入 GAME mechanism（本轮不接 runtime）",
+              "afterBeatId": "ob-mtn0omal-ve2x"
+            }
+          ],
+          "requiredStateBeforeNext": "终幕：无强制下一阶段"
+        }
+      ]
+    },
+    "warnings": [
+      {
+        "id": "warn-low-weave",
+        "type": "LOW_WEAVE_DENSITY",
+        "severity": "info",
+        "message": "整本存在较少真正交织关系；当前母稿主要由平行剧情 + 同场并列构成。P6 未伪造额外因果。",
+        "stageIds": [
+          "act1",
+          "act2",
+          "act3",
+          "act4"
+        ],
+        "beatIds": []
+      },
+      {
+        "id": "warn-clue-ob-mtn0omal-0117",
+        "type": "MISSING_CLUE_DETAIL",
+        "severity": "info",
+        "message": "该剧情 beat 需要/产生事实接口，但模板尚未绑定具体线索内容。",
+        "stageIds": [
+          "act1"
+        ],
+        "beatIds": [
+          "ob-mtn0omal-0117"
+        ]
+      },
+      {
+        "id": "warn-detail-ob-mtn0omal-fjiu",
+        "type": "NEEDS_DETAIL",
+        "severity": "info",
+        "message": "「沈孤鸿为了在暴露风险下改归属或保住秘密，在关键选择点背叛、退出或清洗异己（目标：归属状态）」仍缺具体细节。",
+        "stageIds": [
+          "act3"
+        ],
+        "beatIds": [
+          "ob-mtn0omal-fjiu"
+        ]
+      },
+      {
+        "id": "warn-clue-ob-mtn0omal-wh9o",
+        "type": "MISSING_CLUE_DETAIL",
+        "severity": "info",
+        "message": "该剧情 beat 需要/产生事实接口，但模板尚未绑定具体线索内容。",
+        "stageIds": [
+          "act4"
+        ],
+        "beatIds": [
+          "ob-mtn0omal-wh9o"
+        ]
+      },
+      {
+        "id": "warn-clue-ob-mtn0omal-ve2x",
+        "type": "MISSING_CLUE_DETAIL",
+        "severity": "info",
+        "message": "该剧情 beat 需要/产生事实接口，但模板尚未绑定具体线索内容。",
+        "stageIds": [
+          "act4"
+        ],
+        "beatIds": [
+          "ob-mtn0omal-ve2x"
+        ]
+      },
+      {
+        "id": "warn-conflict-cf-mtn0omam-he11",
+        "type": "ROLE_OVERLOAD",
+        "severity": "warn",
+        "message": "白斋子 当前承担：victim HIGH、discoverer、rival_lead HIGH（负载 5）",
+        "stageIds": [],
+        "beatIds": []
+      },
+      {
+        "id": "warn-conflict-cf-mtn0omam-6577",
+        "type": "ROLE_OVERLOAD",
+        "severity": "warn",
+        "message": "沈孤鸿 当前承担：killer HIGH、identity_bearer HIGH、faction_lead HIGH（负载 7）",
+        "stageIds": [],
+        "beatIds": []
+      },
+      {
+        "id": "warn-conflict-cf-mtn0omam-ki4m",
+        "type": "ROLE_OVERLOAD",
+        "severity": "warn",
+        "message": "顾清商 当前承担：framed HIGH、member（负载 3）",
+        "stageIds": [],
+        "beatIds": []
+      },
+      {
+        "id": "warn-conflict-cf-mtn0omam-biy2",
+        "type": "ROLE_OVERLOAD",
+        "severity": "warn",
+        "message": "杜霄元 当前承担：discoverer、misled、member（负载 3）",
+        "stageIds": [],
+        "beatIds": []
+      },
+      {
+        "id": "warn-conflict-cf-mtn0omam-7zdi",
+        "type": "UNRESOLVED_CONFLICT",
+        "severity": "info",
+        "message": "沈孤鸿 同时是真凶与阵营领袖——可保留为强交织，或拆开降负载。",
+        "stageIds": [],
+        "beatIds": []
+      }
+    ],
+    "structureChangeRequests": [],
+    "status": "DRAFT",
+    "revision": 0,
+    "updatedAt": "2026-09-04T12:00:00.000Z"
+  },
+  "outlineId": "mod-mtn0omam-gb66"
+}

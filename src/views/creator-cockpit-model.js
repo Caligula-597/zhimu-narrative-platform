@@ -39,6 +39,7 @@ export const STAGE_DEFS = [
     subtitle: "把积木交织成整本剧情骨架；可局部调整、确认冲突",
     items: [
       { id: "integrate", title: "交织骨架", link: { canvas: "timeline", action: "cockpit-open-master-outline", label: "打开交织预览" } },
+      { id: "master-draft", title: "详细母稿", link: { canvas: "timeline", action: "cockpit-open-production-master-draft", label: "展开详细母稿" } },
       { id: "timeline", title: "母稿预览", link: { canvas: "timeline", view: "studio", label: "编排图谱" } },
       { id: "profiles", title: "角色席位", link: { canvas: "profiles", view: "writer", label: "角色私人剧本" } },
       { id: "arcs", title: "分幕节奏", link: { canvas: "profiles", view: "writer", label: "角色私人剧本" } }

@@ -190,6 +190,7 @@ function render(root) {
         <span>来源 revision ${draft.sourceStoryStateRevision} · ${draft.sourceBlockIds?.length || 0} 条积木 · ${draft.status}</span>
       </div>
       <div class="outline-head-meta">${saveHtml(ui)}
+        <button type="button" class="primary-btn" data-outline-expand-draft>展开详细母稿</button>
         <button type="button" class="secondary-btn" data-outline-integrate>重新交织</button>
         <button type="button" class="secondary-btn" data-outline-close>返回</button>
       </div>
@@ -225,13 +226,25 @@ function patchDraft(root, mutator) {
 }
 
 async function onClick(root, event) {
-  const el = event.target.closest("[data-outline-close],[data-outline-integrate],[data-outline-retry],[data-outline-stage],[data-outline-beat],[data-outline-merge],[data-outline-propose-weave],[data-outline-move-to],[data-outline-split],[data-outline-conflict]");
+  const el = event.target.closest("[data-outline-close],[data-outline-integrate],[data-outline-expand-draft],[data-outline-retry],[data-outline-stage],[data-outline-beat],[data-outline-merge],[data-outline-propose-weave],[data-outline-move-to],[data-outline-split],[data-outline-conflict]");
   if (!el) return;
   const ui = root.__outlineUi;
 
   if (el.matches("[data-outline-close]")) {
     root.hidden = true;
     root.innerHTML = "";
+    return;
+  }
+  if (el.matches("[data-outline-expand-draft]")) {
+    root.hidden = true;
+    const { openCurrentCreatorProductionMasterDraftWorkbench } = await import(
+      "./creator-production-master-draft-workbench.js"
+    );
+    await openCurrentCreatorProductionMasterDraftWorkbench({
+      worldId: worldIdOf(root),
+      projectStoryState: root.__outlineState,
+      expandNow: true,
+    });
     return;
   }
   if (el.matches("[data-outline-retry]")) {

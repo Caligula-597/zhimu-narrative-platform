@@ -73,6 +73,11 @@ const showError = (error, fallback = "操作失败") => showToast(normalizeError
           .openCurrentCreatorMasterOutlineWorkbench();
         return true;
 
+      case "cockpit-open-production-master-draft":
+        await (await import("../views/creator-production-master-draft-workbench.js"))
+          .openCurrentCreatorProductionMasterDraftWorkbench();
+        return true;
+
       case "cockpit-open-document-import":
         callView("writer", "openOpeningPackage");
         return true;
