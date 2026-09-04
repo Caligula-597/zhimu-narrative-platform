@@ -54,4 +54,4 @@
 
 ## 后续顺序
 
-~~P3 持久化~~ ✅ → ~~P4 M08~~ ✅ → ~~P5 Integrator 原型~~ ✅ → **P5.1 Product Trial** ❌（见 `docs/INTEGRATOR_PRODUCT_TRIAL_V1_ZH.md`）→ P6 Master Draft 仅 Trial 过线后开 → 再按反馈补 M10·M11
+~~P3 持久化~~ ✅ → ~~P4 M08~~ ✅ → ~~P5 Integrator 原型~~ ✅ → ~~P5.1 Product Trial~~ ❌（avg~2.6）→ **P5.2 Semantic Bridge**（见 `docs/INTEGRATOR_SEMANTIC_BRIDGE_P52_ZH.md`）→ P6 Master Draft 仅 Gate+人工均分过线后开 → 再按反馈补 M10·M11

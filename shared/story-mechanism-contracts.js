@@ -10,6 +10,7 @@
  */
 
 import { normalizeMasterOutlineDraft } from "./master-outline-contracts.js";
+import { normalizeBeatSemantics } from "./story-beat-semantics.js";
 
 export const STORY_MECHANISM_CONTRACT_VERSION = 1;
 
@@ -75,6 +76,7 @@ export function normalizeStoryBeat(value = {}) {
     summary: cleanText(src.summary, 800),
     involvedRoleKeys: asArray(src.involvedRoleKeys).map(String),
     clueIds: asArray(src.clueIds).map(String),
+    semantics: normalizeBeatSemantics(src.semantics),
   };
 }
 

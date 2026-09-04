@@ -85,14 +85,56 @@ test("共享角色可产生 WEAVE_SHARED_* / 无共享可 KEEP_PARALLEL", () => 
   const kinds = new Set(draft.weaveLinks.map((l) => l.kind));
   assert.ok(
     [...kinds].some((k) =>
-      ["WEAVE_SHARED_SCENE", "WEAVE_SHARED_CHARACTER", "WEAVE_CAUSAL", "WEAVE_STRONG", "WEAVE_WEAK", "KEEP_PARALLEL"].includes(k),
+      [
+        "WEAVE_SHARED_SCENE",
+        "WEAVE_SHARED_CHARACTER",
+        "WEAVE_CAUSAL",
+        "WEAVE_STRONG",
+        "WEAVE_SHARED_ACTION",
+        "WEAVE_WEAK",
+        "KEEP_PARALLEL",
+      ].includes(k),
     ),
   );
-  // proposeWeaveLinks 直接可测
   const blocks = listAcceptedStoryBlocks(state);
   const beats = draft.stages.flatMap((s) => s.beats);
   const links = proposeWeaveLinks(beats, blocks);
   assert.ok(links.length >= 1);
+  assert.ok(links.every((l) => ["INTERWOVEN", "COLOCATED", "PARALLEL"].includes(l.relationQuality)));
+});
+
+test("P5.2：默认不把仅共享角色标成 INTERWOVEN；空中间阶段压缩", () => {
+  const state = seedThreeBlocks();
+  const draft = buildMasterOutlineDraft(state);
+  const fake = draft.weaveLinks.filter(
+    (l) =>
+      l.relationQuality === "INTERWOVEN" &&
+      (l.kind === "WEAVE_SHARED_SCENE" || l.kind === "WEAVE_SHARED_CHARACTER"),
+  );
+  assert.equal(fake.length, 0);
+  for (let i = 1; i < draft.stages.length - 1; i += 1) {
+    assert.ok(draft.stages[i].beats.length > 0, "中间阶段不应为空");
+  }
+  const goalDriven = draft.stages.flatMap((s) => s.beats).filter((b) => b.semantics?.goal && b.semantics?.action);
+  assert.ok(goalDriven.length >= 2);
+});
+
+test("P5.2：低相关积木应出现 KEEP_PARALLEL", () => {
+  let state = createDemoProjectState();
+  state = generateStoryMechanism({
+    templateId: "M08-1",
+    projectStoryState: state,
+    preferredVariantId: "V04",
+  });
+  state = acceptStoryBlock(state, state.mechanismBlocks[0].id);
+  state = generateStoryMechanism({
+    templateId: "M07-2",
+    projectStoryState: state,
+    preferredVariantId: "V02",
+  });
+  state = acceptStoryBlock(state, state.mechanismBlocks.find((b) => b.templateId === "M07-2").id);
+  const draft = buildMasterOutlineDraft(state);
+  assert.ok(draft.weaveLinks.some((l) => l.kind === "KEEP_PARALLEL"));
 });
 
 test("局部调整：移动 / 合并 / 冲突决定 / 拆开 / 尝试交织", () => {

@@ -152,11 +152,32 @@
 
 .outline-weave {
   display: grid;
-  gap: 4px;
-  padding: 8px;
-  background: #fff;
-  border-radius: 4px;
-  font-size: 12px;
+  gap: 0.25rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid color-mix(in srgb, currentColor 12%, transparent);
+}
+
+.outline-weave-why {
+  font-size: 0.9em;
+  opacity: 0.85;
+}
+
+.outline-weave--INTERWOVEN strong {
+  color: #1a5f4a;
+}
+
+.outline-weave--COLOCATED strong {
+  color: #6b5a1e;
+}
+
+.outline-weave--PARALLEL strong {
+  color: #555;
+}
+
+.outline-agency {
+  margin: 0.25rem 0 0;
+  font-size: 0.85em;
+  opacity: 0.8;
 }
 
 .outline-conflict {

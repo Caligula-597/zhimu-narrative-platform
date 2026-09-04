@@ -20,17 +20,22 @@
 |---|---|
 | `sourceStoryStateRevision` | 来源积木篮 revision |
 | `stages[]` | 阶段 → beats（跨积木可同场） |
-| `weaveLinks[]` | 交织边：STRONG / SHARED_SCENE / SHARED_CHARACTER / CAUSAL / WEAK / KEEP_PARALLEL |
+| `weaveLinks[]` | 交织边 + `relationQuality`：INTERWOVEN / COLOCATED / PARALLEL |
 | `conflictReport[]` | 负载与有意重叠候选；可 ACCEPT / ADJUST / IGNORE |
 | `characterLoadReport[]` | 角色职责与负载 |
 
-## 交织启发式（确定性）
+## 交织启发式（P5.2 Semantic Bridge）
 
-1. 同 `phaseBand` + 共享角色 → `WEAVE_SHARED_SCENE`（并拉到同一阶段）
-2. 共享角色、不同 band → `WEAVE_SHARED_CHARACTER`
-3. `integrationHints.canPrecede/canFollow` 或 consequence↔prerequisite 文本弱匹配 → `WEAVE_CAUSAL`
-4. `sharesFactsWith` 交集 → `WEAVE_STRONG`
-5. 同阶段无接口 → `WEAVE_WEAK`；中段无接口 → 可标 `KEEP_PARALLEL`（允许不织）
+默认 **`KEEP_PARALLEL`**。仅当 BeatSemantics 有正证据才升级：
+
+1. A.`produces` ↔ B.`requires` → `WEAVE_CAUSAL` → **INTERWOVEN**
+2. 共享 target + 目标冲突/兼容 → `WEAVE_STRONG` → **INTERWOVEN**
+3. 可复用同一次行动（actionKind / 场所 / site_accessible）→ `WEAVE_SHARED_ACTION` → **INTERWOVEN**
+4. 仅共享角色同阶段 → `WEAVE_SHARED_SCENE` → **COLOCATED**（不算真正交织）
+5. 仅共享角色 → `WEAVE_SHARED_CHARACTER` → **COLOCATED**
+6. 无证据 → `KEEP_PARALLEL` → **PARALLEL**
+
+详见 `docs/INTEGRATOR_SEMANTIC_BRIDGE_P52_ZH.md`。
 
 ## 局部调整 API
 

@@ -1,102 +1,82 @@
 # Case E：低相关积木
 
-> 应诚实 KEEP_PARALLEL，禁止为「织」而强缝
+> 应诚实 KEEP_PARALLEL；同场/同角不得冒充真正交织
 
-- Case id: `E-low-affinity`
+- Case id: `E-low-affinity` · set: **DEV**
 - sourceStoryStateRevision: 2
 - accepted blocks: M08-1(固定公开阵营｜公开阵营加公共任务赛道) · M07-2(条件触发开放｜权限使用触发)
 
-## 自动结构统计（非人工分）
+## 程序指标（P5.2）
 
 | 项 | 值 |
 |---|---|
-| stages | 5 |
+| stages | 4 |
 | beats | 8 |
-| 跨家族同阶段 (COLOCATED 候选) | 4 |
-| 单家族阶段 | 0 |
-| INTERWOVEN 边 (STRONG/SHARED_SCENE/CAUSAL) | 4 |
-| SHARED_CHARACTER | 3 |
-| WEAVE_WEAK (同阶段弱连) | 0 |
-| KEEP_PARALLEL | 0 |
-| weave by kind | {"WEAVE_SHARED_SCENE":4,"WEAVE_SHARED_CHARACTER":3} |
+| empty middle stages | 0 |
+| INTERWOVEN (relationQuality) | 0 |
+| COLOCATED | 7 |
+| PARALLEL / KEEP_PARALLEL | 1 |
+| fake INTERWOVEN (scene/char only) | 0 |
+| goal-driven beats | 8 |
+| 跨家族同阶段 | 4 |
+| weave by kind | {"WEAVE_SHARED_SCENE":4,"WEAVE_SHARED_CHARACTER":3,"KEEP_PARALLEL":1} |
 | conflictReport | 0 |
-| 目标驱动措辞 hits | 0 |
-| 容器式措辞 hits | 0 |
+| 目标驱动措辞 hits | 8 |
 
-## 阶段骨架（人工审阅主视图）
+## 阶段骨架
 
-### 第一幕 (`act1`)
+### 铺垫 (`act1`)
 
-家族覆盖：M08, M07 · **COLOCATED**
+家族覆盖：M08, M07 · 跨家族
 
-- **[M08] 固定公开阵营｜公开阵营加公共任务赛道** — 阵营关系进入可观察状态；焦点：白斋子。
-  - chars: A/B · band=0 · stageKey=LATENT
-- **[M07] 条件触发开放｜权限使用触发** — 权限与内容绑定；焦点：莫玄宗。
-  - chars: F/B · band=0 · stageKey=HIDDEN
+- **[M08] 固定公开阵营｜公开阵营加公共任务赛道** — 白斋子为了公开亮明阵营归属与目标，确认成员知情范围与联络方式（目标：阵营名单/暗号）
+  - chars: A/B · band=0 · goal=公开亮明阵营归属与目标 / action=确认成员知情范围与联络方式
+- **[M07] 条件触发开放｜权限使用触发** — 莫玄宗为了隐藏或维持当前身份表象，按伪装/未知状态行动，避免过早暴露（目标：身份表象）
+  - chars: F/B · band=0 · goal=隐藏或维持当前身份表象 / action=按伪装/未知状态行动，避免过早暴露
 
-### 第二幕 (`act2`)
+### 加压 (`act2`)
 
-家族覆盖：M08, M07 · **COLOCATED**
+家族覆盖：M08, M07 · 跨家族
 
-- **[M08] 固定公开阵营｜公开阵营加公共任务赛道** — 压力与信息差推动成员选择 维护秩序
-  - chars: A/B/C/D/E · band=1 · stageKey=CONTACT
-- **[M07] 条件触发开放｜权限使用触发** — 权限被合法使用
-  - chars: F/B/C/D/NPC_LU · band=1 · stageKey=FIRST_ANOMALY
+- **[M08] 固定公开阵营｜公开阵营加公共任务赛道** — 白斋子为了夺取关键资源，组织成员夺取或销毁关键物证/资源（目标：关键账册或信物）
+  - chars: A/B/C/D/E · band=1 · goal=夺取关键资源 / action=组织成员夺取或销毁关键物证/资源
+- **[M07] 条件触发开放｜权限使用触发** — 莫玄宗为了用正式动作换取被条件锁住的信息，完成登记条件以触发内容开放（目标：身份记录）
+  - chars: F/B/C/D/NPC_LU · band=1 · goal=用正式动作换取被条件锁住的信息 / action=完成登记条件以触发内容开放
 
-### 第三幕 (`act3`)
+### 升级 (`act3`)
 
-_（空）_
+家族覆盖：M08, M07 · 跨家族
 
-### 第四幕 (`act4`)
+- **[M08] 固定公开阵营｜公开阵营加公共任务赛道** — defector为了在暴露风险下改归属或保住秘密，在关键选择点背叛、退出或清洗异己（目标：归属状态）
+  - chars: A/B/C/D/E · band=2 · goal=在暴露风险下改归属或保住秘密 / action=在关键选择点背叛、退出或清洗异己
+- **[M07] 条件触发开放｜权限使用触发** — 莫玄宗为了确认真实身份并决定是否公开，核对身份线索并作出公开或隐瞒选择（目标：真实身份）
+  - chars: F/B/C/D/NPC_LU · band=2 · goal=确认真实身份并决定是否公开 / action=核对身份线索并作出公开或隐瞒选择
 
-家族覆盖：M08, M07 · **COLOCATED**
+### 收束 (`act4`)
 
-- **[M08] 固定公开阵营｜公开阵营加公共任务赛道** — 归属或目标变化产生剧情后果
-  - chars: A/B/C/D/E · band=2 · stageKey=CONSEQUENCE
-- **[M07] 条件触发开放｜权限使用触发** — 内容发放给指定接收者
-  - chars: F/B/C/D/NPC_LU · band=2 · stageKey=CONSEQUENCE
+家族覆盖：M08, M07 · 跨家族
 
-### 终局 (`act5`)
+- **[M08] 固定公开阵营｜公开阵营加公共任务赛道** — 白斋子为了结算阵营目标并承受公开后果，公开站队或接受阵营败露后的关系重排（目标：阵营胜负条件）
+  - chars: A/B/C/D/E · band=3 · goal=结算阵营目标并承受公开后果 / action=公开站队或接受阵营败露后的关系重排
+- **[M07] 条件触发开放｜权限使用触发** — 莫玄宗为了承受身份公开后的关系后果，面对知情者与阵营/调查方的反应（目标：关系重组）
+  - chars: F/B/C/D/NPC_LU · band=3 · goal=承受身份公开后的关系后果 / action=面对知情者与阵营/调查方的反应
 
-家族覆盖：M08, M07 · **COLOCATED**
+## 交织边（含 relationQuality + WHY）
 
-- **[M08] 固定公开阵营｜公开阵营加公共任务赛道** — 固定公开阵营阶段完成。
-  - chars: A/B/C/D/E · band=3 · stageKey=CONSEQUENCE
-- **[M07] 条件触发开放｜权限使用触发** — 条件触发开放阶段完成。
-  - chars: F/B/C/D/NPC_LU · band=3 · stageKey=CONSEQUENCE
-
-## 交织边
-
-- **WEAVE_SHARED_SCENE** — 同阶段共享角色 B，适合合并为同一场景推进。
-  - shared: B
-- **WEAVE_SHARED_CHARACTER** — 共享角色 B，可弱交织。
-  - shared: B
-- **WEAVE_SHARED_SCENE** — 同阶段共享角色 B、C、D，适合合并为同一场景推进。
-  - shared: B, C, D
-- **WEAVE_SHARED_CHARACTER** — 共享角色 B、C、D，可弱交织。
-  - shared: B, C, D
-- **WEAVE_SHARED_SCENE** — 同阶段共享角色 B、C、D，适合合并为同一场景推进。
-  - shared: B, C, D
-- **WEAVE_SHARED_CHARACTER** — 共享角色 B、C、D，可弱交织。
-  - shared: B, C, D
-- **WEAVE_SHARED_SCENE** — 同阶段共享角色 B、C、D，适合合并为同一场景推进。
-  - shared: B, C, D
+- **[COLOCATED] WEAVE_SHARED_SCENE** — 同阶段共享角色 B——可同场并列，不算真正交织
+- **[COLOCATED] WEAVE_SHARED_CHARACTER** — 共享角色 B——仅角色重合，保持同场并列而非强制合并
+- **[COLOCATED] WEAVE_SHARED_SCENE** — 同阶段共享角色 B、C、D——可同场并列，不算真正交织
+- **[COLOCATED] WEAVE_SHARED_CHARACTER** — 共享角色 B、C、D——仅角色重合，保持同场并列而非强制合并
+- **[COLOCATED] WEAVE_SHARED_SCENE** — 同阶段共享角色 B、C、D——可同场并列，不算真正交织
+- **[COLOCATED] WEAVE_SHARED_CHARACTER** — 共享角色 B、C、D——仅角色重合，保持同场并列而非强制合并
+- **[COLOCATED] WEAVE_SHARED_SCENE** — 同阶段共享角色 B、C、D——可同场并列，不算真正交织
+- **[PARALLEL] KEEP_PARALLEL** — 固定公开阵营｜公开阵营加公共任务赛道 与 条件触发开放｜权限使用触发 无线索级交织证据，叙事线保持平行（同场/同角不算交织）
 
 ## 冲突报告
 
 _无冲突项_
 
-## 角色负载 Top
-
-- **白斋子** load=2 — faction_lead@smb-mtmy
-- **沈孤鸿** load=2 — member@smb-mtmy, witness@smb-mtmy
-- **顾清商** load=2 — member@smb-mtmy, misled@smb-mtmy
-- **杜霄元** load=2 — outsider@smb-mtmy, discoverer@smb-mtmy
-- **叶晚晴** load=2 — rival_lead@smb-mtmy
-- **莫玄宗** load=2 — identity_bearer@smb-mtmy
-- **陆老爷** load=1 — support@smb-mtmy
-
-## 人工评分表（本文件下方由审阅填写）
+## 人工评分表
 
 | 指标 | 1–5 | 笔记 |
 |---|---:|---|
@@ -105,12 +85,4 @@ _无冲突项_
 | Character agency |  |  |
 | Stage rhythm |  |  |
 | Conflict honesty |  |  |
-| Editability (推断：局部 API 存在；本轮脚本未交互验证) |  |  |
-
-### 一句话主线（新人应能复述）
-
-> （审阅填写）
-
-### 是否值得继续写详细母稿？
-
-> （是 / 否 / 有条件）
+| Editability |  |  |

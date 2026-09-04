@@ -1,32 +1,32 @@
 {
   "case": {
-    "id": "B-identity-heavy",
-    "title": "Case B：身份为主",
-    "intent": "双 M07 + M08 → 身份确认应能因果衔接到改属",
-    "set": "DEV"
+    "id": "G-memory-probe-rival",
+    "title": "Case G：记忆恢复 + 探测 + 对立营",
+    "intent": "未见组合：M07-4 + M07-8 + M08-8",
+    "set": "HELD_OUT"
   },
   "stats": {
     "byKind": {
-      "WEAVE_STRONG": 2,
+      "WEAVE_STRONG": 1,
       "WEAVE_SHARED_CHARACTER": 7,
-      "WEAVE_SHARED_SCENE": 4,
-      "WEAVE_CAUSAL": 4,
-      "WEAVE_SHARED_ACTION": 3
+      "WEAVE_SHARED_SCENE": 6,
+      "WEAVE_SHARED_ACTION": 5,
+      "WEAVE_CAUSAL": 2
     },
     "byQuality": {
-      "INTERWOVEN": 9,
-      "COLOCATED": 11,
+      "INTERWOVEN": 8,
+      "COLOCATED": 13,
       "PARALLEL": 0
     },
-    "interwoven": 9,
-    "colocated": 11,
+    "interwoven": 8,
+    "colocated": 13,
     "parallel": 0,
     "fakeInterwoven": 0,
     "emptyMiddle": 0,
     "goalDriven": 12,
     "multiFamilyStages": 2,
-    "singleFamilyStages": 1,
-    "stageCount": 3,
+    "singleFamilyStages": 2,
+    "stageCount": 4,
     "beatCount": 12
   },
   "agency": {
@@ -35,25 +35,25 @@
     "sample": [
       "白斋子为了隐藏或维持当前身份表象，按伪装/未知状态行动，避免过早暴露（目标：身份表象）",
       "莫玄宗为了隐藏或维持当前身份表象，按伪装/未知状态行动，避免过早暴露（目标：身份表象）",
-      "叶晚晴为了巩固或潜伏阵营结构，确认成员知情范围与联络方式（目标：阵营名单/暗号）",
-      "白斋子为了等到约定阶段再领取被封存的事实，等待阶段到达并接收同一事实片段（目标：身份记录）",
-      "莫玄宗为了寻找能确认身份的记录或信物，进入藏有记录的场所搜查身份相关物证（目标：身份记录）",
-      "叶晚晴为了夺取关键资源，组织成员夺取或销毁关键物证/资源（目标：关键账册或信物）",
-      "莫玄宗为了启用真实身份对应的权限，在揭示后启用权限表并验证资格（目标：真实身份）",
+      "白斋子为了巩固或潜伏阵营结构，确认成员知情范围与联络方式（目标：阵营名单/暗号）",
+      "白斋子为了寻找能确认身份的记录或信物，进入藏有记录的场所搜查身份相关物证（目标：身份记录）",
+      "叶晚晴为了压缩隐藏身份候选范围，对一组人发起集合属性探测（目标：聚合输出）",
+      "叶晚晴为了在多营条件表中争取渔利档，利用两营冲突抽取第三方利益（目标：关键账册或信物）",
+      "莫玄宗为了确认真实身份并决定是否公开，核对身份线索并作出公开或隐瞒选择（目标：真实身份）",
       "白斋子为了确认真实身份并决定是否公开，核对身份线索并作出公开或隐瞒选择（目标：真实身份）"
     ]
   },
   "draft": {
-    "id": "mod-mtmzt6ak-itvh",
+    "id": "mod-mtmzt6b1-3e8k",
     "version": 1,
     "sourceStoryStateRevision": 3,
     "sourceBlockIds": [
-      "smb-mtmzt6ah-oncpm",
-      "smb-mtmzt6ah-smzwm",
-      "smb-mtmzt6ai-oxbum"
+      "smb-mtmzt6b0-kgsif",
+      "smb-mtmzt6b0-tw6al",
+      "smb-mtmzt6b0-gfzm5"
     ],
-    "createdAt": "2026-09-04T13:31:41.468Z",
-    "updatedAt": "2026-09-04T13:31:41.468Z",
+    "createdAt": "2026-09-04T13:31:41.485Z",
+    "updatedAt": "2026-09-04T13:31:41.485Z",
     "status": "DRAFT",
     "stages": [
       {
@@ -62,12 +62,12 @@
         "order": 0,
         "beats": [
           {
-            "id": "ob-mtmzt6aj-zz4r",
-            "sourceBlockId": "smb-mtmzt6ah-oncpm",
+            "id": "ob-mtmzt6b1-qkju",
+            "sourceBlockId": "smb-mtmzt6b0-kgsif",
             "sourceBeatId": "beat-setup",
             "familyId": "M07",
-            "templateId": "M07-1",
-            "blockTitle": "固定阶段开放｜全体同步到点发放",
+            "templateId": "M07-4",
+            "blockTitle": "个人记忆分层｜两层：保底+终局",
             "summary": "白斋子为了隐藏或维持当前身份表象，按伪装/未知状态行动，避免过早暴露（目标：身份表象）",
             "phaseBand": 0,
             "stageKey": "HIDDEN",
@@ -76,7 +76,7 @@
               "B"
             ],
             "clueIds": [
-              "smb-mtmzt6ah-oncpm-foreshadow-0"
+              "smb-mtmzt6b0-kgsif-foreshadow-0"
             ],
             "weaveGroupId": null,
             "semantics": {
@@ -105,12 +105,12 @@
             "needsDetail": false
           },
           {
-            "id": "ob-mtmzt6aj-zcux",
-            "sourceBlockId": "smb-mtmzt6ah-smzwm",
+            "id": "ob-mtmzt6b1-nl0q",
+            "sourceBlockId": "smb-mtmzt6b0-tw6al",
             "sourceBeatId": "beat-setup",
             "familyId": "M07",
-            "templateId": "M07-5",
-            "blockTitle": "身份权限变化｜假身份逐层崩解",
+            "templateId": "M07-8",
+            "blockTitle": "集合属性探测｜多数表决式聚合",
             "summary": "莫玄宗为了隐藏或维持当前身份表象，按伪装/未知状态行动，避免过早暴露（目标：身份表象）",
             "phaseBand": 0,
             "stageKey": "HIDDEN",
@@ -119,7 +119,7 @@
               "B"
             ],
             "clueIds": [
-              "smb-mtmzt6ah-smzwm-foreshadow-0"
+              "smb-mtmzt6b0-tw6al-foreshadow-0"
             ],
             "weaveGroupId": null,
             "semantics": {
@@ -148,28 +148,28 @@
             "needsDetail": false
           },
           {
-            "id": "ob-mtmzt6aj-lr2l",
-            "sourceBlockId": "smb-mtmzt6ai-oxbum",
+            "id": "ob-mtmzt6b1-mwst",
+            "sourceBlockId": "smb-mtmzt6b0-gfzm5",
             "sourceBeatId": "beat-setup",
             "familyId": "M08",
-            "templateId": "M08-4",
-            "blockTitle": "动态阵营｜节点选择改归属",
-            "summary": "叶晚晴为了巩固或潜伏阵营结构，确认成员知情范围与联络方式（目标：阵营名单/暗号）",
+            "templateId": "M08-8",
+            "blockTitle": "多阵营并存｜三营条件表",
+            "summary": "白斋子为了巩固或潜伏阵营结构，确认成员知情范围与联络方式（目标：阵营名单/暗号）",
             "phaseBand": 0,
             "stageKey": "LATENT",
             "characterIds": [
-              "E",
-              "A"
+              "A",
+              "B"
             ],
             "clueIds": [
-              "smb-mtmzt6ai-oxbum-faction_foreshadow-0"
+              "smb-mtmzt6b0-gfzm5-faction_foreshadow-0"
             ],
             "weaveGroupId": null,
             "semantics": {
               "actorRefs": [
-                "E"
+                "A"
               ],
-              "actorLabel": "叶晚晴",
+              "actorLabel": "白斋子",
               "goal": "巩固或潜伏阵营结构",
               "action": "确认成员知情范围与联络方式",
               "target": "阵营名单/暗号",
@@ -198,13 +198,13 @@
         "order": 1,
         "beats": [
           {
-            "id": "ob-mtmzt6aj-q9fq",
-            "sourceBlockId": "smb-mtmzt6ah-oncpm",
+            "id": "ob-mtmzt6b1-4pwx",
+            "sourceBlockId": "smb-mtmzt6b0-kgsif",
             "sourceBeatId": "beat-develop",
             "familyId": "M07",
-            "templateId": "M07-1",
-            "blockTitle": "固定阶段开放｜全体同步到点发放",
-            "summary": "白斋子为了等到约定阶段再领取被封存的事实，等待阶段到达并接收同一事实片段（目标：身份记录）",
+            "templateId": "M07-4",
+            "blockTitle": "个人记忆分层｜两层：保底+终局",
+            "summary": "白斋子为了寻找能确认身份的记录或信物，进入藏有记录的场所搜查身份相关物证（目标：身份记录）",
             "phaseBand": 1,
             "stageKey": "FIRST_ANOMALY",
             "characterIds": [
@@ -215,66 +215,14 @@
               "E"
             ],
             "clueIds": [
-              "smb-mtmzt6ah-oncpm-foreshadow-0"
+              "smb-mtmzt6b0-kgsif-foreshadow-0"
             ],
-            "weaveGroupId": "wg-mtmzt6aj-z8np",
+            "weaveGroupId": "wg-mtmzt6b1-hn82",
             "semantics": {
               "actorRefs": [
                 "A"
               ],
               "actorLabel": "白斋子",
-              "goal": "等到约定阶段再领取被封存的事实",
-              "action": "等待阶段到达并接收同一事实片段",
-              "target": "身份记录",
-              "requires": [
-                {
-                  "id": "site_accessible",
-                  "kind": "access",
-                  "summary": "关键场所可进入"
-                }
-              ],
-              "produces": [
-                {
-                  "id": "identity_clue",
-                  "kind": "identity_clue",
-                  "summary": "身份线索"
-                }
-              ],
-              "opposes": [],
-              "protects": [],
-              "locationHint": "藏有记录的场所",
-              "actionKind": "RECEIVE",
-              "independence": "INDEPENDENT",
-              "needsDetail": false
-            },
-            "needsDetail": false
-          },
-          {
-            "id": "ob-mtmzt6aj-xzcn",
-            "sourceBlockId": "smb-mtmzt6ah-smzwm",
-            "sourceBeatId": "beat-develop",
-            "familyId": "M07",
-            "templateId": "M07-5",
-            "blockTitle": "身份权限变化｜假身份逐层崩解",
-            "summary": "莫玄宗为了寻找能确认身份的记录或信物，进入藏有记录的场所搜查身份相关物证（目标：身份记录）",
-            "phaseBand": 1,
-            "stageKey": "FIRST_ANOMALY",
-            "characterIds": [
-              "F",
-              "B",
-              "C",
-              "D",
-              "NPC_LU"
-            ],
-            "clueIds": [
-              "smb-mtmzt6ah-smzwm-foreshadow-0"
-            ],
-            "weaveGroupId": null,
-            "semantics": {
-              "actorRefs": [
-                "F"
-              ],
-              "actorLabel": "莫玄宗",
               "goal": "寻找能确认身份的记录或信物",
               "action": "进入藏有记录的场所搜查身份相关物证",
               "target": "身份记录",
@@ -302,13 +250,66 @@
             "needsDetail": false
           },
           {
-            "id": "ob-mtmzt6aj-had0",
-            "sourceBlockId": "smb-mtmzt6ai-oxbum",
+            "id": "ob-mtmzt6b1-byud",
+            "sourceBlockId": "smb-mtmzt6b0-tw6al",
+            "sourceBeatId": "beat-develop",
+            "familyId": "M07",
+            "templateId": "M07-8",
+            "blockTitle": "集合属性探测｜多数表决式聚合",
+            "summary": "叶晚晴为了压缩隐藏身份候选范围，对一组人发起集合属性探测（目标：聚合输出）",
+            "phaseBand": 1,
+            "stageKey": "FIRST_ANOMALY",
+            "characterIds": [
+              "E",
+              "F",
+              "B",
+              "C",
+              "D",
+              "NPC_LU"
+            ],
+            "clueIds": [
+              "smb-mtmzt6b0-tw6al-foreshadow-0"
+            ],
+            "weaveGroupId": null,
+            "semantics": {
+              "actorRefs": [
+                "E"
+              ],
+              "actorLabel": "叶晚晴",
+              "goal": "压缩隐藏身份候选范围",
+              "action": "对一组人发起集合属性探测",
+              "target": "聚合输出",
+              "requires": [
+                {
+                  "id": "site_accessible",
+                  "kind": "access",
+                  "summary": "关键场所可进入"
+                }
+              ],
+              "produces": [
+                {
+                  "id": "identity_clue",
+                  "kind": "identity_clue",
+                  "summary": "身份线索"
+                }
+              ],
+              "opposes": [],
+              "protects": [],
+              "locationHint": "藏有记录的场所",
+              "actionKind": "PROBE",
+              "independence": "SHAREABLE",
+              "needsDetail": false
+            },
+            "needsDetail": false
+          },
+          {
+            "id": "ob-mtmzt6b1-ebr8",
+            "sourceBlockId": "smb-mtmzt6b0-gfzm5",
             "sourceBeatId": "beat-develop",
             "familyId": "M08",
-            "templateId": "M08-4",
-            "blockTitle": "动态阵营｜节点选择改归属",
-            "summary": "叶晚晴为了夺取关键资源，组织成员夺取或销毁关键物证/资源（目标：关键账册或信物）",
+            "templateId": "M08-8",
+            "blockTitle": "多阵营并存｜三营条件表",
+            "summary": "叶晚晴为了在多营条件表中争取渔利档，利用两营冲突抽取第三方利益（目标：关键账册或信物）",
             "phaseBand": 1,
             "stageKey": "CONTACT",
             "characterIds": [
@@ -320,7 +321,7 @@
               "F"
             ],
             "clueIds": [
-              "smb-mtmzt6ai-oxbum-faction_foreshadow-0"
+              "smb-mtmzt6b0-gfzm5-faction_foreshadow-0"
             ],
             "weaveGroupId": null,
             "semantics": {
@@ -328,8 +329,8 @@
                 "E"
               ],
               "actorLabel": "叶晚晴",
-              "goal": "夺取关键资源",
-              "action": "组织成员夺取或销毁关键物证/资源",
+              "goal": "在多营条件表中争取渔利档",
+              "action": "利用两营冲突抽取第三方利益",
               "target": "关键账册或信物",
               "requires": [
                 {
@@ -341,11 +342,6 @@
                   "id": "faction_latent",
                   "kind": "faction",
                   "summary": "阵营已成形"
-                },
-                {
-                  "id": "family_status",
-                  "kind": "status",
-                  "summary": "具备可改属的资格状态"
                 }
               ],
               "produces": [
@@ -377,13 +373,13 @@
             "needsDetail": false
           },
           {
-            "id": "ob-mtmzt6aj-zwua",
-            "sourceBlockId": "smb-mtmzt6ah-smzwm",
+            "id": "ob-mtmzt6b1-xs6i",
+            "sourceBlockId": "smb-mtmzt6b0-tw6al",
             "sourceBeatId": "beat-climax",
             "familyId": "M07",
-            "templateId": "M07-5",
-            "blockTitle": "身份权限变化｜假身份逐层崩解",
-            "summary": "莫玄宗为了启用真实身份对应的权限，在揭示后启用权限表并验证资格（目标：真实身份）",
+            "templateId": "M07-8",
+            "blockTitle": "集合属性探测｜多数表决式聚合",
+            "summary": "莫玄宗为了确认真实身份并决定是否公开，核对身份线索并作出公开或隐瞒选择（目标：真实身份）",
             "phaseBand": 2,
             "stageKey": "CONSEQUENCE",
             "characterIds": [
@@ -391,23 +387,24 @@
               "B",
               "C",
               "D",
-              "NPC_LU"
+              "NPC_LU",
+              "E"
             ],
             "clueIds": [
-              "smb-mtmzt6ah-smzwm-memory_fragment-1",
-              "smb-mtmzt6ah-smzwm-identity_hint-2",
-              "smb-mtmzt6ah-smzwm-misdirection-3",
-              "smb-mtmzt6ah-smzwm-confirmation-4",
-              "smb-mtmzt6ah-smzwm-decisive_reveal-5"
+              "smb-mtmzt6b0-tw6al-memory_fragment-1",
+              "smb-mtmzt6b0-tw6al-identity_hint-2",
+              "smb-mtmzt6b0-tw6al-misdirection-3",
+              "smb-mtmzt6b0-tw6al-confirmation-4",
+              "smb-mtmzt6b0-tw6al-decisive_reveal-5"
             ],
-            "weaveGroupId": "wg-mtmzt6aj-rckm",
+            "weaveGroupId": "wg-mtmzt6b1-r0nc",
             "semantics": {
               "actorRefs": [
                 "F"
               ],
               "actorLabel": "莫玄宗",
-              "goal": "启用真实身份对应的权限",
-              "action": "在揭示后启用权限表并验证资格",
+              "goal": "确认真实身份并决定是否公开",
+              "action": "核对身份线索并作出公开或隐瞒选择",
               "target": "真实身份",
               "requires": [
                 {
@@ -425,12 +422,7 @@
                 {
                   "id": "family_status",
                   "kind": "status",
-                  "summary": "资格/权限状态"
-                },
-                {
-                  "id": "site_accessible",
-                  "kind": "access",
-                  "summary": "场所权限可能开放"
+                  "summary": "家族/资格状态"
                 }
               ],
               "opposes": [],
@@ -443,12 +435,12 @@
             "needsDetail": false
           },
           {
-            "id": "ob-mtmzt6aj-mwe4",
-            "sourceBlockId": "smb-mtmzt6ah-oncpm",
+            "id": "ob-mtmzt6b1-i7b9",
+            "sourceBlockId": "smb-mtmzt6b0-kgsif",
             "sourceBeatId": "beat-climax",
             "familyId": "M07",
-            "templateId": "M07-1",
-            "blockTitle": "固定阶段开放｜全体同步到点发放",
+            "templateId": "M07-4",
+            "blockTitle": "个人记忆分层｜两层：保底+终局",
             "summary": "白斋子为了确认真实身份并决定是否公开，核对身份线索并作出公开或隐瞒选择（目标：真实身份）",
             "phaseBand": 2,
             "stageKey": "CONSEQUENCE",
@@ -460,13 +452,13 @@
               "E"
             ],
             "clueIds": [
-              "smb-mtmzt6ah-oncpm-memory_fragment-1",
-              "smb-mtmzt6ah-oncpm-identity_hint-2",
-              "smb-mtmzt6ah-oncpm-misdirection-3",
-              "smb-mtmzt6ah-oncpm-confirmation-4",
-              "smb-mtmzt6ah-oncpm-decisive_reveal-5"
+              "smb-mtmzt6b0-kgsif-memory_fragment-1",
+              "smb-mtmzt6b0-kgsif-identity_hint-2",
+              "smb-mtmzt6b0-kgsif-misdirection-3",
+              "smb-mtmzt6b0-kgsif-confirmation-4",
+              "smb-mtmzt6b0-kgsif-decisive_reveal-5"
             ],
-            "weaveGroupId": "wg-mtmzt6aj-8mam",
+            "weaveGroupId": "wg-mtmzt6b1-mv23",
             "semantics": {
               "actorRefs": [
                 "A"
@@ -504,12 +496,12 @@
             "needsDetail": false
           },
           {
-            "id": "ob-mtmzt6aj-nkm4",
-            "sourceBlockId": "smb-mtmzt6ah-smzwm",
+            "id": "ob-mtmzt6b1-0r92",
+            "sourceBlockId": "smb-mtmzt6b0-tw6al",
             "sourceBeatId": "beat-res",
             "familyId": "M07",
-            "templateId": "M07-5",
-            "blockTitle": "身份权限变化｜假身份逐层崩解",
+            "templateId": "M07-8",
+            "blockTitle": "集合属性探测｜多数表决式聚合",
             "summary": "莫玄宗为了承受身份公开后的关系后果，面对知情者与阵营/调查方的反应（目标：关系重组）",
             "phaseBand": 3,
             "stageKey": "CONSEQUENCE",
@@ -518,10 +510,11 @@
               "B",
               "C",
               "D",
-              "NPC_LU"
+              "NPC_LU",
+              "E"
             ],
             "clueIds": [],
-            "weaveGroupId": "wg-mtmzt6aj-66x7",
+            "weaveGroupId": "wg-mtmzt6b1-367y",
             "semantics": {
               "actorRefs": [
                 "F"
@@ -554,78 +547,12 @@
             "needsDetail": false
           },
           {
-            "id": "ob-mtmzt6aj-3r99",
-            "sourceBlockId": "smb-mtmzt6ai-oxbum",
-            "sourceBeatId": "beat-climax",
-            "familyId": "M08",
-            "templateId": "M08-4",
-            "blockTitle": "动态阵营｜节点选择改归属",
-            "summary": "杜霄元为了在预设节点改写归属，作出站队或改属选择（目标：归属状态）",
-            "phaseBand": 2,
-            "stageKey": "CONSEQUENCE",
-            "characterIds": [
-              "D",
-              "E",
-              "A",
-              "B",
-              "C",
-              "F"
-            ],
-            "clueIds": [
-              "smb-mtmzt6ai-oxbum-membership_hint-1",
-              "smb-mtmzt6ai-oxbum-secret_signal-2",
-              "smb-mtmzt6ai-oxbum-recruitment_evidence-3",
-              "smb-mtmzt6ai-oxbum-loyalty_test-4",
-              "smb-mtmzt6ai-oxbum-betrayal_hint-5",
-              "smb-mtmzt6ai-oxbum-internal_conflict-6",
-              "smb-mtmzt6ai-oxbum-hidden_goal_hint-7",
-              "smb-mtmzt6ai-oxbum-membership_confirmation-8",
-              "smb-mtmzt6ai-oxbum-faction_exposure-9"
-            ],
-            "weaveGroupId": "wg-mtmzt6aj-8mam",
-            "semantics": {
-              "actorRefs": [
-                "D"
-              ],
-              "actorLabel": "杜霄元",
-              "goal": "在预设节点改写归属",
-              "action": "作出站队或改属选择",
-              "target": "归属状态",
-              "requires": [
-                {
-                  "id": "identity_confirmed",
-                  "kind": "identity",
-                  "summary": "身份确认可触发改属"
-                }
-              ],
-              "produces": [
-                {
-                  "id": "allegiance_changed",
-                  "kind": "faction",
-                  "summary": "归属已改变"
-                },
-                {
-                  "id": "faction_exposure_risk",
-                  "kind": "exposure",
-                  "summary": "暴露风险上升"
-                }
-              ],
-              "opposes": [],
-              "protects": [],
-              "locationHint": "阵营关键据点",
-              "actionKind": "SHIFT",
-              "independence": "DEPENDENT",
-              "needsDetail": false
-            },
-            "needsDetail": false
-          },
-          {
-            "id": "ob-mtmzt6aj-mesu",
-            "sourceBlockId": "smb-mtmzt6ah-oncpm",
+            "id": "ob-mtmzt6b1-irn4",
+            "sourceBlockId": "smb-mtmzt6b0-kgsif",
             "sourceBeatId": "beat-res",
             "familyId": "M07",
-            "templateId": "M07-1",
-            "blockTitle": "固定阶段开放｜全体同步到点发放",
+            "templateId": "M07-4",
+            "blockTitle": "个人记忆分层｜两层：保底+终局",
             "summary": "白斋子为了承受身份公开后的关系后果，面对知情者与阵营/调查方的反应（目标：关系重组）",
             "phaseBand": 3,
             "stageKey": "CONSEQUENCE",
@@ -637,7 +564,7 @@
               "E"
             ],
             "clueIds": [],
-            "weaveGroupId": "wg-mtmzt6aj-66x7",
+            "weaveGroupId": "wg-mtmzt6b1-367y",
             "semantics": {
               "actorRefs": [
                 "A"
@@ -672,35 +599,106 @@
         ]
       },
       {
-        "id": "act4",
+        "id": "act3",
         "label": "升级",
         "order": 2,
         "beats": [
           {
-            "id": "ob-mtmzt6aj-csll",
-            "sourceBlockId": "smb-mtmzt6ai-oxbum",
-            "sourceBeatId": "beat-res",
+            "id": "ob-mtmzt6b1-u56k",
+            "sourceBlockId": "smb-mtmzt6b0-gfzm5",
+            "sourceBeatId": "beat-climax",
             "familyId": "M08",
-            "templateId": "M08-4",
-            "blockTitle": "动态阵营｜节点选择改归属",
-            "summary": "叶晚晴为了结算阵营目标并承受公开后果，公开站队或接受阵营败露后的关系重排（目标：阵营胜负条件）",
-            "phaseBand": 3,
+            "templateId": "M08-8",
+            "blockTitle": "多阵营并存｜三营条件表",
+            "summary": "defector为了在暴露风险下改归属或保住秘密，在关键选择点背叛、退出或清洗异己（目标：归属状态）",
+            "phaseBand": 2,
             "stageKey": "CONSEQUENCE",
             "characterIds": [
-              "E",
               "A",
               "B",
               "C",
               "D",
+              "E",
+              "F"
+            ],
+            "clueIds": [
+              "smb-mtmzt6b0-gfzm5-membership_hint-1",
+              "smb-mtmzt6b0-gfzm5-secret_signal-2",
+              "smb-mtmzt6b0-gfzm5-recruitment_evidence-3",
+              "smb-mtmzt6b0-gfzm5-loyalty_test-4",
+              "smb-mtmzt6b0-gfzm5-betrayal_hint-5",
+              "smb-mtmzt6b0-gfzm5-internal_conflict-6",
+              "smb-mtmzt6b0-gfzm5-hidden_goal_hint-7",
+              "smb-mtmzt6b0-gfzm5-membership_confirmation-8",
+              "smb-mtmzt6b0-gfzm5-faction_exposure-9"
+            ],
+            "weaveGroupId": null,
+            "semantics": {
+              "actorRefs": [],
+              "actorLabel": "defector",
+              "goal": "在暴露风险下改归属或保住秘密",
+              "action": "在关键选择点背叛、退出或清洗异己",
+              "target": "归属状态",
+              "requires": [
+                {
+                  "id": "faction_pressure",
+                  "kind": "faction",
+                  "summary": "阵营压力"
+                }
+              ],
+              "produces": [
+                {
+                  "id": "allegiance_changed",
+                  "kind": "faction",
+                  "summary": "归属已改变"
+                },
+                {
+                  "id": "faction_exposure_risk",
+                  "kind": "exposure",
+                  "summary": "暴露风险上升"
+                }
+              ],
+              "opposes": [],
+              "protects": [],
+              "locationHint": "阵营关键据点",
+              "actionKind": "SHIFT",
+              "independence": "DEPENDENT",
+              "needsDetail": true
+            },
+            "needsDetail": true
+          }
+        ]
+      },
+      {
+        "id": "act4",
+        "label": "收束",
+        "order": 3,
+        "beats": [
+          {
+            "id": "ob-mtmzt6b1-cxqz",
+            "sourceBlockId": "smb-mtmzt6b0-gfzm5",
+            "sourceBeatId": "beat-res",
+            "familyId": "M08",
+            "templateId": "M08-8",
+            "blockTitle": "多阵营并存｜三营条件表",
+            "summary": "白斋子为了结算阵营目标并承受公开后果，公开站队或接受阵营败露后的关系重排（目标：阵营胜负条件）",
+            "phaseBand": 3,
+            "stageKey": "CONSEQUENCE",
+            "characterIds": [
+              "A",
+              "B",
+              "C",
+              "D",
+              "E",
               "F"
             ],
             "clueIds": [],
             "weaveGroupId": null,
             "semantics": {
               "actorRefs": [
-                "E"
+                "A"
               ],
-              "actorLabel": "叶晚晴",
+              "actorLabel": "白斋子",
               "goal": "结算阵营目标并承受公开后果",
               "action": "公开站队或接受阵营败露后的关系重排",
               "target": "阵营胜负条件",
@@ -732,17 +730,17 @@
     ],
     "weaveLinks": [
       {
-        "id": "wl-mtmzt6aj-b2km",
+        "id": "wl-mtmzt6b1-umwj",
         "kind": "WEAVE_STRONG",
         "relationQuality": "INTERWOVEN",
         "status": "PROPOSED",
         "beatIds": [
-          "ob-mtmzt6aj-zz4r",
-          "ob-mtmzt6aj-zcux"
+          "ob-mtmzt6b1-qkju",
+          "ob-mtmzt6b1-nl0q"
         ],
         "blockIds": [
-          "smb-mtmzt6ah-oncpm",
-          "smb-mtmzt6ah-smzwm"
+          "smb-mtmzt6b0-kgsif",
+          "smb-mtmzt6b0-tw6al"
         ],
         "reason": "共享行动目标「身份表象」，且目标方向可对齐或对撞",
         "sharedCharacterIds": [
@@ -754,17 +752,17 @@
         ]
       },
       {
-        "id": "wl-mtmzt6aj-7isl",
+        "id": "wl-mtmzt6b1-nb92",
         "kind": "WEAVE_SHARED_CHARACTER",
         "relationQuality": "COLOCATED",
         "status": "PROPOSED",
         "beatIds": [
-          "ob-mtmzt6aj-zz4r",
-          "ob-mtmzt6aj-xzcn"
+          "ob-mtmzt6b1-qkju",
+          "ob-mtmzt6b1-byud"
         ],
         "blockIds": [
-          "smb-mtmzt6ah-oncpm",
-          "smb-mtmzt6ah-smzwm"
+          "smb-mtmzt6b0-kgsif",
+          "smb-mtmzt6b0-tw6al"
         ],
         "reason": "共享角色 B——仅角色重合，保持同场并列而非强制合并",
         "sharedCharacterIds": [
@@ -774,37 +772,38 @@
         "sharedTargets": []
       },
       {
-        "id": "wl-mtmzt6aj-mj4k",
+        "id": "wl-mtmzt6b1-hz0m",
         "kind": "WEAVE_SHARED_SCENE",
         "relationQuality": "COLOCATED",
         "status": "PROPOSED",
         "beatIds": [
-          "ob-mtmzt6aj-zz4r",
-          "ob-mtmzt6aj-lr2l"
+          "ob-mtmzt6b1-qkju",
+          "ob-mtmzt6b1-mwst"
         ],
         "blockIds": [
-          "smb-mtmzt6ah-oncpm",
-          "smb-mtmzt6ai-oxbum"
+          "smb-mtmzt6b0-kgsif",
+          "smb-mtmzt6b0-gfzm5"
         ],
-        "reason": "同阶段共享角色 A——可同场并列，不算真正交织",
+        "reason": "同阶段共享角色 A、B——可同场并列，不算真正交织",
         "sharedCharacterIds": [
-          "A"
+          "A",
+          "B"
         ],
         "sharedFactKinds": [],
         "sharedTargets": []
       },
       {
-        "id": "wl-mtmzt6aj-79ui",
+        "id": "wl-mtmzt6b1-lp93",
         "kind": "WEAVE_SHARED_CHARACTER",
         "relationQuality": "COLOCATED",
         "status": "PROPOSED",
         "beatIds": [
-          "ob-mtmzt6aj-zz4r",
-          "ob-mtmzt6aj-had0"
+          "ob-mtmzt6b1-qkju",
+          "ob-mtmzt6b1-ebr8"
         ],
         "blockIds": [
-          "smb-mtmzt6ah-oncpm",
-          "smb-mtmzt6ai-oxbum"
+          "smb-mtmzt6b0-kgsif",
+          "smb-mtmzt6b0-gfzm5"
         ],
         "reason": "共享角色 A、B——仅角色重合，保持同场并列而非强制合并",
         "sharedCharacterIds": [
@@ -815,47 +814,47 @@
         "sharedTargets": []
       },
       {
-        "id": "wl-mtmzt6aj-bl6f",
-        "kind": "WEAVE_STRONG",
+        "id": "wl-mtmzt6b1-el44",
+        "kind": "WEAVE_SHARED_ACTION",
         "relationQuality": "INTERWOVEN",
         "status": "PROPOSED",
         "beatIds": [
-          "ob-mtmzt6aj-q9fq",
-          "ob-mtmzt6aj-xzcn"
+          "ob-mtmzt6b1-4pwx",
+          "ob-mtmzt6b1-byud"
         ],
         "blockIds": [
-          "smb-mtmzt6ah-oncpm",
-          "smb-mtmzt6ah-smzwm"
+          "smb-mtmzt6b0-kgsif",
+          "smb-mtmzt6b0-tw6al"
         ],
-        "reason": "共享行动目标「身份记录」，且目标方向可对齐或对撞",
+        "reason": "两条剧情都需要在「藏有记录的场所」执行相近行动（SEARCH/PROBE），可共享一次行动",
         "sharedCharacterIds": [
           "B",
           "C",
-          "D"
+          "D",
+          "E"
         ],
         "sharedFactKinds": [],
-        "sharedTargets": [
-          "身份记录"
-        ]
+        "sharedTargets": []
       },
       {
-        "id": "wl-mtmzt6aj-a61g",
+        "id": "wl-mtmzt6b1-cxjb",
         "kind": "WEAVE_CAUSAL",
         "relationQuality": "INTERWOVEN",
         "status": "PROPOSED",
         "beatIds": [
-          "ob-mtmzt6aj-q9fq",
-          "ob-mtmzt6aj-zwua"
+          "ob-mtmzt6b1-4pwx",
+          "ob-mtmzt6b1-xs6i"
         ],
         "blockIds": [
-          "smb-mtmzt6ah-oncpm",
-          "smb-mtmzt6ah-smzwm"
+          "smb-mtmzt6b0-kgsif",
+          "smb-mtmzt6b0-tw6al"
         ],
-        "reason": "固定阶段开放｜全体同步到点发放 的结果（identity_clue）满足 身份权限变化｜假身份逐层崩解 的前置条件",
+        "reason": "个人记忆分层｜两层：保底+终局 的结果（identity_clue）满足 集合属性探测｜多数表决式聚合 的前置条件",
         "sharedCharacterIds": [
           "B",
           "C",
-          "D"
+          "D",
+          "E"
         ],
         "sharedFactKinds": [
           "identity_clue"
@@ -863,19 +862,19 @@
         "sharedTargets": []
       },
       {
-        "id": "wl-mtmzt6aj-rlfo",
-        "kind": "WEAVE_SHARED_SCENE",
-        "relationQuality": "COLOCATED",
+        "id": "wl-mtmzt6b1-k6tq",
+        "kind": "WEAVE_SHARED_ACTION",
+        "relationQuality": "INTERWOVEN",
         "status": "PROPOSED",
         "beatIds": [
-          "ob-mtmzt6aj-q9fq",
-          "ob-mtmzt6aj-had0"
+          "ob-mtmzt6b1-4pwx",
+          "ob-mtmzt6b1-ebr8"
         ],
         "blockIds": [
-          "smb-mtmzt6ah-oncpm",
-          "smb-mtmzt6ai-oxbum"
+          "smb-mtmzt6b0-kgsif",
+          "smb-mtmzt6b0-gfzm5"
         ],
-        "reason": "同阶段共享角色 A、B、C、D、E——可同场并列，不算真正交织",
+        "reason": "两条剧情都需要在「藏有记录的场所」执行相近行动（shared-site-search），可共享一次行动",
         "sharedCharacterIds": [
           "A",
           "B",
@@ -887,17 +886,17 @@
         "sharedTargets": []
       },
       {
-        "id": "wl-mtmzt6aj-d8mk",
+        "id": "wl-mtmzt6b1-86hg",
         "kind": "WEAVE_SHARED_CHARACTER",
         "relationQuality": "COLOCATED",
         "status": "PROPOSED",
         "beatIds": [
-          "ob-mtmzt6aj-q9fq",
-          "ob-mtmzt6aj-3r99"
+          "ob-mtmzt6b1-4pwx",
+          "ob-mtmzt6b1-u56k"
         ],
         "blockIds": [
-          "smb-mtmzt6ah-oncpm",
-          "smb-mtmzt6ai-oxbum"
+          "smb-mtmzt6b0-kgsif",
+          "smb-mtmzt6b0-gfzm5"
         ],
         "reason": "共享角色 A、B、C、D、E——仅角色重合，保持同场并列而非强制合并",
         "sharedCharacterIds": [
@@ -911,67 +910,43 @@
         "sharedTargets": []
       },
       {
-        "id": "wl-mtmzt6aj-qif2",
+        "id": "wl-mtmzt6b1-9v77",
         "kind": "WEAVE_SHARED_ACTION",
         "relationQuality": "INTERWOVEN",
         "status": "PROPOSED",
         "beatIds": [
-          "ob-mtmzt6aj-mwe4",
-          "ob-mtmzt6aj-zwua"
+          "ob-mtmzt6b1-i7b9",
+          "ob-mtmzt6b1-xs6i"
         ],
         "blockIds": [
-          "smb-mtmzt6ah-oncpm",
-          "smb-mtmzt6ah-smzwm"
+          "smb-mtmzt6b0-kgsif",
+          "smb-mtmzt6b0-tw6al"
         ],
         "reason": "两条剧情都需要在「藏有记录的场所」执行相近行动（CONFIRM），可共享一次行动",
         "sharedCharacterIds": [
           "B",
           "C",
-          "D"
+          "D",
+          "E"
         ],
         "sharedFactKinds": [],
         "sharedTargets": []
       },
       {
-        "id": "wl-mtmzt6aj-cpj4",
+        "id": "wl-mtmzt6b1-shhp",
         "kind": "WEAVE_CAUSAL",
         "relationQuality": "INTERWOVEN",
         "status": "PROPOSED",
         "beatIds": [
-          "ob-mtmzt6aj-mwe4",
-          "ob-mtmzt6aj-nkm4"
+          "ob-mtmzt6b1-i7b9",
+          "ob-mtmzt6b1-0r92"
         ],
         "blockIds": [
-          "smb-mtmzt6ah-oncpm",
-          "smb-mtmzt6ah-smzwm"
+          "smb-mtmzt6b0-kgsif",
+          "smb-mtmzt6b0-tw6al"
         ],
-        "reason": "固定阶段开放｜全体同步到点发放 的结果（identity_confirmed）满足 身份权限变化｜假身份逐层崩解 的前置条件",
+        "reason": "个人记忆分层｜两层：保底+终局 的结果（identity_confirmed）满足 集合属性探测｜多数表决式聚合 的前置条件",
         "sharedCharacterIds": [
-          "B",
-          "C",
-          "D"
-        ],
-        "sharedFactKinds": [
-          "identity_confirmed"
-        ],
-        "sharedTargets": []
-      },
-      {
-        "id": "wl-mtmzt6aj-4t75",
-        "kind": "WEAVE_CAUSAL",
-        "relationQuality": "INTERWOVEN",
-        "status": "PROPOSED",
-        "beatIds": [
-          "ob-mtmzt6aj-mwe4",
-          "ob-mtmzt6aj-3r99"
-        ],
-        "blockIds": [
-          "smb-mtmzt6ah-oncpm",
-          "smb-mtmzt6ai-oxbum"
-        ],
-        "reason": "固定阶段开放｜全体同步到点发放 的结果（identity_confirmed）满足 动态阵营｜节点选择改归属 的前置条件",
-        "sharedCharacterIds": [
-          "A",
           "B",
           "C",
           "D",
@@ -983,63 +958,17 @@
         "sharedTargets": []
       },
       {
-        "id": "wl-mtmzt6aj-ied5",
-        "kind": "WEAVE_SHARED_CHARACTER",
-        "relationQuality": "COLOCATED",
-        "status": "PROPOSED",
-        "beatIds": [
-          "ob-mtmzt6aj-mwe4",
-          "ob-mtmzt6aj-csll"
-        ],
-        "blockIds": [
-          "smb-mtmzt6ah-oncpm",
-          "smb-mtmzt6ai-oxbum"
-        ],
-        "reason": "共享角色 A、B、C、D、E——仅角色重合，保持同场并列而非强制合并",
-        "sharedCharacterIds": [
-          "A",
-          "B",
-          "C",
-          "D",
-          "E"
-        ],
-        "sharedFactKinds": [],
-        "sharedTargets": []
-      },
-      {
-        "id": "wl-mtmzt6aj-tqd7",
-        "kind": "WEAVE_SHARED_ACTION",
-        "relationQuality": "INTERWOVEN",
-        "status": "PROPOSED",
-        "beatIds": [
-          "ob-mtmzt6aj-mesu",
-          "ob-mtmzt6aj-nkm4"
-        ],
-        "blockIds": [
-          "smb-mtmzt6ah-oncpm",
-          "smb-mtmzt6ah-smzwm"
-        ],
-        "reason": "两条剧情都需要在「藏有记录的场所」执行相近行动（CONSEQUENCE），可共享一次行动",
-        "sharedCharacterIds": [
-          "B",
-          "C",
-          "D"
-        ],
-        "sharedFactKinds": [],
-        "sharedTargets": []
-      },
-      {
-        "id": "wl-mtmzt6aj-k4i7",
+        "id": "wl-mtmzt6b1-j6pb",
         "kind": "WEAVE_SHARED_SCENE",
         "relationQuality": "COLOCATED",
         "status": "PROPOSED",
         "beatIds": [
-          "ob-mtmzt6aj-mesu",
-          "ob-mtmzt6aj-csll"
+          "ob-mtmzt6b1-i7b9",
+          "ob-mtmzt6b1-u56k"
         ],
         "blockIds": [
-          "smb-mtmzt6ah-oncpm",
-          "smb-mtmzt6ai-oxbum"
+          "smb-mtmzt6b0-kgsif",
+          "smb-mtmzt6b0-gfzm5"
         ],
         "reason": "同阶段共享角色 A、B、C、D、E——可同场并列，不算真正交织",
         "sharedCharacterIds": [
@@ -1053,17 +982,108 @@
         "sharedTargets": []
       },
       {
-        "id": "wl-mtmzt6aj-h2wd",
+        "id": "wl-mtmzt6b1-0cd3",
         "kind": "WEAVE_SHARED_CHARACTER",
         "relationQuality": "COLOCATED",
         "status": "PROPOSED",
         "beatIds": [
-          "ob-mtmzt6aj-zcux",
-          "ob-mtmzt6aj-had0"
+          "ob-mtmzt6b1-i7b9",
+          "ob-mtmzt6b1-cxqz"
         ],
         "blockIds": [
-          "smb-mtmzt6ah-smzwm",
-          "smb-mtmzt6ai-oxbum"
+          "smb-mtmzt6b0-kgsif",
+          "smb-mtmzt6b0-gfzm5"
+        ],
+        "reason": "共享角色 A、B、C、D、E——仅角色重合，保持同场并列而非强制合并",
+        "sharedCharacterIds": [
+          "A",
+          "B",
+          "C",
+          "D",
+          "E"
+        ],
+        "sharedFactKinds": [],
+        "sharedTargets": []
+      },
+      {
+        "id": "wl-mtmzt6b1-6oy3",
+        "kind": "WEAVE_SHARED_ACTION",
+        "relationQuality": "INTERWOVEN",
+        "status": "PROPOSED",
+        "beatIds": [
+          "ob-mtmzt6b1-irn4",
+          "ob-mtmzt6b1-0r92"
+        ],
+        "blockIds": [
+          "smb-mtmzt6b0-kgsif",
+          "smb-mtmzt6b0-tw6al"
+        ],
+        "reason": "两条剧情都需要在「藏有记录的场所」执行相近行动（CONSEQUENCE），可共享一次行动",
+        "sharedCharacterIds": [
+          "B",
+          "C",
+          "D",
+          "E"
+        ],
+        "sharedFactKinds": [],
+        "sharedTargets": []
+      },
+      {
+        "id": "wl-mtmzt6b1-7pv3",
+        "kind": "WEAVE_SHARED_SCENE",
+        "relationQuality": "COLOCATED",
+        "status": "PROPOSED",
+        "beatIds": [
+          "ob-mtmzt6b1-irn4",
+          "ob-mtmzt6b1-cxqz"
+        ],
+        "blockIds": [
+          "smb-mtmzt6b0-kgsif",
+          "smb-mtmzt6b0-gfzm5"
+        ],
+        "reason": "同阶段共享角色 A、B、C、D、E——可同场并列，不算真正交织",
+        "sharedCharacterIds": [
+          "A",
+          "B",
+          "C",
+          "D",
+          "E"
+        ],
+        "sharedFactKinds": [],
+        "sharedTargets": []
+      },
+      {
+        "id": "wl-mtmzt6b1-0gi7",
+        "kind": "WEAVE_SHARED_SCENE",
+        "relationQuality": "COLOCATED",
+        "status": "PROPOSED",
+        "beatIds": [
+          "ob-mtmzt6b1-nl0q",
+          "ob-mtmzt6b1-mwst"
+        ],
+        "blockIds": [
+          "smb-mtmzt6b0-tw6al",
+          "smb-mtmzt6b0-gfzm5"
+        ],
+        "reason": "同阶段共享角色 B——可同场并列，不算真正交织",
+        "sharedCharacterIds": [
+          "B"
+        ],
+        "sharedFactKinds": [],
+        "sharedTargets": []
+      },
+      {
+        "id": "wl-mtmzt6b1-xupr",
+        "kind": "WEAVE_SHARED_CHARACTER",
+        "relationQuality": "COLOCATED",
+        "status": "PROPOSED",
+        "beatIds": [
+          "ob-mtmzt6b1-nl0q",
+          "ob-mtmzt6b1-ebr8"
+        ],
+        "blockIds": [
+          "smb-mtmzt6b0-tw6al",
+          "smb-mtmzt6b0-gfzm5"
         ],
         "reason": "共享角色 F、B——仅角色重合，保持同场并列而非强制合并",
         "sharedCharacterIds": [
@@ -1074,20 +1094,21 @@
         "sharedTargets": []
       },
       {
-        "id": "wl-mtmzt6aj-ud40",
+        "id": "wl-mtmzt6b1-cq6x",
         "kind": "WEAVE_SHARED_ACTION",
         "relationQuality": "INTERWOVEN",
         "status": "PROPOSED",
         "beatIds": [
-          "ob-mtmzt6aj-xzcn",
-          "ob-mtmzt6aj-had0"
+          "ob-mtmzt6b1-byud",
+          "ob-mtmzt6b1-ebr8"
         ],
         "blockIds": [
-          "smb-mtmzt6ah-smzwm",
-          "smb-mtmzt6ai-oxbum"
+          "smb-mtmzt6b0-tw6al",
+          "smb-mtmzt6b0-gfzm5"
         ],
         "reason": "两条剧情都需要在「藏有记录的场所」执行相近行动（shared-site-search），可共享一次行动",
         "sharedCharacterIds": [
+          "E",
           "F",
           "B",
           "C",
@@ -1097,20 +1118,21 @@
         "sharedTargets": []
       },
       {
-        "id": "wl-mtmzt6aj-9tfw",
+        "id": "wl-mtmzt6b1-9v9g",
         "kind": "WEAVE_SHARED_CHARACTER",
         "relationQuality": "COLOCATED",
         "status": "PROPOSED",
         "beatIds": [
-          "ob-mtmzt6aj-xzcn",
-          "ob-mtmzt6aj-3r99"
+          "ob-mtmzt6b1-byud",
+          "ob-mtmzt6b1-u56k"
         ],
         "blockIds": [
-          "smb-mtmzt6ah-smzwm",
-          "smb-mtmzt6ai-oxbum"
+          "smb-mtmzt6b0-tw6al",
+          "smb-mtmzt6b0-gfzm5"
         ],
-        "reason": "共享角色 F、B、C、D——仅角色重合，保持同场并列而非强制合并",
+        "reason": "共享角色 E、F、B、C、D——仅角色重合，保持同场并列而非强制合并",
         "sharedCharacterIds": [
+          "E",
           "F",
           "B",
           "C",
@@ -1120,72 +1142,73 @@
         "sharedTargets": []
       },
       {
-        "id": "wl-mtmzt6aj-6gxt",
-        "kind": "WEAVE_CAUSAL",
-        "relationQuality": "INTERWOVEN",
-        "status": "PROPOSED",
-        "beatIds": [
-          "ob-mtmzt6aj-zwua",
-          "ob-mtmzt6aj-3r99"
-        ],
-        "blockIds": [
-          "smb-mtmzt6ah-smzwm",
-          "smb-mtmzt6ai-oxbum"
-        ],
-        "reason": "身份权限变化｜假身份逐层崩解 的结果（identity_confirmed）满足 动态阵营｜节点选择改归属 的前置条件",
-        "sharedCharacterIds": [
-          "F",
-          "B",
-          "C",
-          "D"
-        ],
-        "sharedFactKinds": [
-          "identity_confirmed"
-        ],
-        "sharedTargets": []
-      },
-      {
-        "id": "wl-mtmzt6aj-5vbh",
-        "kind": "WEAVE_SHARED_CHARACTER",
-        "relationQuality": "COLOCATED",
-        "status": "PROPOSED",
-        "beatIds": [
-          "ob-mtmzt6aj-zwua",
-          "ob-mtmzt6aj-csll"
-        ],
-        "blockIds": [
-          "smb-mtmzt6ah-smzwm",
-          "smb-mtmzt6ai-oxbum"
-        ],
-        "reason": "共享角色 F、B、C、D——仅角色重合，保持同场并列而非强制合并",
-        "sharedCharacterIds": [
-          "F",
-          "B",
-          "C",
-          "D"
-        ],
-        "sharedFactKinds": [],
-        "sharedTargets": []
-      },
-      {
-        "id": "wl-mtmzt6aj-3tiy",
+        "id": "wl-mtmzt6b1-fbxh",
         "kind": "WEAVE_SHARED_SCENE",
         "relationQuality": "COLOCATED",
         "status": "PROPOSED",
         "beatIds": [
-          "ob-mtmzt6aj-nkm4",
-          "ob-mtmzt6aj-csll"
+          "ob-mtmzt6b1-xs6i",
+          "ob-mtmzt6b1-u56k"
         ],
         "blockIds": [
-          "smb-mtmzt6ah-smzwm",
-          "smb-mtmzt6ai-oxbum"
+          "smb-mtmzt6b0-tw6al",
+          "smb-mtmzt6b0-gfzm5"
         ],
-        "reason": "同阶段共享角色 F、B、C、D——可同场并列，不算真正交织",
+        "reason": "同阶段共享角色 F、B、C、D、E——可同场并列，不算真正交织",
         "sharedCharacterIds": [
           "F",
           "B",
           "C",
-          "D"
+          "D",
+          "E"
+        ],
+        "sharedFactKinds": [],
+        "sharedTargets": []
+      },
+      {
+        "id": "wl-mtmzt6b1-z7mu",
+        "kind": "WEAVE_SHARED_CHARACTER",
+        "relationQuality": "COLOCATED",
+        "status": "PROPOSED",
+        "beatIds": [
+          "ob-mtmzt6b1-xs6i",
+          "ob-mtmzt6b1-cxqz"
+        ],
+        "blockIds": [
+          "smb-mtmzt6b0-tw6al",
+          "smb-mtmzt6b0-gfzm5"
+        ],
+        "reason": "共享角色 F、B、C、D、E——仅角色重合，保持同场并列而非强制合并",
+        "sharedCharacterIds": [
+          "F",
+          "B",
+          "C",
+          "D",
+          "E"
+        ],
+        "sharedFactKinds": [],
+        "sharedTargets": []
+      },
+      {
+        "id": "wl-mtmzt6b1-htqa",
+        "kind": "WEAVE_SHARED_SCENE",
+        "relationQuality": "COLOCATED",
+        "status": "PROPOSED",
+        "beatIds": [
+          "ob-mtmzt6b1-0r92",
+          "ob-mtmzt6b1-cxqz"
+        ],
+        "blockIds": [
+          "smb-mtmzt6b0-tw6al",
+          "smb-mtmzt6b0-gfzm5"
+        ],
+        "reason": "同阶段共享角色 F、B、C、D、E——可同场并列，不算真正交织",
+        "sharedCharacterIds": [
+          "F",
+          "B",
+          "C",
+          "D",
+          "E"
         ],
         "sharedFactKinds": [],
         "sharedTargets": []
@@ -1193,11 +1216,11 @@
     ],
     "conflictReport": [
       {
-        "id": "cf-mtmzt6ak-w1st",
+        "id": "cf-mtmzt6b1-uf06",
         "type": "ROLE_OVERLOAD",
         "severity": "warn",
         "characterId": "A",
-        "summary": "白斋子 当前承担：identity_bearer HIGH、member（负载 3）",
+        "summary": "白斋子 当前承担：identity_bearer HIGH、faction_lead HIGH（负载 4）",
         "suggestions": [
           {
             "id": "keep",
@@ -1215,7 +1238,7 @@
         "decision": null
       },
       {
-        "id": "cf-mtmzt6ak-vm0r",
+        "id": "cf-mtmzt6b1-dsdd",
         "type": "ROLE_OVERLOAD",
         "severity": "warn",
         "characterId": "B",
@@ -1237,11 +1260,11 @@
         "decision": null
       },
       {
-        "id": "cf-mtmzt6ak-4zr3",
+        "id": "cf-mtmzt6b1-lrj5",
         "type": "ROLE_OVERLOAD",
         "severity": "warn",
         "characterId": "C",
-        "summary": "顾清商 当前承担：misled、misled、rival_lead HIGH（负载 4）",
+        "summary": "顾清商 当前承担：misled、misled、member（负载 3）",
         "suggestions": [
           {
             "id": "keep",
@@ -1259,11 +1282,11 @@
         "decision": null
       },
       {
-        "id": "cf-mtmzt6ak-0ja3",
+        "id": "cf-mtmzt6b1-k1br",
         "type": "ROLE_OVERLOAD",
         "severity": "warn",
         "characterId": "D",
-        "summary": "杜霄元 当前承担：discoverer、discoverer、defector HIGH（负载 4）",
+        "summary": "杜霄元 当前承担：discoverer、discoverer、rival_lead HIGH（负载 4）",
         "suggestions": [
           {
             "id": "keep",
@@ -1281,11 +1304,11 @@
         "decision": null
       },
       {
-        "id": "cf-mtmzt6ak-q0ro",
+        "id": "cf-mtmzt6b1-1py0",
         "type": "ROLE_OVERLOAD",
         "severity": "warn",
         "characterId": "E",
-        "summary": "叶晚晴 当前承担：support、faction_lead HIGH（负载 3）",
+        "summary": "叶晚晴 当前承担：support、discoverer、faction_lead HIGH（负载 4）",
         "suggestions": [
           {
             "id": "keep",
@@ -1303,7 +1326,7 @@
         "decision": null
       },
       {
-        "id": "cf-mtmzt6ak-6zkr",
+        "id": "cf-mtmzt6b1-9pr4",
         "type": "ROLE_OVERLOAD",
         "severity": "warn",
         "characterId": "F",
@@ -1327,28 +1350,21 @@
     ],
     "characterLoadReport": [
       {
-        "characterId": "C",
-        "name": "顾清商",
+        "characterId": "A",
+        "name": "白斋子",
         "totalLoad": 4,
         "roles": [
           {
-            "blockId": "smb-mtmzt6ah-oncpm",
-            "slotId": "misled",
-            "narrativeRole": "misled",
-            "intensity": 1,
+            "blockId": "smb-mtmzt6b0-kgsif",
+            "slotId": "bearer",
+            "narrativeRole": "identity_bearer",
+            "intensity": 2,
             "intentionalOverlap": false
           },
           {
-            "blockId": "smb-mtmzt6ah-smzwm",
-            "slotId": "misled",
-            "narrativeRole": "misled",
-            "intensity": 1,
-            "intentionalOverlap": false
-          },
-          {
-            "blockId": "smb-mtmzt6ai-oxbum",
-            "slotId": "rivalLead",
-            "narrativeRole": "rival_lead",
+            "blockId": "smb-mtmzt6b0-gfzm5",
+            "slotId": "factionLead",
+            "narrativeRole": "faction_lead",
             "intensity": 2,
             "intentionalOverlap": false
           }
@@ -1360,45 +1376,52 @@
         "totalLoad": 4,
         "roles": [
           {
-            "blockId": "smb-mtmzt6ah-oncpm",
+            "blockId": "smb-mtmzt6b0-kgsif",
             "slotId": "revealer",
             "narrativeRole": "discoverer",
             "intensity": 1,
             "intentionalOverlap": false
           },
           {
-            "blockId": "smb-mtmzt6ah-smzwm",
+            "blockId": "smb-mtmzt6b0-tw6al",
             "slotId": "revealer",
             "narrativeRole": "discoverer",
             "intensity": 1,
             "intentionalOverlap": false
           },
           {
-            "blockId": "smb-mtmzt6ai-oxbum",
-            "slotId": "defector",
-            "narrativeRole": "defector",
+            "blockId": "smb-mtmzt6b0-gfzm5",
+            "slotId": "rivalLead",
+            "narrativeRole": "rival_lead",
             "intensity": 2,
             "intentionalOverlap": false
           }
         ]
       },
       {
-        "characterId": "A",
-        "name": "白斋子",
-        "totalLoad": 3,
+        "characterId": "E",
+        "name": "叶晚晴",
+        "totalLoad": 4,
         "roles": [
           {
-            "blockId": "smb-mtmzt6ah-oncpm",
-            "slotId": "bearer",
-            "narrativeRole": "identity_bearer",
-            "intensity": 2,
+            "blockId": "smb-mtmzt6b0-kgsif",
+            "slotId": "related",
+            "narrativeRole": "support",
+            "intensity": 1,
             "intentionalOverlap": false
           },
           {
-            "blockId": "smb-mtmzt6ai-oxbum",
-            "slotId": "memberA",
-            "narrativeRole": "member",
+            "blockId": "smb-mtmzt6b0-tw6al",
+            "slotId": "probeLead",
+            "narrativeRole": "discoverer",
             "intensity": 1,
+            "intentionalOverlap": false
+          },
+          {
+            "blockId": "smb-mtmzt6b0-gfzm5",
+            "slotId": "thirdLead",
+            "narrativeRole": "faction_lead",
+            "intensity": 2,
             "intentionalOverlap": false
           }
         ]
@@ -1409,22 +1432,22 @@
         "totalLoad": 3,
         "roles": [
           {
-            "blockId": "smb-mtmzt6ah-oncpm",
+            "blockId": "smb-mtmzt6b0-kgsif",
             "slotId": "knower",
             "narrativeRole": "witness",
             "intensity": 1,
             "intentionalOverlap": false
           },
           {
-            "blockId": "smb-mtmzt6ah-smzwm",
+            "blockId": "smb-mtmzt6b0-tw6al",
             "slotId": "knower",
             "narrativeRole": "witness",
             "intensity": 1,
             "intentionalOverlap": false
           },
           {
-            "blockId": "smb-mtmzt6ai-oxbum",
-            "slotId": "memberB",
+            "blockId": "smb-mtmzt6b0-gfzm5",
+            "slotId": "memberA",
             "narrativeRole": "member",
             "intensity": 1,
             "intentionalOverlap": false
@@ -1432,22 +1455,29 @@
         ]
       },
       {
-        "characterId": "E",
-        "name": "叶晚晴",
+        "characterId": "C",
+        "name": "顾清商",
         "totalLoad": 3,
         "roles": [
           {
-            "blockId": "smb-mtmzt6ah-oncpm",
-            "slotId": "related",
-            "narrativeRole": "support",
+            "blockId": "smb-mtmzt6b0-kgsif",
+            "slotId": "misled",
+            "narrativeRole": "misled",
             "intensity": 1,
             "intentionalOverlap": false
           },
           {
-            "blockId": "smb-mtmzt6ai-oxbum",
-            "slotId": "factionLead",
-            "narrativeRole": "faction_lead",
-            "intensity": 2,
+            "blockId": "smb-mtmzt6b0-tw6al",
+            "slotId": "misled",
+            "narrativeRole": "misled",
+            "intensity": 1,
+            "intentionalOverlap": false
+          },
+          {
+            "blockId": "smb-mtmzt6b0-gfzm5",
+            "slotId": "memberB",
+            "narrativeRole": "member",
+            "intensity": 1,
             "intentionalOverlap": false
           }
         ]
@@ -1458,14 +1488,14 @@
         "totalLoad": 3,
         "roles": [
           {
-            "blockId": "smb-mtmzt6ah-smzwm",
+            "blockId": "smb-mtmzt6b0-tw6al",
             "slotId": "bearer",
             "narrativeRole": "identity_bearer",
             "intensity": 2,
             "intentionalOverlap": false
           },
           {
-            "blockId": "smb-mtmzt6ai-oxbum",
+            "blockId": "smb-mtmzt6b0-gfzm5",
             "slotId": "outsider",
             "narrativeRole": "outsider",
             "intensity": 1,
@@ -1479,7 +1509,7 @@
         "totalLoad": 1,
         "roles": [
           {
-            "blockId": "smb-mtmzt6ah-smzwm",
+            "blockId": "smb-mtmzt6b0-tw6al",
             "slotId": "related",
             "narrativeRole": "support",
             "intensity": 1,
@@ -1491,9 +1521,9 @@
   },
   "blocks": [
     {
-      "id": "smb-mtmzt6ah-oncpm",
-      "templateId": "M07-1",
-      "title": "固定阶段开放｜全体同步到点发放",
+      "id": "smb-mtmzt6b0-kgsif",
+      "templateId": "M07-4",
+      "title": "个人记忆分层｜两层：保底+终局",
       "familyId": "M07",
       "roleBindings": {
         "bearer": {
@@ -1519,9 +1549,9 @@
       }
     },
     {
-      "id": "smb-mtmzt6ah-smzwm",
-      "templateId": "M07-5",
-      "title": "身份权限变化｜假身份逐层崩解",
+      "id": "smb-mtmzt6b0-tw6al",
+      "templateId": "M07-8",
+      "title": "集合属性探测｜多数表决式聚合",
       "familyId": "M07",
       "roleBindings": {
         "bearer": {
@@ -1543,39 +1573,46 @@
         "related": {
           "id": "NPC_LU",
           "name": "陆老爷"
+        },
+        "probeLead": {
+          "id": "E",
+          "name": "叶晚晴"
         }
       }
     },
     {
-      "id": "smb-mtmzt6ai-oxbum",
-      "templateId": "M08-4",
-      "title": "动态阵营｜节点选择改归属",
+      "id": "smb-mtmzt6b0-gfzm5",
+      "templateId": "M08-8",
+      "title": "多阵营并存｜三营条件表",
       "familyId": "M08",
       "roleBindings": {
         "factionLead": {
-          "id": "E",
-          "name": "叶晚晴"
-        },
-        "memberA": {
           "id": "A",
           "name": "白斋子"
         },
-        "memberB": {
+        "memberA": {
           "id": "B",
           "name": "沈孤鸿"
         },
-        "rivalLead": {
+        "memberB": {
           "id": "C",
           "name": "顾清商"
         },
-        "defector": {
+        "rivalLead": {
           "id": "D",
           "name": "杜霄元"
+        },
+        "thirdLead": {
+          "id": "E",
+          "name": "叶晚晴"
         },
         "outsider": {
           "id": "F",
           "name": "莫玄宗"
-        }
+        },
+        "hiddenMember": null,
+        "mediator": null,
+        "defector": null
       }
     }
   ]

@@ -1,146 +1,102 @@
 # Case B：身份为主
 
-> 双 M07 + M08 → 警惕「异常→揭示」机械流水线
+> 双 M07 + M08 → 身份确认应能因果衔接到改属
 
-- Case id: `B-identity-heavy`
+- Case id: `B-identity-heavy` · set: **DEV**
 - sourceStoryStateRevision: 3
 - accepted blocks: M07-1(固定阶段开放｜全体同步到点发放) · M07-5(身份权限变化｜假身份逐层崩解) · M08-4(动态阵营｜节点选择改归属)
 
-## 自动结构统计（非人工分）
+## 程序指标（P5.2）
 
 | 项 | 值 |
 |---|---|
-| stages | 5 |
+| stages | 3 |
 | beats | 12 |
-| 跨家族同阶段 (COLOCATED 候选) | 4 |
-| 单家族阶段 | 0 |
-| INTERWOVEN 边 (STRONG/SHARED_SCENE/CAUSAL) | 12 |
-| SHARED_CHARACTER | 9 |
-| WEAVE_WEAK (同阶段弱连) | 0 |
-| KEEP_PARALLEL | 0 |
-| weave by kind | {"WEAVE_SHARED_SCENE":11,"WEAVE_SHARED_CHARACTER":9,"WEAVE_CAUSAL":1} |
+| empty middle stages | 0 |
+| INTERWOVEN (relationQuality) | 9 |
+| COLOCATED | 11 |
+| PARALLEL / KEEP_PARALLEL | 0 |
+| fake INTERWOVEN (scene/char only) | 0 |
+| goal-driven beats | 12 |
+| 跨家族同阶段 | 2 |
+| weave by kind | {"WEAVE_STRONG":2,"WEAVE_SHARED_CHARACTER":7,"WEAVE_SHARED_SCENE":4,"WEAVE_CAUSAL":4,"WEAVE_SHARED_ACTION":3} |
 | conflictReport | 6 |
-| 目标驱动措辞 hits | 0 |
-| 容器式措辞 hits | 0 |
+| 目标驱动措辞 hits | 12 |
 
-## 阶段骨架（人工审阅主视图）
+## 阶段骨架
 
-### 第一幕 (`act1`)
+### 铺垫 (`act1`)
 
-家族覆盖：M07, M08 · **COLOCATED**
+家族覆盖：M07, M08 · 跨家族
 
-- **[M07] 固定阶段开放｜全体同步到点发放** — 内容处于隐藏态，仅系统登记接收范围=全体；焦点：白斋子。
-  - chars: A/B · band=0 · stageKey=HIDDEN
-- **[M07] 身份权限变化｜假身份逐层崩解** — 假层1；焦点：莫玄宗。
-  - chars: F/B · band=0 · stageKey=HIDDEN
-- **[M08] 动态阵营｜节点选择改归属** — 阵营关系进入可观察状态；焦点：叶晚晴。
-  - chars: E/A · band=0 · stageKey=LATENT
+- **[M07] 固定阶段开放｜全体同步到点发放** — 白斋子为了隐藏或维持当前身份表象，按伪装/未知状态行动，避免过早暴露（目标：身份表象）
+  - chars: A/B · band=0 · goal=隐藏或维持当前身份表象 / action=按伪装/未知状态行动，避免过早暴露
+- **[M07] 身份权限变化｜假身份逐层崩解** — 莫玄宗为了隐藏或维持当前身份表象，按伪装/未知状态行动，避免过早暴露（目标：身份表象）
+  - chars: F/B · band=0 · goal=隐藏或维持当前身份表象 / action=按伪装/未知状态行动，避免过早暴露
+- **[M08] 动态阵营｜节点选择改归属** — 叶晚晴为了巩固或潜伏阵营结构，确认成员知情范围与联络方式（目标：阵营名单/暗号）
+  - chars: E/A · band=0 · goal=巩固或潜伏阵营结构 / action=确认成员知情范围与联络方式
 
-### 第二幕 (`act2`)
+### 加压 (`act2`)
 
-家族覆盖：M07, M08 · **COLOCATED**
+家族覆盖：M07, M08 · 跨家族
 
-- **[M07] 固定阶段开放｜全体同步到点发放** — 到达指定阶段，服务器自动发放
-  - chars: A/B/C/D/E · band=1 · stageKey=FIRST_ANOMALY
-- **[M07] 身份权限变化｜假身份逐层崩解** — 假层2崩解
-  - chars: F/B/C/D/NPC_LU · band=1 · stageKey=FIRST_ANOMALY
-- **[M08] 动态阵营｜节点选择改归属** — 压力与信息差推动成员选择 维护秩序
-  - chars: E/A/B/C/D/F · band=1 · stageKey=CONTACT
+- **[M07] 固定阶段开放｜全体同步到点发放** — 白斋子为了等到约定阶段再领取被封存的事实，等待阶段到达并接收同一事实片段（目标：身份记录）
+  - chars: A/B/C/D/E · 交织组 · band=1 · goal=等到约定阶段再领取被封存的事实 / action=等待阶段到达并接收同一事实片段
+- **[M07] 身份权限变化｜假身份逐层崩解** — 莫玄宗为了寻找能确认身份的记录或信物，进入藏有记录的场所搜查身份相关物证（目标：身份记录）
+  - chars: F/B/C/D/NPC_LU · band=1 · goal=寻找能确认身份的记录或信物 / action=进入藏有记录的场所搜查身份相关物证
+- **[M08] 动态阵营｜节点选择改归属** — 叶晚晴为了夺取关键资源，组织成员夺取或销毁关键物证/资源（目标：关键账册或信物）
+  - chars: E/A/B/C/D/F · band=1 · goal=夺取关键资源 / action=组织成员夺取或销毁关键物证/资源
+- **[M07] 身份权限变化｜假身份逐层崩解** — 莫玄宗为了启用真实身份对应的权限，在揭示后启用权限表并验证资格（目标：真实身份）
+  - chars: F/B/C/D/NPC_LU · 交织组 · band=2 · goal=启用真实身份对应的权限 / action=在揭示后启用权限表并验证资格
+- **[M07] 固定阶段开放｜全体同步到点发放** — 白斋子为了确认真实身份并决定是否公开，核对身份线索并作出公开或隐瞒选择（目标：真实身份）
+  - chars: A/B/C/D/E · 交织组 · band=2 · goal=确认真实身份并决定是否公开 / action=核对身份线索并作出公开或隐瞒选择
+- **[M07] 身份权限变化｜假身份逐层崩解** — 莫玄宗为了承受身份公开后的关系后果，面对知情者与阵营/调查方的反应（目标：关系重组）
+  - chars: F/B/C/D/NPC_LU · 交织组 · band=3 · goal=承受身份公开后的关系后果 / action=面对知情者与阵营/调查方的反应
+- **[M08] 动态阵营｜节点选择改归属** — 杜霄元为了在预设节点改写归属，作出站队或改属选择（目标：归属状态）
+  - chars: D/E/A/B/C/F · 交织组 · band=2 · goal=在预设节点改写归属 / action=作出站队或改属选择
+- **[M07] 固定阶段开放｜全体同步到点发放** — 白斋子为了承受身份公开后的关系后果，面对知情者与阵营/调查方的反应（目标：关系重组）
+  - chars: A/B/C/D/E · 交织组 · band=3 · goal=承受身份公开后的关系后果 / action=面对知情者与阵营/调查方的反应
 
-### 第三幕 (`act3`)
+### 升级 (`act4`)
 
-_（空）_
+家族覆盖：M08
 
-### 第四幕 (`act4`)
+- **[M08] 动态阵营｜节点选择改归属** — 叶晚晴为了结算阵营目标并承受公开后果，公开站队或接受阵营败露后的关系重排（目标：阵营胜负条件）
+  - chars: E/A/B/C/D/F · band=3 · goal=结算阵营目标并承受公开后果 / action=公开站队或接受阵营败露后的关系重排
 
-家族覆盖：M07, M08 · **COLOCATED**
+## 交织边（含 relationQuality + WHY）
 
-- **[M07] 固定阶段开放｜全体同步到点发放** — 全员持有同一事实片段，后续可公开讨论
-  - chars: A/B/C/D/E · band=2 · stageKey=CONSEQUENCE
-- **[M07] 身份权限变化｜假身份逐层崩解** — 真身份+受限权限
-  - chars: F/B/C/D/NPC_LU · band=2 · stageKey=CONSEQUENCE
-- **[M08] 动态阵营｜节点选择改归属** — 归属或目标变化产生剧情后果
-  - chars: E/A/B/C/D/F · band=2 · stageKey=CONSEQUENCE
-
-### 终局 (`act5`)
-
-家族覆盖：M07, M08 · **COLOCATED**
-
-- **[M07] 固定阶段开放｜全体同步到点发放** — 固定阶段开放阶段完成。
-  - chars: A/B/C/D/E · band=3 · stageKey=CONSEQUENCE
-- **[M07] 身份权限变化｜假身份逐层崩解** — 身份权限变化阶段完成。
-  - chars: F/B/C/D/NPC_LU · band=3 · stageKey=CONSEQUENCE
-- **[M08] 动态阵营｜节点选择改归属** — 动态阵营阶段完成。
-  - chars: E/A/B/C/D/F · band=3 · stageKey=CONSEQUENCE
-
-## 交织边
-
-- **WEAVE_SHARED_SCENE** — 同阶段共享角色 B，适合合并为同一场景推进。
-  - shared: B
-- **WEAVE_SHARED_CHARACTER** — 共享角色 B，可弱交织。
-  - shared: B
-- **WEAVE_SHARED_SCENE** — 同阶段共享角色 A，适合合并为同一场景推进。
-  - shared: A
-- **WEAVE_SHARED_CHARACTER** — 共享角色 A、B，可弱交织。
-  - shared: A, B
-- **WEAVE_SHARED_SCENE** — 同阶段共享角色 B、C、D，适合合并为同一场景推进。
-  - shared: B, C, D
-- **WEAVE_SHARED_CHARACTER** — 共享角色 B、C、D，可弱交织。
-  - shared: B, C, D
-- **WEAVE_SHARED_SCENE** — 同阶段共享角色 A、B、C、D、E，适合合并为同一场景推进。
-  - shared: A, B, C, D, E
-- **WEAVE_SHARED_CHARACTER** — 共享角色 A、B、C、D、E，可弱交织。
-  - shared: A, B, C, D, E
-- **WEAVE_SHARED_SCENE** — 同阶段共享角色 B、C、D，适合合并为同一场景推进。
-  - shared: B, C, D
-- **WEAVE_SHARED_CHARACTER** — 共享角色 B、C、D，可弱交织。
-  - shared: B, C, D
-- **WEAVE_SHARED_SCENE** — 同阶段共享角色 A、B、C、D、E，适合合并为同一场景推进。
-  - shared: A, B, C, D, E
-- **WEAVE_SHARED_CHARACTER** — 共享角色 A、B、C、D、E，可弱交织。
-  - shared: A, B, C, D, E
-- **WEAVE_SHARED_SCENE** — 同阶段共享角色 B、C、D，适合合并为同一场景推进。
-  - shared: B, C, D
-- **WEAVE_SHARED_SCENE** — 同阶段共享角色 A、B、C、D、E，适合合并为同一场景推进。
-  - shared: A, B, C, D, E
-- **WEAVE_CAUSAL** — 身份权限变化｜假身份逐层崩解 的后果可衔接到 动态阵营｜节点选择改归属。
-- **WEAVE_SHARED_CHARACTER** — 共享角色 F、B，可弱交织。
-  - shared: F, B
-- **WEAVE_SHARED_SCENE** — 同阶段共享角色 F、B、C、D，适合合并为同一场景推进。
-  - shared: F, B, C, D
-- **WEAVE_SHARED_CHARACTER** — 共享角色 F、B、C、D，可弱交织。
-  - shared: F, B, C, D
-- **WEAVE_SHARED_SCENE** — 同阶段共享角色 F、B、C、D，适合合并为同一场景推进。
-  - shared: F, B, C, D
-- **WEAVE_SHARED_CHARACTER** — 共享角色 F、B、C、D，可弱交织。
-  - shared: F, B, C, D
+- **[INTERWOVEN] WEAVE_STRONG** — 共享行动目标「身份表象」，且目标方向可对齐或对撞
+- **[COLOCATED] WEAVE_SHARED_CHARACTER** — 共享角色 B——仅角色重合，保持同场并列而非强制合并
+- **[COLOCATED] WEAVE_SHARED_SCENE** — 同阶段共享角色 A——可同场并列，不算真正交织
+- **[COLOCATED] WEAVE_SHARED_CHARACTER** — 共享角色 A、B——仅角色重合，保持同场并列而非强制合并
+- **[INTERWOVEN] WEAVE_STRONG** — 共享行动目标「身份记录」，且目标方向可对齐或对撞
+- **[INTERWOVEN] WEAVE_CAUSAL** — 固定阶段开放｜全体同步到点发放 的结果（identity_clue）满足 身份权限变化｜假身份逐层崩解 的前置条件
+- **[COLOCATED] WEAVE_SHARED_SCENE** — 同阶段共享角色 A、B、C、D、E——可同场并列，不算真正交织
+- **[COLOCATED] WEAVE_SHARED_CHARACTER** — 共享角色 A、B、C、D、E——仅角色重合，保持同场并列而非强制合并
+- **[INTERWOVEN] WEAVE_SHARED_ACTION** — 两条剧情都需要在「藏有记录的场所」执行相近行动（CONFIRM），可共享一次行动
+- **[INTERWOVEN] WEAVE_CAUSAL** — 固定阶段开放｜全体同步到点发放 的结果（identity_confirmed）满足 身份权限变化｜假身份逐层崩解 的前置条件
+- **[INTERWOVEN] WEAVE_CAUSAL** — 固定阶段开放｜全体同步到点发放 的结果（identity_confirmed）满足 动态阵营｜节点选择改归属 的前置条件
+- **[COLOCATED] WEAVE_SHARED_CHARACTER** — 共享角色 A、B、C、D、E——仅角色重合，保持同场并列而非强制合并
+- **[INTERWOVEN] WEAVE_SHARED_ACTION** — 两条剧情都需要在「藏有记录的场所」执行相近行动（CONSEQUENCE），可共享一次行动
+- **[COLOCATED] WEAVE_SHARED_SCENE** — 同阶段共享角色 A、B、C、D、E——可同场并列，不算真正交织
+- **[COLOCATED] WEAVE_SHARED_CHARACTER** — 共享角色 F、B——仅角色重合，保持同场并列而非强制合并
+- **[INTERWOVEN] WEAVE_SHARED_ACTION** — 两条剧情都需要在「藏有记录的场所」执行相近行动（shared-site-search），可共享一次行动
+- **[COLOCATED] WEAVE_SHARED_CHARACTER** — 共享角色 F、B、C、D——仅角色重合，保持同场并列而非强制合并
+- **[INTERWOVEN] WEAVE_CAUSAL** — 身份权限变化｜假身份逐层崩解 的结果（identity_confirmed）满足 动态阵营｜节点选择改归属 的前置条件
+- **[COLOCATED] WEAVE_SHARED_CHARACTER** — 共享角色 F、B、C、D——仅角色重合，保持同场并列而非强制合并
+- **[COLOCATED] WEAVE_SHARED_SCENE** — 同阶段共享角色 F、B、C、D——可同场并列，不算真正交织
 
 ## 冲突报告
 
 - ⚠ [ROLE_OVERLOAD/warn] 白斋子 当前承担：identity_bearer HIGH、member（负载 3）
-  - 建议：保留 / 建议把次要职责换给其他角色 / 标记为有意重叠
 - ⚠ [ROLE_OVERLOAD/warn] 沈孤鸿 当前承担：witness、witness、member（负载 3）
-  - 建议：保留 / 建议把次要职责换给其他角色 / 标记为有意重叠
 - ⚠ [ROLE_OVERLOAD/warn] 顾清商 当前承担：misled、misled、rival_lead HIGH（负载 4）
-  - 建议：保留 / 建议把次要职责换给其他角色 / 标记为有意重叠
 - ⚠ [ROLE_OVERLOAD/warn] 杜霄元 当前承担：discoverer、discoverer、defector HIGH（负载 4）
-  - 建议：保留 / 建议把次要职责换给其他角色 / 标记为有意重叠
 - ⚠ [ROLE_OVERLOAD/warn] 叶晚晴 当前承担：support、faction_lead HIGH（负载 3）
-  - 建议：保留 / 建议把次要职责换给其他角色 / 标记为有意重叠
 - ⚠ [ROLE_OVERLOAD/warn] 莫玄宗 当前承担：identity_bearer HIGH、outsider（负载 3）
-  - 建议：保留 / 建议把次要职责换给其他角色 / 标记为有意重叠
 
-## 角色负载 Top
-
-- **顾清商** load=4 — misled@smb-mtmy, misled@smb-mtmy, rival_lead@smb-mtmy
-- **杜霄元** load=4 — discoverer@smb-mtmy, discoverer@smb-mtmy, defector@smb-mtmy
-- **白斋子** load=3 — identity_bearer@smb-mtmy, member@smb-mtmy
-- **沈孤鸿** load=3 — witness@smb-mtmy, witness@smb-mtmy, member@smb-mtmy
-- **叶晚晴** load=3 — support@smb-mtmy, faction_lead@smb-mtmy
-- **莫玄宗** load=3 — identity_bearer@smb-mtmy, outsider@smb-mtmy
-- **陆老爷** load=1 — support@smb-mtmy
-
-## 人工评分表（本文件下方由审阅填写）
+## 人工评分表
 
 | 指标 | 1–5 | 笔记 |
 |---|---:|---|
@@ -149,12 +105,4 @@ _（空）_
 | Character agency |  |  |
 | Stage rhythm |  |  |
 | Conflict honesty |  |  |
-| Editability (推断：局部 API 存在；本轮脚本未交互验证) |  |  |
-
-### 一句话主线（新人应能复述）
-
-> （审阅填写）
-
-### 是否值得继续写详细母稿？
-
-> （是 / 否 / 有条件）
+| Editability |  |  |

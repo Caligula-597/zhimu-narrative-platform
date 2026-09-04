@@ -15,6 +15,12 @@ import {
   characterLoadScore,
 } from "./story-mechanism-contracts.js";
 import { getStoryTemplate, getStoryVariant } from "./story-mechanism-registry.js";
+import {
+  formatAgencySummary,
+  isInternalCompletionSummary,
+  resolveBeatSemantics,
+} from "./story-beat-semantics.js";
+import { semanticsBridgeForTemplate } from "./complete-beat-semantics-data.js";
 
 export class StoryMechanismEngineError extends Error {
   constructor(code, message, details = undefined) {
@@ -140,18 +146,43 @@ function buildClueBindings(template, plot, roleBindings, blockId) {
   });
 }
 
+function enrichBeat(beat, { template, variant, roleBindings, plot, phaseBand }) {
+  const bridge = template.semanticsBridge || semanticsBridgeForTemplate(template.id);
+  const semantics = resolveBeatSemantics({
+    bridge,
+    phaseBand,
+    roleBindings,
+    plot,
+    involvedRoleKeys: beat.involvedRoleKeys,
+    variant,
+  });
+  let summary = beat.summary;
+  if (isInternalCompletionSummary(summary)) {
+    summary = semantics
+      ? formatAgencySummary(semantics, "NEEDS_DETAIL：缺具体行动")
+      : "NEEDS_DETAIL：缺具体行动";
+  } else if (semantics?.goal && semantics?.action) {
+    // Prefer agency sentence for COMPLETE bridges; keep original as fallback detail
+    summary = formatAgencySummary(semantics, summary);
+  }
+  return { ...beat, summary, semantics };
+}
+
 function buildBeats(template, variant, roleBindings, plot, clues) {
   const pattern = variant.beatPattern || {};
   const keys = Object.keys(pattern);
   const stages = template.stagePattern || [];
-  const make = (id, stageKey, summary, roleKeys, clueIds) => ({
-    id,
-    stageKey,
-    summary,
-    involvedRoleKeys: roleKeys.filter((k) => roleBindings[k]),
-    clueIds,
-  });
-
+  const make = (id, stageKey, summary, roleKeys, clueIds, phaseBand) =>
+    enrichBeat(
+      {
+        id,
+        stageKey,
+        summary,
+        involvedRoleKeys: roleKeys.filter((k) => roleBindings[k]),
+        clueIds,
+      },
+      { template, variant, roleBindings, plot, phaseBand },
+    );
   // M01-FRAMING shaped beats
   if (pattern.setup && pattern.crime) {
     return {
@@ -162,6 +193,7 @@ function buildBeats(template, variant, roleBindings, plot, clues) {
           `${pattern.setup}。${roleBindings.culprit ? `真凶 ${nameOf(roleBindings, "culprit")}` : ""} ${plot.trueMotive ? `动机：${plot.trueMotive}` : ""}`.trim(),
           ["culprit", "framedCharacter", "focusCharacter", "bearer", "actor"],
           [],
+          0,
         ),
       ],
       progression: [
@@ -171,6 +203,7 @@ function buildBeats(template, variant, roleBindings, plot, clues) {
           `${pattern.crime}${plot.trueMethod ? `（${plot.trueMethod}）` : ""}`,
           ["victim", "discoverer", "culprit", "subject", "investigator"],
           clues[0] ? [clues[0].clueId] : [],
+          1,
         ),
         make(
           "beat-false",
@@ -178,6 +211,7 @@ function buildBeats(template, variant, roleBindings, plot, clues) {
           `${pattern.falseDirection || pattern.develop || ""} ${plot.apparentConclusion || plot.falseLead || ""}`.trim(),
           ["framedCharacter", "subject"],
           clues[0] ? [clues[0].clueId] : [],
+          1,
         ),
         make(
           "beat-contra",
@@ -185,6 +219,7 @@ function buildBeats(template, variant, roleBindings, plot, clues) {
           `${pattern.contradiction || ""} ${plot.contradiction || ""}`.trim(),
           ["discoverer", "investigator", "witness"],
           clues[1] ? [clues[1].clueId] : [],
+          2,
         ),
       ],
       climax: [
@@ -194,6 +229,7 @@ function buildBeats(template, variant, roleBindings, plot, clues) {
           `${pattern.reveal || pattern.resolve || ""} ${plot.decisiveEvidence || plot.coreReveal || ""}`.trim(),
           ["culprit", "framedCharacter", "focusCharacter", "decisionMaker"],
           clues.slice(2).map((c) => c.clueId),
+          2,
         ),
       ],
       resolution: [
@@ -203,6 +239,7 @@ function buildBeats(template, variant, roleBindings, plot, clues) {
           `${template.title}收束。${plot.concealmentMethod || plot.endingA || plot.openCondition || ""}`.trim(),
           Object.keys(roleBindings),
           clues.slice(-1).map((c) => c.clueId),
+          3,
         ),
       ],
     };
@@ -220,6 +257,7 @@ function buildBeats(template, variant, roleBindings, plot, clues) {
         `${pattern.setup || pattern[keys[0]] || "建立关注点"}；焦点：${nameOf(roleBindings, Object.keys(roleBindings)[0])}。`,
         Object.keys(roleBindings).slice(0, 2),
         clues[0] ? [clues[0].clueId] : [],
+        0,
       ),
     ],
     progression: [
@@ -229,6 +267,7 @@ function buildBeats(template, variant, roleBindings, plot, clues) {
         `${pattern.develop || pattern[keys[1]] || "推进冲突"} ${plot.dramaticQuestion || plot.judgmentQuestion || plot.publicGoal || ""}`.trim(),
         Object.keys(roleBindings),
         clues[0] ? [clues[0].clueId] : [],
+        1,
       ),
     ],
     climax: [
@@ -238,6 +277,7 @@ function buildBeats(template, variant, roleBindings, plot, clues) {
         `${pattern.resolve || pattern.reveal || pattern[keys[keys.length - 1]] || "收束"} ${plot.coreReveal || plot.trueAnswer || plot.endingA || plot.stateChange || ""}`.trim(),
         Object.keys(roleBindings),
         clues.slice(1).map((c) => c.clueId),
+        2,
       ),
     ],
     resolution: [
@@ -247,6 +287,7 @@ function buildBeats(template, variant, roleBindings, plot, clues) {
         `${template.title}阶段完成。`,
         Object.keys(roleBindings),
         [],
+        3,
       ),
     ],
   };

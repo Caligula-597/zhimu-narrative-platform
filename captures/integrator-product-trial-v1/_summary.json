@@ -1,189 +1,395 @@
-[
-  {
-    "caseDef": {
+{
+  "gates": {
+    "emptyMiddleAllZero": true,
+    "fakeInterwovenAllZero": true,
+    "goalDrivenMin2": true,
+    "caseEHasKeepParallel": true,
+    "perCase": [
+      {
+        "id": "A-standard-mystery",
+        "emptyMiddle": true,
+        "fakeInterwoven": true,
+        "goalDriven": true,
+        "keepParallelIfE": true
+      },
+      {
+        "id": "B-identity-heavy",
+        "emptyMiddle": true,
+        "fakeInterwoven": true,
+        "goalDriven": true,
+        "keepParallelIfE": true
+      },
+      {
+        "id": "C-faction-ensemble",
+        "emptyMiddle": true,
+        "fakeInterwoven": true,
+        "goalDriven": true,
+        "keepParallelIfE": true
+      },
+      {
+        "id": "D-high-weave-overlap",
+        "emptyMiddle": true,
+        "fakeInterwoven": true,
+        "goalDriven": true,
+        "keepParallelIfE": true
+      },
+      {
+        "id": "E-low-affinity",
+        "emptyMiddle": true,
+        "fakeInterwoven": true,
+        "goalDriven": true,
+        "keepParallelIfE": true
+      }
+    ]
+  },
+  "dev": [
+    {
       "id": "A-standard-mystery",
-      "title": "Case A：标准推理",
-      "intent": "M01 追凶 + M07 身份 + M08 隐藏阵营 → 应共享行动/线索，而非三条并排"
-    },
-    "stats": {
-      "byKind": {
-        "WEAVE_CAUSAL": 4,
-        "WEAVE_SHARED_SCENE": 10,
-        "WEAVE_SHARED_CHARACTER": 7
+      "set": "DEV",
+      "stats": {
+        "byKind": {
+          "WEAVE_SHARED_SCENE": 10,
+          "WEAVE_SHARED_CHARACTER": 8,
+          "WEAVE_SHARED_ACTION": 1,
+          "KEEP_PARALLEL": 2
+        },
+        "byQuality": {
+          "INTERWOVEN": 1,
+          "COLOCATED": 18,
+          "PARALLEL": 2
+        },
+        "interwoven": 1,
+        "colocated": 18,
+        "parallel": 2,
+        "fakeInterwoven": 0,
+        "emptyMiddle": 0,
+        "goalDriven": 14,
+        "multiFamilyStages": 4,
+        "singleFamilyStages": 0,
+        "stageCount": 4,
+        "beatCount": 14
       },
-      "interwoven": 14,
-      "colocatedOnly": 0,
-      "parallel": 0,
-      "sharedChar": 7,
-      "multiFamilyStages": 4,
-      "singleFamilyStages": 0,
-      "stageCount": 5,
-      "beatCount": 14
+      "agency": {
+        "goalDriven": 14,
+        "containerLike": 0,
+        "sample": [
+          "沈孤鸿为了准备可嫁祸的假象，布置与顾清商相关的误导物（目标：被嫁祸者遗失的玉佩）",
+          "叶晚晴为了隐藏或维持当前身份表象，按伪装/未知状态行动，避免过早暴露（目标：身份表象）",
+          "莫玄宗为了维持隐营互认且不被外人察觉，确认成员知情范围与联络方式（目标：阵营名单/暗号）",
+          "沈孤鸿为了完成犯行并指向顾清商，实施犯行并留下指向顾清商的痕迹（目标：被嫁祸者遗失的玉佩）",
+          "沈孤鸿为了完成犯行并指向顾清商，实施犯行并留下指向顾清商的痕迹（目标：被嫁祸者遗失的玉佩）",
+          "杜霄元为了推翻对顾清商的错误判断，对照现场与证物寻找矛盾（目标：被嫁祸者遗失的玉佩）",
+          "叶晚晴为了寻找能确认身份的记录或信物，进入藏有记录的场所搜查身份相关物证（目标：身份记录）",
+          "莫玄宗为了在隐秘状态下夺取或销毁会暴露阵营的物证，派人潜入藏有记录的场所处理关键账册（目标：关键账册）"
+        ]
+      },
+      "conflictCount": 6,
+      "ok": true
     },
-    "agency": {
-      "goalDriven": 1,
-      "containerLike": 0,
-      "sample": [
-        "真凶取得与被嫁祸者相关的物品。真凶 沈孤鸿 动机：掩盖十年前的私吞行为",
-        "伪装态；焦点：叶晚晴。",
-        "阵营关系进入可观察状态；焦点：莫玄宗。",
-        "实施犯行并将物品放入现场（勒杀）",
-        "玩家第一轮形成对被嫁祸者的错误嫌疑 被嫁祸者进入过现场并与死者起过冲突",
-        "物品出现方式不合理（红蜡等） 玉佩沾有仅库房存在的红蜡",
-        "异常渗漏",
-        "压力与信息差推动成员选择 维护秩序"
-      ]
-    },
-    "conflictCount": 6,
-    "ok": true
-  },
-  {
-    "caseDef": {
+    {
       "id": "B-identity-heavy",
-      "title": "Case B：身份为主",
-      "intent": "双 M07 + M08 → 警惕「异常→揭示」机械流水线"
-    },
-    "stats": {
-      "byKind": {
-        "WEAVE_SHARED_SCENE": 11,
-        "WEAVE_SHARED_CHARACTER": 9,
-        "WEAVE_CAUSAL": 1
+      "set": "DEV",
+      "stats": {
+        "byKind": {
+          "WEAVE_STRONG": 2,
+          "WEAVE_SHARED_CHARACTER": 7,
+          "WEAVE_SHARED_SCENE": 4,
+          "WEAVE_CAUSAL": 4,
+          "WEAVE_SHARED_ACTION": 3
+        },
+        "byQuality": {
+          "INTERWOVEN": 9,
+          "COLOCATED": 11,
+          "PARALLEL": 0
+        },
+        "interwoven": 9,
+        "colocated": 11,
+        "parallel": 0,
+        "fakeInterwoven": 0,
+        "emptyMiddle": 0,
+        "goalDriven": 12,
+        "multiFamilyStages": 2,
+        "singleFamilyStages": 1,
+        "stageCount": 3,
+        "beatCount": 12
       },
-      "interwoven": 12,
-      "colocatedOnly": 0,
-      "parallel": 0,
-      "sharedChar": 9,
-      "multiFamilyStages": 4,
-      "singleFamilyStages": 0,
-      "stageCount": 5,
-      "beatCount": 12
+      "agency": {
+        "goalDriven": 12,
+        "containerLike": 0,
+        "sample": [
+          "白斋子为了隐藏或维持当前身份表象，按伪装/未知状态行动，避免过早暴露（目标：身份表象）",
+          "莫玄宗为了隐藏或维持当前身份表象，按伪装/未知状态行动，避免过早暴露（目标：身份表象）",
+          "叶晚晴为了巩固或潜伏阵营结构，确认成员知情范围与联络方式（目标：阵营名单/暗号）",
+          "白斋子为了等到约定阶段再领取被封存的事实，等待阶段到达并接收同一事实片段（目标：身份记录）",
+          "莫玄宗为了寻找能确认身份的记录或信物，进入藏有记录的场所搜查身份相关物证（目标：身份记录）",
+          "叶晚晴为了夺取关键资源，组织成员夺取或销毁关键物证/资源（目标：关键账册或信物）",
+          "莫玄宗为了启用真实身份对应的权限，在揭示后启用权限表并验证资格（目标：真实身份）",
+          "白斋子为了确认真实身份并决定是否公开，核对身份线索并作出公开或隐瞒选择（目标：真实身份）"
+        ]
+      },
+      "conflictCount": 6,
+      "ok": true
     },
-    "agency": {
-      "goalDriven": 0,
-      "containerLike": 0,
-      "sample": [
-        "内容处于隐藏态，仅系统登记接收范围=全体；焦点：白斋子。",
-        "假层1；焦点：莫玄宗。",
-        "阵营关系进入可观察状态；焦点：叶晚晴。",
-        "到达指定阶段，服务器自动发放",
-        "假层2崩解",
-        "压力与信息差推动成员选择 维护秩序",
-        "全员持有同一事实片段，后续可公开讨论",
-        "真身份+受限权限"
-      ]
-    },
-    "conflictCount": 6,
-    "ok": true
-  },
-  {
-    "caseDef": {
+    {
       "id": "C-faction-ensemble",
-      "title": "Case C：群像阵营",
-      "intent": "双 M08 + M07 → 多角色负载与阵营是否爆炸"
-    },
-    "stats": {
-      "byKind": {
-        "WEAVE_SHARED_SCENE": 12,
-        "WEAVE_SHARED_CHARACTER": 9
+      "set": "DEV",
+      "stats": {
+        "byKind": {
+          "WEAVE_STRONG": 1,
+          "WEAVE_CAUSAL": 3,
+          "WEAVE_SHARED_SCENE": 8,
+          "WEAVE_SHARED_CHARACTER": 6,
+          "WEAVE_SHARED_ACTION": 3,
+          "KEEP_PARALLEL": 2
+        },
+        "byQuality": {
+          "INTERWOVEN": 7,
+          "COLOCATED": 14,
+          "PARALLEL": 2
+        },
+        "interwoven": 7,
+        "colocated": 14,
+        "parallel": 2,
+        "fakeInterwoven": 0,
+        "emptyMiddle": 0,
+        "goalDriven": 12,
+        "multiFamilyStages": 1,
+        "singleFamilyStages": 3,
+        "stageCount": 4,
+        "beatCount": 12
       },
-      "interwoven": 12,
-      "colocatedOnly": 0,
-      "parallel": 0,
-      "sharedChar": 9,
-      "multiFamilyStages": 4,
-      "singleFamilyStages": 0,
-      "stageCount": 5,
-      "beatCount": 12
+      "agency": {
+        "goalDriven": 12,
+        "containerLike": 0,
+        "sample": [
+          "白斋子为了公开亮明阵营归属与目标，确认成员知情范围与联络方式（目标：阵营名单/暗号）",
+          "莫玄宗为了巩固或潜伏阵营结构，确认成员知情范围与联络方式（目标：阵营名单/暗号）",
+          "沈孤鸿为了隐藏或维持当前身份表象，按伪装/未知状态行动，避免过早暴露（目标：身份表象）",
+          "白斋子为了促成有时限的临时同盟，推动双方确认共享范围与退出成本（目标：关键账册或信物）",
+          "白斋子为了夺取关键资源，组织成员夺取或销毁关键物证/资源（目标：关键账册或信物）",
+          "defector为了在暴露风险下改归属或保住秘密，在关键选择点背叛、退出或清洗异己（目标：归属状态）",
+          "defector为了在暴露风险下改归属或保住秘密，在关键选择点背叛、退出或清洗异己（目标：归属状态）",
+          "莫玄宗为了结算阵营目标并承受公开后果，公开站队或接受阵营败露后的关系重排（目标：阵营胜负条件）"
+        ]
+      },
+      "conflictCount": 6,
+      "ok": true
     },
-    "agency": {
-      "goalDriven": 0,
-      "containerLike": 0,
-      "sample": [
-        "阵营关系进入可观察状态；焦点：白斋子。",
-        "阵营关系进入可观察状态；焦点：莫玄宗。",
-        "登记结算码条件；焦点：沈孤鸿。",
-        "压力与信息差推动成员选择 维护秩序",
-        "压力与信息差推动成员选择 维护秩序",
-        "等待正式结算",
-        "归属或目标变化产生剧情后果",
-        "归属或目标变化产生剧情后果"
-      ]
-    },
-    "conflictCount": 6,
-    "ok": true
-  },
-  {
-    "caseDef": {
+    {
       "id": "D-high-weave-overlap",
-      "title": "Case D：高交织 / 有意重叠",
-      "intent": "同一角色 = 真凶 + 阵营领袖 + 身份承担者 → 复杂人物还是负载爆表"
-    },
-    "stats": {
-      "byKind": {
-        "WEAVE_SHARED_SCENE": 12,
-        "WEAVE_SHARED_CHARACTER": 9
+      "set": "DEV",
+      "stats": {
+        "byKind": {
+          "WEAVE_SHARED_SCENE": 11,
+          "WEAVE_SHARED_CHARACTER": 9,
+          "WEAVE_SHARED_ACTION": 1,
+          "KEEP_PARALLEL": 2
+        },
+        "byQuality": {
+          "INTERWOVEN": 1,
+          "COLOCATED": 20,
+          "PARALLEL": 2
+        },
+        "interwoven": 1,
+        "colocated": 20,
+        "parallel": 2,
+        "fakeInterwoven": 0,
+        "emptyMiddle": 0,
+        "goalDriven": 14,
+        "multiFamilyStages": 4,
+        "singleFamilyStages": 0,
+        "stageCount": 4,
+        "beatCount": 14
       },
-      "interwoven": 12,
-      "colocatedOnly": 0,
-      "parallel": 0,
-      "sharedChar": 9,
-      "multiFamilyStages": 4,
-      "singleFamilyStages": 0,
-      "stageCount": 5,
-      "beatCount": 14
+      "agency": {
+        "goalDriven": 14,
+        "containerLike": 0,
+        "sample": [
+          "沈孤鸿为了准备可嫁祸的假象，布置与顾清商相关的误导物（目标：被嫁祸者遗失的玉佩）",
+          "沈孤鸿为了隐藏或维持当前身份表象，按伪装/未知状态行动，避免过早暴露（目标：身份表象）",
+          "沈孤鸿为了公开亮明阵营归属与目标，确认成员知情范围与联络方式（目标：阵营名单/暗号）",
+          "沈孤鸿为了完成犯行并指向顾清商，实施犯行并留下指向顾清商的痕迹（目标：被嫁祸者遗失的玉佩）",
+          "沈孤鸿为了完成犯行并指向顾清商，实施犯行并留下指向顾清商的痕迹（目标：被嫁祸者遗失的玉佩）",
+          "杜霄元为了推翻对顾清商的错误判断，对照现场与证物寻找矛盾（目标：被嫁祸者遗失的玉佩）",
+          "沈孤鸿为了寻找能确认身份的记录或信物，进入藏有记录的场所搜查身份相关物证（目标：身份记录）",
+          "沈孤鸿为了夺取关键资源，组织成员夺取或销毁关键物证/资源（目标：关键账册或信物）"
+        ]
+      },
+      "conflictCount": 5,
+      "ok": true
     },
-    "agency": {
-      "goalDriven": 1,
-      "containerLike": 0,
-      "sample": [
-        "真凶取得与被嫁祸者相关的物品。真凶 沈孤鸿 动机：掩盖十年前的私吞行为",
-        "伪装态；焦点：沈孤鸿。",
-        "阵营关系进入可观察状态；焦点：沈孤鸿。",
-        "实施犯行并将物品放入现场（勒杀）",
-        "玩家第一轮形成对被嫁祸者的错误嫌疑 被嫁祸者进入过现场并与死者起过冲突",
-        "物品出现方式不合理（红蜡等） 玉佩沾有仅库房存在的红蜡",
-        "异常渗漏",
-        "压力与信息差推动成员选择 维护秩序"
-      ]
-    },
-    "conflictCount": 5,
-    "ok": true
-  },
-  {
-    "caseDef": {
+    {
       "id": "E-low-affinity",
-      "title": "Case E：低相关积木",
-      "intent": "应诚实 KEEP_PARALLEL，禁止为「织」而强缝"
-    },
-    "stats": {
-      "byKind": {
-        "WEAVE_SHARED_SCENE": 4,
-        "WEAVE_SHARED_CHARACTER": 3
+      "set": "DEV",
+      "stats": {
+        "byKind": {
+          "WEAVE_SHARED_SCENE": 4,
+          "WEAVE_SHARED_CHARACTER": 3,
+          "KEEP_PARALLEL": 1
+        },
+        "byQuality": {
+          "INTERWOVEN": 0,
+          "COLOCATED": 7,
+          "PARALLEL": 1
+        },
+        "interwoven": 0,
+        "colocated": 7,
+        "parallel": 1,
+        "fakeInterwoven": 0,
+        "emptyMiddle": 0,
+        "goalDriven": 8,
+        "multiFamilyStages": 4,
+        "singleFamilyStages": 0,
+        "stageCount": 4,
+        "beatCount": 8
       },
-      "interwoven": 4,
-      "colocatedOnly": 0,
-      "parallel": 0,
-      "sharedChar": 3,
-      "multiFamilyStages": 4,
-      "singleFamilyStages": 0,
-      "stageCount": 5,
-      "beatCount": 8
+      "agency": {
+        "goalDriven": 8,
+        "containerLike": 0,
+        "sample": [
+          "白斋子为了公开亮明阵营归属与目标，确认成员知情范围与联络方式（目标：阵营名单/暗号）",
+          "莫玄宗为了隐藏或维持当前身份表象，按伪装/未知状态行动，避免过早暴露（目标：身份表象）",
+          "白斋子为了夺取关键资源，组织成员夺取或销毁关键物证/资源（目标：关键账册或信物）",
+          "莫玄宗为了用正式动作换取被条件锁住的信息，完成登记条件以触发内容开放（目标：身份记录）",
+          "defector为了在暴露风险下改归属或保住秘密，在关键选择点背叛、退出或清洗异己（目标：归属状态）",
+          "莫玄宗为了确认真实身份并决定是否公开，核对身份线索并作出公开或隐瞒选择（目标：真实身份）",
+          "白斋子为了结算阵营目标并承受公开后果，公开站队或接受阵营败露后的关系重排（目标：阵营胜负条件）",
+          "莫玄宗为了承受身份公开后的关系后果，面对知情者与阵营/调查方的反应（目标：关系重组）"
+        ]
+      },
+      "conflictCount": 0,
+      "ok": true
+    }
+  ],
+  "held": [
+    {
+      "id": "F-framing-open-faction",
+      "set": "HELD_OUT",
+      "stats": {
+        "byKind": {
+          "WEAVE_SHARED_CHARACTER": 8,
+          "WEAVE_SHARED_SCENE": 9,
+          "WEAVE_SHARED_ACTION": 1,
+          "KEEP_PARALLEL": 2
+        },
+        "byQuality": {
+          "INTERWOVEN": 1,
+          "COLOCATED": 17,
+          "PARALLEL": 2
+        },
+        "interwoven": 1,
+        "colocated": 17,
+        "parallel": 2,
+        "fakeInterwoven": 0,
+        "emptyMiddle": 0,
+        "goalDriven": 14,
+        "multiFamilyStages": 4,
+        "singleFamilyStages": 0,
+        "stageCount": 4,
+        "beatCount": 14
+      },
+      "agency": {
+        "goalDriven": 14,
+        "containerLike": 0,
+        "sample": [
+          "沈孤鸿为了准备可嫁祸的假象，布置与顾清商相关的误导物（目标：带血匕首（非致命创口所用））",
+          "叶晚晴为了公开亮明阵营归属与目标，确认成员知情范围与联络方式（目标：阵营名单/暗号）",
+          "莫玄宗为了隐藏或维持当前身份表象，按伪装/未知状态行动，避免过早暴露（目标：身份表象）",
+          "沈孤鸿为了完成犯行并指向顾清商，实施犯行并留下指向顾清商的痕迹（目标：带血匕首（非致命创口所用））",
+          "沈孤鸿为了完成犯行并指向顾清商，实施犯行并留下指向顾清商的痕迹（目标：带血匕首（非致命创口所用））",
+          "杜霄元为了推翻对顾清商的错误判断，对照现场与证物寻找矛盾（目标：带血匕首（非致命创口所用））",
+          "叶晚晴为了夺取关键资源，组织成员夺取或销毁关键物证/资源（目标：关键账册或信物）",
+          "莫玄宗为了寻找能确认身份的记录或信物，进入藏有记录的场所搜查身份相关物证（目标：身份记录）"
+        ]
+      },
+      "conflictCount": 6,
+      "ok": true
     },
-    "agency": {
-      "goalDriven": 0,
-      "containerLike": 0,
-      "sample": [
-        "阵营关系进入可观察状态；焦点：白斋子。",
-        "权限与内容绑定；焦点：莫玄宗。",
-        "压力与信息差推动成员选择 维护秩序",
-        "权限被合法使用",
-        "归属或目标变化产生剧情后果",
-        "内容发放给指定接收者",
-        "固定公开阵营阶段完成。",
-        "条件触发开放阶段完成。"
-      ]
+    {
+      "id": "G-memory-probe-rival",
+      "set": "HELD_OUT",
+      "stats": {
+        "byKind": {
+          "WEAVE_STRONG": 1,
+          "WEAVE_SHARED_CHARACTER": 7,
+          "WEAVE_SHARED_SCENE": 6,
+          "WEAVE_SHARED_ACTION": 5,
+          "WEAVE_CAUSAL": 2
+        },
+        "byQuality": {
+          "INTERWOVEN": 8,
+          "COLOCATED": 13,
+          "PARALLEL": 0
+        },
+        "interwoven": 8,
+        "colocated": 13,
+        "parallel": 0,
+        "fakeInterwoven": 0,
+        "emptyMiddle": 0,
+        "goalDriven": 12,
+        "multiFamilyStages": 2,
+        "singleFamilyStages": 2,
+        "stageCount": 4,
+        "beatCount": 12
+      },
+      "agency": {
+        "goalDriven": 12,
+        "containerLike": 0,
+        "sample": [
+          "白斋子为了隐藏或维持当前身份表象，按伪装/未知状态行动，避免过早暴露（目标：身份表象）",
+          "莫玄宗为了隐藏或维持当前身份表象，按伪装/未知状态行动，避免过早暴露（目标：身份表象）",
+          "白斋子为了巩固或潜伏阵营结构，确认成员知情范围与联络方式（目标：阵营名单/暗号）",
+          "白斋子为了寻找能确认身份的记录或信物，进入藏有记录的场所搜查身份相关物证（目标：身份记录）",
+          "叶晚晴为了压缩隐藏身份候选范围，对一组人发起集合属性探测（目标：聚合输出）",
+          "叶晚晴为了在多营条件表中争取渔利档，利用两营冲突抽取第三方利益（目标：关键账册或信物）",
+          "莫玄宗为了确认真实身份并决定是否公开，核对身份线索并作出公开或隐瞒选择（目标：真实身份）",
+          "白斋子为了确认真实身份并决定是否公开，核对身份线索并作出公开或隐瞒选择（目标：真实身份）"
+        ]
+      },
+      "conflictCount": 6,
+      "ok": true
     },
-    "conflictCount": 0,
-    "ok": true
-  }
-]
+    {
+      "id": "H-conditional-public-task",
+      "set": "HELD_OUT",
+      "stats": {
+        "byKind": {
+          "WEAVE_SHARED_SCENE": 12,
+          "WEAVE_SHARED_CHARACTER": 9,
+          "KEEP_PARALLEL": 3
+        },
+        "byQuality": {
+          "INTERWOVEN": 0,
+          "COLOCATED": 21,
+          "PARALLEL": 3
+        },
+        "interwoven": 0,
+        "colocated": 21,
+        "parallel": 3,
+        "fakeInterwoven": 0,
+        "emptyMiddle": 0,
+        "goalDriven": 14,
+        "multiFamilyStages": 4,
+        "singleFamilyStages": 0,
+        "stageCount": 4,
+        "beatCount": 14
+      },
+      "agency": {
+        "goalDriven": 14,
+        "containerLike": 0,
+        "sample": [
+          "白斋子为了隐藏或维持当前身份表象，按伪装/未知状态行动，避免过早暴露（目标：身份表象）",
+          "莫玄宗为了巩固或潜伏阵营结构，确认成员知情范围与联络方式（目标：阵营名单/暗号）",
+          "沈孤鸿为了准备可嫁祸的假象，布置与顾清商相关的误导物（目标：被拨慢的座钟记录）",
+          "白斋子为了用正式动作换取被条件锁住的信息，完成登记条件以触发内容开放（目标：身份记录）",
+          "莫玄宗为了让公共任务按本阵营偏好成功、失败或延迟，对公共任务施加正式破坏或支援（目标：公共任务状态）",
+          "沈孤鸿为了完成犯行并指向顾清商，实施犯行并留下指向顾清商的痕迹（目标：被拨慢的座钟记录）",
+          "沈孤鸿为了完成犯行并指向顾清商，实施犯行并留下指向顾清商的痕迹（目标：被拨慢的座钟记录）",
+          "莫玄宗为了推翻对顾清商的错误判断，对照现场与证物寻找矛盾（目标：被拨慢的座钟记录）"
+        ]
+      },
+      "conflictCount": 6,
+      "ok": true
+    }
+  ]
+}

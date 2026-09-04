@@ -65,14 +65,24 @@ function saveHtml(ui) {
 
 function weaveLabel(kind) {
   const map = {
-    WEAVE_STRONG: "强交织",
-    WEAVE_SHARED_SCENE: "同场",
-    WEAVE_SHARED_CHARACTER: "共享角色",
-    WEAVE_CAUSAL: "因果衔接",
-    WEAVE_WEAK: "弱连接",
-    KEEP_PARALLEL: "保持独立",
+    WEAVE_STRONG: "真正交织·目标对撞",
+    WEAVE_SHARED_ACTION: "真正交织·共享行动",
+    WEAVE_SHARED_SCENE: "同场并列（不算真正交织）",
+    WEAVE_SHARED_CHARACTER: "角色重合（不算真正交织）",
+    WEAVE_CAUSAL: "真正交织·因果",
+    WEAVE_WEAK: "同场提示",
+    KEEP_PARALLEL: "保持平行",
   };
   return map[kind] || kind;
+}
+
+function relationLabel(q) {
+  const map = {
+    INTERWOVEN: "真正交织",
+    COLOCATED: "同场并列",
+    PARALLEL: "保持平行",
+  };
+  return map[q] || q || "";
 }
 
 function render(root) {
@@ -115,13 +125,20 @@ function render(root) {
   const beatsHtml = (activeStage?.beats || [])
     .map((b) => {
       const selected = ui.selectedBeatIds.includes(b.id);
+      const agency =
+        b.semantics?.goal && b.semantics?.action
+          ? `${b.semantics.actorLabel || "角色"} → ${b.semantics.goal}`
+          : b.needsDetail
+            ? "NEEDS_DETAIL"
+            : "";
       return `<article class="outline-beat ${selected ? "is-selected" : ""} ${b.weaveGroupId ? "is-woven" : ""}" data-outline-beat="${escapeHtml(b.id)}">
         <header>
           <strong>${escapeHtml(b.blockTitle || b.templateId)}</strong>
           <span>${escapeHtml(b.familyId)}</span>
         </header>
         <p>${escapeHtml(b.summary)}</p>
-        <footer>${(b.characterIds || []).map((id) => `<code>${escapeHtml(id)}</code>`).join(" ")}${b.weaveGroupId ? " · 同场组" : ""}</footer>
+        ${agency ? `<p class="outline-agency">${escapeHtml(agency)}</p>` : ""}
+        <footer>${(b.characterIds || []).map((id) => `<code>${escapeHtml(id)}</code>`).join(" ")}${b.weaveGroupId ? " · 交织组" : ""}</footer>
       </article>`;
     })
     .join("") || `<p class="outline-empty">本阶段暂无剧情块</p>`;
@@ -130,9 +147,9 @@ function render(root) {
     .filter((l) => l.status !== "SPLIT")
     .slice(0, 12)
     .map(
-      (l) => `<li class="outline-weave">
-        <strong>${escapeHtml(weaveLabel(l.kind))}</strong>
-        <span>${escapeHtml(l.reason)}</span>
+      (l) => `<li class="outline-weave outline-weave--${escapeHtml(l.relationQuality || "PARALLEL")}">
+        <strong>${escapeHtml(relationLabel(l.relationQuality))} · ${escapeHtml(weaveLabel(l.kind))}</strong>
+        <span class="outline-weave-why">WHY：${escapeHtml(l.reason)}</span>
         <button type="button" data-outline-split="${escapeHtml(l.id)}">拆开</button>
       </li>`,
     )

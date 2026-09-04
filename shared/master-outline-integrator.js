@@ -1,7 +1,8 @@
 /**
- * Master Outline Integrator Prototype V1
+ * Master Outline Integrator Prototype V1 + P5.2 Semantic Bridge
  *
  * 原则：先编排，后写作。禁止把全部积木丢给 LLM 重写大纲。
+ * Weave 默认 KEEP_PARALLEL；仅凭 Goal/Action/Target/Requires/Produces 证据升级。
  * 输入：ProjectStoryState（已接受的 StoryMechanismBlock）
  * 输出：MasterOutlineDraft，写回 state.masterOutlineDraft
  */
@@ -17,9 +18,15 @@ import {
   normalizeOutlineBeat,
   normalizeWeaveLink,
   normalizeConflictItem,
+  relationQualityForWeaveKind,
 } from "./master-outline-contracts.js";
+import { isInternalCompletionSummary } from "./story-beat-semantics.js";
 
 const ACCEPTED = new Set(["USER_ACCEPTED", "USER_MODIFIED", "LOCKED"]);
+
+const STAGE_ARC_LABELS = Object.freeze(["铺垫", "加压", "升级", "收束"]);
+
+const SEARCHISH = new Set(["SEARCH", "SECURE", "INVESTIGATE", "PROBE"]);
 
 export class MasterOutlineIntegratorError extends Error {
   constructor(code, message, details = {}) {
@@ -47,6 +54,73 @@ function blockById(blocks, id) {
   return blocks.find((b) => b.id === id) || null;
 }
 
+function factKeys(list) {
+  return (list || [])
+    .map((f) => String(f?.id || f?.kind || "").toLowerCase())
+    .filter(Boolean);
+}
+
+function factMatch(produces, requires) {
+  const prod = factKeys(produces);
+  const req = factKeys(requires);
+  return prod.filter((p) => req.some((r) => p === r || p.includes(r) || r.includes(p)));
+}
+
+function normTarget(t) {
+  return String(t || "")
+    .toLowerCase()
+    .replace(/\s+/g, "")
+    .slice(0, 40);
+}
+
+function targetsCompatible(a, b) {
+  const ta = normTarget(a);
+  const tb = normTarget(b);
+  if (!ta || !tb) return false;
+  return ta === tb || ta.includes(tb) || tb.includes(ta);
+}
+
+function goalsConflict(sa, sb) {
+  if (!sa?.goal || !sb?.goal) return false;
+  if (sa.goal === sb.goal) return false;
+  const aOpp = factKeys(sa.opposes);
+  const bProd = factKeys(sb.produces);
+  const bOpp = factKeys(sb.opposes);
+  const aProd = factKeys(sa.produces);
+  if (aOpp.some((x) => bProd.includes(x) || factKeys(sb.requires).includes(x))) return true;
+  if (bOpp.some((x) => aProd.includes(x) || factKeys(sa.requires).includes(x))) return true;
+  if (targetsCompatible(sa.target, sb.target)) {
+    const conflictPair =
+      (/销毁|掩盖|阻止|隐瞒/.test(sa.goal) && /寻找|洗清|确认|揭穿|公开/.test(sb.goal)) ||
+      (/销毁|掩盖|阻止|隐瞒/.test(sb.goal) && /寻找|洗清|确认|揭穿|公开/.test(sa.goal));
+    if (conflictPair) return true;
+  }
+  return false;
+}
+
+function sharedActionEvidence(sa, sb) {
+  if (!sa || !sb) return null;
+  if (sa.independence === "INDEPENDENT" || sb.independence === "INDEPENDENT") return null;
+  const kindA = sa.actionKind || "";
+  const kindB = sb.actionKind || "";
+  const locA = normTarget(sa.locationHint);
+  const locB = normTarget(sb.locationHint);
+  const sameLoc = locA && locB && (locA === locB || locA.includes(locB) || locB.includes(locA));
+  if (kindA && kindA === kindB && (sameLoc || targetsCompatible(sa.target, sb.target))) {
+    return { kind: kindA, location: sa.locationHint || sb.locationHint };
+  }
+  if (SEARCHISH.has(kindA) && SEARCHISH.has(kindB) && sameLoc) {
+    return { kind: `${kindA}/${kindB}`, location: sa.locationHint || sb.locationHint };
+  }
+  const reqA = factKeys(sa.requires);
+  const reqB = factKeys(sb.requires);
+  const sharedReq = reqA.filter((x) => reqB.includes(x));
+  if (sharedReq.includes("site_accessible") && SEARCHISH.has(kindA) && SEARCHISH.has(kindB)) {
+    return { kind: "shared-site-search", location: sa.locationHint || sb.locationHint || "关键场所" };
+  }
+  return null;
+}
+
 function flattenSourceBeats(block) {
   const phases = [
     ["setup", 0],
@@ -57,9 +131,20 @@ function flattenSourceBeats(block) {
   const out = [];
   for (const [phase, band] of phases) {
     for (const beat of block[phase] || []) {
-      const characterIds = (beat.involvedRoleKeys || [])
-        .map((k) => block.roleBindings?.[k]?.id)
-        .filter(Boolean);
+      const characterIds = [
+        ...(beat.semantics?.actorRefs || []),
+        ...(beat.involvedRoleKeys || []).map((k) => block.roleBindings?.[k]?.id).filter(Boolean),
+      ].filter((id, i, arr) => arr.indexOf(id) === i);
+
+      let summary = beat.summary || `${block.title} · ${phase}`;
+      if (isInternalCompletionSummary(summary) && beat.semantics) {
+        const actor = beat.semantics.actorLabel || characterIds[0] || "角色";
+        summary =
+          beat.semantics.goal && beat.semantics.action
+            ? `${actor}为了${beat.semantics.goal}，${beat.semantics.action}`
+            : `NEEDS_DETAIL：${block.title}收束缺具体行动`;
+      }
+
       out.push(
         normalizeOutlineBeat({
           id: newId("ob"),
@@ -68,11 +153,13 @@ function flattenSourceBeats(block) {
           familyId: block.familyId,
           templateId: block.templateId,
           blockTitle: block.title,
-          summary: beat.summary || `${block.title} · ${phase}`,
+          summary,
           phaseBand: band,
           stageKey: beat.stageKey,
           characterIds,
           clueIds: beat.clueIds || [],
+          semantics: beat.semantics || null,
+          needsDetail: Boolean(beat.semantics?.needsDetail),
         }),
       );
     }
@@ -85,15 +172,15 @@ function resolveOutlineStages(projectStages, beatCount) {
   if (sorted.length >= 2) {
     return sorted.map((s, i) => ({
       id: s.id,
-      label: s.label || `第${i + 1}阶段`,
+      label: s.label || STAGE_ARC_LABELS[Math.min(i, STAGE_ARC_LABELS.length - 1)] || `第${i + 1}阶段`,
       order: Number.isFinite(s.order) ? s.order : i,
       beats: [],
     }));
   }
-  const n = Math.max(3, Math.min(5, Math.ceil(beatCount / 2) || 3));
+  const n = beatCount <= 6 ? 3 : Math.min(4, Math.max(3, Math.ceil(beatCount / 4)));
   return Array.from({ length: n }, (_, i) => ({
     id: `outline-stage-${i + 1}`,
-    label: `第${i + 1}阶段`,
+    label: STAGE_ARC_LABELS[Math.min(i, STAGE_ARC_LABELS.length - 1)] || `第${i + 1}阶段`,
     order: i,
     beats: [],
   }));
@@ -101,8 +188,25 @@ function resolveOutlineStages(projectStages, beatCount) {
 
 function assignBeatToStageIndex(phaseBand, stageCount) {
   if (stageCount <= 1) return 0;
-  const t = Math.max(0, Math.min(3, phaseBand)) / 3;
-  return Math.min(stageCount - 1, Math.round(t * (stageCount - 1)));
+  if (stageCount === 2) return phaseBand <= 1 ? 0 : 1;
+  if (stageCount === 3) {
+    if (phaseBand <= 0) return 0;
+    if (phaseBand <= 2) return 1;
+    return 2;
+  }
+  return Math.min(stageCount - 1, Math.max(0, phaseBand));
+}
+
+/** 禁止中间空幕：压缩无内容阶段并重标号 */
+export function compressEmptyStages(stages) {
+  const kept = (stages || []).filter((s) => (s.beats || []).length > 0);
+  if (!kept.length) return stages || [];
+  return kept.map((s, i) => ({
+    ...s,
+    id: s.id || `outline-stage-${i + 1}`,
+    order: i,
+    label: STAGE_ARC_LABELS[Math.min(i, STAGE_ARC_LABELS.length - 1)] || `第${i + 1}阶段`,
+  }));
 }
 
 function sharedChars(a, b) {
@@ -110,44 +214,14 @@ function sharedChars(a, b) {
   return (a.characterIds || []).filter((id) => setB.has(id));
 }
 
-function familyHints(block) {
-  const h = block?.integrationHints || {};
-  return {
-    canPrecede: (h.canPrecede || []).map(String),
-    canFollow: (h.canFollow || []).map(String),
-    sharesFactsWith: (h.sharesFactsWith || []).map(String),
-    weaveIntent: String(h.weaveIntent || ""),
-  };
-}
-
-function causalPair(blockA, blockB) {
-  const a = familyHints(blockA);
-  const b = familyHints(blockB);
-  const fa = blockA.familyId;
-  const fb = blockB.familyId;
-  if (a.canPrecede.includes(fb) || b.canFollow.includes(fa)) return "A_THEN_B";
-  if (b.canPrecede.includes(fa) || a.canFollow.includes(fb)) return "B_THEN_A";
-  // consequence → prerequisite soft match by type/kind strings
-  const cons = (blockA.consequences || []).map((c) => String(c?.type || c?.summary || "").toLowerCase());
-  const pre = (blockB.prerequisites || []).map((c) => String(c?.type || c?.summary || "").toLowerCase());
-  if (cons.length && pre.length && cons.some((x) => pre.some((y) => x && y && (x.includes(y) || y.includes(x))))) {
-    return "A_THEN_B";
-  }
-  return null;
-}
-
-function factOverlap(blockA, blockB) {
-  const a = new Set(familyHints(blockA).sharesFactsWith);
-  const b = familyHints(blockB).sharesFactsWith;
-  return b.filter((k) => a.has(k));
-}
-
 /**
- * 结构分析：为成对 beat 生成交织候选（允许 KEEP_PARALLEL / WEAVE_WEAK）。
+ * 语义驱动交织：默认 KEEP_PARALLEL；禁止仅凭共享角色升到 INTERWOVEN。
  */
 export function proposeWeaveLinks(beats, blocks) {
   const links = [];
   const seenPair = new Set();
+  const blockPairEmitted = new Set();
+
   for (let i = 0; i < beats.length; i += 1) {
     for (let j = i + 1; j < beats.length; j += 1) {
       const ba = beats[i];
@@ -156,63 +230,116 @@ export function proposeWeaveLinks(beats, blocks) {
       const blockA = blockById(blocks, ba.sourceBlockId);
       const blockB = blockById(blocks, bb.sourceBlockId);
       if (!blockA || !blockB) continue;
-
-      // 每个 block 对只在相近 phaseBand 上连一次主边，避免爆炸
-      const pairKey = [ba.sourceBlockId, bb.sourceBlockId, ba.phaseBand, bb.phaseBand].sort().join("|");
       if (Math.abs(ba.phaseBand - bb.phaseBand) > 1) continue;
+
+      const pairKey = [ba.sourceBlockId, bb.sourceBlockId, ba.phaseBand, bb.phaseBand].sort().join("|");
       if (seenPair.has(pairKey)) continue;
+      seenPair.add(pairKey);
 
+      const sa = ba.semantics;
+      const sb = bb.semantics;
       const shared = sharedChars(ba, bb);
-      const facts = factOverlap(blockA, blockB);
-      const causal = causalPair(blockA, blockB);
-      let kind = "KEEP_PARALLEL";
-      let reason = "两条线暂无明显共享接口，保持相对独立。";
+      const causalAB = factMatch(sa?.produces, sb?.requires);
+      const causalBA = factMatch(sb?.produces, sa?.requires);
+      const sharedAction = sharedActionEvidence(sa, sb);
+      const sharedTarget = targetsCompatible(sa?.target, sb?.target);
+      const conflict = goalsConflict(sa, sb);
 
-      if (shared.length && ba.phaseBand === bb.phaseBand) {
+      let kind = "KEEP_PARALLEL";
+      let reason = `${blockA.title} 与 ${blockB.title} 暂无 Goal/Action 证据，保持平行。`;
+      let sharedTargets = [];
+      let sharedFactKinds = [];
+
+      if (causalAB.length || causalBA.length) {
+        kind = "WEAVE_CAUSAL";
+        const facts = causalAB.length ? causalAB : causalBA;
+        sharedFactKinds = facts;
+        reason = causalAB.length
+          ? `${blockA.title} 的结果（${facts.join("、")}）满足 ${blockB.title} 的前置条件`
+          : `${blockB.title} 的结果（${facts.join("、")}）满足 ${blockA.title} 的前置条件`;
+      } else if (sharedTarget && conflict) {
+        kind = "WEAVE_STRONG";
+        sharedTargets = [sa.target, sb.target].filter(Boolean);
+        reason = `两条剧情争夺同一目标「${sa.target || sb.target}」，目标相冲：${sa.goal || "?"} vs ${sb.goal || "?"}`;
+      } else if (sharedAction) {
+        kind = "WEAVE_SHARED_ACTION";
+        reason = `两条剧情都需要在「${sharedAction.location || "同一场所"}」执行相近行动（${sharedAction.kind}），可共享一次行动`;
+      } else if (sharedTarget && sa?.goal && sb?.goal) {
+        kind = "WEAVE_STRONG";
+        sharedTargets = [sa.target];
+        reason = `共享行动目标「${sa.target}」，且目标方向可对齐或对撞`;
+      } else if (shared.length && ba.phaseBand === bb.phaseBand) {
         kind = "WEAVE_SHARED_SCENE";
-        reason = `同阶段共享角色 ${shared.join("、")}，适合合并为同一场景推进。`;
+        reason = `同阶段共享角色 ${shared.join("、")}——可同场并列，不算真正交织`;
       } else if (shared.length) {
         kind = "WEAVE_SHARED_CHARACTER";
-        reason = `共享角色 ${shared.join("、")}，可弱交织。`;
-      } else if (causal) {
-        kind = "WEAVE_CAUSAL";
-        reason =
-          causal === "A_THEN_B"
-            ? `${blockA.title} 的后果可衔接到 ${blockB.title}。`
-            : `${blockB.title} 的后果可衔接到 ${blockA.title}。`;
-      } else if (facts.length) {
-        kind = "WEAVE_STRONG";
-        reason = `可共享事实接口：${facts.join("、")}。`;
-      } else if (ba.phaseBand === bb.phaseBand) {
-        kind = "WEAVE_WEAK";
-        reason = "同阶段并行，可择机同场，但非强制。";
+        reason = `共享角色 ${shared.join("、")}——仅角色重合，保持同场并列而非强制合并`;
+      } else {
+        const bp = [ba.sourceBlockId, bb.sourceBlockId].sort().join("|");
+        if (blockPairEmitted.has(bp)) continue;
+        if (!(ba.phaseBand === 1 && bb.phaseBand === 1)) continue;
+        blockPairEmitted.add(bp);
+        kind = "KEEP_PARALLEL";
+        reason = `${blockA.title} 与 ${blockB.title} 缺少共享行动/因果/目标冲突，保持平行`;
       }
 
-      if (kind === "KEEP_PARALLEL" && Math.abs(ba.phaseBand - bb.phaseBand) === 0) {
-        // still record weak parallel awareness once per block-pair mid band
-      }
-
-      seenPair.add(pairKey);
-      if (kind === "KEEP_PARALLEL" && !shared.length && !causal && !facts.length) {
-        // only emit KEEP_PARALLEL once per block pair at progression band
-        if (ba.phaseBand !== 1 || bb.phaseBand !== 1) continue;
-        reason = `${blockA.title} 与 ${blockB.title} 目前相对独立。`;
+      if (kind !== "KEEP_PARALLEL") {
+        const bp = [ba.sourceBlockId, bb.sourceBlockId].sort().join("|");
+        blockPairEmitted.add(bp);
       }
 
       links.push(
         normalizeWeaveLink({
           id: newId("wl"),
           kind,
+          relationQuality: relationQualityForWeaveKind(kind),
           status: "PROPOSED",
           beatIds: [ba.id, bb.id],
           blockIds: [ba.sourceBlockId, bb.sourceBlockId],
           reason,
           sharedCharacterIds: shared,
-          sharedFactKinds: facts,
+          sharedFactKinds,
+          sharedTargets,
         }),
       );
     }
   }
+
+  // 诚实平行：若一对积木没有任何真正交织证据，至少记一条 KEEP_PARALLEL
+  const interwovenKinds = new Set(["WEAVE_CAUSAL", "WEAVE_STRONG", "WEAVE_SHARED_ACTION"]);
+  const hasInterwoven = new Set(
+    links.filter((l) => interwovenKinds.has(l.kind)).map((l) => [...l.blockIds].sort().join("|")),
+  );
+  const hasParallel = new Set(
+    links.filter((l) => l.kind === "KEEP_PARALLEL").map((l) => [...l.blockIds].sort().join("|")),
+  );
+  const blockIds = [...new Set(beats.map((b) => b.sourceBlockId))];
+  for (let i = 0; i < blockIds.length; i += 1) {
+    for (let j = i + 1; j < blockIds.length; j += 1) {
+      const key = [blockIds[i], blockIds[j]].sort().join("|");
+      if (hasInterwoven.has(key) || hasParallel.has(key)) continue;
+      const ba = beats.find((b) => b.sourceBlockId === blockIds[i] && b.phaseBand === 1) ||
+        beats.find((b) => b.sourceBlockId === blockIds[i]);
+      const bb = beats.find((b) => b.sourceBlockId === blockIds[j] && b.phaseBand === 1) ||
+        beats.find((b) => b.sourceBlockId === blockIds[j]);
+      if (!ba || !bb) continue;
+      const blockA = blockById(blocks, ba.sourceBlockId);
+      const blockB = blockById(blocks, bb.sourceBlockId);
+      links.push(
+        normalizeWeaveLink({
+          id: newId("wl"),
+          kind: "KEEP_PARALLEL",
+          relationQuality: "PARALLEL",
+          status: "PROPOSED",
+          beatIds: [ba.id, bb.id],
+          blockIds: [ba.sourceBlockId, bb.sourceBlockId],
+          reason: `${blockA?.title || "积木A"} 与 ${blockB?.title || "积木B"} 无线索级交织证据，叙事线保持平行（同场/同角不算交织）`,
+          sharedCharacterIds: sharedChars(ba, bb),
+        }),
+      );
+    }
+  }
+
   return links;
 }
 
@@ -273,7 +400,6 @@ function buildConflictReport(state, loadReport) {
     );
   }
 
-  // family-level intentional weave reminder when M01+M08 share culprit/lead
   const m01 = (state.mechanismBlocks || []).find((b) => b.templateId === "M01-FRAMING" && ACCEPTED.has(b.status));
   const m08 = (state.mechanismBlocks || []).find((b) => b.familyId === "M08" && ACCEPTED.has(b.status));
   if (m01 && m08) {
@@ -300,31 +426,10 @@ function buildConflictReport(state, loadReport) {
   return conflicts;
 }
 
-/**
- * 核心：积木 → 结构分析 → 冲突 → 阶段编排 → 交织候选 → MasterOutlineDraft
- */
-export function buildMasterOutlineDraft(projectStoryState, { now = () => new Date().toISOString() } = {}) {
-  const state = createProjectStoryState(projectStoryState);
-  const blocks = listAcceptedStoryBlocks(state);
-  if (blocks.length < 1) {
-    fail("OUTLINE_NO_BLOCKS", "至少需要 1 条已接受的剧情积木才能交织", {
-      accepted: 0,
-    });
-  }
-
-  const allBeats = blocks.flatMap(flattenSourceBeats);
-  const stages = resolveOutlineStages(state.stages, allBeats.length);
-
-  for (const beat of allBeats) {
-    const idx = assignBeatToStageIndex(beat.phaseBand, stages.length);
-    stages[idx].beats.push(beat);
-  }
-
-  let weaveLinks = proposeWeaveLinks(allBeats, blocks);
-
-  // 共享场景：把成对 beat 拉到同一阶段（取较早阶段）
+function alignInterwovenBeats(stages, weaveLinks) {
+  const interwoven = new Set(["WEAVE_CAUSAL", "WEAVE_STRONG", "WEAVE_SHARED_ACTION"]);
   for (const link of weaveLinks) {
-    if (link.kind !== "WEAVE_SHARED_SCENE" || link.beatIds.length < 2) continue;
+    if (!interwoven.has(link.kind) || link.beatIds.length < 2) continue;
     const [idA, idB] = link.beatIds;
     let stageA = null;
     let stageB = null;
@@ -351,6 +456,40 @@ export function buildMasterOutlineDraft(projectStoryState, { now = () => new Dat
     beatA.weaveGroupId = groupId;
     beatB.weaveGroupId = groupId;
     if (!target.beats.some((b) => b.id === moving.id)) target.beats.push(moving);
+  }
+}
+
+/**
+ * 核心：积木 → 语义分析 → 冲突 → 阶段编排 → 交织候选 → MasterOutlineDraft
+ */
+export function buildMasterOutlineDraft(projectStoryState, { now = () => new Date().toISOString() } = {}) {
+  const state = createProjectStoryState(projectStoryState);
+  const blocks = listAcceptedStoryBlocks(state);
+  if (blocks.length < 1) {
+    fail("OUTLINE_NO_BLOCKS", "至少需要 1 条已接受的剧情积木才能交织", {
+      accepted: 0,
+    });
+  }
+
+  const allBeats = blocks.flatMap(flattenSourceBeats);
+  let stages = resolveOutlineStages(state.stages, allBeats.length);
+
+  for (const beat of allBeats) {
+    const idx = assignBeatToStageIndex(beat.phaseBand, stages.length);
+    stages[idx].beats.push(beat);
+  }
+
+  const weaveLinks = proposeWeaveLinks(allBeats, blocks);
+  alignInterwovenBeats(stages, weaveLinks);
+  stages = compressEmptyStages(stages);
+
+  if (stages.length >= 2) {
+    const last = stages[stages.length - 1];
+    const hasAgency = last.beats.some((b) => b.semantics?.goal && b.semantics?.action && !b.needsDetail);
+    if (!hasAgency && last.beats.length > 0 && stages[stages.length - 2].beats.length > 0) {
+      stages[stages.length - 2].beats.push(...last.beats);
+      stages = compressEmptyStages(stages.slice(0, -1));
+    }
   }
 
   const characterLoadReport = buildCharacterLoadReport(state, blocks);
@@ -417,7 +556,6 @@ export function mergeOutlineBeats(draft, beatIdA, beatIdB) {
   if (a.beat.sourceBlockId === b.beat.sourceBlockId) {
     fail("OUTLINE_MERGE_SAME_BLOCK", "同一积木内的 beat 无需合并场景");
   }
-  // move B next to A in A's stage
   if (a.stage.id !== b.stage.id) {
     b.stage.beats.splice(b.idx, 1);
     a.stage.beats.splice(a.idx + 1, 0, b.beat);
@@ -435,10 +573,11 @@ export function mergeOutlineBeats(draft, beatIdA, beatIdB) {
     normalizeWeaveLink({
       id: newId("wl"),
       kind: "WEAVE_SHARED_SCENE",
+      relationQuality: "COLOCATED",
       status: "ACCEPTED",
       beatIds: [beatIdA, beatIdB],
       blockIds: [beatA.sourceBlockId, beatB.sourceBlockId],
-      reason: "用户手动合并为同一场景。",
+      reason: "用户手动合并为同一场景（同场并列，需自行判断是否真正交织）。",
       sharedCharacterIds: sharedChars(beatA, beatB),
     }),
   );
@@ -466,6 +605,7 @@ export function splitWeaveLink(draft, linkId) {
   if (!link) fail("OUTLINE_WEAVE_MISSING", `Unknown weave ${linkId}`);
   link.status = "SPLIT";
   link.kind = "KEEP_PARALLEL";
+  link.relationQuality = "PARALLEL";
   link.reason = `${link.reason}（用户已拆开）`;
   for (const beatId of link.beatIds) {
     const loc = findBeatLocation(next, beatId);
@@ -484,35 +624,36 @@ export function proposeWeaveBetweenBeats(draft, beatIdA, beatIdB) {
   if (a.beat.sourceBlockId === b.beat.sourceBlockId) {
     fail("OUTLINE_WEAVE_SAME_BLOCK", "请选择来自不同积木的节点");
   }
+  const proposed = proposeWeaveLinks([a.beat, b.beat], [
+    { id: a.beat.sourceBlockId, title: a.beat.blockTitle, familyId: a.beat.familyId },
+    { id: b.beat.sourceBlockId, title: b.beat.blockTitle, familyId: b.beat.familyId },
+  ]);
+  const auto = proposed[0];
+  const kind = auto?.kind || "KEEP_PARALLEL";
   const shared = sharedChars(a.beat, b.beat);
-  const kind = shared.length
-    ? a.stage.id === b.stage.id
-      ? "WEAVE_SHARED_SCENE"
-      : "WEAVE_SHARED_CHARACTER"
-    : "WEAVE_WEAK";
-  if (kind === "WEAVE_SHARED_SCENE" || a.stage.id !== b.stage.id) {
-    // align into A's stage when shared scene or user asked to weave
-    if (a.stage.id !== b.stage.id) {
-      b.stage.beats.splice(b.idx, 1);
-      a.stage.beats.splice(a.idx + 1, 0, b.beat);
-    }
+
+  if (["WEAVE_CAUSAL", "WEAVE_STRONG", "WEAVE_SHARED_ACTION"].includes(kind) && a.stage.id !== b.stage.id) {
+    b.stage.beats.splice(b.idx, 1);
+    a.stage.beats.splice(a.idx + 1, 0, b.beat);
   }
-  if (kind === "WEAVE_SHARED_SCENE" || shared.length) {
+  if (["WEAVE_CAUSAL", "WEAVE_STRONG", "WEAVE_SHARED_ACTION"].includes(kind)) {
     const groupId = newId("wg");
     findBeatLocation(next, beatIdA).beat.weaveGroupId = groupId;
     findBeatLocation(next, beatIdB).beat.weaveGroupId = groupId;
   }
+
   next.weaveLinks.push(
     normalizeWeaveLink({
       id: newId("wl"),
       kind,
+      relationQuality: relationQualityForWeaveKind(kind),
       status: "ACCEPTED",
       beatIds: [beatIdA, beatIdB],
       blockIds: [a.beat.sourceBlockId, b.beat.sourceBlockId],
-      reason: shared.length
-        ? `用户尝试交织：共享 ${shared.join("、")}`
-        : "用户尝试交织：弱连接同场提示",
+      reason: auto?.reason || (shared.length ? `用户尝试交织：共享 ${shared.join("、")}` : "用户尝试交织"),
       sharedCharacterIds: shared,
+      sharedFactKinds: auto?.sharedFactKinds || [],
+      sharedTargets: auto?.sharedTargets || [],
     }),
   );
   next.status = "USER_ADJUSTED";

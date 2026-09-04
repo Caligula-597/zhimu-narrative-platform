@@ -23,13 +23,26 @@ function cleanId(value) {
 export const MASTER_OUTLINE_CONTRACT_VERSION = 1;
 
 export const WEAVE_KINDS = Object.freeze([
+  "WEAVE_CAUSAL",
   "WEAVE_STRONG",
+  "WEAVE_SHARED_ACTION",
   "WEAVE_SHARED_SCENE",
   "WEAVE_SHARED_CHARACTER",
-  "WEAVE_CAUSAL",
   "WEAVE_WEAK",
   "KEEP_PARALLEL",
 ]);
+
+export const RELATION_QUALITIES = Object.freeze(["INTERWOVEN", "COLOCATED", "PARALLEL"]);
+
+export function relationQualityForWeaveKind(kind) {
+  if (kind === "WEAVE_CAUSAL" || kind === "WEAVE_STRONG" || kind === "WEAVE_SHARED_ACTION") {
+    return "INTERWOVEN";
+  }
+  if (kind === "WEAVE_SHARED_SCENE" || kind === "WEAVE_SHARED_CHARACTER" || kind === "WEAVE_WEAK") {
+    return "COLOCATED";
+  }
+  return "PARALLEL";
+}
 
 export const WEAVE_LINK_STATUSES = Object.freeze(["PROPOSED", "ACCEPTED", "SPLIT"]);
 
@@ -52,6 +65,8 @@ export function normalizeOutlineBeat(value = {}) {
     characterIds: asArray(src.characterIds).map(String),
     clueIds: asArray(src.clueIds).map(String),
     weaveGroupId: cleanId(src.weaveGroupId) || null,
+    semantics: src.semantics || null,
+    needsDetail: Boolean(src.needsDetail || src.semantics?.needsDetail),
   };
 }
 
@@ -67,17 +82,23 @@ export function normalizeOutlineStage(value = {}) {
 
 export function normalizeWeaveLink(value = {}) {
   const src = record(value);
-  const kind = WEAVE_KINDS.includes(src.kind) ? src.kind : "WEAVE_WEAK";
+  const kind = WEAVE_KINDS.includes(src.kind) ? src.kind : "KEEP_PARALLEL";
   const status = WEAVE_LINK_STATUSES.includes(src.status) ? src.status : "PROPOSED";
+  const relationQuality =
+    RELATION_QUALITIES.includes(src.relationQuality)
+      ? src.relationQuality
+      : relationQualityForWeaveKind(kind);
   return {
     id: cleanId(src.id) || `wl-${Math.random().toString(36).slice(2, 8)}`,
     kind,
+    relationQuality,
     status,
     beatIds: asArray(src.beatIds).map(String),
     blockIds: asArray(src.blockIds).map(String),
     reason: cleanText(src.reason, 400),
     sharedCharacterIds: asArray(src.sharedCharacterIds).map(String),
     sharedFactKinds: asArray(src.sharedFactKinds).map(String),
+    sharedTargets: asArray(src.sharedTargets).map(String),
   };
 }
 

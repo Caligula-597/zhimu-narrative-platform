@@ -1,149 +1,113 @@
 # Case D：高交织 / 有意重叠
 
-> 同一角色 = 真凶 + 阵营领袖 + 身份承担者 → 复杂人物还是负载爆表
+> 同一角色多重职责 → 冲突诚实 + 语义交织，禁止仅凭同角标 INTERWOVEN
 
-- Case id: `D-high-weave-overlap`
+- Case id: `D-high-weave-overlap` · set: **DEV**
 - sourceStoryStateRevision: 4
 - accepted blocks: M01-FRAMING(嫁祸型追凶｜栽赃物品) · M07-5(身份权限变化｜本人早知，主动伪装到点揭开) · M08-1(固定公开阵营｜开局全员互认公开阵营)
 
-## 自动结构统计（非人工分）
+## 程序指标（P5.2）
 
 | 项 | 值 |
 |---|---|
-| stages | 5 |
+| stages | 4 |
 | beats | 14 |
-| 跨家族同阶段 (COLOCATED 候选) | 4 |
-| 单家族阶段 | 0 |
-| INTERWOVEN 边 (STRONG/SHARED_SCENE/CAUSAL) | 12 |
-| SHARED_CHARACTER | 9 |
-| WEAVE_WEAK (同阶段弱连) | 0 |
-| KEEP_PARALLEL | 0 |
-| weave by kind | {"WEAVE_SHARED_SCENE":12,"WEAVE_SHARED_CHARACTER":9} |
+| empty middle stages | 0 |
+| INTERWOVEN (relationQuality) | 1 |
+| COLOCATED | 20 |
+| PARALLEL / KEEP_PARALLEL | 2 |
+| fake INTERWOVEN (scene/char only) | 0 |
+| goal-driven beats | 14 |
+| 跨家族同阶段 | 4 |
+| weave by kind | {"WEAVE_SHARED_SCENE":11,"WEAVE_SHARED_CHARACTER":9,"WEAVE_SHARED_ACTION":1,"KEEP_PARALLEL":2} |
 | conflictReport | 5 |
-| 目标驱动措辞 hits | 1 |
-| 容器式措辞 hits | 0 |
+| 目标驱动措辞 hits | 14 |
 
-## 阶段骨架（人工审阅主视图）
+## 阶段骨架
 
-### 第一幕 (`act1`)
+### 铺垫 (`act1`)
 
-家族覆盖：M01, M07, M08 · **COLOCATED**
+家族覆盖：M01, M07, M08 · 跨家族
 
-- **[M01] 嫁祸型追凶｜栽赃物品** — 真凶取得与被嫁祸者相关的物品。真凶 沈孤鸿 动机：掩盖十年前的私吞行为
-  - chars: B/C · band=0 · stageKey=SETUP
-- **[M07] 身份权限变化｜本人早知，主动伪装到点揭开** — 伪装态；焦点：沈孤鸿。
-  - chars: B/F · band=0 · stageKey=HIDDEN
-- **[M08] 固定公开阵营｜开局全员互认公开阵营** — 阵营关系进入可观察状态；焦点：沈孤鸿。
-  - chars: B/C · band=0 · stageKey=LATENT
+- **[M01] 嫁祸型追凶｜栽赃物品** — 沈孤鸿为了准备可嫁祸的假象，布置与顾清商相关的误导物（目标：被嫁祸者遗失的玉佩）
+  - chars: B/C · band=0 · goal=准备可嫁祸的假象 / action=布置与顾清商相关的误导物
+- **[M07] 身份权限变化｜本人早知，主动伪装到点揭开** — 沈孤鸿为了隐藏或维持当前身份表象，按伪装/未知状态行动，避免过早暴露（目标：身份表象）
+  - chars: B/F · band=0 · goal=隐藏或维持当前身份表象 / action=按伪装/未知状态行动，避免过早暴露
+- **[M08] 固定公开阵营｜开局全员互认公开阵营** — 沈孤鸿为了公开亮明阵营归属与目标，确认成员知情范围与联络方式（目标：阵营名单/暗号）
+  - chars: B/C · band=0 · goal=公开亮明阵营归属与目标 / action=确认成员知情范围与联络方式
 
-### 第二幕 (`act2`)
+### 加压 (`act2`)
 
-家族覆盖：M01, M07, M08 · **COLOCATED**
+家族覆盖：M01, M07, M08 · 跨家族
 
-- **[M01] 嫁祸型追凶｜栽赃物品** — 实施犯行并将物品放入现场（勒杀）
-  - chars: A/D/B · band=1 · stageKey=CRIME_DISCOVERY
-- **[M01] 嫁祸型追凶｜栽赃物品** — 玩家第一轮形成对被嫁祸者的错误嫌疑 被嫁祸者进入过现场并与死者起过冲突
-  - chars: C · band=1 · stageKey=FALSE_DIRECTION
-- **[M01] 嫁祸型追凶｜栽赃物品** — 物品出现方式不合理（红蜡等） 玉佩沾有仅库房存在的红蜡
-  - chars: D · band=1 · stageKey=CONTRADICTION
-- **[M07] 身份权限变化｜本人早知，主动伪装到点揭开** — 异常渗漏
-  - chars: B/F/D/A/NPC_LU · band=1 · stageKey=FIRST_ANOMALY
-- **[M08] 固定公开阵营｜开局全员互认公开阵营** — 压力与信息差推动成员选择 维护秩序
-  - chars: B/C/D/E/A · band=1 · stageKey=CONTACT
+- **[M01] 嫁祸型追凶｜栽赃物品** — 沈孤鸿为了完成犯行并指向顾清商，实施犯行并留下指向顾清商的痕迹（目标：被嫁祸者遗失的玉佩）
+  - chars: B/A/D · band=1 · goal=完成犯行并指向顾清商 / action=实施犯行并留下指向顾清商的痕迹
+- **[M01] 嫁祸型追凶｜栽赃物品** — 沈孤鸿为了完成犯行并指向顾清商，实施犯行并留下指向顾清商的痕迹（目标：被嫁祸者遗失的玉佩）
+  - chars: B/C · band=1 · goal=完成犯行并指向顾清商 / action=实施犯行并留下指向顾清商的痕迹
+- **[M01] 嫁祸型追凶｜栽赃物品** — 杜霄元为了推翻对顾清商的错误判断，对照现场与证物寻找矛盾（目标：被嫁祸者遗失的玉佩）
+  - chars: D · band=1 · goal=推翻对顾清商的错误判断 / action=对照现场与证物寻找矛盾
+- **[M07] 身份权限变化｜本人早知，主动伪装到点揭开** — 沈孤鸿为了寻找能确认身份的记录或信物，进入藏有记录的场所搜查身份相关物证（目标：身份记录）
+  - chars: B/F/D/A/NPC_LU · band=1 · goal=寻找能确认身份的记录或信物 / action=进入藏有记录的场所搜查身份相关物证
+- **[M08] 固定公开阵营｜开局全员互认公开阵营** — 沈孤鸿为了夺取关键资源，组织成员夺取或销毁关键物证/资源（目标：关键账册或信物）
+  - chars: B/C/D/E/A · band=1 · goal=夺取关键资源 / action=组织成员夺取或销毁关键物证/资源
 
-### 第三幕 (`act3`)
+### 升级 (`act3`)
 
-_（空）_
+家族覆盖：M01, M07, M08 · 跨家族
 
-### 第四幕 (`act4`)
+- **[M01] 嫁祸型追凶｜栽赃物品** — 杜霄元为了推翻对顾清商的错误判断，对照现场与证物寻找矛盾（目标：被嫁祸者遗失的玉佩）
+  - chars: D/B/C · band=2 · goal=推翻对顾清商的错误判断 / action=对照现场与证物寻找矛盾
+- **[M07] 身份权限变化｜本人早知，主动伪装到点揭开** — 沈孤鸿为了启用真实身份对应的权限，在揭示后启用权限表并验证资格（目标：真实身份）
+  - chars: B/F/D/A/NPC_LU · band=2 · goal=启用真实身份对应的权限 / action=在揭示后启用权限表并验证资格
+- **[M08] 固定公开阵营｜开局全员互认公开阵营** — defector为了在暴露风险下改归属或保住秘密，在关键选择点背叛、退出或清洗异己（目标：归属状态）
+  - chars: B/C/D/E/A · band=2 · goal=在暴露风险下改归属或保住秘密 / action=在关键选择点背叛、退出或清洗异己
 
-家族覆盖：M01, M07, M08 · **COLOCATED**
+### 收束 (`act4`)
 
-- **[M01] 嫁祸型追凶｜栽赃物品** — 追查物品移动链反向锁定真凶 库房钥匙记录证明真凶曾移动该物
-  - chars: B/C · band=2 · stageKey=TRUTH_REVEAL
-- **[M07] 身份权限变化｜本人早知，主动伪装到点揭开** — 揭示+权限启用
-  - chars: B/F/D/A/NPC_LU · band=2 · stageKey=CONSEQUENCE
-- **[M08] 固定公开阵营｜开局全员互认公开阵营** — 归属或目标变化产生剧情后果
-  - chars: B/C/D/E/A · band=2 · stageKey=CONSEQUENCE
+家族覆盖：M01, M07, M08 · 跨家族
 
-### 终局 (`act5`)
+- **[M01] 嫁祸型追凶｜栽赃物品** — 杜霄元为了锁定真凶沈孤鸿，用决定性证据揭穿嫁祸（目标：决定性证据）
+  - chars: D/A/B/C · band=3 · goal=锁定真凶沈孤鸿 / action=用决定性证据揭穿嫁祸
+- **[M07] 身份权限变化｜本人早知，主动伪装到点揭开** — 沈孤鸿为了承受身份公开后的关系后果，面对知情者与阵营/调查方的反应（目标：关系重组）
+  - chars: B/F/D/A/NPC_LU · band=3 · goal=承受身份公开后的关系后果 / action=面对知情者与阵营/调查方的反应
+- **[M08] 固定公开阵营｜开局全员互认公开阵营** — 沈孤鸿为了结算阵营目标并承受公开后果，公开站队或接受阵营败露后的关系重排（目标：阵营胜负条件）
+  - chars: B/C/D/E/A · band=3 · goal=结算阵营目标并承受公开后果 / action=公开站队或接受阵营败露后的关系重排
 
-家族覆盖：M01, M07, M08 · **COLOCATED**
+## 交织边（含 relationQuality + WHY）
 
-- **[M01] 嫁祸型追凶｜栽赃物品** — 嫁祸型追凶收束。从库房取出遗失物再放入现场
-  - chars: A/B/C/D · band=3 · stageKey=TRUTH_REVEAL
-- **[M07] 身份权限变化｜本人早知，主动伪装到点揭开** — 身份权限变化阶段完成。
-  - chars: B/F/D/A/NPC_LU · band=3 · stageKey=CONSEQUENCE
-- **[M08] 固定公开阵营｜开局全员互认公开阵营** — 固定公开阵营阶段完成。
-  - chars: B/C/D/E/A · band=3 · stageKey=CONSEQUENCE
-
-## 交织边
-
-- **WEAVE_SHARED_SCENE** — 同阶段共享角色 B，适合合并为同一场景推进。
-  - shared: B
-- **WEAVE_SHARED_CHARACTER** — 共享角色 B，可弱交织。
-  - shared: B
-- **WEAVE_SHARED_SCENE** — 同阶段共享角色 B、C，适合合并为同一场景推进。
-  - shared: B, C
-- **WEAVE_SHARED_CHARACTER** — 共享角色 B、C，可弱交织。
-  - shared: B, C
-- **WEAVE_SHARED_SCENE** — 同阶段共享角色 A、D、B，适合合并为同一场景推进。
-  - shared: A, D, B
-- **WEAVE_SHARED_CHARACTER** — 共享角色 A、D、B，可弱交织。
-  - shared: A, D, B
-- **WEAVE_SHARED_SCENE** — 同阶段共享角色 A、D、B，适合合并为同一场景推进。
-  - shared: A, D, B
-- **WEAVE_SHARED_CHARACTER** — 共享角色 A、D、B，可弱交织。
-  - shared: A, D, B
-- **WEAVE_SHARED_SCENE** — 同阶段共享角色 B，适合合并为同一场景推进。
-  - shared: B
-- **WEAVE_SHARED_CHARACTER** — 共享角色 B，可弱交织。
-  - shared: B
-- **WEAVE_SHARED_SCENE** — 同阶段共享角色 B、C，适合合并为同一场景推进。
-  - shared: B, C
-- **WEAVE_SHARED_CHARACTER** — 共享角色 B、C，可弱交织。
-  - shared: B, C
-- **WEAVE_SHARED_SCENE** — 同阶段共享角色 A、B、D，适合合并为同一场景推进。
-  - shared: A, B, D
-- **WEAVE_SHARED_SCENE** — 同阶段共享角色 A、B、C、D，适合合并为同一场景推进。
-  - shared: A, B, C, D
-- **WEAVE_SHARED_SCENE** — 同阶段共享角色 B，适合合并为同一场景推进。
-  - shared: B
-- **WEAVE_SHARED_CHARACTER** — 共享角色 B，可弱交织。
-  - shared: B
-- **WEAVE_SHARED_SCENE** — 同阶段共享角色 B、D、A，适合合并为同一场景推进。
-  - shared: B, D, A
-- **WEAVE_SHARED_CHARACTER** — 共享角色 B、D、A，可弱交织。
-  - shared: B, D, A
-- **WEAVE_SHARED_SCENE** — 同阶段共享角色 B、D、A，适合合并为同一场景推进。
-  - shared: B, D, A
-- **WEAVE_SHARED_CHARACTER** — 共享角色 B、D、A，可弱交织。
-  - shared: B, D, A
+- **[COLOCATED] WEAVE_SHARED_SCENE** — 同阶段共享角色 B——可同场并列，不算真正交织
+- **[COLOCATED] WEAVE_SHARED_CHARACTER** — 共享角色 B——仅角色重合，保持同场并列而非强制合并
+- **[COLOCATED] WEAVE_SHARED_SCENE** — 同阶段共享角色 B、C——可同场并列，不算真正交织
+- **[COLOCATED] WEAVE_SHARED_CHARACTER** — 共享角色 B、C——仅角色重合，保持同场并列而非强制合并
+- **[COLOCATED] WEAVE_SHARED_SCENE** — 同阶段共享角色 B、A、D——可同场并列，不算真正交织
+- **[COLOCATED] WEAVE_SHARED_CHARACTER** — 共享角色 B、A、D——仅角色重合，保持同场并列而非强制合并
+- **[COLOCATED] WEAVE_SHARED_SCENE** — 同阶段共享角色 B、A、D——可同场并列，不算真正交织
+- **[COLOCATED] WEAVE_SHARED_CHARACTER** — 共享角色 B、A、D——仅角色重合，保持同场并列而非强制合并
+- **[COLOCATED] WEAVE_SHARED_SCENE** — 同阶段共享角色 D、B——可同场并列，不算真正交织
+- **[COLOCATED] WEAVE_SHARED_CHARACTER** — 共享角色 D、B——仅角色重合，保持同场并列而非强制合并
+- **[COLOCATED] WEAVE_SHARED_SCENE** — 同阶段共享角色 D、B、C——可同场并列，不算真正交织
+- **[COLOCATED] WEAVE_SHARED_CHARACTER** — 共享角色 D、B、C——仅角色重合，保持同场并列而非强制合并
+- **[COLOCATED] WEAVE_SHARED_SCENE** — 同阶段共享角色 D、A、B——可同场并列，不算真正交织
+- **[COLOCATED] WEAVE_SHARED_SCENE** — 同阶段共享角色 D、A、B、C——可同场并列，不算真正交织
+- **[COLOCATED] WEAVE_SHARED_SCENE** — 同阶段共享角色 B——可同场并列，不算真正交织
+- **[COLOCATED] WEAVE_SHARED_CHARACTER** — 共享角色 B——仅角色重合，保持同场并列而非强制合并
+- **[INTERWOVEN] WEAVE_SHARED_ACTION** — 两条剧情都需要在「藏有记录的场所」执行相近行动（shared-site-search），可共享一次行动
+- **[COLOCATED] WEAVE_SHARED_CHARACTER** — 共享角色 B、D、A——仅角色重合，保持同场并列而非强制合并
+- **[COLOCATED] WEAVE_SHARED_SCENE** — 同阶段共享角色 B、D、A——可同场并列，不算真正交织
+- **[COLOCATED] WEAVE_SHARED_CHARACTER** — 共享角色 B、D、A——仅角色重合，保持同场并列而非强制合并
+- **[COLOCATED] WEAVE_SHARED_SCENE** — 同阶段共享角色 B、D、A——可同场并列，不算真正交织
+- **[PARALLEL] KEEP_PARALLEL** — 嫁祸型追凶｜栽赃物品 与 身份权限变化｜本人早知，主动伪装到点揭开 无线索级交织证据，叙事线保持平行（同场/同角不算交织）
+- **[PARALLEL] KEEP_PARALLEL** — 嫁祸型追凶｜栽赃物品 与 固定公开阵营｜开局全员互认公开阵营 无线索级交织证据，叙事线保持平行（同场/同角不算交织）
 
 ## 冲突报告
 
 - ⚠ [ROLE_OVERLOAD/warn] 白斋子 当前承担：victim HIGH、discoverer、rival_lead HIGH（负载 5）
-  - 建议：保留 / 建议把次要职责换给其他角色 / 标记为有意重叠
 - ⚠ [ROLE_OVERLOAD/warn] 沈孤鸿 当前承担：killer HIGH、identity_bearer HIGH、faction_lead HIGH（负载 7）
-  - 建议：保留 / 建议把次要职责换给其他角色 / 标记为有意重叠
 - ⚠ [ROLE_OVERLOAD/warn] 顾清商 当前承担：framed HIGH、member（负载 3）
-  - 建议：保留 / 建议把次要职责换给其他角色 / 标记为有意重叠
 - ⚠ [ROLE_OVERLOAD/warn] 杜霄元 当前承担：discoverer、misled、member（负载 3）
-  - 建议：保留 / 建议把次要职责换给其他角色 / 标记为有意重叠
 - ⚠ [INTENTIONAL_OVERLAP_CANDIDATE/info] 沈孤鸿 同时是真凶与阵营领袖——可保留为强交织，或拆开降负载。
-  - 建议：保留（强交织） / 将阵营领袖换给其他人 / 标记为有意重叠
 
-## 角色负载 Top
-
-- **沈孤鸿** load=7 — killer@smb-mtmy, identity_bearer@smb-mtmy, faction_lead@smb-mtmy
-- **白斋子** load=5 — victim@smb-mtmy, discoverer@smb-mtmy, rival_lead@smb-mtmy
-- **顾清商** load=3 — framed@smb-mtmy, member@smb-mtmy
-- **杜霄元** load=3 — discoverer@smb-mtmy, misled@smb-mtmy, member@smb-mtmy
-- **莫玄宗** load=1 — witness@smb-mtmy
-- **陆老爷** load=1 — support@smb-mtmy
-- **叶晚晴** load=1 — outsider@smb-mtmy
-
-## 人工评分表（本文件下方由审阅填写）
+## 人工评分表
 
 | 指标 | 1–5 | 笔记 |
 |---|---:|---|
@@ -152,12 +116,4 @@ _（空）_
 | Character agency |  |  |
 | Stage rhythm |  |  |
 | Conflict honesty |  |  |
-| Editability (推断：局部 API 存在；本轮脚本未交互验证) |  |  |
-
-### 一句话主线（新人应能复述）
-
-> （审阅填写）
-
-### 是否值得继续写详细母稿？
-
-> （是 / 否 / 有条件）
+| Editability |  |  |
