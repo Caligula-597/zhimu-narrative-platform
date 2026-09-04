@@ -354,3 +354,119 @@ export {
   deleteOpsUserAccount,
   sendOpsTestAlert
 } from "./ops.js";
+
+/* ── Misidentification Editor ── */
+export {
+  listMisidentifications,
+  getMisidentification,
+  createMisidentification,
+  updateMisidentification,
+  deleteMisidentification
+} from "./misidentification.js";
+
+/* ── Timeline Editor ── */
+export {
+  listTimelineEntries,
+  getTimelineEntry,
+  createTimelineEntry,
+  updateTimelineEntry,
+  deleteTimelineEntry,
+  batchUpdateTimeline
+} from "./timeline.js";
+
+/* ── Relationship Arc Editor ── */
+export {
+  listRelationshipArcs,
+  getRelationshipArc,
+  createRelationshipArc,
+  updateRelationshipArc,
+  deleteRelationshipArc
+} from "./relationship-arc.js";
+
+/* ── Ending Branch Editor ── */
+export {
+  listEndings,
+  getEnding,
+  createEnding,
+  updateEnding,
+  deleteEnding
+} from "./ending.js";
+
+/* ── ProjectStoryState (STORY basket) ── */
+export {
+  getProjectStoryState,
+  saveProjectStoryState
+} from "./project-story-state.js";
+
+/* ── Host Manual Compiler ── */
+export {
+  getHostManual,
+  listHostManualVersions,
+  compileHostManual,
+  updateHostManualSection,
+  addHostManualSection,
+  deleteHostManualSection
+} from "./host-manual.js";
+
+/* ── Object Lifecycle Editor ── */
+export {
+  listObjectLifecycles,
+  getObjectLifecycle,
+  createObjectLifecycle,
+  updateObjectLifecycle,
+  deleteObjectLifecycle
+} from "./object-lifecycle.js";
+
+/* ── Historical Causality Table ── */
+export {
+  listHistoryCausalLinks,
+  getHistoryCausalLink,
+  createHistoryCausalLink,
+  updateHistoryCausalLink,
+  deleteHistoryCausalLink
+} from "./history-causal.js";
+
+/* ── Runtime State Machine ── */
+export {
+  listRuntimeStateMachines,
+  getRuntimeStateMachine,
+  createRuntimeStateMachine,
+  updateRuntimeStateMachine,
+  deleteRuntimeStateMachine
+} from "./runtime-state-machine.js";
+
+/* ── Val Consistency Ledger ── */
+export {
+  listValRecords,
+  getValRecord,
+  createValRecord,
+  updateValRecord,
+  deleteValRecord
+} from "./val-consistency.js";
+
+/* ── Economic System ── */
+export {
+  listEconRecords,
+  getEconRecord,
+  createEconRecord,
+  updateEconRecord,
+  deleteEconRecord
+} from "./econ.js";
+
+/* ── NPC Script ── */
+export {
+  listNpcs,
+  getNpc,
+  createNpc,
+  updateNpc,
+  deleteNpc
+} from "./npc-script.js";
+
+/* ── Location / Scene-State ── */
+export {
+  listLocLocations,
+  getLocLocation,
+  createLocLocation,
+  updateLocLocation,
+  deleteLocLocation
+} from "./location-state.js";

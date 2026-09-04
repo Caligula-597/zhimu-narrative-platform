@@ -15,11 +15,25 @@ import { characterLoadScore } from "../../shared/story-mechanism-contracts.js";
 import {
   acceptStoryBlock,
   createDemoProjectState,
+  createInitialProjectStoryState,
   editStorySlot,
   generateStoryMechanism,
+  lockStorySlot,
   swapStorySlot,
   swapStoryVariant,
 } from "../../shared/story-mechanism-engine.js";
+import { demoContext } from "../api/client.js";
+import {
+  getProjectStoryState as apiGetProjectStoryState,
+  saveProjectStoryState as apiSaveProjectStoryState,
+} from "../api/project-story-state.js";
+
+const SAVE_STATUS = Object.freeze({
+  IDLE: "IDLE",
+  SAVED: "SAVED",
+  SAVING: "SAVING",
+  ERROR: "ERROR",
+});
 
 function escapeHtml(value) {
   return String(value ?? "")
@@ -38,10 +52,11 @@ const FAMILY_INTENT = Object.freeze({
   M11: { label: "世界变化", blurb: "现场与世界状态改写（内容仍在充实）" },
 });
 
-function ensureState(root) {
-  if (!root.__storyMechState) {
-    root.__storyMechState = createDemoProjectState();
-  }
+function currentWorldId() {
+  return demoContext.worldId || null;
+}
+
+function ensureUi(root) {
   if (!root.__storyMechUi) {
     root.__storyMechUi = {
       mode: "basket",
@@ -49,9 +64,95 @@ function ensureState(root) {
       templateId: "M01-FRAMING",
       activeBlockId: null,
       message: "",
+      saveStatus: SAVE_STATUS.IDLE,
+      saveError: "",
+      loaded: false,
+      worldId: null,
     };
   }
+  return root.__storyMechUi;
+}
+
+function ensureState(root) {
+  ensureUi(root);
+  if (!root.__storyMechState) {
+    const worldId = currentWorldId();
+    root.__storyMechState = worldId
+      ? createInitialProjectStoryState(worldId)
+      : createDemoProjectState();
+  }
   return { state: root.__storyMechState, ui: root.__storyMechUi };
+}
+
+async function loadPersistedState(root) {
+  const ui = ensureUi(root);
+  const worldId = currentWorldId();
+  ui.worldId = worldId;
+  if (!worldId) {
+    root.__storyMechState = createDemoProjectState();
+    ui.loaded = true;
+    ui.saveStatus = SAVE_STATUS.IDLE;
+    ui.message = "未选择项目：使用本地演示状态（不会云端保存）";
+    return;
+  }
+  try {
+    const payload = await apiGetProjectStoryState(worldId);
+    root.__storyMechState = payload?.state
+      ? { ...payload.state, projectId: worldId }
+      : createInitialProjectStoryState(worldId);
+    ui.loaded = true;
+    ui.saveStatus = payload?.exists ? SAVE_STATUS.SAVED : SAVE_STATUS.IDLE;
+    ui.saveError = "";
+  } catch (error) {
+    root.__storyMechState = createInitialProjectStoryState(worldId);
+    ui.loaded = true;
+    ui.saveStatus = SAVE_STATUS.ERROR;
+    ui.saveError = error?.message || String(error);
+    ui.message = "加载项目剧情状态失败，先使用本地草稿；保存时会重试";
+  }
+}
+
+async function persistState(root, { reason = "" } = {}) {
+  const ui = ensureUi(root);
+  const worldId = currentWorldId();
+  if (!worldId) {
+    ui.saveStatus = SAVE_STATUS.IDLE;
+    return false;
+  }
+  ui.saveStatus = SAVE_STATUS.SAVING;
+  ui.saveError = "";
+  render(root);
+  try {
+    const result = await apiSaveProjectStoryState(worldId, root.__storyMechState);
+    if (result?.state) {
+      root.__storyMechState = { ...result.state, projectId: worldId };
+    }
+    ui.saveStatus = SAVE_STATUS.SAVED;
+    ui.saveError = "";
+    if (reason) ui.message = reason;
+    render(root);
+    return true;
+  } catch (error) {
+    ui.saveStatus = SAVE_STATUS.ERROR;
+    ui.saveError = error?.message || String(error);
+    ui.message = `保存失败：${ui.saveError}（本地修改已保留）`;
+    render(root);
+    return false;
+  }
+}
+
+function saveStatusHtml(ui, state) {
+  if (!ui.worldId) return `<span class="story-save-status is-idle">本地演示</span>`;
+  if (ui.saveStatus === SAVE_STATUS.SAVING) {
+    return `<span class="story-save-status is-saving">保存中…</span>`;
+  }
+  if (ui.saveStatus === SAVE_STATUS.ERROR) {
+    return `<span class="story-save-status is-error">保存失败 <button type="button" data-story-retry-save>重试</button></span>`;
+  }
+  if (ui.saveStatus === SAVE_STATUS.SAVED) {
+    return `<span class="story-save-status is-saved">已保存 · r${escapeHtml(String(state?.revision ?? 0))}</span>`;
+  }
+  return `<span class="story-save-status is-idle">尚未保存</span>`;
 }
 
 function activeBlock(state, ui) {
@@ -123,9 +224,12 @@ function renderBasket(root, state, ui) {
         <h2>剧情积木篮</h2>
         <span>像搭积木一样选结构：生成一条、换一种结构、只换一个槽、自己改、锁定。幕内玩法请在「加玩法」阶段添加。</span>
       </div>
-      <div class="story-mech-maturity">
-        <strong>${blocks.length}</strong><small>已放入</small>
-        <strong>${maturitySummary.COMPLETE || 0}</strong><small>完整模板</small>
+      <div class="story-mech-head-meta">
+        <div class="story-mech-maturity">
+          <strong>${blocks.length}</strong><small>已放入</small>
+          <strong>${maturitySummary.COMPLETE || 0}</strong><small>完整模板</small>
+        </div>
+        ${saveStatusHtml(ui, state)}
       </div>
     </header>
     <section class="story-mech-section">
@@ -195,6 +299,7 @@ function renderCompose(root, state, ui) {
             <div class="story-mech-slot-actions">
               <button type="button" data-story-swap-slot="${escapeHtml(key)}" ${slot.locked ? "disabled" : ""}>换一个</button>
               <button type="button" data-story-edit-slot="${escapeHtml(key)}" ${slot.locked ? "disabled" : ""}>手动改</button>
+              <button type="button" data-story-lock-slot="${escapeHtml(key)}" data-story-lock-next="${slot.locked ? "0" : "1"}">${slot.locked ? "解锁" : "锁定"}</button>
             </div>
           </div>`;
         })
@@ -210,6 +315,7 @@ function renderCompose(root, state, ui) {
         <h2>你希望这本里有什么？</h2>
         <span>${escapeHtml(intent?.blurb || "选择一类剧情体验，再生成一条放入积木篮。")}</span>
       </div>
+      ${saveStatusHtml(ui, state)}
     </header>
 
     <section class="story-mech-section">
@@ -251,18 +357,26 @@ function render(root) {
 async function mountStoryMechanismWorkbench(root, { onClose } = {}) {
   ensureState(root);
   render(root);
+  await loadPersistedState(root);
+  render(root);
 
-  root.onclick = (event) => {
+  root.onclick = async (event) => {
     const t = event.target;
     if (!(t instanceof HTMLElement)) return;
     const { state, ui } = ensureState(root);
-    const hit = t.closest("[data-story-close],[data-story-open-compose],[data-story-back-basket],[data-story-family],[data-story-template],[data-story-generate],[data-story-accept],[data-story-variant],[data-story-swap-slot],[data-story-edit-slot],[data-story-edit-block],[data-story-select-block]");
+    const hit = t.closest(
+      "[data-story-close],[data-story-open-compose],[data-story-back-basket],[data-story-family],[data-story-template],[data-story-generate],[data-story-accept],[data-story-variant],[data-story-swap-slot],[data-story-edit-slot],[data-story-lock-slot],[data-story-edit-block],[data-story-select-block],[data-story-retry-save]",
+    );
     if (!hit) return;
     const el = hit instanceof HTMLElement ? hit : t;
 
     try {
       if (el.matches("[data-story-close]")) {
         onClose?.();
+        return;
+      }
+      if (el.matches("[data-story-retry-save]")) {
+        await persistState(root, { reason: "已重试保存" });
         return;
       }
       if (el.matches("[data-story-open-compose]")) {
@@ -292,7 +406,7 @@ async function mountStoryMechanismWorkbench(root, { onClose } = {}) {
       if (el.matches("[data-story-family]")) {
         ui.familyId = el.getAttribute("data-story-family");
         const preferred =
-          listStoryTemplates({ familyId: ui.familyId }).find((t) => t.contentMaturity === "COMPLETE") ||
+          listStoryTemplates({ familyId: ui.familyId }).find((x) => x.contentMaturity === "COMPLETE") ||
           listStoryTemplates({ familyId: ui.familyId })[0];
         ui.templateId = preferred?.id || ui.templateId;
         ui.message = "";
@@ -311,8 +425,8 @@ async function mountStoryMechanismWorkbench(root, { onClose } = {}) {
           projectStoryState: state,
         });
         ui.activeBlockId = root.__storyMechState.mechanismBlocks.at(-1)?.id || null;
-        ui.message = "已生成一条，可换结构或改槽位后点「用这个」";
         render(root);
+        await persistState(root, { reason: "已生成并保存" });
         return;
       }
       if (el.matches("[data-story-accept]")) {
@@ -320,8 +434,8 @@ async function mountStoryMechanismWorkbench(root, { onClose } = {}) {
         if (!block) return;
         root.__storyMechState = acceptStoryBlock(root.__storyMechState, block.id);
         ui.mode = "basket";
-        ui.message = "已放入剧情积木篮";
         render(root);
+        await persistState(root, { reason: "已放入积木篮并保存" });
         return;
       }
       if (el.matches("[data-story-variant]")) {
@@ -332,8 +446,8 @@ async function mountStoryMechanismWorkbench(root, { onClose } = {}) {
           block.id,
           el.getAttribute("data-story-variant"),
         );
-        ui.message = "已换一种结构";
         render(root);
+        await persistState(root, { reason: "已换结构并保存" });
         return;
       }
       if (el.matches("[data-story-swap-slot]")) {
@@ -341,8 +455,8 @@ async function mountStoryMechanismWorkbench(root, { onClose } = {}) {
         if (!block) return;
         const key = el.getAttribute("data-story-swap-slot");
         root.__storyMechState = swapStorySlot(root.__storyMechState, block.id, key);
-        ui.message = `已换「${key}」`;
         render(root);
+        await persistState(root, { reason: `已换「${key}」并保存` });
         return;
       }
       if (el.matches("[data-story-edit-slot]")) {
@@ -361,8 +475,18 @@ async function mountStoryMechanismWorkbench(root, { onClose } = {}) {
           if (raw == null) return;
           root.__storyMechState = editStorySlot(root.__storyMechState, block.id, key, raw);
         }
-        ui.message = `已手改 ${slot?.label || key}`;
         render(root);
+        await persistState(root, { reason: `已手改「${slot?.label || key}」并保存` });
+        return;
+      }
+      if (el.matches("[data-story-lock-slot]")) {
+        const block = activeBlock(root.__storyMechState, ui);
+        if (!block) return;
+        const key = el.getAttribute("data-story-lock-slot");
+        const nextLocked = el.getAttribute("data-story-lock-next") !== "0";
+        root.__storyMechState = lockStorySlot(root.__storyMechState, block.id, key, nextLocked);
+        render(root);
+        await persistState(root, { reason: nextLocked ? `已锁定「${key}」并保存` : `已解锁「${key}」并保存` });
       }
     } catch (error) {
       ui.message = error?.message || String(error);

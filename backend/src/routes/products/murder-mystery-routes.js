@@ -5,6 +5,7 @@ import { registerRulesRoutes } from "../rules-routes.js";
 import { registerContentPackageRoutes } from "../content-package-routes.js";
 import { registerStudioRoutes } from "../studio-routes.js";
 import { registerStoryManuscriptRoutes } from "../story-manuscript-routes.js";
+import { registerProjectStoryStateRoutes } from "../project-story-state-routes.js";
 import { registerStoryAssistantRoutes } from "../story-assistant-routes.js";
 import { registerStudioGraphRoutes } from "../studio-graph-routes.js";
 import { registerContentPlatformRoutes } from "../content-platform-routes.js";
@@ -21,6 +22,7 @@ export async function registerMurderMysteryProductRoutes(app) {
   await registerContentPackageRoutes(app);
   await registerStudioRoutes(app);
   await registerStoryManuscriptRoutes(app);
+  await registerProjectStoryStateRoutes(app);
   await registerStoryAssistantRoutes(app);
   await registerStudioGraphRoutes(app);
   await registerContentPlatformRoutes(app);

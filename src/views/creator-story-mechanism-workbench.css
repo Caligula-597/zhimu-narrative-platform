@@ -43,6 +43,38 @@
   font-size: 22px;
 }
 
+.story-mech-head-meta {
+  display: grid;
+  gap: 8px;
+  justify-items: end;
+}
+
+.story-save-status {
+  font-size: 12px;
+  opacity: 0.85;
+}
+
+.story-save-status.is-saving {
+  opacity: 1;
+}
+
+.story-save-status.is-saved {
+  color: #2f5d50;
+}
+
+.story-save-status.is-error {
+  color: #8a2f2f;
+}
+
+.story-save-status button {
+  margin-left: 6px;
+  border: 1px solid var(--line, #d9d1c5);
+  background: #fff;
+  border-radius: 6px;
+  padding: 2px 8px;
+  cursor: pointer;
+}
+
 .story-mech-section h3 {
   margin: 0 0 10px;
   font-size: 16px;

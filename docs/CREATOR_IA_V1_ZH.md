@@ -44,12 +44,14 @@
 - 12 世界域编辑器（代码保留，内容生产墙不再平铺）
 - production / structure / overview 等深链仍可用，不进一级导航
 
-**本刀非目标**
+**本刀非目标（IA V1 当时）**
 
-- Integrator 真实交织、ProjectStoryState 落库
+- Integrator 真实交织
 - 世界域 routes 挂载、v42 / Canon 主 UI
 - STORY runtime、mechanism_chain、GAME 重构、删 legacy backend
 
+> `ProjectStoryState` 落库已由后续 **Persistence V1** 完成，见 `PROJECT_STORY_STATE_PERSISTENCE_V1_ZH.md`。
+
 ## 后续顺序
 
-P3 持久化 → P4 M08 → P5 Integrator 原型 → P6 GAME 幕内插入 → P7 世界账本按需恢复
+~~P3 持久化~~ ✅ → P4 M08 → P5 Integrator 原型 → P6 GAME 幕内插入 → P7 世界账本按需恢复

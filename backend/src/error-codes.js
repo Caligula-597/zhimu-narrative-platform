@@ -405,6 +405,7 @@ export const API_ERRORS = {
   // Story assistant & documents
   STORY_TEXT_REQUIRED: { status: 400, message: "Story draft text is required" },
   STORY_MANUSCRIPT_REQUIRED: { status: 400, message: "Story manuscript body is required" },
+  PROJECT_STORY_STATE_REQUIRED: { status: 400, message: "Project story state object is required" },
   STORY_BLOCKS_EMPTY: { status: 400, message: "No story blocks detected" },
   WORLD_ENGINE_SEED_REQUIRED: { status: 409, message: "请先选择场所并建立世界底盘" },
   WORLD_ENGINE_EVENT_INVALID: { status: 422, message: "该事件无法在当前世界状态成立" },

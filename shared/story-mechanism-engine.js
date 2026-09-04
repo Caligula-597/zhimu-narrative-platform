@@ -456,7 +456,11 @@ export function acceptStoryBlock(projectStoryState, blockId) {
   const state = createProjectStoryState(projectStoryState);
   const block = findBlock(state, blockId);
   if (!block) fail("STORY_BLOCK_MISSING", `Unknown block ${blockId}`, { blockId });
-  return writeBlock(state, { ...block, status: "USER_ACCEPTED" });
+  return writeBlock(state, {
+    ...block,
+    status: "USER_ACCEPTED",
+    revision: (block.revision || 1) + 1,
+  });
 }
 
 export function swapStoryVariant(projectStoryState, blockId, variantId) {
@@ -661,6 +665,7 @@ export function lockStorySlot(projectStoryState, blockId, slotId, locked = true)
     lockedSlots: [...lockedSlots],
     editableSlots,
     status: "USER_MODIFIED",
+    revision: (block.revision || 1) + 1,
   });
 }
 
@@ -699,6 +704,25 @@ export function createDemoProjectState() {
       { id: "act4", label: "第四幕", order: 3 },
       { id: "act5", label: "终局", order: 4 },
     ],
+    revision: 0,
+    updatedAt: null,
+  });
+}
+
+/** 新项目空积木篮：保留最小角色/幕 snapshot，不含 mechanismBlocks。 */
+export function createInitialProjectStoryState(projectId) {
+  const seed = createDemoProjectState();
+  return createProjectStoryState({
+    ...seed,
+    projectId: String(projectId || "project"),
+    mechanismBlocks: [],
+    roleAssignments: [],
+    facts: [],
+    clues: [],
+    constraints: [],
+    unresolvedNeeds: [],
+    revision: 0,
+    updatedAt: null,
   });
 }
 

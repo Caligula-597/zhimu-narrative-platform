@@ -284,6 +284,8 @@ export function createProjectStoryState(input = {}) {
     clues: asArray(src.clues),
     constraints: asArray(src.constraints),
     unresolvedNeeds: asArray(src.unresolvedNeeds),
+    revision: Math.max(0, Math.trunc(Number(src.revision) || 0)),
+    updatedAt: src.updatedAt != null ? String(src.updatedAt) : null,
   };
 }
 

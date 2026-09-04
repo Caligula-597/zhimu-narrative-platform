@@ -45,5 +45,6 @@ test("Creator IA V1：剧情积木篮默认列表壳", () => {
   assert.match(wb, /添加剧情结构/);
   assert.match(wb, /角色负载/);
   assert.match(wb, /你希望这本里有什么/);
+  assert.match(wb, /persistState|apiSaveProjectStoryState|getProjectStoryState/);
   assert.doesNotMatch(wb, /STORY MECHANISM WORKBENCH/);
 });
