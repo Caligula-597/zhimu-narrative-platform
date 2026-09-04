@@ -6,6 +6,7 @@
  */
 
 import { M01_FRAMING_VARIANTS, M01_PLOT_CANDIDATES } from "./story-mechanism-m01-framing-data.js";
+import { buildM07CompleteTemplates } from "./story-mechanism-m07-pack.js";
 
 export const CONTENT_MATURITY = Object.freeze({
   FOUNDATION: "FOUNDATION",
@@ -557,5 +558,8 @@ export function buildM01FramingTemplate() {
 }
 
 export function buildAllStoryTemplates() {
-  return Object.freeze([buildM01FramingTemplate(), ...buildCatalogFoundationTemplates()]);
+  const m07 = buildM07CompleteTemplates();
+  const m07Ids = new Set(m07.map((t) => t.id));
+  const foundations = buildCatalogFoundationTemplates().filter((t) => !m07Ids.has(t.id));
+  return Object.freeze([buildM01FramingTemplate(), ...m07, ...foundations]);
 }

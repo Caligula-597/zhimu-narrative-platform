@@ -33,7 +33,9 @@ Registry 自动可生成 / UI 自动可展示 / swap·edit 自动可用
 | 文件 | 内容 |
 |---|---|
 | `story-mechanism-contracts.js` | Block / ProjectStoryState / roleAssignments |
-| `story-mechanism-templates-data.js` | 37 catalog + M01-FRAMING 数据 |
+| `story-mechanism-templates-data.js` | Registry 组装：M01-FRAMING + M07 pack + 其余 FOUNDATION |
+| `story-mechanism-m07-pack.js` | M07-1…8 COMPLETE 内容包 |
+| `M07_CONTENT_COVERAGE.md` | M07 Coverage Matrix |
 | `story-mechanism-registry.js` | Registry 与校验 |
 | `story-mechanism-engine.js` | 通用引擎 API |
 | `story-mechanism-m01-framing*.js` | 兼容导出（数据+别名） |
@@ -46,10 +48,20 @@ Registry 自动可生成 / UI 自动可展示 / swap·edit 自动可用
 - `acceptStoryBlock` / `swapStoryVariant` / `swapStorySlot` / `editStorySlot`
 - `replaceStoryBlock` / `removeStoryBlock` / `lockStorySlot`
 
+## contentMaturity（当前）
+
+| 成熟度 | 数量 | 说明 |
+|---|---:|---|
+| COMPLETE | 9 | `M01-FRAMING` + **M07-1…8** |
+| FOUNDATION | 29 | 其余 catalog STORY |
+| PARTIAL | 0 | — |
+
+M07 内容包见 `M07_CONTENT_COVERAGE.md`。
+
 ## 明确不做（本阶段）
 
-- 37 个 STORY runtime
-- `mechanism_chain` 执行引擎
-- M11 新增 Atomic Effects
 - Master Outline Integrator
+- STORY runtime / `mechanism_chain`
+- M11 新增 Atomic Effects
 - GAME `MECHANISM_TEMPLATES` 重构
+- M07/M08 专用 producer 或 Workbench 特判 UI
