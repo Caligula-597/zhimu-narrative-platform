@@ -12,8 +12,9 @@
 | 每案 ≥2 goal-driven beats | PASS |
 | Case E 出现 KEEP_PARALLEL | PASS |
 
-人工均分仍需审阅填写：`captures/integrator-product-trial-v1/SCORECARD.md`  
-Held-out F–H：`captures/integrator-product-trial-p52-heldout/`
+**人工裁决（`f954d9d`）**：DEV 总均分 **3.57** · Held-out **3.44** → **P5.2 PASS**。  
+详见 `captures/integrator-product-trial-v1/SCORECARD.md`。  
+P6 范围冻结：`docs/MASTER_DRAFT_EXPANDER_P6_ZH.md`（只展开、不静默重排、不伪造交织）。
 
 ## 改了什么
 
