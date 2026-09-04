@@ -10,7 +10,7 @@
 | M08-2 | 固定隐藏阵营 | 11 | Lead + members + hidden/witness | PRIVATE / ASYMMETRIC；互认/只认领袖/直联 | secrecy, exposure, betrayal | LATENT→CONTACT→…→EXPOSURE | M07 身份打乱隐营 | 只能猜身份无行动差 |
 | M08-3 | 非对称阵营 | 10 | Lead + rivalLead + members | 接口不对称 | rivalGoal, asymmetricInterface | FORMATION→PRESSURE→RESOLUTION | 公共状态争夺 | 人数与信息双碾压 |
 | M08-4 | 动态阵营 | 10 | Lead + defector + rival | 改属知情分层 | changeNode, historyRule | FORMATION→SPLIT/BETRAYAL→… | M07 身份恢复改属 | 追溯重算旧贡献 |
-| M08-5 | 个人目标叠加阵营 | 10 | Lead + members + defector | 个人/阵营双结算 | personalGoal, settleRule | PRESSURE→BETRAYAL→… | M10 结局条件 | 个人目标强制全员叛变 |
+| M08-5 | 个人目标叠加阵营目标 | 10 | Lead + members + defector | 个人/阵营双结算 | personalGoal, settleRule | PRESSURE→BETRAYAL→… | M10 结局条件 | 个人目标强制全员叛变 |
 | M08-6 | 临时联盟 | 10 | Lead + rivalLead + mediator | 共享范围受限 | duration, shareScope, exitCost | CONTACT→FORMATION→SPLIT | 危机合作 | 零成本反复进出 |
 | M08-7 | 阵营影响公共任务 | 10 | Lead + rival + defector | 公共先结算 | publicTask, stance, sabotage | PRESSURE→RESOLUTION | M11 地点权限 | 拒绝参与成必胜 |
 | M08-8 | 多阵营并存 | 12 | Lead + rival + thirdLead + members | 三营条件表 | conditionTable, campCountRule | FORMATION→SPLIT→CONSEQUENCE | M10/M11 | 阵营数接近玩家数 |
