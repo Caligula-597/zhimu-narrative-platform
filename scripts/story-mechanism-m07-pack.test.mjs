@@ -36,7 +36,7 @@ test("M07 8/8 COMPLETE 且 Registry 对齐", () => {
   const table = contentMaturityTable();
   assert.equal(table.filter((r) => r.id.startsWith("M07-") && r.contentMaturity === "COMPLETE").length, 8);
   assert.equal(table.find((r) => r.id === "M01-FRAMING").contentMaturity, "COMPLETE");
-  assert.ok(table.filter((r) => r.id.startsWith("M08-")).every((r) => r.contentMaturity === "FOUNDATION"));
+  assert.ok(table.filter((r) => r.id.startsWith("M08-")).every((r) => r.contentMaturity === "COMPLETE"));
 });
 
 test("M07 每条 VariantPool≥8、ID 无重复、required slots 存在", () => {

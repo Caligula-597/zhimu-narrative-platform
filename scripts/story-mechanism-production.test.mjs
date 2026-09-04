@@ -47,14 +47,16 @@ test("Registry：37/37 catalog STORY 对齐，无校验问题", () => {
   assert.equal(getStoryTemplate("M09-1"), null);
 });
 
-test("contentMaturity 表：M01-FRAMING + M07 八子型 COMPLETE，其余 catalog FOUNDATION", () => {
+test("contentMaturity 表：M01-FRAMING + M07/M08 COMPLETE，其余 catalog FOUNDATION", () => {
   const table = contentMaturityTable();
   assert.equal(table.length, 38);
   assert.equal(table.find((r) => r.id === "M01-FRAMING").contentMaturity, "COMPLETE");
   assert.equal(table.filter((r) => r.id.startsWith("M07-") && r.contentMaturity === "COMPLETE").length, 8);
+  assert.equal(table.filter((r) => r.id.startsWith("M08-") && r.contentMaturity === "COMPLETE").length, 8);
+  assert.equal(table.filter((r) => r.contentMaturity === "COMPLETE").length, 17);
   assert.ok(
     table
-      .filter((r) => r.inCatalog && !r.id.startsWith("M07-"))
+      .filter((r) => r.inCatalog && !r.id.startsWith("M07-") && !r.id.startsWith("M08-"))
       .every((r) => r.contentMaturity === "FOUNDATION"),
   );
 });

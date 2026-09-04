@@ -47,7 +47,7 @@ function escapeHtml(value) {
 const FAMILY_INTENT = Object.freeze({
   M01: { label: "追凶调查", blurb: "谁做了什么、留下什么、如何误判与揭开" },
   M07: { label: "身份与记忆", blurb: "隐藏身份、记忆分层、阶段显现" },
-  M08: { label: "阵营冲突", blurb: "公开或隐秘阵营与对抗（内容仍在充实）" },
+  M08: { label: "阵营冲突", blurb: "多人共享目标、归属变化与阵营信息差" },
   M10: { label: "多结局", blurb: "分支结局条件（内容仍在充实）" },
   M11: { label: "世界变化", blurb: "现场与世界状态改写（内容仍在充实）" },
 });
