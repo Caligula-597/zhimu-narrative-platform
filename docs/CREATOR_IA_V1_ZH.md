@@ -54,6 +54,17 @@
 
 ## 后续顺序
 
-~~P3 持久化~~ ✅ → ~~P4 M08~~ ✅ → ~~P5 Integrator 原型~~ ✅ → ~~P5.1 Product Trial~~ ❌ → ~~P5.2 Semantic Bridge~~ ✅ → **P6.0 Master Draft Expander（Deterministic First）**（`docs/MASTER_DRAFT_EXPANDER_P6_ZH.md`）→ 下一步可选 P6.1 LLM 措辞 / 或 Playable vertical slice；再按反馈补 M10·M11
+```text
+创作前半程 ✅
+IA · Story Engine · Persistence · Integrator · Semantic Bridge · P6.0 Production Master Draft
 
-P6 硬边界：**只展开既有 MasterOutlineDraft**；禁止静默重排；禁止文学润色伪造因果/交织；结构变更必须回报 Integrator。
+运行后半程 ← 当前
+P7 Playable Vertical Slice V1（docs/PLAYABLE_VERTICAL_SLICE_P7_ZH.md）
+
+后移
+P6.1 Optional LLM Rendering · M10/M11 · 39 GAME 全接 · 世界域/社区/商业化
+```
+
+~~P3~~ ✅ → ~~P4 M08~~ ✅ → ~~P5~~ ✅ → ~~P5.1~~ ❌ → ~~P5.2~~ ✅ → ~~P6.0~~ ✅ → **P7 Playable Vertical Slice**（完整剧本开完一局；先 M03+M09；禁止 STORY runtime）
+
+P6 硬边界仍有效。P6.1 不取消，等第一局跑通后再做「AI 润色这一段」插件。
