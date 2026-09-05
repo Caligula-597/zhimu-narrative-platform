@@ -109,4 +109,5 @@ npm run verify:playable
 
 ## 下一步
 
-**P9.3 Real Writer V1** — Writer 只把已经正确的游戏剧情逻辑写得像商业剧本，不替系统发明 why/stake/outcome。
+**P9.3 Real Writer V1** ✅ 见 `docs/P9_3_REAL_WRITER_V1_ZH.md`  
+再下一刀：**P9.4 Content Quality Gate**。

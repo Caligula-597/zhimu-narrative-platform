@@ -2,6 +2,8 @@
  * P8.2.1 ScriptWriterResult contracts — structured sections + proposed canon only.
  */
 
+import { normalizeWriterRunMetadata } from "./script-writer-run-metadata.js";
+
 export const PACKET_KINDS = Object.freeze([
   "HOST_SCRIPT",
   "ROLE_SCRIPT",
@@ -93,6 +95,9 @@ export function normalizeScriptWriterResult(value = {}) {
       message: cleanText(record(d).message, 400),
       severity: cleanText(record(d).severity, 20) || "info",
     })),
+    /** P9.3 — generation metadata (not Canon) */
+    writerRunMetadata:
+      src.writerRunMetadata != null ? normalizeWriterRunMetadata(src.writerRunMetadata) : undefined,
   };
 }
 

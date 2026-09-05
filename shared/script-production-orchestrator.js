@@ -4,6 +4,7 @@
 
 import { evaluateScriptProductionReadiness } from "./script-production-gate.js";
 import { buildScriptProductionPacketSet } from "./script-production-packets.js";
+import { enrichPacketSetWithNarrativeContext } from "./script-writer-packet-enrichment.js";
 import {
   buildScriptWriterRequest,
   normalizeScriptWriterResult,
@@ -12,6 +13,8 @@ import { diffWriterResultAgainstPacket } from "./script-writer-provenance-diff.j
 import { normalizeCompleteScriptPackage } from "./complete-script-package-contracts.js";
 import { validateCompleteScriptPackage } from "./complete-script-validator.js";
 import { DeterministicTestScriptWriter } from "./deterministic-test-script-writer.js";
+import { buildWriterInputFingerprint } from "./script-writer-run-metadata.js";
+import { getWriterProfile } from "./script-writer-profiles.js";
 
 function asArray(value) {
   return Array.isArray(value) ? value : [];
@@ -224,37 +227,8 @@ function mergeWriterSectionsIntoPackage({ pmd, packetSet, sectionStates, gate, p
   });
 }
 
-/**
- * @param {{ pmd: object, writer?: { write: Function }, projectId?: string, now?: Function }} args
- */
-export async function runScriptProduction({
-  pmd,
-  writer = new DeterministicTestScriptWriter(),
-  projectId = "project",
-  now = () => new Date().toISOString(),
-} = {}) {
-  const gate = evaluateScriptProductionReadiness(pmd);
-  if (gate.status === "BLOCKED") {
-    return {
-      gate,
-      packetSet: null,
-      sectionStates: [],
-      package: normalizeCompleteScriptPackage({
-        id: `csp-blocked-${projectId}`,
-        projectId,
-        status: "BLOCKED",
-        diagnostics: gate.blockers,
-        roles: [{ id: "role_host", name: "主持人", type: "HOST" }],
-        stages: [],
-        hostScript: { sections: [] },
-        roleScripts: {},
-      }),
-      validation: { ok: false, errors: gate.blockers, warnings: [] },
-    };
-  }
-
-  const packetSet = buildScriptProductionPacketSet(pmd);
-  const jobs = [
+function buildProductionJobs(packetSet) {
+  return [
     { packetKind: "HOST_SCRIPT", packet: packetSet.host, key: "host" },
     ...asArray(packetSet.roles).map((p) => ({
       packetKind: "ROLE_SCRIPT",
@@ -274,34 +248,197 @@ export async function runScriptProduction({
     })),
     { packetKind: "ENDING", packet: packetSet.ending, key: "ending" },
   ];
+}
 
+async function runOneWriterJob({
+  job,
+  writer,
+  contextRevision = null,
+  gameNarrativeRevision = null,
+  regeneration = false,
+}) {
+  const request = buildScriptWriterRequest({
+    requestId: `req-${job.key}${regeneration ? "-regen" : ""}`,
+    packetKind: job.packetKind,
+    packet: job.packet,
+  });
+  const profile = getWriterProfile(job.packetKind);
+  const expectedFingerprint = buildWriterInputFingerprint({
+    packet: job.packet,
+    writerProfileId: profile?.id,
+    promptVersion: profile?.promptVersion,
+    contextRevision,
+    gameNarrativeRevision,
+  });
+  const raw =
+    typeof writer.write === "function"
+      ? await writer.write(request, { regeneration })
+      : await writer.write(request);
+  const result = normalizeScriptWriterResult({
+    ...raw,
+    packetKind: job.packetKind,
+    requestId: request.requestId,
+  });
+  const diff = diffWriterResultAgainstPacket({ packet: job.packet, result });
+  let status = "GENERATED";
+  if (diff.status === "INVALID") status = "INVALID";
+  else if (diff.status === "REVIEW_REQUIRED") status = "REVIEW_REQUIRED";
+  if (result.diagnostics?.some((d) => d.code === "WRITER_SCHEMA_FAIL")) status = "INVALID";
+
+  return {
+    sectionId: job.key,
+    status,
+    result,
+    diff,
+    packet: job.packet,
+    packetKind: job.packetKind,
+    characterId: job.characterId,
+    inputFingerprint: result.writerRunMetadata?.inputFingerprint || expectedFingerprint,
+    writerRunMetadata: result.writerRunMetadata || null,
+  };
+}
+
+/**
+ * Mark previously generated sections STALE when upstream fingerprints diverge.
+ */
+export function markWriterSectionsStale({
+  sectionStates = [],
+  packetSet,
+  contextRevision = null,
+  gameNarrativeRevision = null,
+} = {}) {
+  const jobs = buildProductionJobs(packetSet);
+  const byKey = new Map(jobs.map((j) => [j.key, j]));
+  return asArray(sectionStates).map((st) => {
+    const job = byKey.get(st.sectionId);
+    if (!job) return { ...st, status: st.status === "GENERATED" ? "STALE" : st.status };
+    const profile = getWriterProfile(job.packetKind);
+    const nextFp = buildWriterInputFingerprint({
+      packet: job.packet,
+      writerProfileId: profile?.id,
+      promptVersion: profile?.promptVersion,
+      contextRevision,
+      gameNarrativeRevision,
+    });
+    const prevFp = st.inputFingerprint || st.writerRunMetadata?.inputFingerprint;
+    if (prevFp && prevFp !== nextFp && ["GENERATED", "REVIEW_REQUIRED"].includes(st.status)) {
+      return { ...st, status: "STALE", staleReason: "UPSTREAM_INPUT_CHANGED" };
+    }
+    return st;
+  });
+}
+
+/**
+ * Regenerate a single job key (e.g. role:B). Does not auto-approve.
+ */
+export async function regenerateScriptProductionJob({
+  production,
+  jobKey,
+  writer = new DeterministicTestScriptWriter(),
+  contextProfile = null,
+  gameNarrativePlan = null,
+  now = () => new Date().toISOString(),
+} = {}) {
+  const pmd = production.pmd;
+  const packetSet = production.packetSet;
+  if (!pmd || !packetSet) {
+    return { ...production, error: { code: "PRODUCTION_INCOMPLETE", jobKey } };
+  }
+  const jobs = buildProductionJobs(packetSet);
+  const job = jobs.find((j) => j.key === jobKey);
+  if (!job) {
+    return { ...production, error: { code: "UNKNOWN_JOB", jobKey } };
+  }
+  const next = await runOneWriterJob({
+    job,
+    writer,
+    contextRevision: contextProfile?.revision ?? production.contextRevision ?? null,
+    gameNarrativeRevision: gameNarrativePlan?.revision ?? production.gameNarrativeRevision ?? null,
+    regeneration: true,
+  });
+  const sectionStates = asArray(production.sectionStates).map((s) =>
+    s.sectionId === jobKey ? next : s,
+  );
+  const pkg = mergeWriterSectionsIntoPackage({
+    pmd,
+    packetSet,
+    sectionStates,
+    gate: production.gate,
+    projectId: production.package?.projectId || "project",
+    now,
+  });
+  const validation = validateCompleteScriptPackage({
+    pmd,
+    packetSet,
+    package: pkg,
+  });
+  return {
+    ...production,
+    sectionStates,
+    package: pkg,
+    validation,
+  };
+}
+
+/**
+ * @param {{
+ *   pmd: object,
+ *   writer?: { write: Function },
+ *   projectId?: string,
+ *   now?: Function,
+ *   contextProfile?: object|null,
+ *   gameNarrativePlan?: object|null,
+ * }} args
+ */
+export async function runScriptProduction({
+  pmd,
+  writer = new DeterministicTestScriptWriter(),
+  projectId = "project",
+  now = () => new Date().toISOString(),
+  contextProfile = null,
+  gameNarrativePlan = null,
+} = {}) {
+  const gate = evaluateScriptProductionReadiness(pmd);
+  if (gate.status === "BLOCKED") {
+    return {
+      gate,
+      pmd,
+      packetSet: null,
+      sectionStates: [],
+      package: normalizeCompleteScriptPackage({
+        id: `csp-blocked-${projectId}`,
+        projectId,
+        status: "BLOCKED",
+        diagnostics: gate.blockers,
+        roles: [{ id: "role_host", name: "主持人", type: "HOST" }],
+        stages: [],
+        hostScript: { sections: [] },
+        roleScripts: {},
+      }),
+      validation: { ok: false, errors: gate.blockers, warnings: [] },
+    };
+  }
+
+  const basePacketSet = buildScriptProductionPacketSet(pmd);
+  const packetSet =
+    contextProfile || gameNarrativePlan
+      ? enrichPacketSetWithNarrativeContext(basePacketSet, {
+          contextProfile,
+          gameNarrativePlan,
+        })
+      : basePacketSet;
+
+  const jobs = buildProductionJobs(packetSet);
   const sectionStates = [];
   for (const job of jobs) {
-    const request = buildScriptWriterRequest({
-      requestId: `req-${job.key}`,
-      packetKind: job.packetKind,
-      packet: job.packet,
-    });
-    const raw = await writer.write(request);
-    const result = normalizeScriptWriterResult({
-      ...raw,
-      packetKind: job.packetKind,
-      requestId: request.requestId,
-    });
-    const diff = diffWriterResultAgainstPacket({ packet: job.packet, result });
-    let status = "GENERATED";
-    if (diff.status === "INVALID") status = "INVALID";
-    else if (diff.status === "REVIEW_REQUIRED") status = "REVIEW_REQUIRED";
-
-    sectionStates.push({
-      sectionId: job.key,
-      status,
-      result,
-      diff,
-      packet: job.packet,
-      packetKind: job.packetKind,
-      characterId: job.characterId,
-    });
+    sectionStates.push(
+      await runOneWriterJob({
+        job,
+        writer,
+        contextRevision: contextProfile?.revision ?? null,
+        gameNarrativeRevision: gameNarrativePlan?.revision ?? null,
+      }),
+    );
   }
 
   const pkg = mergeWriterSectionsIntoPackage({
@@ -313,6 +450,7 @@ export async function runScriptProduction({
     now,
   });
 
+  // Real Writer never auto-approves — stay READY_FOR_REVIEW even when clean.
   const validation = validateCompleteScriptPackage({
     pmd,
     packetSet,
@@ -321,9 +459,12 @@ export async function runScriptProduction({
 
   return {
     gate,
+    pmd,
     packetSet,
     sectionStates,
     package: pkg,
     validation,
+    contextRevision: contextProfile?.revision ?? null,
+    gameNarrativeRevision: gameNarrativePlan?.revision ?? null,
   };
 }
