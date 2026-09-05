@@ -192,13 +192,20 @@ function evaluateG1(fixture, state, outline, draft) {
 
   if (exp.forbidAutoPadSixthPlayer) {
     const viewChars = draft?.characterViews?.characters || [];
-    const invented = viewChars.filter((c) => c.id && !state.characters.some((s) => s.id === c.id));
+    const invented = viewChars.filter(
+      (c) => {
+        const id = c.characterId || c.id;
+        return id && !state.characters.some((s) => s.id === id);
+      },
+    );
     checks.push(
       gate(
         "G1.noPadPlayers",
         invented.length === 0 && players.length === wantPlayers,
-        invented.length ? `invented character ids: ${invented.map((c) => c.id).join(",")}` : "no padded players",
-        { invented: invented.map((c) => c.id) },
+        invented.length
+          ? `invented character ids: ${invented.map((c) => c.characterId || c.id).join(",")}`
+          : "no padded players",
+        { invented: invented.map((c) => c.characterId || c.id) },
       ),
     );
   }
@@ -213,6 +220,21 @@ function evaluateG1(fixture, state, outline, draft) {
       { draftIds: [...draftIds], projectIds: [...stageIds] },
     ),
   );
+
+  // 3-act semantic: final stage must be PAYOFF-class, not leftover ESCALATION from 4-band map
+  if (wantStages === 3 && (draft?.stages || []).length === 3) {
+    const last = [...draft.stages].sort((a, b) => (a.order ?? 0) - (b.order ?? 0)).at(-1);
+    const role = String(last?.stageRole || "");
+    const ok = role === "PAYOFF" || role === "RESOLUTION" || /收束|终局|结算/.test(String(last?.title || ""));
+    checks.push(
+      gate(
+        "G1.finalStagePayoffSemantics",
+        ok,
+        `3-act final stageRole=${role || "?"} title=${last?.title || "?"} (must be PAYOFF-class, not ESCALATION)`,
+        { stageId: last?.stageId, stageRole: role },
+      ),
+    );
+  }
 
   return checks;
 }
@@ -290,23 +312,23 @@ function evaluateG2(fixture, state, outline, draft) {
   }
   const roles = exp.requireContributionRoles;
   if (complexId && Array.isArray(roles) && roles.length) {
-    const ch = (draft?.characterViews?.characters || []).find((c) => c.id === complexId);
-    const contrib = ch?.contributions || [];
+    const ch = (draft?.characterViews?.characters || []).find(
+      (c) => (c.characterId || c.id) === complexId,
+    );
+    // PMD V2 nests contributions under stages[] — do not read top-level .contributions
+    const contrib = (ch?.stages || []).flatMap((s) => s.contributions || []);
     const have = new Set(contrib.map((c) => c.roleInBeat));
     const missing = roles.filter((r) => !have.has(r));
     checks.push(
       gate(
         "G2.complexContributionRoles",
         missing.length === 0,
-        missing.length ? `missing roles: ${missing.join(",")}` : `has ${roles.join(",")}`,
-        { contributions: contrib.length, have: [...have] },
+        missing.length
+          ? `missing roles: ${missing.join(",")} (contributions=${contrib.length})`
+          : `has ${roles.join(",")} across ${contrib.length} contributions`,
+        { characterId: complexId, contributions: contrib.length, have: [...have] },
       ),
     );
-    const badInherit = contrib.filter(
-      (c) => c.roleInBeat !== "OWNER" && c.goal && String(c.goal).length > 0 && c.inheritedOwnerGoal === true,
-    );
-    // If field absent, check PARTICIPANT/TARGET don't look like sole OWNER of same stage goal incorrectly:
-    // soft: TARGET contributions should not be the only ones with goal that matches OWNER of another char claiming "锁定自己"
     checks.push(
       gate(
         "G2.noTargetGoalAsOwner",
@@ -314,7 +336,6 @@ function evaluateG2(fixture, state, outline, draft) {
         "TARGET should not inherit self-culprit style goals",
       ),
     );
-    void badInherit;
   }
 
   checks.push(
@@ -374,14 +395,27 @@ function evaluateG3(fixture, state, draft) {
   }
 
   const candidates = draft?.executionView?.candidateGameInsertionPoints || [];
+  const draftStageIds = new Set((draft?.stages || []).map((s) => s.stageId || s.id));
+  const orphanPlacements = placements.filter((p) => p.stageId && !draftStageIds.has(p.stageId));
+
+  checks.push(
+    gate(
+      "G3.gameStageReferenceIntegrity",
+      orphanPlacements.length === 0,
+      orphanPlacements.length
+        ? `GAME placement stageId not in draft stages: ${orphanPlacements.map((p) => `${p.familyId||p.templateId}@${p.stageId}`).join(", ")}`
+        : "all gamePlan stageIds ⊆ draft stageIds",
+      { orphanPlacements, draftStageIds: [...draftStageIds] },
+    ),
+  );
+
   if (placements.length) {
-    // P8.0: gamePlan is declared intent for CompleteScript / Bridge later.
-    // PMD only exposes candidate insertion points from story beats — do not fail corpus on absence.
+    // Declared intent for downstream CompleteScript / Bridge — informational only.
     checks.push(
       gate(
         "G3.gamePlanDeclared",
         true,
-        `declared placements=${placements.length}; PMD candidates=${candidates.length} (informational; runtime placements belong downstream)`,
+        `declared placements=${placements.length}; PMD candidates=${candidates.length} (informational)`,
         { placements, candidateCount: candidates.length },
       ),
     );
@@ -416,10 +450,17 @@ function classifyFailure(g1, g2, g3, pipelineError) {
   }
   const failed = [...g1, ...g2, ...g3].filter((g) => !g.pass);
   if (!failed.length) return null;
-  if (failed.some((g) => g.id.startsWith("G1.") || g.id === "G2.complexContributionRoles")) {
+  if (
+    failed.some(
+      (g) =>
+        g.id.startsWith("G1.") ||
+        g.id === "G3.gameStageReferenceIntegrity" ||
+        g.id === "G2.complexContributionRoles",
+    )
+  ) {
     return "CONTRACT_FAILURE";
   }
-  if (failed.some((g) => g.id.startsWith("G2."))) return "GENERATION_FAILURE";
+  if (failed.some((g) => g.id.startsWith("G2.") || g.id.startsWith("G3."))) return "GENERATION_FAILURE";
   return "GENERATION_FAILURE";
 }
 

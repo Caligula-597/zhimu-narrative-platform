@@ -78,3 +78,12 @@ P8.0A ✅ → P8.0B Corpus ✅ → P8.0D Editorial → Verdict
 ## 7. 废止
 
 不以真人桌测为入口或出口 Gate。
+
+## 8. Final Verdict
+
+审计已完成，见 [`P8_0_GENERALIZATION_AUDIT_VERDICT_ZH.md`](./P8_0_GENERALIZATION_AUDIT_VERDICT_ZH.md)：
+
+```text
+P8.0 Generalization Audit ✅ 完成
+Universal Pipeline        ❌ 尚未通过
+```

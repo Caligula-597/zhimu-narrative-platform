@@ -8,10 +8,11 @@
 
 ```text
 P8.0A Matrix                         ✅ FROZEN
-P8.0B Representative Corpus          ✅ 本刀
-P8.0C Machine Gate Wiring            ✅ 含于 runner（G1/G2/G3）
-P8.0D Editorial Audit                ⏳ 人工逐本
-P8.0 Final Verdict                   ⏳
+P8.0B Representative Corpus          ✅
+P8.0C Machine Gate Wiring            ✅（含假绿/假红修补）
+P8.0D Editorial Audit                ✅ 完成
+P8.0 Final Verdict                   ✅ 见 docs/P8_0_GENERALIZATION_AUDIT_VERDICT_ZH.md
+                                     Universal Pipeline ❌ 未通过
 ```
 
 ## 代表案

@@ -130,6 +130,20 @@
         "details": {}
       },
       {
+        "id": "G3.gameStageReferenceIntegrity",
+        "pass": true,
+        "message": "all gamePlan stageIds ⊆ draft stageIds",
+        "details": {
+          "orphanPlacements": [],
+          "draftStageIds": [
+            "act1",
+            "act2",
+            "act3",
+            "act4"
+          ]
+        }
+      },
+      {
         "id": "G3.noGameStillHasExecutionView",
         "pass": true,
         "message": "execution view present without GAME plan",

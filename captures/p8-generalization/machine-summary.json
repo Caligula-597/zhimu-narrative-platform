@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-05T07:12:24.032Z",
+  "generatedAt": "2026-09-05T07:46:20.410Z",
   "corpus": "P8.0B GEN-01..GEN-08",
   "results": [
     {
@@ -74,6 +74,15 @@
                 "act3"
               ]
             }
+          },
+          {
+            "id": "G1.finalStagePayoffSemantics",
+            "pass": false,
+            "message": "3-act final stageRole=ESCALATION title=升级 (must be PAYOFF-class, not ESCALATION)",
+            "details": {
+              "stageId": "act3",
+              "stageRole": "ESCALATION"
+            }
           }
         ],
         "G2": [
@@ -110,6 +119,19 @@
             "details": {}
           },
           {
+            "id": "G3.gameStageReferenceIntegrity",
+            "pass": true,
+            "message": "all gamePlan stageIds ⊆ draft stageIds",
+            "details": {
+              "orphanPlacements": [],
+              "draftStageIds": [
+                "act1",
+                "act2",
+                "act3"
+              ]
+            }
+          },
+          {
             "id": "G3.noGameStillHasExecutionView",
             "pass": true,
             "message": "execution view present without GAME plan",
@@ -124,12 +146,12 @@
         ]
       },
       "gatePass": {
-        "G1": true,
+        "G1": false,
         "G2": true,
         "G3": true,
-        "all": true
+        "all": false
       },
-      "failureClass": null,
+      "failureClass": "CONTRACT_FAILURE",
       "editorialStatus": "PENDING",
       "counts": {
         "players": 5,
@@ -268,9 +290,26 @@
             "details": {}
           },
           {
+            "id": "G3.gameStageReferenceIntegrity",
+            "pass": false,
+            "message": "GAME placement stageId not in draft stages: M09@act5",
+            "details": {
+              "orphanPlacements": [
+                {
+                  "familyId": "M09",
+                  "stageId": "act5"
+                }
+              ],
+              "draftStageIds": [
+                "act1",
+                "act4"
+              ]
+            }
+          },
+          {
             "id": "G3.gamePlanDeclared",
             "pass": true,
-            "message": "declared placements=1; PMD candidates=0 (informational; runtime placements belong downstream)",
+            "message": "declared placements=1; PMD candidates=0 (informational)",
             "details": {
               "placements": [
                 {
@@ -292,7 +331,7 @@
       "gatePass": {
         "G1": false,
         "G2": true,
-        "G3": true,
+        "G3": false,
         "all": false
       },
       "failureClass": "CONTRACT_FAILURE",
@@ -440,9 +479,23 @@
             "details": {}
           },
           {
+            "id": "G3.gameStageReferenceIntegrity",
+            "pass": true,
+            "message": "all gamePlan stageIds ⊆ draft stageIds",
+            "details": {
+              "orphanPlacements": [],
+              "draftStageIds": [
+                "act1",
+                "act2",
+                "act3",
+                "act4"
+              ]
+            }
+          },
+          {
             "id": "G3.gamePlanDeclared",
             "pass": true,
-            "message": "declared placements=1; PMD candidates=0 (informational; runtime placements belong downstream)",
+            "message": "declared placements=1; PMD candidates=0 (informational)",
             "details": {
               "placements": [
                 {
@@ -615,6 +668,20 @@
             "details": {}
           },
           {
+            "id": "G3.gameStageReferenceIntegrity",
+            "pass": true,
+            "message": "all gamePlan stageIds ⊆ draft stageIds",
+            "details": {
+              "orphanPlacements": [],
+              "draftStageIds": [
+                "act1",
+                "act2",
+                "act3",
+                "act4"
+              ]
+            }
+          },
+          {
             "id": "G3.noGameStillHasExecutionView",
             "pass": true,
             "message": "execution view present without GAME plan",
@@ -778,9 +845,23 @@
             "details": {}
           },
           {
+            "id": "G3.gameStageReferenceIntegrity",
+            "pass": true,
+            "message": "all gamePlan stageIds ⊆ draft stageIds",
+            "details": {
+              "orphanPlacements": [],
+              "draftStageIds": [
+                "act1",
+                "act2",
+                "act3",
+                "act4"
+              ]
+            }
+          },
+          {
             "id": "G3.gamePlanDeclared",
             "pass": true,
-            "message": "declared placements=3; PMD candidates=0 (informational; runtime placements belong downstream)",
+            "message": "declared placements=3; PMD candidates=0 (informational)",
             "details": {
               "placements": [
                 {
@@ -979,6 +1060,20 @@
             "details": {}
           },
           {
+            "id": "G3.gameStageReferenceIntegrity",
+            "pass": true,
+            "message": "all gamePlan stageIds ⊆ draft stageIds",
+            "details": {
+              "orphanPlacements": [],
+              "draftStageIds": [
+                "act1",
+                "act2",
+                "act3",
+                "act4"
+              ]
+            }
+          },
+          {
             "id": "G3.noGameStillHasExecutionView",
             "pass": true,
             "message": "execution view present without GAME plan",
@@ -1110,11 +1205,16 @@
           },
           {
             "id": "G2.complexContributionRoles",
-            "pass": false,
-            "message": "missing roles: OWNER,PARTICIPANT,TARGET",
+            "pass": true,
+            "message": "has OWNER,PARTICIPANT,TARGET across 13 contributions",
             "details": {
-              "contributions": 0,
-              "have": []
+              "characterId": "T2",
+              "contributions": 13,
+              "have": [
+                "OWNER",
+                "PARTICIPANT",
+                "TARGET"
+              ]
             }
           },
           {
@@ -1144,9 +1244,28 @@
             "details": {}
           },
           {
+            "id": "G3.gameStageReferenceIntegrity",
+            "pass": false,
+            "message": "GAME placement stageId not in draft stages: M09@act5",
+            "details": {
+              "orphanPlacements": [
+                {
+                  "familyId": "M09",
+                  "stageId": "act5"
+                }
+              ],
+              "draftStageIds": [
+                "act1",
+                "act2",
+                "act3",
+                "act4"
+              ]
+            }
+          },
+          {
             "id": "G3.gamePlanDeclared",
             "pass": true,
-            "message": "declared placements=2; PMD candidates=0 (informational; runtime placements belong downstream)",
+            "message": "declared placements=2; PMD candidates=0 (informational)",
             "details": {
               "placements": [
                 {
@@ -1171,8 +1290,8 @@
       },
       "gatePass": {
         "G1": false,
-        "G2": false,
-        "G3": true,
+        "G2": true,
+        "G3": false,
         "all": false
       },
       "failureClass": "CONTRACT_FAILURE",
@@ -1264,6 +1383,15 @@
                 "act3"
               ]
             }
+          },
+          {
+            "id": "G1.finalStagePayoffSemantics",
+            "pass": false,
+            "message": "3-act final stageRole=ESCALATION title=升级 (must be PAYOFF-class, not ESCALATION)",
+            "details": {
+              "stageId": "act3",
+              "stageRole": "ESCALATION"
+            }
           }
         ],
         "G2": [
@@ -1300,9 +1428,22 @@
             "details": {}
           },
           {
+            "id": "G3.gameStageReferenceIntegrity",
+            "pass": true,
+            "message": "all gamePlan stageIds ⊆ draft stageIds",
+            "details": {
+              "orphanPlacements": [],
+              "draftStageIds": [
+                "act1",
+                "act2",
+                "act3"
+              ]
+            }
+          },
+          {
             "id": "G3.gamePlanDeclared",
             "pass": true,
-            "message": "declared placements=1; PMD candidates=0 (informational; runtime placements belong downstream)",
+            "message": "declared placements=1; PMD candidates=0 (informational)",
             "details": {
               "placements": [
                 {
@@ -1322,12 +1463,12 @@
         ]
       },
       "gatePass": {
-        "G1": true,
+        "G1": false,
         "G2": true,
         "G3": true,
-        "all": true
+        "all": false
       },
-      "failureClass": null,
+      "failureClass": "CONTRACT_FAILURE",
       "editorialStatus": "PENDING",
       "counts": {
         "players": 6,

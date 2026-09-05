@@ -1,10 +1,10 @@
 {
-  "id": "mod-mto1p968-vg0z",
+  "id": "mod-mto2wwg7-wjfu",
   "version": 1,
   "sourceStoryStateRevision": 0,
   "sourceBlockIds": [
-    "smb-mto1p962-o6wjj",
-    "smb-mto1p965-4e1q7"
+    "smb-mto2wwg1-r9jg1",
+    "smb-mto2wwg4-7bs87"
   ],
   "createdAt": "2026-09-05T00:00:00.000Z",
   "updatedAt": "2026-09-05T00:00:00.000Z",
@@ -16,8 +16,8 @@
       "order": 0,
       "beats": [
         {
-          "id": "ob-mto1p966-c1p9",
-          "sourceBlockId": "smb-mto1p962-o6wjj",
+          "id": "ob-mto2wwg5-ng51",
+          "sourceBlockId": "smb-mto2wwg1-r9jg1",
           "sourceBeatId": "beat-setup",
           "familyId": "M01",
           "templateId": "M01-FRAMING",
@@ -57,8 +57,8 @@
           "needsDetail": false
         },
         {
-          "id": "ob-mto1p966-jo7e",
-          "sourceBlockId": "smb-mto1p965-4e1q7",
+          "id": "ob-mto2wwg5-t2nw",
+          "sourceBlockId": "smb-mto2wwg4-7bs87",
           "sourceBeatId": "beat-setup",
           "familyId": "M07",
           "templateId": "M07-2",
@@ -71,7 +71,7 @@
             "R4"
           ],
           "clueIds": [
-            "smb-mto1p965-4e1q7-foreshadow-0"
+            "smb-mto2wwg4-7bs87-foreshadow-0"
           ],
           "weaveGroupId": null,
           "semantics": {
@@ -107,8 +107,8 @@
       "order": 1,
       "beats": [
         {
-          "id": "ob-mto1p966-iheh",
-          "sourceBlockId": "smb-mto1p962-o6wjj",
+          "id": "ob-mto2wwg5-7vaw",
+          "sourceBlockId": "smb-mto2wwg1-r9jg1",
           "sourceBeatId": "beat-crime",
           "familyId": "M01",
           "templateId": "M01-FRAMING",
@@ -122,7 +122,7 @@
             "R4"
           ],
           "clueIds": [
-            "smb-mto1p962-o6wjj-false_lead-0"
+            "smb-mto2wwg1-r9jg1-false_lead-0"
           ],
           "weaveGroupId": null,
           "semantics": {
@@ -168,8 +168,8 @@
           "needsDetail": false
         },
         {
-          "id": "ob-mto1p966-53wz",
-          "sourceBlockId": "smb-mto1p962-o6wjj",
+          "id": "ob-mto2wwg5-p2l9",
+          "sourceBlockId": "smb-mto2wwg1-r9jg1",
           "sourceBeatId": "beat-false",
           "familyId": "M01",
           "templateId": "M01-FRAMING",
@@ -182,7 +182,7 @@
             "R3"
           ],
           "clueIds": [
-            "smb-mto1p962-o6wjj-false_lead-0"
+            "smb-mto2wwg1-r9jg1-false_lead-0"
           ],
           "weaveGroupId": null,
           "semantics": {
@@ -228,8 +228,8 @@
           "needsDetail": false
         },
         {
-          "id": "ob-mto1p966-4ssd",
-          "sourceBlockId": "smb-mto1p962-o6wjj",
+          "id": "ob-mto2wwg5-ap0l",
+          "sourceBlockId": "smb-mto2wwg1-r9jg1",
           "sourceBeatId": "beat-contra",
           "familyId": "M01",
           "templateId": "M01-FRAMING",
@@ -241,7 +241,7 @@
             "R4"
           ],
           "clueIds": [
-            "smb-mto1p962-o6wjj-contradiction-1"
+            "smb-mto2wwg1-r9jg1-contradiction-1"
           ],
           "weaveGroupId": null,
           "semantics": {
@@ -276,8 +276,8 @@
           "needsDetail": false
         },
         {
-          "id": "ob-mto1p966-3hx1",
-          "sourceBlockId": "smb-mto1p962-o6wjj",
+          "id": "ob-mto2wwg5-3yuy",
+          "sourceBlockId": "smb-mto2wwg1-r9jg1",
           "sourceBeatId": "beat-climax",
           "familyId": "M01",
           "templateId": "M01-FRAMING",
@@ -291,8 +291,8 @@
             "R3"
           ],
           "clueIds": [
-            "smb-mto1p962-o6wjj-true_evidence-2",
-            "smb-mto1p962-o6wjj-decisive_evidence-3"
+            "smb-mto2wwg1-r9jg1-true_evidence-2",
+            "smb-mto2wwg1-r9jg1-decisive_evidence-3"
           ],
           "weaveGroupId": null,
           "semantics": {
@@ -327,8 +327,8 @@
           "needsDetail": false
         },
         {
-          "id": "ob-mto1p966-wcwb",
-          "sourceBlockId": "smb-mto1p965-4e1q7",
+          "id": "ob-mto2wwg5-ty2m",
+          "sourceBlockId": "smb-mto2wwg4-7bs87",
           "sourceBeatId": "beat-develop",
           "familyId": "M07",
           "templateId": "M07-2",
@@ -344,7 +344,7 @@
             "NPC_GUARD"
           ],
           "clueIds": [
-            "smb-mto1p965-4e1q7-foreshadow-0"
+            "smb-mto2wwg4-7bs87-foreshadow-0"
           ],
           "weaveGroupId": null,
           "semantics": {
@@ -379,8 +379,8 @@
           "needsDetail": false
         },
         {
-          "id": "ob-mto1p966-of0v",
-          "sourceBlockId": "smb-mto1p965-4e1q7",
+          "id": "ob-mto2wwg5-mih3",
+          "sourceBlockId": "smb-mto2wwg4-7bs87",
           "sourceBeatId": "beat-climax",
           "familyId": "M07",
           "templateId": "M07-2",
@@ -396,11 +396,11 @@
             "NPC_GUARD"
           ],
           "clueIds": [
-            "smb-mto1p965-4e1q7-memory_fragment-1",
-            "smb-mto1p965-4e1q7-identity_hint-2",
-            "smb-mto1p965-4e1q7-misdirection-3",
-            "smb-mto1p965-4e1q7-confirmation-4",
-            "smb-mto1p965-4e1q7-decisive_reveal-5"
+            "smb-mto2wwg4-7bs87-memory_fragment-1",
+            "smb-mto2wwg4-7bs87-identity_hint-2",
+            "smb-mto2wwg4-7bs87-misdirection-3",
+            "smb-mto2wwg4-7bs87-confirmation-4",
+            "smb-mto2wwg4-7bs87-decisive_reveal-5"
           ],
           "weaveGroupId": null,
           "semantics": {
@@ -447,8 +447,8 @@
       "order": 2,
       "beats": [
         {
-          "id": "ob-mto1p966-8uyf",
-          "sourceBlockId": "smb-mto1p962-o6wjj",
+          "id": "ob-mto2wwg5-sgdu",
+          "sourceBlockId": "smb-mto2wwg1-r9jg1",
           "sourceBeatId": "beat-res",
           "familyId": "M01",
           "templateId": "M01-FRAMING",
@@ -463,7 +463,7 @@
             "R3"
           ],
           "clueIds": [
-            "smb-mto1p962-o6wjj-decisive_evidence-3"
+            "smb-mto2wwg1-r9jg1-decisive_evidence-3"
           ],
           "weaveGroupId": null,
           "semantics": {
@@ -498,8 +498,8 @@
           "needsDetail": false
         },
         {
-          "id": "ob-mto1p966-kp4v",
-          "sourceBlockId": "smb-mto1p965-4e1q7",
+          "id": "ob-mto2wwg5-ri4o",
+          "sourceBlockId": "smb-mto2wwg4-7bs87",
           "sourceBeatId": "beat-res",
           "familyId": "M07",
           "templateId": "M07-2",
@@ -552,17 +552,17 @@
   ],
   "weaveLinks": [
     {
-      "id": "wl-mto1p966-y5ph",
+      "id": "wl-mto2wwg6-tk55",
       "kind": "WEAVE_SHARED_CHARACTER",
       "relationQuality": "COLOCATED",
       "status": "PROPOSED",
       "beatIds": [
-        "ob-mto1p966-c1p9",
-        "ob-mto1p966-wcwb"
+        "ob-mto2wwg5-ng51",
+        "ob-mto2wwg5-ty2m"
       ],
       "blockIds": [
-        "smb-mto1p962-o6wjj",
-        "smb-mto1p965-4e1q7"
+        "smb-mto2wwg1-r9jg1",
+        "smb-mto2wwg4-7bs87"
       ],
       "reason": "共享角色 R3——仅角色重合，保持同场并列而非强制合并",
       "sharedCharacterIds": [
@@ -572,17 +572,17 @@
       "sharedTargets": []
     },
     {
-      "id": "wl-mto1p967-3qs8",
+      "id": "wl-mto2wwg6-40to",
       "kind": "WEAVE_SHARED_SCENE",
       "relationQuality": "COLOCATED",
       "status": "PROPOSED",
       "beatIds": [
-        "ob-mto1p966-iheh",
-        "ob-mto1p966-wcwb"
+        "ob-mto2wwg5-7vaw",
+        "ob-mto2wwg5-ty2m"
       ],
       "blockIds": [
-        "smb-mto1p962-o6wjj",
-        "smb-mto1p965-4e1q7"
+        "smb-mto2wwg1-r9jg1",
+        "smb-mto2wwg4-7bs87"
       ],
       "reason": "同阶段共享角色 R1、R4——可同场并列，不算真正交织",
       "sharedCharacterIds": [
@@ -593,17 +593,17 @@
       "sharedTargets": []
     },
     {
-      "id": "wl-mto1p967-xsqr",
+      "id": "wl-mto2wwg6-5lxd",
       "kind": "WEAVE_SHARED_CHARACTER",
       "relationQuality": "COLOCATED",
       "status": "PROPOSED",
       "beatIds": [
-        "ob-mto1p966-iheh",
-        "ob-mto1p966-of0v"
+        "ob-mto2wwg5-7vaw",
+        "ob-mto2wwg5-mih3"
       ],
       "blockIds": [
-        "smb-mto1p962-o6wjj",
-        "smb-mto1p965-4e1q7"
+        "smb-mto2wwg1-r9jg1",
+        "smb-mto2wwg4-7bs87"
       ],
       "reason": "共享角色 R1、R4——仅角色重合，保持同场并列而非强制合并",
       "sharedCharacterIds": [
@@ -614,17 +614,17 @@
       "sharedTargets": []
     },
     {
-      "id": "wl-mto1p967-bjt1",
+      "id": "wl-mto2wwg6-cdka",
       "kind": "WEAVE_SHARED_SCENE",
       "relationQuality": "COLOCATED",
       "status": "PROPOSED",
       "beatIds": [
-        "ob-mto1p966-3hx1",
-        "ob-mto1p966-of0v"
+        "ob-mto2wwg5-3yuy",
+        "ob-mto2wwg5-mih3"
       ],
       "blockIds": [
-        "smb-mto1p962-o6wjj",
-        "smb-mto1p965-4e1q7"
+        "smb-mto2wwg1-r9jg1",
+        "smb-mto2wwg4-7bs87"
       ],
       "reason": "同阶段共享角色 R4、R3——可同场并列，不算真正交织",
       "sharedCharacterIds": [
@@ -635,17 +635,17 @@
       "sharedTargets": []
     },
     {
-      "id": "wl-mto1p967-s11h",
+      "id": "wl-mto2wwg6-ehpm",
       "kind": "WEAVE_SHARED_CHARACTER",
       "relationQuality": "COLOCATED",
       "status": "PROPOSED",
       "beatIds": [
-        "ob-mto1p966-3hx1",
-        "ob-mto1p966-kp4v"
+        "ob-mto2wwg5-3yuy",
+        "ob-mto2wwg5-ri4o"
       ],
       "blockIds": [
-        "smb-mto1p962-o6wjj",
-        "smb-mto1p965-4e1q7"
+        "smb-mto2wwg1-r9jg1",
+        "smb-mto2wwg4-7bs87"
       ],
       "reason": "共享角色 R4、R3——仅角色重合，保持同场并列而非强制合并",
       "sharedCharacterIds": [
@@ -656,17 +656,17 @@
       "sharedTargets": []
     },
     {
-      "id": "wl-mto1p967-48ob",
+      "id": "wl-mto2wwg6-ir19",
       "kind": "WEAVE_SHARED_SCENE",
       "relationQuality": "COLOCATED",
       "status": "PROPOSED",
       "beatIds": [
-        "ob-mto1p966-8uyf",
-        "ob-mto1p966-kp4v"
+        "ob-mto2wwg5-sgdu",
+        "ob-mto2wwg5-ri4o"
       ],
       "blockIds": [
-        "smb-mto1p962-o6wjj",
-        "smb-mto1p965-4e1q7"
+        "smb-mto2wwg1-r9jg1",
+        "smb-mto2wwg4-7bs87"
       ],
       "reason": "同阶段共享角色 R4、R1、R3——可同场并列，不算真正交织",
       "sharedCharacterIds": [
@@ -678,17 +678,17 @@
       "sharedTargets": []
     },
     {
-      "id": "wl-mto1p967-0rry",
+      "id": "wl-mto2wwg6-711o",
       "kind": "KEEP_PARALLEL",
       "relationQuality": "PARALLEL",
       "status": "PROPOSED",
       "beatIds": [
-        "ob-mto1p966-iheh",
-        "ob-mto1p966-wcwb"
+        "ob-mto2wwg5-7vaw",
+        "ob-mto2wwg5-ty2m"
       ],
       "blockIds": [
-        "smb-mto1p962-o6wjj",
-        "smb-mto1p965-4e1q7"
+        "smb-mto2wwg1-r9jg1",
+        "smb-mto2wwg4-7bs87"
       ],
       "reason": "嫁祸型追凶｜栽赃物品 与 条件触发开放｜结算码触发 无线索级交织证据，叙事线保持平行（同场/同角不算交织）",
       "sharedCharacterIds": [
@@ -701,7 +701,7 @@
   ],
   "conflictReport": [
     {
-      "id": "cf-mto1p968-xfkb",
+      "id": "cf-mto2wwg7-7luj",
       "type": "ROLE_OVERLOAD",
       "severity": "info",
       "characterId": "R1",
@@ -723,7 +723,7 @@
       "decision": null
     },
     {
-      "id": "cf-mto1p968-wstr",
+      "id": "cf-mto2wwg7-ife5",
       "type": "ROLE_OVERLOAD",
       "severity": "info",
       "characterId": "R2",
@@ -745,7 +745,7 @@
       "decision": null
     },
     {
-      "id": "cf-mto1p968-ykk8",
+      "id": "cf-mto2wwg7-5snf",
       "type": "ROLE_OVERLOAD",
       "severity": "info",
       "characterId": "R3",
@@ -774,14 +774,14 @@
       "totalLoad": 3,
       "roles": [
         {
-          "blockId": "smb-mto1p962-o6wjj",
+          "blockId": "smb-mto2wwg1-r9jg1",
           "slotId": "victim",
           "narrativeRole": "victim",
           "intensity": 2,
           "intentionalOverlap": false
         },
         {
-          "blockId": "smb-mto1p965-4e1q7",
+          "blockId": "smb-mto2wwg4-7bs87",
           "slotId": "misled",
           "narrativeRole": "misled",
           "intensity": 1,
@@ -795,7 +795,7 @@
       "totalLoad": 3,
       "roles": [
         {
-          "blockId": "smb-mto1p962-o6wjj",
+          "blockId": "smb-mto2wwg1-r9jg1",
           "slotId": "culprit",
           "narrativeRole": "killer",
           "intensity": 3,
@@ -809,14 +809,14 @@
       "totalLoad": 3,
       "roles": [
         {
-          "blockId": "smb-mto1p962-o6wjj",
+          "blockId": "smb-mto2wwg1-r9jg1",
           "slotId": "framedCharacter",
           "narrativeRole": "framed",
           "intensity": 2,
           "intentionalOverlap": false
         },
         {
-          "blockId": "smb-mto1p965-4e1q7",
+          "blockId": "smb-mto2wwg4-7bs87",
           "slotId": "revealer",
           "narrativeRole": "discoverer",
           "intensity": 1,
@@ -830,14 +830,14 @@
       "totalLoad": 2,
       "roles": [
         {
-          "blockId": "smb-mto1p962-o6wjj",
+          "blockId": "smb-mto2wwg1-r9jg1",
           "slotId": "discoverer",
           "narrativeRole": "discoverer",
           "intensity": 1,
           "intentionalOverlap": false
         },
         {
-          "blockId": "smb-mto1p965-4e1q7",
+          "blockId": "smb-mto2wwg4-7bs87",
           "slotId": "knower",
           "narrativeRole": "witness",
           "intensity": 1,
@@ -851,7 +851,7 @@
       "totalLoad": 2,
       "roles": [
         {
-          "blockId": "smb-mto1p965-4e1q7",
+          "blockId": "smb-mto2wwg4-7bs87",
           "slotId": "bearer",
           "narrativeRole": "identity_bearer",
           "intensity": 2,
@@ -865,7 +865,7 @@
       "totalLoad": 1,
       "roles": [
         {
-          "blockId": "smb-mto1p965-4e1q7",
+          "blockId": "smb-mto2wwg4-7bs87",
           "slotId": "related",
           "narrativeRole": "support",
           "intensity": 1,

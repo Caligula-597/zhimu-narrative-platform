@@ -28,7 +28,8 @@ function renderDoc(summary) {
     "",
     `> 生成时间：${summary.generatedAt}`,
     "> Corpus：GEN-01～GEN-08（A–H 仍为 regression，不计入泛化证明）",
-    "> Editorial Gate：PENDING（人工逐本）",
+    "> Editorial Gate：✅ 完成 — 见 `docs/P8_0_GENERALIZATION_AUDIT_VERDICT_ZH.md`",
+    "> 总裁决：`P8.0 Audit ✅` · `Universal Pipeline ❌`",
     "",
     "## Machine Gate 总表",
     "",
@@ -44,9 +45,10 @@ function renderDoc(summary) {
     "",
     "## 说明",
     "",
-    "- G1 Contract · G2 Semantic · G3 Downstream structural compatibility（非 CompleteScriptPackage）",
+    "- G1 Contract（含 3 幕终幕 PAYOFF 语义）· G2 Semantic（contributions 读 `stages[]`）· G3 Downstream（含 GAME stage 引用完整性）",
     "- failureClass：`CONTRACT_FAILURE` / `GENERATION_FAILURE` / `CONTENT_QUALITY_FAILURE`（后者仅 Editorial）",
     "- 捕获目录：`captures/p8-generalization/GEN-xx/`",
+    "- 最终产品裁决：`docs/P8_0_GENERALIZATION_AUDIT_VERDICT_ZH.md`",
     "",
   );
   return lines.join("\n");

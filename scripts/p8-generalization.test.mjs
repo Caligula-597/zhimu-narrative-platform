@@ -95,10 +95,33 @@ describe("P8.0B generalization corpus", () => {
     assert.ok(report.gates.G1.length >= 1);
   });
 
-  it("GEN-04 declares no forced culprit requirement", () => {
-    const file = listCaseFixturePaths().find((p) => path.basename(p).startsWith("GEN-04"));
-    const f = loadCaseFixture(file);
-    assert.equal(f.playableExpectation.requireCulprit, false);
-    assert.ok(!(f.storyPlan || []).some((s) => String(s.templateId).startsWith("M01")));
+  it("GEN-07 G2 reads nested contributions (not false-red on contributions=0)", () => {
+    const { fixture } = loadAllCaseFixtures().find((r) => r.fixture.caseId === "GEN-07");
+    const { report } = auditOneCase(fixture, { writeCaptures: false });
+    const g2 = report.gates.G2.find((g) => g.id === "G2.complexContributionRoles");
+    assert.ok(g2, "complexContributionRoles gate present");
+    assert.equal(g2.pass, true, g2.message);
+    assert.ok((g2.details?.contributions || 0) > 0);
+  });
+
+  it("GEN-02/07 G3 fails orphan GAME stage references (no false-green)", () => {
+    for (const id of ["GEN-02", "GEN-07"]) {
+      const { fixture } = loadAllCaseFixtures().find((r) => r.fixture.caseId === id);
+      const { report } = auditOneCase(fixture, { writeCaptures: false });
+      const g3 = report.gates.G3.find((g) => g.id === "G3.gameStageReferenceIntegrity");
+      assert.ok(g3, `${id} integrity gate`);
+      assert.equal(g3.pass, false, `${id} must fail orphan act5: ${g3.message}`);
+      assert.equal(report.gatePass.G3, false);
+    }
+  });
+
+  it("GEN-01/08 G1 flags 3-act final stage ESCALATION as semantic miss", () => {
+    for (const id of ["GEN-01", "GEN-08"]) {
+      const { fixture } = loadAllCaseFixtures().find((r) => r.fixture.caseId === id);
+      const { report } = auditOneCase(fixture, { writeCaptures: false });
+      const g1 = report.gates.G1.find((g) => g.id === "G1.finalStagePayoffSemantics");
+      assert.ok(g1, `${id} payoff semantics gate`);
+      assert.equal(g1.pass, false, `${id} final should not be ESCALATION: ${g1.message}`);
+    }
   });
 });

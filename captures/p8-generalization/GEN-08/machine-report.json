@@ -71,6 +71,15 @@
             "act3"
           ]
         }
+      },
+      {
+        "id": "G1.finalStagePayoffSemantics",
+        "pass": false,
+        "message": "3-act final stageRole=ESCALATION title=升级 (must be PAYOFF-class, not ESCALATION)",
+        "details": {
+          "stageId": "act3",
+          "stageRole": "ESCALATION"
+        }
       }
     ],
     "G2": [
@@ -107,9 +116,22 @@
         "details": {}
       },
       {
+        "id": "G3.gameStageReferenceIntegrity",
+        "pass": true,
+        "message": "all gamePlan stageIds ⊆ draft stageIds",
+        "details": {
+          "orphanPlacements": [],
+          "draftStageIds": [
+            "act1",
+            "act2",
+            "act3"
+          ]
+        }
+      },
+      {
         "id": "G3.gamePlanDeclared",
         "pass": true,
-        "message": "declared placements=1; PMD candidates=0 (informational; runtime placements belong downstream)",
+        "message": "declared placements=1; PMD candidates=0 (informational)",
         "details": {
           "placements": [
             {
@@ -129,12 +151,12 @@
     ]
   },
   "gatePass": {
-    "G1": true,
+    "G1": false,
     "G2": true,
     "G3": true,
-    "all": true
+    "all": false
   },
-  "failureClass": null,
+  "failureClass": "CONTRACT_FAILURE",
   "editorialStatus": "PENDING",
   "counts": {
     "players": 6,
