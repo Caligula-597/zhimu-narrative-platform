@@ -88,9 +88,10 @@ P8.0 Multi-Script Generalization Audit  ✅ 完成
   · P8.0.5 Positive Weave + Requirement Closure ✅ PASS
     （docs/P8_0_5_POSITIVE_WEAVE_REQUIREMENT_CLOSURE_ZH.md）
   · Universal Structural Pipeline ✅ PASS
+  · P8.1 PlayableCreationSpec ✅（docs/P8_1_PLAYABLE_CREATION_SPEC_ZH.md）
 
 ↓
-P8.1 PlayableCreationSpec
+P8.2 Full Script Production V1
 
 ↓
 P8.2 / Full Script Production V1

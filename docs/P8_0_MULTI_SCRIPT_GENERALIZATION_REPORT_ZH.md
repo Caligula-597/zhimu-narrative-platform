@@ -29,4 +29,5 @@
 G2 现含：`requirementsClassified` · `storyRequirementsClosed` · owner authority · causal topology · lowAffinity locks。
 
 捕获：`captures/p8-generalization/`  
-下一步：**P8.1 PlayableCreationSpec**
+P8.1：`docs/P8_1_PLAYABLE_CREATION_SPEC_ZH.md`  
+下一步：**P8.2 Full Script Production V1**

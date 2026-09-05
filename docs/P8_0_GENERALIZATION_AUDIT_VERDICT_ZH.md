@@ -13,7 +13,8 @@ P8.0.4 Full Re-audit                  ✅ COMPLETE
 P8.0.5 Positive Weave + Req Closure ✅ PASS
 
 Universal Structural Pipeline         ✅ PASS
-Content Factory Universality          ❌ 尚未进入（→ P8.1+）
+P8.1 PlayableCreationSpec             ✅（docs/P8_1_PLAYABLE_CREATION_SPEC_ZH.md）
+Content Factory Universality          ❌ → P8.2+
 ```
 
 详文：

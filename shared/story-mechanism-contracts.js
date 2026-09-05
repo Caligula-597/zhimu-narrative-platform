@@ -16,6 +16,7 @@ import {
   refreshProductionDraftStaleStatus,
 } from "./production-master-draft-contracts.js";
 import { normalizeStoryFactBridge } from "./semantic-fact.js";
+import { normalizePlayableCreationSpec } from "./playable-creation-spec.js";
 
 export const STORY_MECHANISM_CONTRACT_VERSION = 1;
 
@@ -294,6 +295,8 @@ export function createProjectStoryState(input = {}) {
     clues: asArray(src.clues),
     constraints: asArray(src.constraints),
     unresolvedNeeds: asArray(src.unresolvedNeeds),
+    /** P8.1 — null = LEGACY_UNSPECIFIED; never invent from old projects */
+    creationSpec: src.creationSpec != null ? normalizePlayableCreationSpec(src.creationSpec) : null,
     masterOutlineDraft: normalizeMasterOutlineDraft(src.masterOutlineDraft),
     productionMasterDraft: (() => {
       const draft = normalizeProductionMasterDraft(src.productionMasterDraft);

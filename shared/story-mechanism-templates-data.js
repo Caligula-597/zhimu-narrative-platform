@@ -9,6 +9,7 @@ import { M01_FRAMING_VARIANTS, M01_PLOT_CANDIDATES } from "./story-mechanism-m01
 import { buildM07CompleteTemplates } from "./story-mechanism-m07-pack.js";
 import { buildM08CompleteTemplates } from "./story-mechanism-m08-pack.js";
 import { semanticsBridgeForTemplate } from "./complete-beat-semantics-data.js";
+import { attachCreationMetadata } from "./creation-catalog-metadata.js";
 
 export const CONTENT_MATURITY = Object.freeze({
   FOUNDATION: "FOUNDATION",
@@ -561,8 +562,8 @@ export function buildM01FramingTemplate() {
 
 function attachSemanticsBridge(template) {
   const bridge = semanticsBridgeForTemplate(template.id);
-  if (!bridge) return template;
-  return Object.freeze({ ...template, semanticsBridge: bridge });
+  const withBridge = bridge ? Object.freeze({ ...template, semanticsBridge: bridge }) : template;
+  return attachCreationMetadata(withBridge);
 }
 
 export function buildAllStoryTemplates() {
