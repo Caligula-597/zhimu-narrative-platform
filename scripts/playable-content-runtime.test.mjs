@@ -233,12 +233,15 @@ test("fixture complete pure-text session Stage1→Final", () => {
 
   runtime = advancePlayableStage(runtime, { now: FIXED }); // → 4
   const hostFinal = buildHostPlayableView(runtime);
-  assert.ok(hostFinal.placements.some((p) => p.id.includes("m09") || /指凶|投票/i.test(p.title || "")));
-  assert.equal(hostFinal.placements.every((p) => !p.canStart && !p.canSettle), true);
-
-  runtime = finishPlayableSession(runtime, { now: FIXED });
-  assert.equal(runtime.status, "FINISHED");
-  assert.equal(runtime.finishedAt, FIXED());
+  const m09 = hostFinal.placements.find((p) => p.id.includes("m09") || /指认|投票/i.test(p.title || ""));
+  assert.ok(m09);
+  assert.equal(m09.status, "READY");
+  assert.equal(m09.canStart, true);
+  assert.equal(hostFinal.canConfirmEnding, false);
+  assert.throws(
+    () => finishPlayableSession(runtime, { now: FIXED }),
+    (e) => e.code === "NOT_READY_TO_SETTLE" || e.code === "ENDING_MISSING",
+  );
 });
 
 test("source revision independence across two runtimes", () => {

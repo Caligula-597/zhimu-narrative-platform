@@ -284,6 +284,26 @@ export function buildWarehouseSixFixture() {
       title: "公共规则·库房",
       paragraphs: ["商会只允许一人进入库房。进入资格将通过竞价决定。"],
     },
+    {
+      id: "public_s4_result",
+      stageId: "stage_4",
+      title: "最终指认结果",
+      type: "REVEAL",
+      delivery: "CONDITION_UNLOCK",
+      unlockPermissionId: "ending_reveal_access",
+      paragraphs: ["最终指认已结算。请对照票数与真相宣读。"],
+    },
+    {
+      id: "public_s4_truth",
+      stageId: "stage_4",
+      title: "案件真相",
+      type: "REVEAL",
+      delivery: "CONDITION_UNLOCK",
+      unlockPermissionId: "ending_reveal_access",
+      paragraphs: [
+        "真相：赵启明（role_c）挪用银两并在争执中致死管事。多数指认只代表玩家集体决定，不等于自动改写真相。",
+      ],
+    },
   ];
 
   const clues = [
@@ -352,22 +372,70 @@ export function buildWarehouseSixFixture() {
       mechanismTemplateId: "M09-1",
       familyId: "M09",
       stageId: "stage_4",
-      title: "最终指凶投票",
+      title: "最终指认真凶",
       trigger: "HOST_START",
       participantRule: { type: "ALL_PLAYERS" },
-      introParagraphs: ["请投票指认真凶。多数票生效。"],
+      requiredForStageCompletion: true,
+      introParagraphs: ["请投票指认真凶。每名玩家提交一个选项，多数票生效。"],
+      runtimeConfig: {
+        candidates: ["role_a", "role_b", "role_c", "role_d", "role_e", "role_f"],
+        submit_seconds: 600,
+        tie_exit: "KEEP_ALL",
+        correctOptionId: "role_c",
+      },
       outcomeBindings: [
         {
           outcomeMatcher: { type: "MAJORITY" },
           effects: [
             {
               type: "STATE_APPLY",
-              key: "accused_role_id",
+              key: "final_accused_role",
               value: "$majority_choice",
             },
             {
-              type: "STATE_CLEAR",
-              key: "vote_open",
+              type: "STATE_APPLY",
+              key: "truth_revealed",
+              value: true,
+            },
+            {
+              type: "PERMISSION_GRANT",
+              permissionId: "ending_reveal_access",
+              target: "ALL_PLAYERS",
+            },
+          ],
+        },
+        {
+          outcomeMatcher: { type: "TIE" },
+          effects: [
+            {
+              type: "STATE_APPLY",
+              key: "final_vote_status",
+              value: "TIE",
+            },
+            {
+              type: "STATE_APPLY",
+              key: "truth_revealed",
+              value: true,
+            },
+            {
+              type: "PERMISSION_GRANT",
+              permissionId: "ending_reveal_access",
+              target: "ALL_PLAYERS",
+            },
+          ],
+        },
+        {
+          outcomeMatcher: { type: "NO_DECISION" },
+          effects: [
+            {
+              type: "STATE_APPLY",
+              key: "final_vote_status",
+              value: "NO_DECISION",
+            },
+            {
+              type: "PERMISSION_GRANT",
+              permissionId: "ending_reveal_access",
+              target: "ALL_PLAYERS",
             },
           ],
         },
@@ -382,6 +450,11 @@ export function buildWarehouseSixFixture() {
       grants: ["VIEW_CONTENT", "RECEIVE_CLUE"],
       summary: "允许查看库房私人文本与烧毁账册线索",
       // content/clue ids filled by compiler
+    },
+    {
+      id: "ending_reveal_access",
+      grants: ["VIEW_CONTENT"],
+      summary: "允许查看终局指认结果与案件真相",
     },
   ];
 

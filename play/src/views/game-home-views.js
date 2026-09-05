@@ -350,19 +350,36 @@ function renderPlayableProgress() {
             ? placements
                 .map((p) => {
                   const placementId = p.placementId || p.id;
-                  const bidUi = p.canBid
-                    ? `<div class="playable-bid-row"><input type="number" min="1" step="1" value="5" data-playable-bid-amount data-placement-id="${escapeHtml(placementId)}" /><button type="button" class="btn primary compact" data-action="playable-mechanism-bid" data-placement-id="${escapeHtml(placementId)}">出价</button></div>`
-                    : !p.canBid && p.status !== "SETTLED" && p.status !== "RUNNING"
-                      ? `<button type="button" class="btn quiet compact" disabled>暂不可运行</button>`
-                      : p.outcomeSummary
-                        ? `<small>${escapeHtml(p.outcomeSummary)}</small>`
-                        : "";
-                  return `<div class="playable-placement"><strong>${escapeHtml(p.title || placementId)}</strong><p>${escapeHtml(p.note || "")}</p>${bidUi}</div>`;
+                  let actionUi = "";
+                  if (p.canBid) {
+                    actionUi = `<div class="playable-bid-row"><input type="number" min="1" step="1" value="5" data-playable-bid-amount data-placement-id="${escapeHtml(placementId)}" /><button type="button" class="btn primary compact" data-action="playable-mechanism-bid" data-placement-id="${escapeHtml(placementId)}">出价</button></div>`;
+                  } else if (p.canSubmit && asArray(p.options).length) {
+                    const options = asArray(p.options)
+                      .map((opt) => {
+                        const selected = p.mySubmission?.optionId === opt.optionId;
+                        return `<label class="playable-vote-option"><input type="radio" name="playable-vote-${escapeHtml(placementId)}" value="${escapeHtml(opt.optionId)}" ${selected ? "checked" : ""} /> ${escapeHtml(opt.label || opt.optionId)}
+                          <button type="button" class="btn ${selected ? "quiet" : "primary"} compact" data-action="playable-mechanism-vote" data-placement-id="${escapeHtml(placementId)}" data-option-id="${escapeHtml(opt.optionId)}">${selected ? "修改" : "提交指认"}</button></label>`;
+                      })
+                      .join("");
+                    actionUi = `<div class="playable-vote-panel"><p>请选择你认为的真凶：</p>${options}
+                      ${p.mySubmission ? `<small>已提交：${escapeHtml(p.mySubmission.label || p.mySubmission.optionId)}</small>` : ""}</div>`;
+                  } else if (p.outcomeSummary) {
+                    actionUi = `<small>${escapeHtml(p.outcomeSummary)}</small>`;
+                  } else if (p.status !== "SETTLED" && p.status !== "RUNNING") {
+                    actionUi = `<button type="button" class="btn quiet compact" disabled>暂不可运行</button>`;
+                  }
+                  return `<div class="playable-placement"><strong>${escapeHtml(p.title || placementId)}</strong><p>${escapeHtml(p.note || "")}</p>${actionUi}</div>`;
                 })
                 .join("")
             : `<p class="muted">本幕无玩法</p>`
         }
       </section>
+      ${
+        view.endingSummary
+          ? `<section><h4>结局</h4><p>${escapeHtml(view.endingSummary.publicSummary || "")}</p>
+             ${view.status === "FINISHED" ? `<small>本局已结束</small>` : ""}</section>`
+          : ""
+      }
     </article>`;
 }
 

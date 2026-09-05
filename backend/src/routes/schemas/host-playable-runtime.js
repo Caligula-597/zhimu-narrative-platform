@@ -35,6 +35,7 @@ export const hostPlayableRuntimeActionSchema = {
           "finish",
           "start_mechanism",
           "settle_mechanism",
+          "confirm_ending",
         ],
       },
       userId: { type: "string" },

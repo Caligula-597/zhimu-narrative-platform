@@ -129,6 +129,26 @@ export async function handlePlayGameAction({
       }
       return true;
     }
+    case "playable-mechanism-vote": {
+      const placementId = button?.dataset?.placementId || "";
+      const optionId = button?.dataset?.optionId || "";
+      if (!placementId || !optionId || !state.roomId) return true;
+      try {
+        const payload = await api.playableMechanismVote(state.roomId, { placementId, optionId });
+        if (payload?.view) {
+          state.playableRuntime = {
+            ...(state.playableRuntime || {}),
+            runtime: payload.runtime || state.playableRuntime?.runtime,
+            view: payload.view,
+          };
+        }
+        setToast("已提交指认");
+        render();
+      } catch (error) {
+        setToast(formatApiError(error, "提交指认失败"));
+      }
+      return true;
+    }
     case "submit-private-action":
       await submitPrivateAction({
         button,

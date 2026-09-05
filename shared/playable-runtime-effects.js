@@ -186,10 +186,12 @@ export function applyRuntimeEffects(runtime, {
     keyStates: { ...record(runtime.keyStates) },
     appliedEffectKeys: [...asArray(runtime.appliedEffectKeys)],
   };
-  const list = asArray(effects);
+  const list = asArray(effects).map((e) =>
+    materializeEffect(e, { winningOptionId: winnerRoleId }),
+  );
 
   for (let effectIndex = 0; effectIndex < list.length; effectIndex++) {
-    const effect = normalizeRuntimeEffect(list[effectIndex]);
+    const effect = list[effectIndex];
     if (!effect.valid || effect.type === "INVALID") continue;
 
     let targets = [];
@@ -219,12 +221,40 @@ export function applyRuntimeEffects(runtime, {
   return state;
 }
 
+export function materializeEffect(effect, { winningOptionId } = {}) {
+  const normalized = normalizeRuntimeEffect(effect);
+  if (normalized.type !== "STATE_APPLY") return normalized;
+  let value = normalized.value;
+  if (value === "$majority_choice" || value === "$winning_option") {
+    value = winningOptionId != null ? String(winningOptionId) : null;
+  }
+  return { ...normalized, value };
+}
+
 export function selectOutcomeBinding(placement, settlementResult) {
   const bindings = asArray(placement?.outcomeBindings);
   if (!bindings.length) return { binding: null, outcomeIndex: -1 };
-  if (settlementResult?.status === "SOLD" && settlementResult?.winner) {
-    const idx = bindings.findIndex((b) => record(b.outcomeMatcher).type === "WINNER");
-    if (idx >= 0) return { binding: bindings[idx], outcomeIndex: idx };
+  const status = settlementResult?.status;
+
+  const find = (...types) => {
+    for (const type of types) {
+      const idx = bindings.findIndex((b) => record(b.outcomeMatcher).type === type);
+      if (idx >= 0) return { binding: bindings[idx], outcomeIndex: idx };
+    }
+    return null;
+  };
+
+  if (status === "SOLD" && settlementResult?.winner) {
+    return find("WINNER") || { binding: null, outcomeIndex: -1 };
+  }
+  if (status === "DECIDED" && settlementResult?.winner) {
+    return find("MAJORITY", "DECIDED", "WINNER") || { binding: null, outcomeIndex: -1 };
+  }
+  if (status === "TIE") {
+    return find("TIE") || { binding: null, outcomeIndex: -1 };
+  }
+  if (status === "NO_DECISION") {
+    return find("NO_DECISION") || { binding: null, outcomeIndex: -1 };
   }
   return { binding: null, outcomeIndex: -1 };
 }

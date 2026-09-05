@@ -209,20 +209,25 @@ export function compilePlayableProject(sourceBundle, options = {}) {
   // Public
   for (const sec of fixture.publicScripts || []) {
     const content = stableJoinParagraphs(sec.paragraphs);
+    const delivery = sec.delivery || "AUTO_ON_STAGE";
     pushUnit({
       id: `cu_${sec.id}`,
-      type: "TEXT",
+      type: sec.type === "REVEAL" ? "REVEAL" : "TEXT",
       stageId: sec.stageId,
       audience: { roleIds: [...playerRoleIds], visibility: "PUBLIC" },
-      delivery: "AUTO_ON_STAGE",
+      delivery,
       content,
       title: sec.title,
+      unlockCondition: sec.unlockPermissionId
+        ? { type: "PERMISSION", permissionId: sec.unlockPermissionId }
+        : undefined,
       sourceRef: srcRef({
         sourceType: "HOST_SCRIPT",
         stageId: sec.stageId,
         sectionId: sec.id,
         label: sec.title,
       }),
+      metadata: sec.unlockPermissionId ? { unlockPermissionId: sec.unlockPermissionId } : undefined,
     });
   }
 
@@ -386,6 +391,7 @@ export function compilePlayableProject(sourceBundle, options = {}) {
       runtimeConfig: ann.runtimeConfig || {},
       outcomeBindings,
       fallback: ann.fallback,
+      requiredForStageCompletion: Boolean(ann.requiredForStageCompletion),
       sourceRef: srcRef({
         sourceType: "SYSTEM_AUTHORED",
         stageId: ann.stageId,

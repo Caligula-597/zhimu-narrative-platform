@@ -62,15 +62,24 @@ export function renderHostPlayableWorkspace() {
       const placementId = p.placementId || p.id;
       let controls = "";
       if (p.canStart) {
-        controls = `<button type="button" class="primary-btn" data-action="host-playable-start-mechanism" data-placement-id="${escapeHtml(placementId)}" ${busy ? "disabled" : ""}>开始竞价</button>`;
+        controls = `<button type="button" class="primary-btn" data-action="host-playable-start-mechanism" data-placement-id="${escapeHtml(placementId)}" ${busy ? "disabled" : ""}>${escapeHtml(p.startLabel || "开始竞价")}</button>`;
       } else if (p.canSettle) {
-        controls = `<button type="button" class="primary-btn" data-action="host-playable-settle-mechanism" data-placement-id="${escapeHtml(placementId)}" ${busy ? "disabled" : ""}>结算竞价</button>`;
+        controls = `<button type="button" class="primary-btn" data-action="host-playable-settle-mechanism" data-placement-id="${escapeHtml(placementId)}" ${busy ? "disabled" : ""}>${escapeHtml(p.settleLabel || "结算竞价")}</button>`;
       } else {
-        controls = `<span>${escapeHtml(p.outcomeSummary || p.note || p.status || "")}</span>`;
+        const progress =
+          p.submittedCount != null
+            ? `已提交：${Number(p.submittedCount) || 0} / ${Number(p.participantCount) || 0}`
+            : "";
+        controls = `<span>${escapeHtml(p.outcomeSummary || progress || p.note || p.status || "")}</span>`;
       }
       return `<div class="host-playable-placement"><div><strong>${escapeHtml(p.title || placementId)}</strong><small>${escapeHtml(p.status || "")}</small></div>${controls}</div>`;
     })
     .join("") || `<p class="muted-note">本幕无玩法位置</p>`;
+
+  const endingBlock = view.endingSummary
+    ? `<div class="host-playable-ending"><h4>终局结算</h4><p>${escapeHtml(view.endingSummary.hostSummary || view.endingSummary.publicSummary || "")}</p>
+       ${view.canConfirmEnding ? `<button type="button" class="primary-btn" data-action="host-playable-finish" ${busy ? "disabled" : ""}>确认终局 / 结束本局</button>` : ""}</div>`
+    : "";
 
   const stageLabel =
     view.status === "NOT_STARTED"
@@ -94,15 +103,18 @@ export function renderHostPlayableWorkspace() {
       view.status === "RUNNING"
         ? `<h4>主持可发线索</h4><div class="host-playable-clues">${clues}</div>
            <h4>玩法位置</h4><div class="host-playable-placements">${placements}</div>
+           ${endingBlock}
            <div class="row" style="margin-top:12px;gap:8px">
              ${
                view.stageIndex < view.stageCount
                  ? `<button type="button" class="primary-btn" data-action="host-playable-advance" ${busy ? "disabled" : ""}>进入下一幕</button>`
-                 : `<button type="button" class="primary-btn" data-action="host-playable-finish" ${busy ? "disabled" : ""}>结束本局</button>`
+                 : view.canConfirmEnding
+                   ? `<button type="button" class="primary-btn" data-action="host-playable-finish" ${busy ? "disabled" : ""}>结束本局</button>`
+                   : `<button type="button" class="primary-btn" disabled title="需先完成最终指认并结算">结束本局</button>`
              }
            </div>`
         : ""
     }
-    ${view.status === "FINISHED" ? `<p class="muted-note">本局已结束。如需重开请重新绑定剧本。</p>` : ""}
+    ${view.status === "FINISHED" ? `<p class="muted-note">本局已结束。${escapeHtml(view.endingSummary?.publicSummary || "")}</p>` : ""}
   </section>`;
 }

@@ -72,11 +72,11 @@ export function createHostPlayableController({ render, showToast }) {
       return true;
     }
     if (action === "host-playable-finish") {
-      await run("结束本局", () => submitHostPlayableAction({ action: "finish" }));
+      await run("结束本局", () => submitHostPlayableAction({ action: "confirm_ending" }));
       return true;
     }
     if (action === "host-playable-start-mechanism") {
-      await run("开始竞价", () =>
+      await run("开始玩法", () =>
         submitHostPlayableAction({
           action: "start_mechanism",
           placementId: element?.dataset?.placementId || "",
@@ -85,7 +85,7 @@ export function createHostPlayableController({ render, showToast }) {
       return true;
     }
     if (action === "host-playable-settle-mechanism") {
-      await run("结算竞价", () =>
+      await run("结算玩法", () =>
         submitHostPlayableAction({
           action: "settle_mechanism",
           placementId: element?.dataset?.placementId || "",

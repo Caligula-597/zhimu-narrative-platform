@@ -1,5 +1,5 @@
 /**
- * P7.1 Content Runtime service — binds READY PlayableProject to existing rooms.
+ * P7.1 Content Runtime service â binds READY PlayableProject to existing rooms.
  */
 
 import { transaction } from "./db.js";
@@ -31,6 +31,7 @@ import {
   startPlacementMechanism,
   bidPlacementMechanism,
   settlePlacementMechanism,
+  votePlacementMechanism,
 } from "../../shared/playable-mechanism-bridge.js";
 import { compileWarehouseSixFixture } from "../../shared/playable-project-compiler.js";
 
@@ -343,6 +344,33 @@ export async function bidRoomPlayableMechanism({ roomId, userId, placementId, am
       const saved = await upsertRoomPlayableRuntime(client, next, userId);
       return {
         runtime: { status: saved.status, revision: saved.revision },
+        view: buildPlayerPlayableView(saved, { playableRoleId }),
+      };
+    });
+  } catch (error) {
+    throw mapError(error);
+  }
+}
+
+export async function voteRoomPlayableMechanism({ roomId, userId, placementId, optionId }) {
+  try {
+    return await transaction(async (client) => {
+      await requireRoom(client, roomId);
+      const current = await loadOrThrow(roomId, { client, forUpdate: true });
+      const playableRoleId = roleIdForUser(current, userId);
+      if (!playableRoleId) {
+        const err = new Error("ROLE_NOT_ASSIGNED");
+        err.code = "ROLE_NOT_ASSIGNED";
+        throw err;
+      }
+      const next = votePlacementMechanism(current, {
+        placementId,
+        playableRoleId,
+        optionId,
+      });
+      const saved = await upsertRoomPlayableRuntime(client, next, userId);
+      return {
+        runtime: buildRuntimePublicSummary(saved),
         view: buildPlayerPlayableView(saved, { playableRoleId }),
       };
     });

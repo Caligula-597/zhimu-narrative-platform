@@ -85,7 +85,7 @@ test("STATE and PERMISSION stay separate after apply", () => {
   assert.ok(!ids(resolveVisibleContent({ runtime, roleId: "role_c" })).has("cu_clue_clue_burned_ledger"));
 });
 
-test("placement only startable on current stage; M09 blocked", () => {
+test("placement only startable on current stage; M09 startable on final", () => {
   let runtime = createPlayableRuntimeState({ roomId: ROOM, playableProject: readyProject(), now: FIXED });
   runtime = assignAllSix(runtime);
   runtime = startPlayableSession(runtime, { now: FIXED });
@@ -96,10 +96,8 @@ test("placement only startable on current stage; M09 blocked", () => {
   runtime = advancePlayableStage(runtime, { now: FIXED });
   runtime = advancePlayableStage(runtime, { now: FIXED });
   runtime = advancePlayableStage(runtime, { now: FIXED });
-  assert.throws(
-    () => startPlacementMechanism(runtime, { placementId: "place_m09_final", now: FIXED }),
-    (e) => e.code === "MECHANISM_NOT_IMPLEMENTED",
-  );
+  runtime = startPlacementMechanism(runtime, { placementId: "place_m09_final", now: FIXED });
+  assert.equal(runtime.mechanismExecutions.place_m09_final.status, "RUNNING");
 });
 
 test("singleton runtime instance + settle applies WINNER effects", () => {

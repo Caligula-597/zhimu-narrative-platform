@@ -16,6 +16,12 @@ import {
   normalizePermissionGrant,
 } from "./playable-runtime-effects.js";
 import { canonicalPlayableErrorCode } from "./playable-runtime-errors.js";
+import {
+  assertCanFinishPlayableSession,
+  buildEndingSnapshot,
+  normalizeEndingSettlement,
+  canFinishPlayableSession,
+} from "./playable-ending-settlement.js";
 
 export const PLAYABLE_RUNTIME_SCHEMA_VERSION = 1;
 
@@ -109,6 +115,12 @@ export function normalizePlayableRuntimeState(value) {
         ? src.mechanismExecutions
         : {},
     appliedEffectKeys: asArray(src.appliedEffectKeys).map(String),
+    endingSettlement: src.endingSettlement
+      ? normalizeEndingSettlement(src.endingSettlement)
+      : null,
+    endingSnapshot: src.endingSnapshot && typeof src.endingSnapshot === "object"
+      ? src.endingSnapshot
+      : null,
     startedAt: src.startedAt != null ? String(src.startedAt) : null,
     updatedAt: src.updatedAt != null ? String(src.updatedAt) : null,
     finishedAt: src.finishedAt != null ? String(src.finishedAt) : null,
@@ -141,7 +153,14 @@ function activatePlacementsForStage(state, stageId) {
     const isM09 =
       placement.familyId === "M09" || String(placement.mechanismTemplateId || "").startsWith("M09");
     if (isM09) {
-      return { ...ps, status: "NOT_IMPLEMENTED", note: "P7.3：最终指认暂不执行" };
+      if (
+        ps.status === "AVAILABLE_LATER" ||
+        ps.status === "NOT_IMPLEMENTED" ||
+        ps.status === "WAITING_HOST"
+      ) {
+        return { ...ps, status: "READY", note: "可开始最终指认" };
+      }
+      return ps;
     }
     if (isM03 && (ps.status === "AVAILABLE_LATER" || ps.status === "NOT_IMPLEMENTED" || ps.status === "WAITING_HOST")) {
       return { ...ps, status: "READY", note: "可开始竞价" };
@@ -180,12 +199,12 @@ export function createPlayableRuntimeState({
     const isM09 = p.familyId === "M09" || String(p.mechanismTemplateId || "").startsWith("M09");
     return {
       placementId: p.id,
-      status: isM09 ? "NOT_IMPLEMENTED" : isM03 ? "AVAILABLE_LATER" : "NOT_IMPLEMENTED",
+      status: isM03 || isM09 ? "AVAILABLE_LATER" : "NOT_IMPLEMENTED",
       note: isM09
-        ? "P7.3：最终指认暂不执行"
+        ? "等待进入终幕后可启动"
         : isM03
           ? "等待进入本幕后可启动"
-          : "P7.2：玩法位置暂未桥接",
+          : "玩法位置暂未桥接",
     };
   });
 
@@ -207,6 +226,8 @@ export function createPlayableRuntimeState({
     keyStates: {},
     mechanismExecutions: {},
     appliedEffectKeys: [],
+    endingSettlement: null,
+    endingSnapshot: null,
     startedAt: null,
     updatedAt: ts,
     finishedAt: null,
@@ -419,17 +440,29 @@ export function advancePlayableStage(runtime, { now } = {}) {
 
 export function finishPlayableSession(runtime, { now } = {}) {
   const state = requireRunning(normalizePlayableRuntimeState(runtime));
+  assertCanFinishPlayableSession(state);
   const ts = nowIso(now);
+  const ending = normalizeEndingSettlement({
+    ...state.endingSettlement,
+    status: "CONFIRMED",
+    confirmedAt: ts,
+  });
   const stageStates = state.stageStates.map((st) => {
     if (st.stageId === state.currentStageId) {
       return { ...st, status: "COMPLETED", completedAt: ts };
     }
     return st;
   });
+  const endingSnapshot = buildEndingSnapshot(
+    { ...state, endingSettlement: ending },
+    { ending, now: () => ts },
+  );
   return normalizePlayableRuntimeState({
     ...state,
     status: "FINISHED",
     stageStates,
+    endingSettlement: ending,
+    endingSnapshot,
     finishedAt: ts,
     updatedAt: ts,
     revision: state.revision + 1,
@@ -539,6 +572,11 @@ export function buildHostPlayableView(runtime) {
   const current = snapshot?.stages?.find((s) => s.id === state.currentStageId);
   const stageState = state.stageStates.find((s) => s.stageId === state.currentStageId);
   const roleName = (id) => (snapshot?.roles || []).find((r) => r.id === id)?.name || id;
+  const playerIds = (snapshot?.roles || []).filter((r) => r.type === "PLAYER").map((r) => r.id);
+  const finishGate = canFinishPlayableSession(state);
+  const ending = state.endingSettlement
+    ? normalizeEndingSettlement(state.endingSettlement)
+    : null;
 
   const releasableClues = (snapshot?.clues || [])
     .filter(
@@ -564,10 +602,37 @@ export function buildHostPlayableView(runtime) {
       const st = state.placementStatuses.find((x) => x.placementId === p.id);
       const exec = state.mechanismExecutions?.[p.id];
       const isM03 = p.familyId === "M03" || String(p.mechanismTemplateId || "").startsWith("M03");
+      const isM09 = p.familyId === "M09" || String(p.mechanismTemplateId || "").startsWith("M09");
       const status = st?.status || "NOT_IMPLEMENTED";
-      const canStart = isM03 && status === "READY";
-      const canSettle = isM03 && status === "RUNNING";
+      const ballots = record(record(exec?.gameState?.ballots).main);
+      const submittedCount = Object.keys(ballots).length;
+      const participantCount = playerIds.length;
+      const allSubmitted = playerIds.every((rid) => Object.prototype.hasOwnProperty.call(ballots, rid));
+      const canStart = (isM03 || isM09) && status === "READY" && state.status === "RUNNING";
+      const canSettle = isM03
+        ? status === "RUNNING"
+        : isM09
+          ? status === "RUNNING" && allSubmitted
+          : false;
       const winnerLabel = exec?.winnerRoleId ? roleName(exec.winnerRoleId) : null;
+      let outcomeSummary = null;
+      if (status === "SETTLED") {
+        if (isM09 && ending?.sourcePlacementId === p.id) {
+          outcomeSummary = ending.hostSummary || ending.publicSummary;
+        } else if (winnerLabel) {
+          outcomeSummary = `赢家：${winnerLabel} · 获得仓房优先查验权`;
+        } else {
+          outcomeSummary = st?.note || "已结算";
+        }
+      } else if (status === "RUNNING") {
+        outcomeSummary = isM09
+          ? `等待玩家提交 · ${submittedCount} / ${participantCount}`
+          : "进行中";
+      } else if (status === "READY") {
+        outcomeSummary = isM09 ? "可开始最终指认" : "可开始";
+      } else {
+        outcomeSummary = st?.note || null;
+      }
       return {
         placementId: p.id,
         id: p.id,
@@ -578,15 +643,12 @@ export function buildHostPlayableView(runtime) {
         canStart,
         canSettle,
         canBid: false,
+        submittedCount: isM09 ? submittedCount : undefined,
+        participantCount: isM09 ? participantCount : undefined,
         winnerLabel,
-        outcomeSummary:
-          status === "SETTLED" && winnerLabel
-            ? `赢家：${winnerLabel} · 获得仓房优先查验权`
-            : status === "RUNNING"
-              ? "进行中"
-              : status === "READY"
-                ? "可开始"
-                : st?.note || null,
+        outcomeSummary,
+        startLabel: isM09 ? "开始最终指认" : "开始竞价",
+        settleLabel: isM09 ? "结算最终指认" : "结算竞价",
       };
     });
 
@@ -624,6 +686,21 @@ export function buildHostPlayableView(runtime) {
     releasableClues,
     hostOnlyContent,
     placements,
+    canConfirmEnding: finishGate.ok === true,
+    endingSummary: ending
+      ? {
+          status: ending.status,
+          publicSummary: ending.publicSummary,
+          hostSummary: ending.hostSummary,
+          result: {
+            winningOptionId: ending.result.winningOptionId,
+            correctOptionId: ending.result.correctOptionId,
+            isCorrect: ending.result.isCorrect,
+            outcomeType: ending.result.outcomeType,
+            voteSummary: ending.result.voteSummary,
+          },
+        }
+      : null,
     playableProjectId: state.playableProjectId,
     playableFingerprint: state.playableFingerprint,
     revision: state.revision,
@@ -652,6 +729,11 @@ export function buildPlayerPlayableView(runtime, { playableRoleId }) {
     })
     .filter(Boolean);
 
+  const ending = state.endingSettlement
+    ? normalizeEndingSettlement(state.endingSettlement)
+    : null;
+  const roleNameFn = (id) => (snapshot?.roles || []).find((r) => r.id === id)?.name || id;
+
   const placements = (snapshot?.mechanismPlacements || [])
     .filter((p) => p.stageId === state.currentStageId)
     .map((p) => {
@@ -659,24 +741,56 @@ export function buildPlayerPlayableView(runtime, { playableRoleId }) {
       const exec = state.mechanismExecutions?.[p.id];
       const status = st?.status || "WAITING_HOST";
       const isM03 = p.familyId === "M03" || String(p.mechanismTemplateId || "").startsWith("M03");
+      const isM09 = p.familyId === "M09" || String(p.mechanismTemplateId || "").startsWith("M09");
       const isWinner = exec?.winnerRoleId === playableRoleId;
+      const cfg = record(p.runtimeConfig);
+      const candidates = asArray(cfg.candidates).length
+        ? asArray(cfg.candidates).map(String)
+        : (snapshot?.roles || []).filter((r) => r.type === "PLAYER").map((r) => r.id);
+      const ballots = record(record(exec?.gameState?.ballots).main);
+      const myBallot = ballots[playableRoleId];
+      const myOptionId = myBallot && !myBallot.abstain ? String(myBallot.choice || "") : null;
+      const canSubmit = isM09 && status === "RUNNING" && state.status === "RUNNING";
+      const canChange = canSubmit && Boolean(myOptionId); // M09-1 allow_revise
+      let note = st?.note || "等待主持开始";
+      if (status === "RUNNING") {
+        note = isM09
+          ? myOptionId
+            ? `已提交：${roleNameFn(myOptionId)}`
+            : "请选择你认为的真凶"
+          : "竞价进行中，请出价";
+      } else if (status === "SETTLED") {
+        note = isM09
+          ? ending?.publicSummary || "最终指认已结算"
+          : isWinner
+            ? "已结算 · 你是赢家"
+            : "已结算";
+      } else if (status === "READY") {
+        note = "等待主持开始";
+      }
       return {
         placementId: p.id,
         id: p.id,
         title: p.title,
+        familyId: p.familyId,
         status,
         canBid: isM03 && status === "RUNNING",
-        note:
-          status === "RUNNING"
-            ? "竞价进行中，请出价"
-            : status === "SETTLED"
-              ? isWinner
-                ? "已结算 · 你是赢家"
-                : "已结算"
-              : status === "READY"
-                ? "等待主持开始"
-                : st?.note || "等待主持开始",
-        outcomeSummary: status === "SETTLED" ? (isWinner ? "你获得了仓房优先查验权" : null) : null,
+        canSubmit,
+        canChange,
+        options: isM09
+          ? candidates.map((id) => ({ optionId: id, label: roleNameFn(id) }))
+          : undefined,
+        mySubmission: myOptionId
+          ? { optionId: myOptionId, label: roleNameFn(myOptionId) }
+          : null,
+        note,
+        outcomeSummary: status === "SETTLED"
+          ? isM09
+            ? ending?.publicSummary || null
+            : isWinner
+              ? "你获得了仓房优先查验权"
+              : null
+          : null,
       };
     });
 
@@ -689,6 +803,18 @@ export function buildPlayerPlayableView(runtime, { playableRoleId }) {
     contentUnits: texts,
     clues,
     placements,
+    endingSummary:
+      ending && (state.status === "FINISHED" || ending.status === "PENDING_CONFIRMATION")
+        ? {
+            status: ending.status,
+            publicSummary: ending.publicSummary,
+            result: {
+              winningOptionId: ending.result.winningOptionId,
+              isCorrect: ending.result.isCorrect,
+              outcomeType: ending.result.outcomeType,
+            },
+          }
+        : null,
     readReceipts: state.readReceipts
       .filter((r) => r.roleId === playableRoleId)
       .map((r) => ({ contentUnitId: r.contentUnitId, readAt: r.readAt })),

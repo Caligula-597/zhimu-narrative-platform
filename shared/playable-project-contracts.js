@@ -229,6 +229,7 @@ export function normalizeMechanismPlacement(value = {}) {
     runtimeConfig: record(src.runtimeConfig),
     outcomeBindings: asArray(src.outcomeBindings).map(normalizeOutcomeBinding),
     fallback: src.fallback != null ? record(src.fallback) : undefined,
+    requiredForStageCompletion: Boolean(src.requiredForStageCompletion),
     sourceRef: src.sourceRef != null ? normalizeSourceRef(src.sourceRef) : undefined,
   };
 }

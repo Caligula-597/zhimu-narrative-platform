@@ -142,6 +142,12 @@ export const api = {
       body: payload,
       idempotent: true,
     }),
+  playableMechanismVote: (roomId, payload) =>
+    request(`/rooms/${roomId}/playable-runtime/mechanism-vote`, {
+      method: "POST",
+      body: payload,
+      idempotent: true,
+    }),
   submitVoteBallot: (roomId, voteId, payload) =>
     request(`/rooms/${roomId}/votes/${voteId}/ballots`, { method: "POST", body: payload }),
   submitMechanismDecision: (roomId, decisionKey, payload) =>

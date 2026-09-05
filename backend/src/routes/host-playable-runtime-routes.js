@@ -106,7 +106,7 @@ export async function registerHostPlayableRuntimeRoutes(app) {
           if (action === "advance") {
             return advanceRoomPlayableStage({ roomId, actorId });
           }
-          if (action === "finish") {
+          if (action === "finish" || action === "confirm_ending") {
             return finishRoomPlayableSession({ roomId, actorId });
           }
           if (action === "start_mechanism") {

@@ -1,6 +1,6 @@
 /**
- * Isolated Playable Runtime baseline (P7.2.5).
- * Runs only P7.0–P7.2.5 checks — ignores unrelated dirty tree.
+ * Isolated Playable Runtime baseline (P7.2.5 → P7.3).
+ * Runs only P7 playable checks — ignores unrelated dirty tree.
  *
  * Usage: npm run verify:playable
  */
@@ -19,6 +19,7 @@ const FILES = [
   "shared/playable-mechanism-bridge.js",
   "shared/playable-mechanism-execution.js",
   "shared/playable-runtime-errors.js",
+  "shared/playable-ending-settlement.js",
   "backend/src/room-playable-runtime-service.js",
   "backend/src/repositories/room-playable-runtime-repository.js",
   "backend/src/routes/host-playable-runtime-routes.js",
@@ -32,6 +33,7 @@ const TESTS = [
   "scripts/playable-content-runtime.test.mjs",
   "scripts/playable-mechanism-bridge.test.mjs",
   "scripts/playable-runtime-health.test.mjs",
+  "scripts/playable-m09-ending.test.mjs",
 ];
 
 function run(name, cmd) {
@@ -43,7 +45,7 @@ function run(name, cmd) {
   }
 }
 
-console.log("verify:playable — P7.0–P7.2.5 isolated baseline");
+console.log("verify:playable — P7.0–P7.3 isolated baseline");
 for (const f of FILES) {
   run(`syntax ${f}`, `node --check "${f}"`);
 }

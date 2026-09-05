@@ -39,3 +39,16 @@ export const playerPlayableMechanismBidSchema = {
     },
   },
 };
+
+export const playerPlayableMechanismVoteSchema = {
+  params: roomParams,
+  body: {
+    type: "object",
+    additionalProperties: false,
+    required: ["placementId", "optionId"],
+    properties: {
+      placementId: { type: "string", minLength: 1 },
+      optionId: { type: "string", minLength: 1 },
+    },
+  },
+};
