@@ -58,8 +58,9 @@ npm run verify:playable
 ## 下一步
 
 ```text
-P8.1 PlayableCreationSpec ✅
+P8.2.0 CompleteScriptPackage ✅
 ↓
-P8.2 Full Script Production V1
-  ProductionMasterDraft V2 → CompleteScriptPackage
+P8.2.1 Writer Port
+↓
+P8.2.2 Full-chain fixture proof
 ```
