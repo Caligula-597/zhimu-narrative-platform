@@ -79,15 +79,17 @@ Deterministic Production Layer    ✅ FROZEN
 P7 Technical Vertical Slice       ✅
 
 ↓
-P8.0 Multi-Script Generalization Audit  ✅ 完成（Universal Pipeline ❌）
-  · 见 docs/P8_0_GENERALIZATION_AUDIT_VERDICT_ZH.md
-  · P8.0.1 Stage Remap ✅（docs/P8_0_1_STAGE_REMAP_ZH.md）FROZEN
-  · P8.0.2 Fact Scope + Causal Topology ✅（docs/P8_0_2_SEMANTIC_FACT_SCOPE_ZH.md）FROZEN
-  · P8.0.3 Owner Authority ✅（docs/P8_0_3_OWNER_AUTHORITY_ZH.md）
-  · 下一步：P8.0.4 Full Re-audit（不解冻整层 Expander）
+P8.0 Multi-Script Generalization Audit  ✅ 完成
+  · 初审索引：docs/P8_0_GENERALIZATION_AUDIT_VERDICT_ZH.md
+  · P8.0.1 Stage Remap ✅ FROZEN
+  · P8.0.2 Fact Scope + Causal Topology ✅ FROZEN
+  · P8.0.3 Owner Authority ✅ FROZEN（6fe8788）
+  · P8.0.4 Full Re-audit ✅ COMPLETE → Universal Structural Pipeline ⚠️ HOLD
+    （docs/P8_0_4_FULL_REAUDIT_ZH.md）
+  · 下一步：P8.0.5 Positive Weave + Requirement Closure（不解冻 0.1～0.3）
 
 ↓
-P8.1 PlayableCreationSpec
+P8.1 PlayableCreationSpec   ← 仅在 Universal Structural Pipeline ✅ 之后
 
 ↓
 P8.2 / Full Script Production V1

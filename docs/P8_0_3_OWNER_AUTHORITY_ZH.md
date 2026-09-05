@@ -61,7 +61,9 @@ npm run verify:playable
 ## 通过后
 
 ```text
-P8.0.3 PASS → 不要再叠补丁
+P8.0.3 PASS / FROZEN
 ↓
-P8.0.4 Full Re-audit GEN-01～08
+P8.0.4 Full Re-audit ✅ → Universal Pipeline ⚠️ HOLD
+↓
+P8.0.5 Positive Weave + Requirement Closure
 ```

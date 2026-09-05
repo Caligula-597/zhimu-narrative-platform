@@ -43,4 +43,4 @@ GEN-01～08 Machine Gate：**PASS**（含 GEN-06/08 INTERWOVEN=0）。
 
 ## 下一刀
 
-`P8.0.3 Owner Authority` ✅ → `P8.0.4 Full Re-audit`
+`P8.0.3 Owner Authority` ✅ FROZEN → `P8.0.4 Full Re-audit` ✅ HOLD → `P8.0.5`
