@@ -1,0 +1,14 @@
+.host-playable-workspace { margin-top: 14px; }
+.host-playable-roles,
+.host-playable-clues,
+.host-playable-placements { display: grid; gap: 8px; margin: 8px 0 12px; }
+.host-playable-role,
+.host-playable-clue,
+.host-playable-placement {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  justify-content: space-between;
+}
+.host-playable-role select { min-width: 160px; }

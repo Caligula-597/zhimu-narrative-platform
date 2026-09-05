@@ -289,6 +289,73 @@ export function renderGameSidebar() {
         </div>`;
 }
 
+function renderPlayableProgress() {
+  const payload = state.playableRuntime;
+  const view = payload?.view;
+  if (!view || view.status === "NOT_STARTED") return "";
+  const units = asArray(view.contentUnits);
+  const clues = asArray(view.clues);
+  const placements = asArray(view.placements);
+  const readIds = new Set(asArray(view.readReceipts).map((r) => r.contentUnitId));
+  const statusLabel =
+    view.status === "FINISHED"
+      ? "本局已结束"
+      : escapeHtml(view.currentStageTitle || view.currentStageId || "当前幕");
+
+  return `
+    <article class="playable-progress card">
+      <div class="playable-progress-head">
+        <p class="eyebrow">剧本分幕 · ${escapeHtml(view.roleName || view.roleId || "")}</p>
+        <h3>${statusLabel}</h3>
+      </div>
+      <section>
+        <h4>本幕正文</h4>
+        ${
+          units.length
+            ? units
+                .map((u) => {
+                  const read = readIds.has(u.id);
+                  return `<div class="playable-unit"><strong>${escapeHtml(u.title || u.id)}</strong><p>${escapeHtml(u.content || "")}</p>
+                    ${
+                      read
+                        ? `<small>已读</small>`
+                        : `<button type="button" class="btn quiet compact" data-action="mark-playable-read" data-content-unit-id="${escapeHtml(u.id)}">确认已读</button>`
+                    }</div>`;
+                })
+                .join("")
+            : `<p class="muted">本幕暂无可见正文</p>`
+        }
+      </section>
+      <section>
+        <h4>已获得线索</h4>
+        ${
+          clues.length
+            ? clues
+                .map((row) => {
+                  const c = row.clue || row;
+                  const content = row.content;
+                  return `<div class="playable-clue"><strong>${escapeHtml(c.title || c.id)}</strong><p>${escapeHtml(content?.content || "")}</p></div>`;
+                })
+                .join("")
+            : `<p class="muted">尚无线索</p>`
+        }
+      </section>
+      <section>
+        <h4>玩法</h4>
+        ${
+          placements.length
+            ? placements
+                .map(
+                  (p) =>
+                    `<div class="playable-placement"><strong>${escapeHtml(p.title || p.id)}</strong><p>${escapeHtml(p.note || "等待主持开始")}</p><button type="button" class="btn quiet compact" disabled>暂不可运行</button></div>`,
+                )
+                .join("")
+            : `<p class="muted">本幕无玩法</p>`
+        }
+      </section>
+    </article>`;
+}
+
 export function renderGameHome() {
   const home = state.home;
   const progress = playerProgress(home);
@@ -300,6 +367,7 @@ export function renderGameHome() {
     <div class="home-dashboard">
       ${roomContentBindingBanner()}
       ${runtimeStateBanner()}
+      ${renderPlayableProgress()}
       ${renderMechanismProgress()}
       ${renderVoiceCompact()}
       <article class="player-hero card live-flash">

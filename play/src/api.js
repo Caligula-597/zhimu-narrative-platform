@@ -126,6 +126,16 @@ export const api = {
   playerHomeSocial: (roomId, currentActKey = "ch1") =>
     request(`/rooms/${roomId}/player-home/social?currentActKey=${encodeURIComponent(currentActKey)}`),
   playerCurrentState: (roomId) => request(`/rooms/${roomId}/current-state`),
+  playableRuntime: (roomId) => request(`/rooms/${roomId}/playable-runtime`),
+  playableContentUnit: (roomId, contentUnitId) =>
+    request(`/rooms/${roomId}/playable-runtime/content/${encodeURIComponent(contentUnitId)}`),
+  playableClue: (roomId, clueId) =>
+    request(`/rooms/${roomId}/playable-runtime/clues/${encodeURIComponent(clueId)}`),
+  markPlayableContentRead: (roomId, contentUnitId) =>
+    request(`/rooms/${roomId}/playable-runtime/read`, {
+      method: "POST",
+      body: { contentUnitId },
+    }),
   submitVoteBallot: (roomId, voteId, payload) =>
     request(`/rooms/${roomId}/votes/${voteId}/ballots`, { method: "POST", body: payload }),
   submitMechanismDecision: (roomId, decisionKey, payload) =>

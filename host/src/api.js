@@ -158,6 +158,17 @@ export const api = {
     body: payload,
     idempotent: true
   }),
+  getHostPlayableRuntime: () => request(roomPath("/host/playable-runtime")),
+  initializeHostPlayableRuntime: () => request(roomPath("/host/playable-runtime/initialize"), {
+    method: "POST",
+    body: { useFixtureFallback: true },
+    idempotent: true
+  }),
+  executeHostPlayableAction: (payload) => request(roomPath("/host/playable-runtime/actions"), {
+    method: "POST",
+    body: payload,
+    idempotent: true
+  }),
   createRule: (payload, worldId = getWorldId()) => request(`/worlds/${worldId}/rules`, { method: "POST", body: payload }),
   updateRule: (ruleId, payload, worldId = getWorldId()) =>
     request(`/worlds/${worldId}/rules/${ruleId}`, { method: "PUT", body: payload }),

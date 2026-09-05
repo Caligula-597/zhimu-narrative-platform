@@ -39,6 +39,7 @@ export const state = {
   platform: null,
   roomId: storedRoomId,
   home: null,
+  playableRuntime: null,
   exploration: null,
   discoverySessions: [],
   discoverySyncError: "",

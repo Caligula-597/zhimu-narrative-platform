@@ -25,7 +25,7 @@ export function createPlayerHomeController({
   async function pullRoomData({ partial = false } = {}) {
     if (!state.roomId || !isUuid(state.roomId)) return;
     const currentGeneration = ++generation;
-    const [homeCore, explorationResult, discoveryResult, paceClockResult, conclusionResult, itemActionsResult, relationshipsResult] = await Promise.all([
+    const [homeCore, explorationResult, discoveryResult, paceClockResult, conclusionResult, itemActionsResult, relationshipsResult, playableResult] = await Promise.all([
       loadPlayerHomeCoreCompat(state.roomId),
       api.exploration(state.roomId)
         .then((data) => ({ ok: true, data }))
@@ -54,7 +54,12 @@ export function createPlayerHomeController({
         ? api.relationships(state.roomId)
             .then((data) => ({ ok: true, data }))
             .catch((error) => ({ ok: false, error }))
-        : Promise.resolve({ ok: true, data: { relationships: [] } })
+        : Promise.resolve({ ok: true, data: { relationships: [] } }),
+      typeof api.playableRuntime === "function"
+        ? api.playableRuntime(state.roomId)
+            .then((data) => ({ ok: true, data }))
+            .catch((error) => ({ ok: false, error }))
+        : Promise.resolve({ ok: false, error: null }),
     ]);
     if (currentGeneration !== generation) return;
 
@@ -68,6 +73,14 @@ export function createPlayerHomeController({
     applyConclusionResult(conclusionResult);
     applyItemActionsResult(itemActionsResult);
     applyRelationshipsResult(relationshipsResult);
+    if (playableResult.ok) {
+      state.playableRuntime = playableResult.data;
+    } else if (
+      playableResult.error?.code === "PLAYABLE_RUNTIME_MISSING" ||
+      playableResult.error?.code === "ROLE_NOT_ASSIGNED"
+    ) {
+      state.playableRuntime = null;
+    }
     selectAvailableSection();
     await refreshVoiceIfActive();
 

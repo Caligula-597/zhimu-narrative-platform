@@ -40,8 +40,10 @@ import { renderHostOperationWorkspace } from "./host-operation-workspace.js";
 import { renderHostRuleWorkspace } from "./host-rule-workspace.js";
 import { renderHostVoteWorkspace } from "./host-vote-workspace.js";
 import { renderHostMechanismWorkspace } from "./host-mechanism-workspace.js";
+import { renderHostPlayableWorkspace } from "./host-playable-workspace.js";
 import { normalizeRuntimeCurrentState } from "../../../shared/runtime-current-state.js";
 import { roomContentBindingPresentation } from "../../../shared/room-content-binding.js";
+import "../styles/host-playable-workspace.css";
 
 export function bindConsoleContext({ render, showToast }) {
   bindHostPaceTimerContext({ render, showToast });
@@ -110,6 +112,7 @@ export function renderConsole(){
   ${runtimeStatePanel}
   ${renderHostCommandCenter({ room, world, playersTableRows: hostPlayerTableRows, currentBeatKey: currentBeat?.key, presentation: runtimeState.presentation })}
   ${renderHostMechanismWorkspace()}
+  ${renderHostPlayableWorkspace()}
   ${renderHostEventWorkspace()}
   ${renderHostVoteWorkspace()}
   ${renderHostOperationWorkspace()}

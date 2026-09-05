@@ -220,8 +220,8 @@ API tests pass ≠ vertical slice 成功。
 ## 建议切片顺序
 
 ```text
-P7.0  PlayableProject + ContentUnit 合同 + 一本 fixture 编译  ✅ 实现中/见下方
-P7.1 Content Runtime
+P7.0  PlayableProject + ContentUnit 合同 + 一本 fixture 编译  ✅ bf26f7a
+P7.1 Content Runtime（纯文本全幕）  ✅ 见 docs/P7_CONTENT_RUNTIME_V1_REPORT.md
 P7.2 MechanismPlacement + M03 + PERMISSION_GRANT 闭环
 P7.3 M09 + 终局结算
 P7.4 Host override + 重连持久化
@@ -240,3 +240,14 @@ P7.5 一整局验收（标准 1–13）
 | 报告 | `docs/P7_PLAYABLE_FIXTURE_COMPILE_REPORT.md` |
 
 原则：**已开局 session 固定使用开局时的 playable snapshot**（`runtimeConfig.pinSnapshotOnSessionStart`）。
+
+## P7.1 实现入口
+
+| 层 | 路径 |
+|---|---|
+| Runtime 合同 | `shared/playable-content-runtime.js` |
+| 持久化 | `backend/migrations/131_room_playable_runtime.sql` + `room-playable-runtime-service.js` |
+| Host API/UI | `host-playable-runtime-routes.js` + `host/src/views/host-playable-workspace.js` |
+| Player API/UI | `player-playable-runtime-routes.js` + `play/src/views/game-home-views.js` |
+| 测试 | `scripts/playable-content-runtime.test.mjs` |
+| 报告 | `docs/P7_CONTENT_RUNTIME_V1_REPORT.md` |

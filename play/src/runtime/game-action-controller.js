@@ -87,6 +87,25 @@ export async function handlePlayGameAction({
         pullRoomData,
       });
       return true;
+    case "mark-playable-read": {
+      const contentUnitId = button?.dataset?.contentUnitId || "";
+      if (!contentUnitId || !state.roomId) return true;
+      try {
+        const payload = await api.markPlayableContentRead(state.roomId, contentUnitId);
+        if (payload?.view) {
+          state.playableRuntime = {
+            ...(state.playableRuntime || {}),
+            runtime: payload.runtime || state.playableRuntime?.runtime,
+            view: payload.view,
+          };
+        }
+        setToast("已记录阅读");
+        render();
+      } catch (error) {
+        setToast(formatApiError(error, "记录阅读失败"));
+      }
+      return true;
+    }
     case "submit-private-action":
       await submitPrivateAction({
         button,

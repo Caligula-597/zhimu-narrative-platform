@@ -14,12 +14,16 @@ import { hostRuleWorkspaceIsPending } from "./host-rule-workspace-model.js";
 import { createHostVoteWorkspaceController } from "./host-vote-workspace-controller.js";
 import { hostVoteWorkspaceIsPending } from "./host-vote-workspace-model.js";
 import { createHostMechanismController } from "./host-mechanism-controller.js";
+import { createHostPlayableController } from "./host-playable-controller.js";
 import { createHostVoiceActionHandler } from "./host-voice-controller.js";
 import { state } from "../state.js";
 
 export function hostConsoleNavigationBlockReason(stateRef = state) {
   if (stateRef.hostMechanismBusy) {
     return "机制状态仍在结算，请等待服务器返回后再离开。";
+  }
+  if (stateRef.hostPlayableBusy) {
+    return "剧本运行操作仍在提交，请等待服务器返回后再离开。";
   }
   if (hostOperationIsSubmitting(stateRef.hostOperation)) {
     return "现场命令仍在提交，请等待服务器返回后再离开。";
@@ -61,10 +65,12 @@ export function createHostConsoleRuntime({ render, showToast }) {
   const hostArchive = createHostArchiveController({ render, showToast });
   const hostRules = createHostRuleWorkspaceController({ render, showToast });
   const hostMechanism = createHostMechanismController({ render, showToast });
+  const hostPlayable = createHostPlayableController({ render, showToast });
   const hostVoiceActions = createHostVoiceActionHandler({ render, showToast });
 
   async function handleAction(action, element) {
     if (await hostVoiceActions(action, element)) return true;
+    if (await hostPlayable.handleAction(action, element)) return true;
     if (await hostMechanism.handleAction(action, element)) return true;
     if (await miniGameActions(action, element)) return true;
     if (await hostEvents.handleAction(action, element)) return true;

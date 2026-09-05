@@ -137,7 +137,15 @@ async function loadHostDataInternal(withToast = false) {
         api.getRoomConclusion().catch(() => ({ conclusion: null })),
         api.getHostItemActions().catch(() => ({ itemActions: [] })),
         api.getHostRelationships().catch(() => ({ relationships: [] })),
-        api.getHostCohosts().catch(() => ({ cohosts: [], canManage: false }))
+        api.getHostCohosts().catch(() => ({ cohosts: [], canManage: false })),
+        api.getHostPlayableRuntime().catch((error) => {
+          if (error?.code === "PLAYABLE_RUNTIME_MISSING") return { missing: true };
+          return {
+            missing: true,
+            error: formatApiError(error, "Playable 运行态加载失败"),
+            errorCode: error?.code || "",
+          };
+        }),
       ]);
       if (results[0].status === "fulfilled") applyHostPlayersPayload(results[0].value);
       else {
@@ -169,6 +177,8 @@ async function loadHostDataInternal(withToast = false) {
         state.cloudHostCohosts = [];
         state.cloudHostCohostCanManage = false;
       }
+      if (results[19].status === "fulfilled") state.cloudHostPlayableRuntime = results[19].value;
+      else state.cloudHostPlayableRuntime = { missing: true };
     } else {
       state.cloudHostPlayers = [];
       state.cloudHostEvents = [];
@@ -190,6 +200,9 @@ async function loadHostDataInternal(withToast = false) {
       state.cloudHostMiniGames = [];
       state.currentState = null;
       state.cloudHostMechanismRuntime = null;
+      state.cloudHostPlayableRuntime = null;
+      state.hostPlayableBusy = "";
+      state.hostPlayableError = "";
       state.voiceSession = null;
       state.hostVoiceRoomId = "";
       state.hostMechanismBusy = "";
@@ -319,7 +332,7 @@ export async function refreshHostRoom(withToast = false) {
   const generation = ++roomRefreshGeneration;
   try {
     const logParams = { limit: "20", roomId: getRoomId() };
-    const [hostPlayers, hostEvents, worldLogs, clueMatrix, auditLog, miniGames, votes, privateActions, currentState, mechanismRuntime, voiceSession, discoveryProgress, paceClock, conclusion, itemActions, relationships] = await Promise.all([
+    const [hostPlayers, hostEvents, worldLogs, clueMatrix, auditLog, miniGames, votes, privateActions, currentState, mechanismRuntime, voiceSession, discoveryProgress, paceClock, conclusion, itemActions, relationships, playableRuntime] = await Promise.all([
       api.getHostPlayers(),
       api.getHostEvents(),
       api.getWorldLogs(logParams),
@@ -339,7 +352,15 @@ export async function refreshHostRoom(withToast = false) {
       api.getHostPaceClock().catch(() => ({ clock: null })),
       api.getRoomConclusion().catch(() => ({ conclusion: null })),
       api.getHostItemActions().catch(() => ({ itemActions: [] })),
-      api.getHostRelationships().catch(() => ({ relationships: [] }))
+      api.getHostRelationships().catch(() => ({ relationships: [] })),
+      api.getHostPlayableRuntime().catch((error) => {
+        if (error?.code === "PLAYABLE_RUNTIME_MISSING") return { missing: true };
+        return {
+          missing: true,
+          error: formatApiError(error, "Playable 运行态加载失败"),
+          errorCode: error?.code || "",
+        };
+      }),
     ]);
     if (generation !== roomRefreshGeneration) return false;
     applyHostPlayersPayload(hostPlayers);
@@ -358,6 +379,7 @@ export async function refreshHostRoom(withToast = false) {
     state.sessionConclusion = conclusion?.conclusion || null;
     state.cloudHostItemActions = itemActions?.itemActions || [];
     state.cloudHostRelationships = relationships?.relationships || [];
+    state.cloudHostPlayableRuntime = playableRuntime;
     if (state.view === "console") renderRef();
     if (withToast) {
       toastRef(
