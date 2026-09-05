@@ -84,12 +84,13 @@ P8.0 Multi-Script Generalization Audit  ✅ 完成
   · P8.0.1 Stage Remap ✅ FROZEN
   · P8.0.2 Fact Scope + Causal Topology ✅ FROZEN
   · P8.0.3 Owner Authority ✅ FROZEN（6fe8788）
-  · P8.0.4 Full Re-audit ✅ COMPLETE → Universal Structural Pipeline ⚠️ HOLD
-    （docs/P8_0_4_FULL_REAUDIT_ZH.md）
-  · 下一步：P8.0.5 Positive Weave + Requirement Closure（不解冻 0.1～0.3）
+  · P8.0.4 Full Re-audit ✅ COMPLETE
+  · P8.0.5 Positive Weave + Requirement Closure ✅ PASS
+    （docs/P8_0_5_POSITIVE_WEAVE_REQUIREMENT_CLOSURE_ZH.md）
+  · Universal Structural Pipeline ✅ PASS
 
 ↓
-P8.1 PlayableCreationSpec   ← 仅在 Universal Structural Pipeline ✅ 之后
+P8.1 PlayableCreationSpec
 
 ↓
 P8.2 / Full Script Production V1

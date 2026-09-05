@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-05T08:26:51.308Z",
+  "generatedAt": "2026-09-05T09:37:47.168Z",
   "corpus": "P8.0B GEN-01..GEN-08",
   "results": [
     {
@@ -164,6 +164,58 @@
             "pass": true,
             "message": "unresolved symbolic owner not guessed",
             "details": {}
+          },
+          {
+            "id": "G2.requirementsClassified",
+            "pass": true,
+            "message": "all 8 requires classified",
+            "details": {
+              "requirementClosure": {
+                "total": 8,
+                "storyFact": 7,
+                "storyClosed": 7,
+                "bridgeClosed": 0,
+                "projectPrereq": 0,
+                "externalTrigger": 1,
+                "unclassified": 0,
+                "unsatisfied": 0
+              }
+            }
+          },
+          {
+            "id": "G2.storyRequirementsClosed",
+            "pass": true,
+            "message": "storyClosed=7 bridgeClosed=0",
+            "details": {
+              "requirementClosure": {
+                "total": 8,
+                "storyFact": 7,
+                "storyClosed": 7,
+                "bridgeClosed": 0,
+                "projectPrereq": 0,
+                "externalTrigger": 1,
+                "unclassified": 0,
+                "unsatisfied": 0
+              }
+            }
+          },
+          {
+            "id": "G2.projectPrereqExplicit",
+            "pass": true,
+            "message": "PROJECT_PREREQ rows are explicit declarations",
+            "details": {}
+          },
+          {
+            "id": "G2.externalTriggerExplicit",
+            "pass": true,
+            "message": "EXTERNAL_TRIGGER rows are explicit declarations",
+            "details": {}
+          },
+          {
+            "id": "G2.noFutureRequirementProducer",
+            "pass": true,
+            "message": "no future producer for past require (weave)",
+            "details": {}
           }
         ],
         "G3": [
@@ -225,7 +277,17 @@
         "keepParallel": 1,
         "clues": 12,
         "warnings": 7,
-        "gameCandidates": 0
+        "gameCandidates": 0,
+        "requirementClosure": {
+          "total": 8,
+          "storyFact": 7,
+          "storyClosed": 7,
+          "bridgeClosed": 0,
+          "projectPrereq": 0,
+          "externalTrigger": 1,
+          "unclassified": 0,
+          "unsatisfied": 0
+        }
       }
     },
     {
@@ -390,6 +452,58 @@
             "pass": true,
             "message": "unresolved symbolic owner not guessed",
             "details": {}
+          },
+          {
+            "id": "G2.requirementsClassified",
+            "pass": true,
+            "message": "all 11 requires classified",
+            "details": {
+              "requirementClosure": {
+                "total": 11,
+                "storyFact": 8,
+                "storyClosed": 8,
+                "bridgeClosed": 0,
+                "projectPrereq": 3,
+                "externalTrigger": 0,
+                "unclassified": 0,
+                "unsatisfied": 0
+              }
+            }
+          },
+          {
+            "id": "G2.storyRequirementsClosed",
+            "pass": true,
+            "message": "storyClosed=8 bridgeClosed=0",
+            "details": {
+              "requirementClosure": {
+                "total": 11,
+                "storyFact": 8,
+                "storyClosed": 8,
+                "bridgeClosed": 0,
+                "projectPrereq": 3,
+                "externalTrigger": 0,
+                "unclassified": 0,
+                "unsatisfied": 0
+              }
+            }
+          },
+          {
+            "id": "G2.projectPrereqExplicit",
+            "pass": true,
+            "message": "PROJECT_PREREQ rows are explicit declarations",
+            "details": {}
+          },
+          {
+            "id": "G2.externalTriggerExplicit",
+            "pass": true,
+            "message": "EXTERNAL_TRIGGER rows are explicit declarations",
+            "details": {}
+          },
+          {
+            "id": "G2.noFutureRequirementProducer",
+            "pass": true,
+            "message": "no future producer for past require (weave)",
+            "details": {}
           }
         ],
         "G3": [
@@ -476,7 +590,17 @@
         "keepParallel": 3,
         "clues": 29,
         "warnings": 15,
-        "gameCandidates": 0
+        "gameCandidates": 0,
+        "requirementClosure": {
+          "total": 11,
+          "storyFact": 8,
+          "storyClosed": 8,
+          "bridgeClosed": 0,
+          "projectPrereq": 3,
+          "externalTrigger": 0,
+          "unclassified": 0,
+          "unsatisfied": 0
+        }
       }
     },
     {
@@ -644,6 +768,58 @@
             "pass": true,
             "message": "unresolved symbolic owner not guessed",
             "details": {}
+          },
+          {
+            "id": "G2.requirementsClassified",
+            "pass": true,
+            "message": "all 10 requires classified",
+            "details": {
+              "requirementClosure": {
+                "total": 10,
+                "storyFact": 7,
+                "storyClosed": 7,
+                "bridgeClosed": 0,
+                "projectPrereq": 2,
+                "externalTrigger": 1,
+                "unclassified": 0,
+                "unsatisfied": 0
+              }
+            }
+          },
+          {
+            "id": "G2.storyRequirementsClosed",
+            "pass": true,
+            "message": "storyClosed=7 bridgeClosed=0",
+            "details": {
+              "requirementClosure": {
+                "total": 10,
+                "storyFact": 7,
+                "storyClosed": 7,
+                "bridgeClosed": 0,
+                "projectPrereq": 2,
+                "externalTrigger": 1,
+                "unclassified": 0,
+                "unsatisfied": 0
+              }
+            }
+          },
+          {
+            "id": "G2.projectPrereqExplicit",
+            "pass": true,
+            "message": "PROJECT_PREREQ rows are explicit declarations",
+            "details": {}
+          },
+          {
+            "id": "G2.externalTriggerExplicit",
+            "pass": true,
+            "message": "EXTERNAL_TRIGGER rows are explicit declarations",
+            "details": {}
+          },
+          {
+            "id": "G2.noFutureRequirementProducer",
+            "pass": true,
+            "message": "no future producer for past require (weave)",
+            "details": {}
           }
         ],
         "G3": [
@@ -729,7 +905,17 @@
         "keepParallel": 3,
         "clues": 25,
         "warnings": 11,
-        "gameCandidates": 0
+        "gameCandidates": 0,
+        "requirementClosure": {
+          "total": 10,
+          "storyFact": 7,
+          "storyClosed": 7,
+          "bridgeClosed": 0,
+          "projectPrereq": 2,
+          "externalTrigger": 1,
+          "unclassified": 0,
+          "unsatisfied": 0
+        }
       }
     },
     {
@@ -903,6 +1089,58 @@
             "pass": true,
             "message": "unresolved symbolic owner not guessed",
             "details": {}
+          },
+          {
+            "id": "G2.requirementsClassified",
+            "pass": true,
+            "message": "all 11 requires classified",
+            "details": {
+              "requirementClosure": {
+                "total": 11,
+                "storyFact": 8,
+                "storyClosed": 8,
+                "bridgeClosed": 0,
+                "projectPrereq": 2,
+                "externalTrigger": 1,
+                "unclassified": 0,
+                "unsatisfied": 0
+              }
+            }
+          },
+          {
+            "id": "G2.storyRequirementsClosed",
+            "pass": true,
+            "message": "storyClosed=8 bridgeClosed=0",
+            "details": {
+              "requirementClosure": {
+                "total": 11,
+                "storyFact": 8,
+                "storyClosed": 8,
+                "bridgeClosed": 0,
+                "projectPrereq": 2,
+                "externalTrigger": 1,
+                "unclassified": 0,
+                "unsatisfied": 0
+              }
+            }
+          },
+          {
+            "id": "G2.projectPrereqExplicit",
+            "pass": true,
+            "message": "PROJECT_PREREQ rows are explicit declarations",
+            "details": {}
+          },
+          {
+            "id": "G2.externalTriggerExplicit",
+            "pass": true,
+            "message": "EXTERNAL_TRIGGER rows are explicit declarations",
+            "details": {}
+          },
+          {
+            "id": "G2.noFutureRequirementProducer",
+            "pass": true,
+            "message": "no future producer for past require (weave)",
+            "details": {}
           }
         ],
         "G3": [
@@ -981,7 +1219,17 @@
         "keepParallel": 3,
         "clues": 29,
         "warnings": 13,
-        "gameCandidates": 0
+        "gameCandidates": 0,
+        "requirementClosure": {
+          "total": 11,
+          "storyFact": 8,
+          "storyClosed": 8,
+          "bridgeClosed": 0,
+          "projectPrereq": 2,
+          "externalTrigger": 1,
+          "unclassified": 0,
+          "unsatisfied": 0
+        }
       }
     },
     {
@@ -1148,6 +1396,58 @@
             "pass": true,
             "message": "unresolved symbolic owner not guessed",
             "details": {}
+          },
+          {
+            "id": "G2.requirementsClassified",
+            "pass": true,
+            "message": "all 7 requires classified",
+            "details": {
+              "requirementClosure": {
+                "total": 7,
+                "storyFact": 5,
+                "storyClosed": 5,
+                "bridgeClosed": 0,
+                "projectPrereq": 2,
+                "externalTrigger": 0,
+                "unclassified": 0,
+                "unsatisfied": 0
+              }
+            }
+          },
+          {
+            "id": "G2.storyRequirementsClosed",
+            "pass": true,
+            "message": "storyClosed=5 bridgeClosed=0",
+            "details": {
+              "requirementClosure": {
+                "total": 7,
+                "storyFact": 5,
+                "storyClosed": 5,
+                "bridgeClosed": 0,
+                "projectPrereq": 2,
+                "externalTrigger": 0,
+                "unclassified": 0,
+                "unsatisfied": 0
+              }
+            }
+          },
+          {
+            "id": "G2.projectPrereqExplicit",
+            "pass": true,
+            "message": "PROJECT_PREREQ rows are explicit declarations",
+            "details": {}
+          },
+          {
+            "id": "G2.externalTriggerExplicit",
+            "pass": true,
+            "message": "EXTERNAL_TRIGGER rows are explicit declarations",
+            "details": {}
+          },
+          {
+            "id": "G2.noFutureRequirementProducer",
+            "pass": true,
+            "message": "no future producer for past require (weave)",
+            "details": {}
           }
         ],
         "G3": [
@@ -1241,7 +1541,17 @@
         "keepParallel": 1,
         "clues": 18,
         "warnings": 7,
-        "gameCandidates": 0
+        "gameCandidates": 0,
+        "requirementClosure": {
+          "total": 7,
+          "storyFact": 5,
+          "storyClosed": 5,
+          "bridgeClosed": 0,
+          "projectPrereq": 2,
+          "externalTrigger": 0,
+          "unclassified": 0,
+          "unsatisfied": 0
+        }
       }
     },
     {
@@ -1430,6 +1740,58 @@
             "pass": true,
             "message": "unresolved symbolic owner not guessed",
             "details": {}
+          },
+          {
+            "id": "G2.requirementsClassified",
+            "pass": true,
+            "message": "all 7 requires classified",
+            "details": {
+              "requirementClosure": {
+                "total": 7,
+                "storyFact": 5,
+                "storyClosed": 5,
+                "bridgeClosed": 0,
+                "projectPrereq": 1,
+                "externalTrigger": 1,
+                "unclassified": 0,
+                "unsatisfied": 0
+              }
+            }
+          },
+          {
+            "id": "G2.storyRequirementsClosed",
+            "pass": true,
+            "message": "storyClosed=5 bridgeClosed=0",
+            "details": {
+              "requirementClosure": {
+                "total": 7,
+                "storyFact": 5,
+                "storyClosed": 5,
+                "bridgeClosed": 0,
+                "projectPrereq": 1,
+                "externalTrigger": 1,
+                "unclassified": 0,
+                "unsatisfied": 0
+              }
+            }
+          },
+          {
+            "id": "G2.projectPrereqExplicit",
+            "pass": true,
+            "message": "PROJECT_PREREQ rows are explicit declarations",
+            "details": {}
+          },
+          {
+            "id": "G2.externalTriggerExplicit",
+            "pass": true,
+            "message": "EXTERNAL_TRIGGER rows are explicit declarations",
+            "details": {}
+          },
+          {
+            "id": "G2.noFutureRequirementProducer",
+            "pass": true,
+            "message": "no future producer for past require (weave)",
+            "details": {}
           }
         ],
         "G3": [
@@ -1507,7 +1869,17 @@
         "keepParallel": 1,
         "clues": 18,
         "warnings": 9,
-        "gameCandidates": 0
+        "gameCandidates": 0,
+        "requirementClosure": {
+          "total": 7,
+          "storyFact": 5,
+          "storyClosed": 5,
+          "bridgeClosed": 0,
+          "projectPrereq": 1,
+          "externalTrigger": 1,
+          "unclassified": 0,
+          "unsatisfied": 0
+        }
       }
     },
     {
@@ -1693,6 +2065,58 @@
             "pass": true,
             "message": "unresolved symbolic owner not guessed",
             "details": {}
+          },
+          {
+            "id": "G2.requirementsClassified",
+            "pass": true,
+            "message": "all 12 requires classified",
+            "details": {
+              "requirementClosure": {
+                "total": 12,
+                "storyFact": 10,
+                "storyClosed": 10,
+                "bridgeClosed": 0,
+                "projectPrereq": 2,
+                "externalTrigger": 0,
+                "unclassified": 0,
+                "unsatisfied": 0
+              }
+            }
+          },
+          {
+            "id": "G2.storyRequirementsClosed",
+            "pass": true,
+            "message": "storyClosed=10 bridgeClosed=0",
+            "details": {
+              "requirementClosure": {
+                "total": 12,
+                "storyFact": 10,
+                "storyClosed": 10,
+                "bridgeClosed": 0,
+                "projectPrereq": 2,
+                "externalTrigger": 0,
+                "unclassified": 0,
+                "unsatisfied": 0
+              }
+            }
+          },
+          {
+            "id": "G2.projectPrereqExplicit",
+            "pass": true,
+            "message": "PROJECT_PREREQ rows are explicit declarations",
+            "details": {}
+          },
+          {
+            "id": "G2.externalTriggerExplicit",
+            "pass": true,
+            "message": "EXTERNAL_TRIGGER rows are explicit declarations",
+            "details": {}
+          },
+          {
+            "id": "G2.noFutureRequirementProducer",
+            "pass": true,
+            "message": "no future producer for past require (weave)",
+            "details": {}
           }
         ],
         "G3": [
@@ -1768,7 +2192,17 @@
         "keepParallel": 3,
         "clues": 23,
         "warnings": 12,
-        "gameCandidates": 0
+        "gameCandidates": 0,
+        "requirementClosure": {
+          "total": 12,
+          "storyFact": 10,
+          "storyClosed": 10,
+          "bridgeClosed": 0,
+          "projectPrereq": 2,
+          "externalTrigger": 0,
+          "unclassified": 0,
+          "unsatisfied": 0
+        }
       }
     },
     {
@@ -1940,6 +2374,58 @@
             "pass": true,
             "message": "unresolved symbolic owner not guessed",
             "details": {}
+          },
+          {
+            "id": "G2.requirementsClassified",
+            "pass": true,
+            "message": "all 12 requires classified",
+            "details": {
+              "requirementClosure": {
+                "total": 12,
+                "storyFact": 10,
+                "storyClosed": 10,
+                "bridgeClosed": 0,
+                "projectPrereq": 1,
+                "externalTrigger": 1,
+                "unclassified": 0,
+                "unsatisfied": 0
+              }
+            }
+          },
+          {
+            "id": "G2.storyRequirementsClosed",
+            "pass": true,
+            "message": "storyClosed=10 bridgeClosed=0",
+            "details": {
+              "requirementClosure": {
+                "total": 12,
+                "storyFact": 10,
+                "storyClosed": 10,
+                "bridgeClosed": 0,
+                "projectPrereq": 1,
+                "externalTrigger": 1,
+                "unclassified": 0,
+                "unsatisfied": 0
+              }
+            }
+          },
+          {
+            "id": "G2.projectPrereqExplicit",
+            "pass": true,
+            "message": "PROJECT_PREREQ rows are explicit declarations",
+            "details": {}
+          },
+          {
+            "id": "G2.externalTriggerExplicit",
+            "pass": true,
+            "message": "EXTERNAL_TRIGGER rows are explicit declarations",
+            "details": {}
+          },
+          {
+            "id": "G2.noFutureRequirementProducer",
+            "pass": true,
+            "message": "no future producer for past require (weave)",
+            "details": {}
           }
         ],
         "G3": [
@@ -2009,7 +2495,17 @@
         "keepParallel": 3,
         "clues": 23,
         "warnings": 12,
-        "gameCandidates": 0
+        "gameCandidates": 0,
+        "requirementClosure": {
+          "total": 12,
+          "storyFact": 10,
+          "storyClosed": 10,
+          "bridgeClosed": 0,
+          "projectPrereq": 1,
+          "externalTrigger": 1,
+          "unclassified": 0,
+          "unsatisfied": 0
+        }
       }
     }
   ]

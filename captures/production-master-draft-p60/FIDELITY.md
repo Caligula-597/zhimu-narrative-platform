@@ -10,4 +10,4 @@
 | H-conditional-public-task | FIDELITY | 5 | 11 | PASS |
 | D-high-weave-overlap | DEV | 5 | 12 | PASS |
 
-生成时间：2026-09-05T08:26:47.064Z
+生成时间：2026-09-05T09:37:46.468Z

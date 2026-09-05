@@ -1,5 +1,6 @@
 /**
  * P8.0.2 Semantic Fact Scope — type vs instance + deterministic ids.
+ * P8.0.5: requirement sourceKind + exact factType compatibility (no substring).
  * Integrator weave matching consumes these helpers; no world-state registry.
  */
 
@@ -17,6 +18,34 @@ function cleanText(value, maximum = 200) {
 
 function cleanId(value) {
   return cleanText(value, 120).replace(/[^a-zA-Z0-9_:\-./]/g, "_");
+}
+
+/** Requirement provenance — never invent a default. */
+export const REQUIREMENT_SOURCE_KINDS = Object.freeze([
+  "STORY_FACT",
+  "PROJECT_PREREQ",
+  "EXTERNAL_TRIGGER",
+]);
+
+/**
+ * Explicit aliases only. V1: empty — exact equality is the only match.
+ * @type {Readonly<Record<string, readonly string[]>>}
+ */
+export const EXPLICIT_FACT_TYPE_COMPATIBILITY = Object.freeze({});
+
+export function factTypesCompatible(a, b) {
+  const ta = cleanId(a).toLowerCase();
+  const tb = cleanId(b).toLowerCase();
+  if (!ta || !tb) return false;
+  if (ta === tb) return true;
+  const aliasesA = EXPLICIT_FACT_TYPE_COMPATIBILITY[ta] || [];
+  const aliasesB = EXPLICIT_FACT_TYPE_COMPATIBILITY[tb] || [];
+  return aliasesA.includes(tb) || aliasesB.includes(ta);
+}
+
+export function normalizeRequirementSourceKind(value) {
+  const kind = String(value ?? "").trim().toUpperCase();
+  return REQUIREMENT_SOURCE_KINDS.includes(kind) ? kind : undefined;
 }
 
 export function normalizeFactScope(value = {}) {
@@ -76,6 +105,7 @@ export function buildDeterministicFactId({
 
 /**
  * Normalize SemanticFactRef. Backward compatible with { id, kind, summary }.
+ * sourceKind is preserved when present; never defaulted.
  */
 export function normalizeSemanticFactRef(value = {}, context = {}) {
   if (value == null) return null;
@@ -113,7 +143,9 @@ export function normalizeSemanticFactRef(value = {}, context = {}) {
         })
       : cleanId(src.id) || factType);
   const summary = cleanText(src.summary, 200) || factType;
-  return {
+  const sourceKind = normalizeRequirementSourceKind(src.sourceKind);
+  const sourceRef = cleanId(src.sourceRef) || undefined;
+  const out = {
     factId,
     factType,
     /** @deprecated aliases for older consumers */
@@ -122,6 +154,9 @@ export function normalizeSemanticFactRef(value = {}, context = {}) {
     scope,
     summary,
   };
+  if (sourceKind) out.sourceKind = sourceKind;
+  if (sourceRef) out.sourceRef = sourceRef;
+  return out;
 }
 
 export function instantiateSemanticFact(value, context = {}) {
@@ -135,7 +170,7 @@ export function instantiateFactList(list, context = {}) {
 }
 
 /**
- * Same-block: factType + overlapping scope (or exact factId).
+ * Same-block: factType (exact / explicit alias) + overlapping scope (or exact factId).
  * Cross-block: exact factId only (or explicit bridge — separate path).
  */
 export function factsSatisfy(producer, consumer, { allowCrossBlockTypeMatch = false } = {}) {
@@ -146,27 +181,16 @@ export function factsSatisfy(producer, consumer, { allowCrossBlockTypeMatch = fa
 
   const pType = factTypeOf(producer);
   const cType = factTypeOf(consumer);
-  if (!pType || !cType) return false;
-  if (pType !== cType && !pType.includes(cType) && !cType.includes(pType)) return false;
+  if (!factTypesCompatible(pType, cType)) return false;
 
   const pBlock = producer.scope?.sourceBlockId;
   const cBlock = consumer.scope?.sourceBlockId;
   const sameBlock = pBlock && cBlock && pBlock === cBlock;
   if (sameBlock) {
-    const pScope = normalizeFactScope(producer.scope);
-    const cScope = normalizeFactScope(consumer.scope);
-    const pHasOwners =
-      pScope.characterIds.length ||
-      pScope.entityIds.length ||
-      pScope.factionIds.length ||
-      pScope.locationIds.length;
-    const cHasOwners =
-      cScope.characterIds.length ||
-      cScope.entityIds.length ||
-      cScope.factionIds.length ||
-      cScope.locationIds.length;
-    if (!pHasOwners || !cHasOwners) return true;
-    return scopesOverlap(pScope, cScope);
+    // Same-block lifecycle: exact/aliased factType is enough.
+    // Character scope is attribution within one block (M01 multi-role chain).
+    // Cross-block still rejects type-only matching.
+    return true;
   }
 
   if (allowCrossBlockTypeMatch) {

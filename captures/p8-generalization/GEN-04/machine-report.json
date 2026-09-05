@@ -169,6 +169,58 @@
         "pass": true,
         "message": "unresolved symbolic owner not guessed",
         "details": {}
+      },
+      {
+        "id": "G2.requirementsClassified",
+        "pass": true,
+        "message": "all 11 requires classified",
+        "details": {
+          "requirementClosure": {
+            "total": 11,
+            "storyFact": 8,
+            "storyClosed": 8,
+            "bridgeClosed": 0,
+            "projectPrereq": 2,
+            "externalTrigger": 1,
+            "unclassified": 0,
+            "unsatisfied": 0
+          }
+        }
+      },
+      {
+        "id": "G2.storyRequirementsClosed",
+        "pass": true,
+        "message": "storyClosed=8 bridgeClosed=0",
+        "details": {
+          "requirementClosure": {
+            "total": 11,
+            "storyFact": 8,
+            "storyClosed": 8,
+            "bridgeClosed": 0,
+            "projectPrereq": 2,
+            "externalTrigger": 1,
+            "unclassified": 0,
+            "unsatisfied": 0
+          }
+        }
+      },
+      {
+        "id": "G2.projectPrereqExplicit",
+        "pass": true,
+        "message": "PROJECT_PREREQ rows are explicit declarations",
+        "details": {}
+      },
+      {
+        "id": "G2.externalTriggerExplicit",
+        "pass": true,
+        "message": "EXTERNAL_TRIGGER rows are explicit declarations",
+        "details": {}
+      },
+      {
+        "id": "G2.noFutureRequirementProducer",
+        "pass": true,
+        "message": "no future producer for past require (weave)",
+        "details": {}
       }
     ],
     "G3": [
@@ -247,6 +299,16 @@
     "keepParallel": 3,
     "clues": 29,
     "warnings": 13,
-    "gameCandidates": 0
+    "gameCandidates": 0,
+    "requirementClosure": {
+      "total": 11,
+      "storyFact": 8,
+      "storyClosed": 8,
+      "bridgeClosed": 0,
+      "projectPrereq": 2,
+      "externalTrigger": 1,
+      "unclassified": 0,
+      "unsatisfied": 0
+    }
   }
 }

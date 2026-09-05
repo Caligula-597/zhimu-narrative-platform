@@ -15,6 +15,7 @@ import {
   normalizeProductionMasterDraft,
   refreshProductionDraftStaleStatus,
 } from "./production-master-draft-contracts.js";
+import { normalizeStoryFactBridge } from "./semantic-fact.js";
 
 export const STORY_MECHANISM_CONTRACT_VERSION = 1;
 
@@ -289,6 +290,7 @@ export function createProjectStoryState(input = {}) {
     roleAssignments,
     assignments,
     facts: asArray(src.facts).map(normalizeStoryFact),
+    factBridges: asArray(src.factBridges).map(normalizeStoryFactBridge).filter(Boolean),
     clues: asArray(src.clues),
     constraints: asArray(src.constraints),
     unresolvedNeeds: asArray(src.unresolvedNeeds),

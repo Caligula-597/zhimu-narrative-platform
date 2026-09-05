@@ -6,6 +6,7 @@ import { describe, it } from "node:test";
 import {
   buildDeterministicFactId,
   factsSatisfy,
+  factTypesCompatible,
   matchProducedToRequired,
   normalizeSemanticFactRef,
   positionIsBefore,
@@ -27,18 +28,22 @@ describe("P8.0.2 semantic facts", () => {
     assert.deepEqual(matchProducedToRequired([a], [b]), []);
   });
 
-  it("same-block same type + overlapping character matches", () => {
+  it("same-block same type matches even with different character attribution", () => {
     const prod = normalizeSemanticFactRef(
       { factType: "identity_clue" },
       { sourceBlockId: "smb_x", sourceBeatId: "beat-setup", characterIds: ["H1"] },
     );
     const req = normalizeSemanticFactRef(
       { factType: "identity_clue" },
-      { sourceBlockId: "smb_x", sourceBeatId: "beat-develop", characterIds: ["H1"] },
+      { sourceBlockId: "smb_x", sourceBeatId: "beat-develop", characterIds: ["H6"] },
     );
     assert.notEqual(prod.factId, req.factId);
     assert.equal(factsSatisfy(prod, req), true);
     assert.ok(matchProducedToRequired([prod], [req]).length >= 1);
+  });
+
+  it("substring factTypes no longer compatible", () => {
+    assert.equal(factTypesCompatible("identity", "identity_clue"), false);
   });
 
   it("deterministic factId is stable", () => {

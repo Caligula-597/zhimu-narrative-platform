@@ -497,7 +497,10 @@ export function buildMasterOutlineDraft(projectStoryState, { now = () => new Dat
   let stages = materializeTopologyStages(topology);
   distributeBeatsIntoStages(stages, allBeats);
 
-  const weaveLinks = proposeWeaveLinks(allBeats, blocks, { stages });
+  const weaveLinks = proposeWeaveLinks(allBeats, blocks, {
+    stages,
+    factBridges: state.factBridges || [],
+  });
   alignInterwovenBeats(stages, weaveLinks, { protectEmptyStages: topology.stageCountLocked });
 
   if (!topology.stageCountLocked) {

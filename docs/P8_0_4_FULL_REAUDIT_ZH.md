@@ -71,34 +71,21 @@ Content Factory Universality          ❌ 尚未进入
 
 → **Content Factory universality / Full Script Production**，不阻塞 Universal Structural Pipeline 的最后证明层。
 
-## HOLD 的两条结构缺口
+## HOLD 的两条结构缺口 → **已由 P8.0.5 关闭**
 
-### A. Positive Cross-block Weave Proof
-
-已证明：**不会假织**（generic type / hint / target 不够）。  
-未证明：**遇到合法实例桥时一定会织**。
-
-Integrator 规则保持收紧（不放宽）：
+见 `docs/P8_0_5_POSITIVE_WEAVE_REQUIREMENT_CLOSURE_ZH.md`。
 
 ```text
-合法 causal fact | ACCEPTED FactBridge | same target instance |
-same locationRef + compatible actionKind (+ shared character/target)
+Universal Structural Pipeline ✅ PASS
 ```
 
-需要：**正向 fixture**（非放宽负向规则）。
+### A. Positive Cross-block Weave Proof — ✅ 已由 0.5 证明
 
-### B. Requirement Source Closure
+（历史缺口描述保留）曾只证明不会假织；0.5 用 POS-BRIDGE / POS-SHARED-ACTION 证明会真织。
 
-已证明：不会用**未来** producer 补**过去** requirement。  
-未证明：每个 must-close 的 STORY requirement 都有合法来源。
+### B. Requirement Source Closure — ✅ 已由 0.5 证明
 
-模板仍大量出现 `site_accessible` / `formal_trigger` 等，合同未区分：
-
-```text
-STORY_FACT          → 必须 earlier producer 或 ACCEPTED StoryFactBridge
-EXTERNAL_TRIGGER    → 可无 story producer，但必须显式声明
-PROJECT_PREREQ      → 项目初始条件，显式声明
-```
+（历史缺口描述保留）曾未区分来源；0.5 引入 `STORY_FACT` / `PROJECT_PREREQ` / `EXTERNAL_TRIGGER` + 只读 auditor。
 
 ## 技术债（非 P0）
 

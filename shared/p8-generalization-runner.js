@@ -14,6 +14,7 @@ import {
 import { integrateMasterOutline } from "./master-outline-integrator.js";
 import { expandProductionMasterDraft } from "./production-master-draft-expander.js";
 import { matchProducedToRequired } from "./semantic-fact.js";
+import { auditRequirementClosure } from "./requirement-closure-auditor.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 export const P8_CASES_DIR = path.join(__dirname, "p8-generalization-cases");
@@ -542,6 +543,58 @@ function evaluateG2(fixture, state, outline, draft) {
     ),
   );
 
+  // P8.0.5 — Requirement classification + closure (audit only; no mutation)
+  const closure = auditRequirementClosure({
+    stages: outline?.stages || [],
+    factBridges: state?.factBridges || [],
+  });
+  checks.push(
+    gate(
+      "G2.requirementsClassified",
+      closure.summary.unclassified === 0,
+      closure.summary.unclassified
+        ? `unclassified requires=${closure.summary.unclassified}`
+        : `all ${closure.summary.total} requires classified`,
+      { requirementClosure: closure.summary },
+    ),
+  );
+  checks.push(
+    gate(
+      "G2.storyRequirementsClosed",
+      closure.summary.unsatisfied === 0,
+      closure.summary.unsatisfied
+        ? `unsatisfied STORY_FACT=${closure.summary.unsatisfied}`
+        : `storyClosed=${closure.summary.storyClosed} bridgeClosed=${closure.summary.bridgeClosed}`,
+      { requirementClosure: closure.summary },
+    ),
+  );
+  checks.push(
+    gate(
+      "G2.projectPrereqExplicit",
+      closure.rows
+        .filter((r) => r.status === "DECLARED_PROJECT_PREREQ")
+        .every((r) => r.sourceKind === "PROJECT_PREREQ"),
+      "PROJECT_PREREQ rows are explicit declarations",
+    ),
+  );
+  checks.push(
+    gate(
+      "G2.externalTriggerExplicit",
+      closure.rows
+        .filter((r) => r.status === "DECLARED_EXTERNAL_TRIGGER")
+        .every((r) => r.sourceKind === "EXTERNAL_TRIGGER"),
+      "EXTERNAL_TRIGGER rows are explicit declarations",
+    ),
+  );
+  // Alias: causalProducerBeforeConsumer already covers future→past weave edges
+  checks.push(
+    gate(
+      "G2.noFutureRequirementProducer",
+      causalTopoFail === 0,
+      causalTopoFail ? `backward causal edges=${causalTopoFail}` : "no future producer for past require (weave)",
+    ),
+  );
+
   return checks;
 }
 
@@ -717,6 +770,9 @@ export function auditOneCase(fixture, { now = FIXED_NOW, writeCaptures = false }
       clues: draft.clueView?.clues?.length || 0,
       warnings: draft.warnings?.length || 0,
       gameCandidates: draft.executionView?.candidateGameInsertionPoints?.length || 0,
+      requirementClosure:
+        report.gates.G2.find((g) => g.id === "G2.requirementsClassified")?.details?.requirementClosure ||
+        null,
     };
   } else if (state) {
     report.gates.G1 = [
