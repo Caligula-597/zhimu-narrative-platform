@@ -1,6 +1,6 @@
 /**
- * P8.2.0 View-specific Packet Set — deterministic extraction from PMD V2.
- * No LLM. Role packets must not include other characters' private contributions.
+ * P8.2.0/0.1 View-specific Packet Set — deterministic extraction from PMD V2.
+ * P8.2.1: allowedFactIds are real SemanticFact.factId only; beats/clues/labels separated.
  */
 
 function asArray(value) {
@@ -9,6 +9,10 @@ function asArray(value) {
 
 function record(value) {
   return value && typeof value === "object" && !Array.isArray(value) ? value : {};
+}
+
+function unique(list) {
+  return [...new Set(asArray(list).filter(Boolean).map(String))];
 }
 
 function beatIndex(pmd) {
@@ -22,18 +26,38 @@ function beatIndex(pmd) {
   return map;
 }
 
-function allFactTokens(pmd) {
-  const facts = new Set();
-  for (const c of asArray(pmd?.clueView?.clues)) {
-    if (c.supportsFact) facts.add(String(c.supportsFact));
-    if (c.clueId) facts.add(`clue:${c.clueId}`);
+function factIdOf(f) {
+  return f?.factId || f?.id || null;
+}
+
+function collectAllFactIds(pmd) {
+  const ids = new Set();
+  for (const st of asArray(pmd?.stages)) {
+    for (const b of asArray(st.beats)) {
+      for (const f of [...asArray(b.produces), ...asArray(b.requires)]) {
+        const id = factIdOf(f);
+        if (id) ids.add(String(id));
+      }
+    }
   }
-  for (const e of asArray(pmd?.truthView?.events)) {
-    if (e.why && e.why !== "UNKNOWN") facts.add(String(e.why));
-    if (e.consequence && e.consequence !== "UNKNOWN") facts.add(String(e.consequence));
-    if (e.beatId) facts.add(`beat:${e.beatId}`);
+  return ids;
+}
+
+function factIdsFromBeat(beat) {
+  const ids = [];
+  for (const f of [...asArray(beat?.produces), ...asArray(beat?.requires)]) {
+    const id = factIdOf(f);
+    if (id) ids.push(String(id));
   }
-  return facts;
+  return ids;
+}
+
+function knowledgeLabelsFromBeat(beat) {
+  return unique([
+    beat?.goal,
+    beat?.action,
+    ...(asArray(beat?.produces).map((p) => p.summary).filter(Boolean)),
+  ]);
 }
 
 function deriveResolutionMode(pmd) {
@@ -55,6 +79,7 @@ function deriveResolutionMode(pmd) {
 }
 
 export function buildHostScriptPacket(pmd) {
+  const allFactIds = [...collectAllFactIds(pmd)];
   const stages = asArray(pmd?.stages).map((st) => ({
     stageId: st.stageId,
     title: st.title,
@@ -75,18 +100,29 @@ export function buildHostScriptPacket(pmd) {
       produces: b.produces || [],
     })),
   }));
+  const sourceBeatIds = unique(
+    stages.flatMap((s) => s.beats.map((b) => b.sourceOutlineBeatId)),
+  );
+  const clueIds = unique(asArray(pmd?.clueView?.clues).map((c) => c.clueId));
 
   return {
     kind: "HOST_SCRIPT",
-    truthView: {
-      events: asArray(pmd?.truthView?.events).map((e) => ({ ...e })),
-    },
-    clueView: {
-      clues: asArray(pmd?.clueView?.clues).map((c) => ({ ...c })),
-    },
+    truthView: { events: asArray(pmd?.truthView?.events).map((e) => ({ ...e })) },
+    clueView: { clues: asArray(pmd?.clueView?.clues).map((c) => ({ ...c })) },
     executionView: record(pmd?.executionView),
     stages,
-    sourceBeatIds: stages.flatMap((s) => s.beats.map((b) => b.sourceOutlineBeatId)).filter(Boolean),
+    stageIds: stages.map((s) => s.stageId),
+    allowedSourceBeatIds: sourceBeatIds,
+    allowedClueIds: clueIds,
+    allowedFactIds: allFactIds,
+    forbiddenFactIds: [],
+    allowedKnowledgeLabels: unique(
+      stages.flatMap((s) => [
+        s.purpose,
+        s.hostTruthSummary,
+        ...s.beats.flatMap((b) => [b.hostTruth, b.eventSummary]),
+      ]),
+    ),
   };
 }
 
@@ -97,18 +133,20 @@ export function buildRoleScriptPacket(pmd, characterId) {
   if (!ch) return null;
 
   const beats = beatIndex(pmd);
-  const allFacts = allFactTokens(pmd);
-  const allowed = new Set();
+  const allFactIds = collectAllFactIds(pmd);
+  const allowedFacts = new Set();
   const relatedBeatIds = new Set();
+  const allowedClues = new Set();
+  const knowledge = new Set();
 
   const stages = asArray(ch.stages).map((st) => {
     const contributions = asArray(st.contributions).map((c) => {
       relatedBeatIds.add(c.sourceOutlineBeatId);
       const beat = beats.get(c.sourceOutlineBeatId);
-      for (const p of asArray(beat?.produces)) {
-        if (p.summary) allowed.add(String(p.summary));
-        if (p.factType || p.kind) allowed.add(String(p.factType || p.kind));
-      }
+      for (const id of factIdsFromBeat(beat)) allowedFacts.add(id);
+      for (const label of knowledgeLabelsFromBeat(beat)) knowledge.add(label);
+      if (c.goal) knowledge.add(c.goal);
+      if (c.action) knowledge.add(c.action);
       return {
         sourceBeatId: c.sourceBeatId,
         sourceOutlineBeatId: c.sourceOutlineBeatId,
@@ -131,6 +169,7 @@ export function buildRoleScriptPacket(pmd, characterId) {
           .map((b) => b.playerKnowledge)
           .filter(Boolean),
       );
+    for (const line of publicContext) knowledge.add(line);
 
     const availableClues = asArray(pmd?.clueView?.clues)
       .filter(
@@ -140,8 +179,8 @@ export function buildRoleScriptPacket(pmd, characterId) {
           c.introducedAt === st.stageId,
       )
       .map((c) => {
-        allowed.add(`clue:${c.clueId}`);
-        if (c.supportsFact) allowed.add(String(c.supportsFact));
+        allowedClues.add(c.clueId);
+        if (c.supportsFact) knowledge.add(String(c.supportsFact));
         return c.clueId;
       });
 
@@ -149,28 +188,29 @@ export function buildRoleScriptPacket(pmd, characterId) {
       stageId: st.stageId,
       contributions,
       publicContext,
-      allowedKnowledge: contributions
-        .map((c) => c.action || c.goal)
-        .filter(Boolean),
+      allowedKnowledgeLabels: unique([
+        ...contributions.map((c) => c.action || c.goal).filter(Boolean),
+        ...publicContext,
+      ]),
       availableClues,
       relationChanges: [...asArray(st.relationChanges)],
-      allowedFactIds: [...allowed],
-      forbiddenFactIds: [], // filled below
     };
   });
 
-  const forbidden = [...allFacts].filter((f) => !allowed.has(f));
-  for (const st of stages) {
-    st.forbiddenFactIds = forbidden;
-    st.allowedFactIds = [...allowed];
-  }
+  const allowedFactIds = [...allowedFacts];
+  const forbiddenFactIds = [...allFactIds].filter((id) => !allowedFacts.has(id));
 
   return {
     kind: "ROLE_SCRIPT",
     characterId: ch.characterId || ch.id,
     characterName: ch.name,
     stages,
-    sourceBeatIds: [...relatedBeatIds],
+    stageIds: unique(stages.map((s) => s.stageId)),
+    allowedSourceBeatIds: [...relatedBeatIds],
+    allowedClueIds: [...allowedClues],
+    allowedFactIds,
+    forbiddenFactIds,
+    allowedKnowledgeLabels: [...knowledge],
   };
 }
 
@@ -184,11 +224,12 @@ export function buildClueWriterPacket(pmd, clueId) {
   const clue = asArray(pmd?.clueView?.clues).find((c) => c.clueId === clueId);
   if (!clue) return null;
   const beats = beatIndex(pmd);
-  const relatedBeats = [...beats.values()].filter((b) =>
-    asArray(b.clueRefs).includes(clueId),
+  const relatedBeats = [...new Map([...beats.values()].map((b) => [b.sourceOutlineBeatId || b.id, b])).values()].filter(
+    (b) => asArray(b.clueRefs).includes(clueId),
   );
-  const allowedFactIds = [clue.supportsFact, `clue:${clueId}`].filter(Boolean);
-  const forbiddenFactIds = [...allFactTokens(pmd)].filter((f) => !allowedFactIds.includes(f));
+  const allowedFactIds = unique(relatedBeats.flatMap((b) => factIdsFromBeat(b)));
+  const allFactIds = collectAllFactIds(pmd);
+  const forbiddenFactIds = [...allFactIds].filter((id) => !allowedFactIds.includes(id));
 
   return {
     kind: "CLUE_WRITER",
@@ -202,9 +243,21 @@ export function buildClueWriterPacket(pmd, clueId) {
     possibleFinders: [...asArray(clue.possibleFinders)],
     missingDetail: Boolean(clue.missingDetail),
     detailNote: clue.detailNote,
+    /** Locked lifecycle — Writer must not change these */
+    lockedSemantics: {
+      clueId: clue.clueId,
+      introducedAt: clue.introducedAt,
+      availableStages: [...asArray(clue.availableStages)],
+      isMisleading: Boolean(clue.isMisleading),
+      isDecisive: Boolean(clue.isDecisive),
+      possibleFinders: [...asArray(clue.possibleFinders)],
+    },
+    stageIds: unique([clue.introducedAt || clue.stageId, ...asArray(clue.availableStages)]),
+    allowedSourceBeatIds: unique(relatedBeats.map((b) => b.sourceOutlineBeatId)),
+    allowedClueIds: [clue.clueId],
     allowedFactIds,
     forbiddenFactIds,
-    sourceBeatIds: relatedBeats.map((b) => b.sourceOutlineBeatId).filter(Boolean),
+    allowedKnowledgeLabels: unique([clue.supportsFact, clue.label, clue.detailNote]),
   };
 }
 
@@ -217,16 +270,24 @@ export function buildAllClueWriterPackets(pmd) {
 export function buildPublicStagePacket(pmd, stageId) {
   const st = asArray(pmd?.stages).find((s) => s.stageId === stageId);
   if (!st) return null;
+  const beatIds = unique(asArray(st.beats).map((b) => b.sourceOutlineBeatId));
+  const factIds = unique(asArray(st.beats).flatMap((b) => factIdsFromBeat(b)));
   return {
     kind: "PUBLIC_STAGE",
     stageId: st.stageId,
     title: st.title,
     stageRole: st.stageRole,
     playerVisibleSummary: st.playerVisibleSummary,
-    publicLines: asArray(st.beats)
-      .map((b) => b.playerKnowledge)
-      .filter(Boolean),
-    sourceBeatIds: asArray(st.beats).map((b) => b.sourceOutlineBeatId).filter(Boolean),
+    publicLines: asArray(st.beats).map((b) => b.playerKnowledge).filter(Boolean),
+    stageIds: [st.stageId],
+    allowedSourceBeatIds: beatIds,
+    allowedClueIds: [],
+    allowedFactIds: factIds,
+    forbiddenFactIds: [],
+    allowedKnowledgeLabels: unique([
+      st.playerVisibleSummary,
+      ...asArray(st.beats).map((b) => b.playerKnowledge),
+    ]),
   };
 }
 
@@ -241,6 +302,10 @@ export function buildEndingPacket(pmd) {
   const final = stages[stages.length - 1];
   const truthEvents = asArray(pmd?.truthView?.events);
   const decisiveClues = asArray(pmd?.clueView?.clues).filter((c) => c.isDecisive);
+  const beatIds = unique(truthEvents.map((e) => e.beatId));
+  const beats = beatIndex(pmd);
+  const factIds = unique(beatIds.flatMap((id) => factIdsFromBeat(beats.get(id))));
+
   return {
     kind: "ENDING",
     finalStageId: final?.stageId,
@@ -259,11 +324,15 @@ export function buildEndingPacket(pmd) {
       .map((e) => e.whatHappened)
       .filter(Boolean),
     resolutionMode: deriveResolutionMode(pmd),
-    // no correctCulpritId required
+    stageIds: final?.stageId ? [final.stageId] : [],
+    allowedSourceBeatIds: beatIds,
+    allowedClueIds: decisiveClues.map((c) => c.clueId),
+    allowedFactIds: factIds,
+    forbiddenFactIds: [],
+    allowedKnowledgeLabels: unique(truthEvents.map((e) => e.whatHappened)),
   };
 }
 
-/** Full packet set for a ProductionMasterDraft. */
 export function buildScriptProductionPacketSet(pmd) {
   return {
     host: buildHostScriptPacket(pmd),
@@ -274,9 +343,6 @@ export function buildScriptProductionPacketSet(pmd) {
   };
 }
 
-/**
- * Assert role packet does not embed another character's OWNER contribution text as private knowledge.
- */
 export function rolePacketHasNoForeignOwnerLeak(packet, pmd) {
   const foreignOwners = [];
   for (const ch of asArray(pmd?.characterViews?.characters)) {
@@ -288,8 +354,6 @@ export function rolePacketHasNoForeignOwnerLeak(packet, pmd) {
       }
     }
   }
-  const blob = JSON.stringify(packet.stages);
-  // Public context / shared stage text may mention others; forbid copying their private OWNER goals into contributions
   for (const st of asArray(packet.stages)) {
     for (const c of asArray(st.contributions)) {
       for (const goal of foreignOwners) {
@@ -297,6 +361,18 @@ export function rolePacketHasNoForeignOwnerLeak(packet, pmd) {
       }
     }
   }
-  void blob;
   return true;
+}
+
+/** Flatten packet allow-lists for Writer / Diff. */
+export function packetAllowLists(packet) {
+  const p = record(packet);
+  return {
+    stageIds: unique(p.stageIds || asArray(p.stages).map((s) => s.stageId || s)),
+    allowedSourceBeatIds: unique(p.allowedSourceBeatIds || p.sourceBeatIds),
+    allowedClueIds: unique(p.allowedClueIds),
+    allowedFactIds: unique(p.allowedFactIds),
+    forbiddenFactIds: unique(p.forbiddenFactIds),
+    allowedKnowledgeLabels: unique(p.allowedKnowledgeLabels),
+  };
 }

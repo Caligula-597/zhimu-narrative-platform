@@ -83,11 +83,12 @@ describe("P8.2.0 Packets from GEN-01 PMD", () => {
 
     for (const role of packets.roles) {
       assert.ok(rolePacketHasNoForeignOwnerLeak(role, pmd));
-      assert.ok(role.sourceBeatIds.length >= 0);
-      for (const st of role.stages) {
-        assert.ok(Array.isArray(st.allowedFactIds));
-        assert.ok(Array.isArray(st.forbiddenFactIds));
-      }
+      // P8.2.1: packet-level allow-lists (real factIds vs beats/clues/labels)
+      assert.ok(Array.isArray(role.allowedSourceBeatIds));
+      assert.ok(Array.isArray(role.allowedClueIds));
+      assert.ok(Array.isArray(role.allowedFactIds));
+      assert.ok(Array.isArray(role.forbiddenFactIds));
+      assert.ok(Array.isArray(role.allowedKnowledgeLabels));
     }
 
     const stageIds = new Set(pmd.stages.map((s) => s.stageId));

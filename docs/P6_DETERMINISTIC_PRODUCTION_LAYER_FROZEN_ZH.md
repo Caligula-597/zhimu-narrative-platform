@@ -90,9 +90,10 @@ P8.0 Multi-Script Generalization Audit  ✅ 完成
   · Universal Structural Pipeline ✅ PASS
   · P8.1 PlayableCreationSpec ✅（docs/P8_1_PLAYABLE_CREATION_SPEC_ZH.md）
   · P8.2.0 CompleteScriptPackage + Packets ✅（docs/P8_2_0_COMPLETE_SCRIPT_PACKAGE_ZH.md）
+  · P8.2.1 Writer Port + Provenance Diff ✅（docs/P8_2_1_WRITER_PORT_ZH.md）
 
 ↓
-P8.2.1 Writer Port
+P8.2.2 Full Production Vertical Slice
 
 ↓
 P8.2 / Full Script Production V1
