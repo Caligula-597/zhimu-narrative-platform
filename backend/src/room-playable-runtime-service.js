@@ -1,5 +1,5 @@
 /**
- * P7.1 Content Runtime service — binds READY PlayableProject to existing rooms.
+ * P7.1/P7.2 Content Runtime service — binds READY PlayableProject to existing rooms.
  */
 
 import { transaction } from "./db.js";
@@ -26,6 +26,11 @@ import {
   roleIdForUser,
   normalizePlayableRuntimeState,
 } from "../../shared/playable-content-runtime.js";
+import {
+  startPlacementMechanism,
+  bidPlacementMechanism,
+  settlePlacementMechanism,
+} from "../../shared/playable-mechanism-bridge.js";
 import { compileWarehouseSixFixture } from "../../shared/playable-project-compiler.js";
 
 function mapError(error) {
@@ -279,6 +284,64 @@ export async function getPlayerPlayableClue({ roomId, userId, clueId }) {
     throw err;
   }
   return { clue: result.clue, contentUnit: result.unit };
+}
+
+export async function startRoomPlayableMechanism({ roomId, actorId, placementId }) {
+  try {
+    return await transaction(async (client) => {
+      await requireRoom(client, roomId);
+      const next = startPlacementMechanism(await loadOrThrow(roomId, { client, forUpdate: true }), {
+        placementId,
+      });
+      const saved = await upsertRoomPlayableRuntime(client, next, actorId);
+      return { runtime: saved, view: buildHostPlayableView(saved) };
+    });
+  } catch (error) {
+    throw mapError(error);
+  }
+}
+
+export async function settleRoomPlayableMechanism({ roomId, actorId, placementId }) {
+  try {
+    return await transaction(async (client) => {
+      await requireRoom(client, roomId);
+      const next = settlePlacementMechanism(await loadOrThrow(roomId, { client, forUpdate: true }), {
+        placementId,
+      });
+      const saved = await upsertRoomPlayableRuntime(client, next, actorId);
+      return { runtime: saved, view: buildHostPlayableView(saved) };
+    });
+  } catch (error) {
+    throw mapError(error);
+  }
+}
+
+export async function bidRoomPlayableMechanism({ roomId, userId, placementId, amount, bidId }) {
+  try {
+    return await transaction(async (client) => {
+      await requireRoom(client, roomId);
+      const current = await loadOrThrow(roomId, { client, forUpdate: true });
+      const playableRoleId = roleIdForUser(current, userId);
+      if (!playableRoleId) {
+        const err = new Error("ROLE_NOT_ASSIGNED");
+        err.code = "ROLE_NOT_ASSIGNED";
+        throw err;
+      }
+      const next = bidPlacementMechanism(current, {
+        placementId,
+        playableRoleId,
+        amount,
+        bidId,
+      });
+      const saved = await upsertRoomPlayableRuntime(client, next, userId);
+      return {
+        runtime: { status: saved.status, revision: saved.revision },
+        view: buildPlayerPlayableView(saved, { playableRoleId }),
+      };
+    });
+  } catch (error) {
+    throw mapError(error);
+  }
 }
 
 export {

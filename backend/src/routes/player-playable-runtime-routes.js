@@ -6,6 +6,7 @@ import {
   getPlayerPlayableContentUnit,
   getPlayerPlayableClue,
   markRoomPlayableContentRead,
+  bidRoomPlayableMechanism,
 } from "../room-playable-runtime-service.js";
 import { requireRoomRole } from "./route-guards.js";
 import {
@@ -13,6 +14,7 @@ import {
   playerPlayableContentGetSchema,
   playerPlayableClueGetSchema,
   playerPlayableReadSchema,
+  playerPlayableMechanismBidSchema,
 } from "./schemas/player-playable-runtime.js";
 
 async function requirePlayerMembership(actorId, roomId) {
@@ -91,6 +93,27 @@ export async function registerPlayerPlayableRuntimeRoutes(app) {
           roomId,
           userId: actorId,
           contentUnitId: request.body.contentUnitId,
+        });
+      } catch (error) {
+        return handlePlayableError(reply, error);
+      }
+    },
+  );
+
+  app.post(
+    "/api/rooms/:roomId/playable-runtime/mechanism-bid",
+    { schema: playerPlayableMechanismBidSchema },
+    async (request, reply) => {
+      const actorId = requireActor(request);
+      const { roomId } = request.params;
+      await requirePlayerMembership(actorId, roomId);
+      try {
+        return await bidRoomPlayableMechanism({
+          roomId,
+          userId: actorId,
+          placementId: request.body.placementId,
+          amount: request.body.amount,
+          bidId: request.body.bidId,
         });
       } catch (error) {
         return handlePlayableError(reply, error);

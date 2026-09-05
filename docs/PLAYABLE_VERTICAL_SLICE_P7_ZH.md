@@ -221,8 +221,8 @@ API tests pass ≠ vertical slice 成功。
 
 ```text
 P7.0  PlayableProject + ContentUnit 合同 + 一本 fixture 编译  ✅ bf26f7a
-P7.1 Content Runtime（纯文本全幕）  ✅ 见 docs/P7_CONTENT_RUNTIME_V1_REPORT.md
-P7.2 MechanismPlacement + M03 + PERMISSION_GRANT 闭环
+P7.1 Content Runtime（纯文本全幕）  ✅ 2ca02d5
+P7.2 Playable Mechanism Runtime Bridge（M03→Effect→Visibility）  ✅ 见 docs/P7_MECHANISM_RUNTIME_BRIDGE_V1_REPORT.md
 P7.3 M09 + 终局结算
 P7.4 Host override + 重连持久化
 P7.5 一整局验收（标准 1–13）
@@ -251,3 +251,13 @@ P7.5 一整局验收（标准 1–13）
 | Player API/UI | `player-playable-runtime-routes.js` + `play/src/views/game-home-views.js` |
 | 测试 | `scripts/playable-content-runtime.test.mjs` |
 | 报告 | `docs/P7_CONTENT_RUNTIME_V1_REPORT.md` |
+
+## P7.2 实现入口
+
+| 层 | 路径 |
+|---|---|
+| Effect Executor | `shared/playable-runtime-effects.js` |
+| Mechanism Bridge | `shared/playable-mechanism-bridge.js`（复用 `mechanism-templates.js` M03-1） |
+| Visibility overlay | `playable-content-runtime.js`（audience 不变；permission 覆盖层） |
+| 测试 | `scripts/playable-mechanism-bridge.test.mjs` |
+| 报告 | `docs/P7_MECHANISM_RUNTIME_BRIDGE_V1_REPORT.md` |

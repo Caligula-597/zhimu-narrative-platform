@@ -172,7 +172,11 @@ test("stage advance host path opens AUTO; player cannot conceptually advance wit
 
   const host = buildHostPlayableView(runtime);
   assert.equal(host.placements.some((p) => p.mechanismTemplateId?.startsWith("M03") || p.id.includes("m03")), true);
-  assert.equal(host.placements.every((p) => p.runnable === false), true);
+  const m03 = host.placements.find((p) => p.id.includes("m03"));
+  const others = host.placements.filter((p) => p.id !== m03?.id);
+  assert.equal(m03?.runnable, true);
+  assert.equal(m03?.status, "READY");
+  assert.equal(others.every((p) => p.runnable === false), true);
 });
 
 test("read receipt + persistence roundtrip shape", () => {
@@ -214,6 +218,7 @@ test("fixture complete pure-text session Stage1→Final", () => {
   runtime = advancePlayableStage(runtime, { now: FIXED }); // → 2
   const playerA = buildPlayerPlayableView(runtime, { playableRoleId: "role_a" });
   assert.ok(playerA.placements.some((p) => /库房|竞价|M03/i.test(p.title + p.note) || p.id.includes("m03")));
+  assert.equal(playerA.placements.find((p) => p.id.includes("m03"))?.status, "READY");
   assert.equal(playerA.placements.every((p) => p.runnable === false), true);
   assert.ok(!ids(resolveVisibleContent({ runtime, roleId: "role_a" })).has("cu_a_s2_win"));
 

@@ -106,6 +106,29 @@ export async function handlePlayGameAction({
       }
       return true;
     }
+    case "playable-mechanism-bid": {
+      const placementId = button?.dataset?.placementId || "";
+      if (!placementId || !state.roomId) return true;
+      const input =
+        documentRef.querySelector(`input[data-playable-bid-amount][data-placement-id="${CSS.escape(placementId)}"]`) ||
+        documentRef.querySelector("input[data-playable-bid-amount]");
+      const amount = Number(input?.value || 0);
+      try {
+        const payload = await api.playableMechanismBid(state.roomId, { placementId, amount });
+        if (payload?.view) {
+          state.playableRuntime = {
+            ...(state.playableRuntime || {}),
+            runtime: payload.runtime || state.playableRuntime?.runtime,
+            view: payload.view,
+          };
+        }
+        setToast(`已出价 ${amount}`);
+        render();
+      } catch (error) {
+        setToast(formatApiError(error, "出价失败"));
+      }
+      return true;
+    }
     case "submit-private-action":
       await submitPrivateAction({
         button,

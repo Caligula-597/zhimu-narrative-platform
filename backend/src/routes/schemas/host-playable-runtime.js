@@ -26,13 +26,23 @@ export const hostPlayableRuntimeActionSchema = {
     properties: {
       action: {
         type: "string",
-        enum: ["assign_role", "start", "release_content", "release_clue", "advance", "finish"],
+        enum: [
+          "assign_role",
+          "start",
+          "release_content",
+          "release_clue",
+          "advance",
+          "finish",
+          "start_mechanism",
+          "settle_mechanism",
+        ],
       },
       userId: { type: "string" },
       playableRoleId: { type: "string" },
       roleSlotId: { type: "string" },
       contentUnitId: { type: "string" },
       clueId: { type: "string" },
+      placementId: { type: "string" },
     },
   },
 };

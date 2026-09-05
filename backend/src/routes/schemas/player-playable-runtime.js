@@ -25,3 +25,17 @@ export const playerPlayableReadSchema = {
     },
   },
 };
+
+export const playerPlayableMechanismBidSchema = {
+  params: roomParams,
+  body: {
+    type: "object",
+    additionalProperties: false,
+    required: ["placementId", "amount"],
+    properties: {
+      placementId: { type: "string", minLength: 1 },
+      amount: { type: "number" },
+      bidId: { type: "string" },
+    },
+  },
+};

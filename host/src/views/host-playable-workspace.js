@@ -61,10 +61,20 @@ export function renderHostPlayableWorkspace() {
     .join("") || `<p class="muted-note">本幕无可发线索</p>`;
 
   const placements = (view.placements || [])
-    .map(
-      (p) =>
-        `<div class="host-playable-placement"><strong>${escapeHtml(p.title || p.id)}</strong><span>${escapeHtml(p.note || "暂不可运行 · P7.2")}</span></div>`,
-    )
+    .map((p) => {
+      const status = p.status || "NOT_IMPLEMENTED";
+      let controls = "";
+      if (status === "READY" && p.runnable) {
+        controls = `<button type="button" class="primary-btn" data-action="host-playable-start-mechanism" data-placement-id="${escapeHtml(p.id)}" ${busy ? "disabled" : ""}>开始竞价</button>`;
+      } else if (status === "RUNNING") {
+        controls = `<button type="button" class="primary-btn" data-action="host-playable-settle-mechanism" data-placement-id="${escapeHtml(p.id)}" ${busy ? "disabled" : ""}>结算竞价</button>`;
+      } else if (status === "SETTLED") {
+        controls = `<span>已结算 · 赢家 ${escapeHtml(p.winnerRoleId || "—")} · 获得仓房优先查验权</span>`;
+      } else if (status === "NOT_IMPLEMENTED") {
+        controls = `<span>${escapeHtml(p.note || "暂不可运行 · P7.3")}</span>`;
+      }
+      return `<div class="host-playable-placement"><div><strong>${escapeHtml(p.title || p.id)}</strong><small>${escapeHtml(status)}${p.runtimeInstanceId ? ` · ${escapeHtml(p.runtimeInstanceId.slice(0, 18))}…` : ""}</small></div>${controls}</div>`;
+    })
     .join("") || `<p class="muted-note">本幕无玩法位置</p>`;
 
   const stageLabel =

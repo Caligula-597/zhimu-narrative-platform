@@ -11,6 +11,8 @@ import {
   releaseRoomPlayableClue,
   advanceRoomPlayableStage,
   finishRoomPlayableSession,
+  startRoomPlayableMechanism,
+  settleRoomPlayableMechanism,
 } from "../room-playable-runtime-service.js";
 import { requireHostMembership } from "./host-route-guards.js";
 import {
@@ -106,6 +108,20 @@ export async function registerHostPlayableRuntimeRoutes(app) {
           }
           if (action === "finish") {
             return finishRoomPlayableSession({ roomId, actorId });
+          }
+          if (action === "start_mechanism") {
+            return startRoomPlayableMechanism({
+              roomId,
+              actorId,
+              placementId: request.body.placementId,
+            });
+          }
+          if (action === "settle_mechanism") {
+            return settleRoomPlayableMechanism({
+              roomId,
+              actorId,
+              placementId: request.body.placementId,
+            });
           }
           const err = new Error(`Unknown action ${action}`);
           err.code = "UNKNOWN_ACTION";

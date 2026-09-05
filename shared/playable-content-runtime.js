@@ -1,13 +1,20 @@
 /**
- * P7.1 Content Runtime — pure StageRuntime + visibility (no GAME execution).
+ * P7.1 Content Runtime + P7.2 permission/state overlay hooks.
  *
  * PlayableProject snapshot is immutable; all mutability lives in PlayableRuntimeState.
+ * GAME execution lives in playable-mechanism-bridge.js (does not belong here).
  */
 
 import {
   normalizePlayableProject,
-  listContentUnitsForRole,
 } from "./playable-project-contracts.js";
+import {
+  permissionAllowsContent,
+  permissionAllowsClue,
+  staticAudienceAllows,
+  roleHasPermission,
+  normalizePermissionGrant,
+} from "./playable-runtime-effects.js";
 
 export const PLAYABLE_RUNTIME_SCHEMA_VERSION = 1;
 
@@ -17,6 +24,9 @@ export const PLACEMENT_RUNTIME_STATUSES = Object.freeze([
   "AVAILABLE_LATER",
   "NOT_IMPLEMENTED",
   "WAITING_HOST",
+  "READY",
+  "RUNNING",
+  "SETTLED",
 ]);
 
 export class PlayableContentRuntimeError extends Error {
@@ -91,6 +101,13 @@ export function normalizePlayableRuntimeState(value) {
         : "NOT_IMPLEMENTED",
       note: record(p).note != null ? String(record(p).note) : undefined,
     })),
+    permissionGrants: asArray(src.permissionGrants).map(normalizePermissionGrant),
+    keyStates: record(src.keyStates),
+    mechanismExecutions:
+      src.mechanismExecutions && typeof src.mechanismExecutions === "object" && !Array.isArray(src.mechanismExecutions)
+        ? src.mechanismExecutions
+        : {},
+    appliedEffectKeys: asArray(src.appliedEffectKeys).map(String),
     startedAt: src.startedAt != null ? String(src.startedAt) : null,
     updatedAt: src.updatedAt != null ? String(src.updatedAt) : null,
     finishedAt: src.finishedAt != null ? String(src.finishedAt) : null,
@@ -110,6 +127,26 @@ function autoContentIdsForStage(snapshot, stageId) {
 
 function uniquePush(list, id) {
   if (!list.includes(id)) list.push(id);
+}
+
+function activatePlacementsForStage(state, stageId) {
+  return (state.placementStatuses || []).map((ps) => {
+    const placement = (state.playableSnapshot?.mechanismPlacements || []).find(
+      (p) => p.id === ps.placementId,
+    );
+    if (!placement || placement.stageId !== stageId) return ps;
+    const isM03 =
+      placement.familyId === "M03" || String(placement.mechanismTemplateId || "").startsWith("M03");
+    const isM09 =
+      placement.familyId === "M09" || String(placement.mechanismTemplateId || "").startsWith("M09");
+    if (isM09) {
+      return { ...ps, status: "NOT_IMPLEMENTED", note: "P7.3：最终指认暂不执行" };
+    }
+    if (isM03 && (ps.status === "AVAILABLE_LATER" || ps.status === "NOT_IMPLEMENTED" || ps.status === "WAITING_HOST")) {
+      return { ...ps, status: "READY", note: "可开始竞价" };
+    }
+    return ps;
+  });
 }
 
 /**
@@ -137,11 +174,19 @@ export function createPlayableRuntimeState({
       releasedClueIds: [],
     }),
   );
-  const placementStatuses = (snapshot.mechanismPlacements || []).map((p) => ({
-    placementId: p.id,
-    status: "NOT_IMPLEMENTED",
-    note: "P7.1：玩法位置可见，但 Content Runtime 不执行 GAME（P7.2/P7.3）",
-  }));
+  const placementStatuses = (snapshot.mechanismPlacements || []).map((p) => {
+    const isM03 = p.familyId === "M03" || String(p.mechanismTemplateId || "").startsWith("M03");
+    const isM09 = p.familyId === "M09" || String(p.mechanismTemplateId || "").startsWith("M09");
+    return {
+      placementId: p.id,
+      status: isM09 ? "NOT_IMPLEMENTED" : isM03 ? "AVAILABLE_LATER" : "NOT_IMPLEMENTED",
+      note: isM09
+        ? "P7.3：最终指认暂不执行"
+        : isM03
+          ? "等待进入本幕后可启动"
+          : "P7.2：玩法位置暂未桥接",
+    };
+  });
 
   return normalizePlayableRuntimeState({
     roomId,
@@ -157,6 +202,10 @@ export function createPlayableRuntimeState({
     roleAssignments,
     readReceipts: [],
     placementStatuses,
+    permissionGrants: [],
+    keyStates: {},
+    mechanismExecutions: {},
+    appliedEffectKeys: [],
     startedAt: null,
     updatedAt: ts,
     finishedAt: null,
@@ -241,6 +290,7 @@ export function startPlayableSession(runtime, { now } = {}) {
     stageStates,
     releasedContentUnitIds: [...autoIds],
     releasedClueIds: [],
+    placementStatuses: activatePlacementsForStage(state, startId),
     startedAt: ts,
     updatedAt: ts,
     revision: state.revision + 1,
@@ -357,6 +407,10 @@ export function advancePlayableStage(runtime, { now } = {}) {
     currentStageId: nextStage.id,
     stageStates,
     releasedContentUnitIds,
+    placementStatuses: activatePlacementsForStage(
+      { ...state, placementStatuses: state.placementStatuses },
+      nextStage.id,
+    ),
     updatedAt: ts,
     revision: state.revision + 1,
   });
@@ -407,6 +461,8 @@ function stageIsOpen(stageState) {
 
 /**
  * Backend authority: what a role may see RIGHT NOW.
+ * P7.2: Static Audience OR Role Permission; still gated by stage / delivery / condition.
+ * Never mutates ContentUnit.audience (compile contract stays immutable).
  */
 export function resolveVisibleContent({ runtime, roleId }) {
   const state = normalizePlayableRuntimeState(runtime);
@@ -422,8 +478,13 @@ export function resolveVisibleContent({ runtime, roleId }) {
     state.stageStates.filter((s) => stageIsOpen(s)).map((s) => s.stageId),
   );
 
-  const candidates = listContentUnitsForRole(snapshot, roleId);
-  return candidates.filter((cu) => {
+  const eligible = (snapshot.contentUnits || []).filter((cu) => {
+    const byAudience = staticAudienceAllows(snapshot, roleId, cu);
+    const byPermission = permissionAllowsContent(state, roleId, cu.id);
+    return byAudience || byPermission;
+  });
+
+  return eligible.filter((cu) => {
     if (!openStages.has(cu.stageId)) return false;
     if (cu.delivery === "AUTO_ON_STAGE") {
       return released.has(cu.id) || openStages.has(cu.stageId);
@@ -432,7 +493,12 @@ export function resolveVisibleContent({ runtime, roleId }) {
       return released.has(cu.id);
     }
     if (cu.delivery === "CONDITION_UNLOCK") {
-      return released.has(cu.id); // P7.1: never auto; stays locked unless somehow released (should not)
+      if (released.has(cu.id)) return true;
+      const cond = cu.unlockCondition;
+      if (cond?.type === "PERMISSION" && cond.permissionId) {
+        return roleHasPermission(state, roleId, cond.permissionId);
+      }
+      return false;
     }
     return false;
   });
@@ -456,7 +522,9 @@ export function fetchClueForRole(runtime, { roleId, clueId }) {
   const state = normalizePlayableRuntimeState(runtime);
   const clue = state?.playableSnapshot?.clues?.find((c) => c.id === clueId);
   if (!clue) return { ok: false, code: "NOT_FOUND", clue: null, unit: null };
-  if (!state.releasedClueIds.includes(clueId)) {
+  const released = state.releasedClueIds.includes(clueId);
+  const byPermission = permissionAllowsClue(state, roleId, clueId);
+  if (!released && !byPermission) {
     return { ok: false, code: "FORBIDDEN", clue: null, unit: null };
   }
   const content = fetchContentUnitForRole(state, { roleId, contentUnitId: clue.contentUnitId });
@@ -492,13 +560,20 @@ export function buildHostPlayableView(runtime) {
     .filter((p) => p.stageId === state.currentStageId)
     .map((p) => {
       const st = state.placementStatuses.find((x) => x.placementId === p.id);
+      const exec = state.mechanismExecutions?.[p.id];
+      const isM03 = p.familyId === "M03" || String(p.mechanismTemplateId || "").startsWith("M03");
+      const status = st?.status || "NOT_IMPLEMENTED";
       return {
         id: p.id,
         title: p.title,
         mechanismTemplateId: p.mechanismTemplateId,
-        status: st?.status || "NOT_IMPLEMENTED",
+        familyId: p.familyId,
+        status,
         note: st?.note,
-        runnable: false,
+        runnable: isM03 && (status === "READY" || status === "RUNNING"),
+        runtimeInstanceId: exec?.runtimeInstanceId || null,
+        winnerRoleId: exec?.winnerRoleId || null,
+        result: exec?.result || null,
       };
     });
 
@@ -528,6 +603,8 @@ export function buildHostPlayableView(runtime) {
     releasableContent,
     hostOnlyContent: hostOnly,
     placements,
+    permissionGrants: state.permissionGrants,
+    keyStates: state.keyStates,
     releasedClueIds: state.releasedClueIds,
     playableProjectId: state.playableProjectId,
     playableFingerprint: state.playableFingerprint,
@@ -543,7 +620,6 @@ export function buildPlayerPlayableView(runtime, { playableRoleId }) {
   const units = resolveVisibleContent({ runtime: state, roleId: playableRoleId });
   const texts = units.filter((u) => u.type === "TEXT" || u.type === "SYSTEM" || u.type === "REVEAL");
   const clues = (snapshot?.clues || [])
-    .filter((c) => state.releasedClueIds.includes(c.id))
     .map((c) => {
       const got = fetchClueForRole(state, { roleId: playableRoleId, clueId: c.id });
       return got.ok ? { clue: c, content: got.unit } : null;
@@ -552,13 +628,28 @@ export function buildPlayerPlayableView(runtime, { playableRoleId }) {
 
   const placements = (snapshot?.mechanismPlacements || [])
     .filter((p) => p.stageId === state.currentStageId)
-    .map((p) => ({
-      id: p.id,
-      title: p.title,
-      status: "WAITING_HOST",
-      note: "等待主持开始（P7.2 后可运行）",
-      runnable: false,
-    }));
+    .map((p) => {
+      const st = state.placementStatuses.find((x) => x.placementId === p.id);
+      const exec = state.mechanismExecutions?.[p.id];
+      const status = st?.status || "WAITING_HOST";
+      const isM03 = p.familyId === "M03" || String(p.mechanismTemplateId || "").startsWith("M03");
+      return {
+        id: p.id,
+        title: p.title,
+        status,
+        note:
+          status === "RUNNING"
+            ? "竞价进行中，请出价"
+            : status === "SETTLED"
+              ? `已结算${exec?.winnerRoleId === playableRoleId ? " · 你是赢家" : ""}`
+              : status === "READY"
+                ? "等待主持开始"
+                : st?.note || "等待主持开始",
+        runnable: isM03 && status === "RUNNING",
+        canBid: isM03 && status === "RUNNING",
+        winnerRoleId: exec?.winnerRoleId || null,
+      };
+    });
 
   return {
     status: state.status,
@@ -569,6 +660,8 @@ export function buildPlayerPlayableView(runtime, { playableRoleId }) {
     contentUnits: texts,
     clues,
     placements,
+    permissionGrants: state.permissionGrants.filter((g) => g.targetRoleId === playableRoleId),
+    keyStates: state.keyStates,
     readReceipts: state.readReceipts.filter((r) => r.roleId === playableRoleId),
   };
 }

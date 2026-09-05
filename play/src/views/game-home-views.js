@@ -345,10 +345,15 @@ function renderPlayableProgress() {
         ${
           placements.length
             ? placements
-                .map(
-                  (p) =>
-                    `<div class="playable-placement"><strong>${escapeHtml(p.title || p.id)}</strong><p>${escapeHtml(p.note || "等待主持开始")}</p><button type="button" class="btn quiet compact" disabled>暂不可运行</button></div>`,
-                )
+                .map((p) => {
+                  const bidUi =
+                    p.canBid
+                      ? `<div class="playable-bid-row"><input type="number" min="1" step="1" value="5" data-playable-bid-amount data-placement-id="${escapeHtml(p.id)}" /><button type="button" class="btn primary compact" data-action="playable-mechanism-bid" data-placement-id="${escapeHtml(p.id)}">出价</button></div>`
+                      : p.runnable === false && p.status !== "SETTLED"
+                        ? `<button type="button" class="btn quiet compact" disabled>暂不可运行</button>`
+                        : "";
+                  return `<div class="playable-placement"><strong>${escapeHtml(p.title || p.id)}</strong><p>${escapeHtml(p.note || "")}</p>${bidUi}</div>`;
+                })
                 .join("")
             : `<p class="muted">本幕无玩法</p>`
         }

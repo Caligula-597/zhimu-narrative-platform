@@ -75,6 +75,24 @@ export function createHostPlayableController({ render, showToast }) {
       await run("结束本局", () => submitHostPlayableAction({ action: "finish" }));
       return true;
     }
+    if (action === "host-playable-start-mechanism") {
+      await run("开始竞价", () =>
+        submitHostPlayableAction({
+          action: "start_mechanism",
+          placementId: element?.dataset?.placementId || "",
+        }),
+      );
+      return true;
+    }
+    if (action === "host-playable-settle-mechanism") {
+      await run("结算竞价", () =>
+        submitHostPlayableAction({
+          action: "settle_mechanism",
+          placementId: element?.dataset?.placementId || "",
+        }),
+      );
+      return true;
+    }
     return false;
   }
 
