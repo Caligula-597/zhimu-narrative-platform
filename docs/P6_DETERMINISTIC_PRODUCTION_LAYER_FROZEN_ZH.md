@@ -96,12 +96,12 @@ P8.0 Multi-Script Generalization Audit  ✅ 完成
     From-zero Technical Vertical Slice ✅ CLOSED
 
 ↓
-题材实例化 / Variant / GAME narrative / 真实 Writer（内容产品阶段）
-
-↓
-Config → CompleteScriptPackage
-→ Playable Compiler
-→ Runtime
+P9 Content Factory Quality
+  · P9.0 Semantic Fidelity ✅（docs/P9_0_SEMANTIC_FIDELITY_ZH.md）
+  · P9.1 Context Instantiation
+  · P9.2 GAME Narrative Binding
+  · P9.3 Real Writer V1
+  · P9.4 Content Quality Gate
 ```
 
 ## 双层验收（P8 起正式采用）

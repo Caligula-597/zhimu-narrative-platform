@@ -493,6 +493,41 @@ const M07_2 = pack(
       description: "上游机制产出指定结算码后发放。",
       beatPattern: { setup: "登记结算码条件", develop: "等待正式结算", resolve: "码命中则发放" },
       defaults: { firstAnomaly: "结算结果与某人反应异常吻合", decisiveReveal: "结算码触发内容包" },
+      semanticOverrides: {
+        phases: {
+          progression: {
+            goal: "用结算码换取被条件锁住的信息",
+            action: "提交或验证结算码以触发内容开放",
+            target: "结算码",
+            actionKind: "SUBMIT_CODE",
+            requires: [
+              {
+                id: "settlement_code_trigger",
+                factType: "settlement_code_trigger",
+                kind: "settlement_code_trigger",
+                summary: "结算码触发条件已满足",
+                sourceKind: "EXTERNAL_TRIGGER",
+                sourceRef: "settlement_code_trigger",
+              },
+            ],
+            produces: [
+              {
+                id: "identity_clue",
+                factType: "identity_clue",
+                kind: "identity_clue",
+                summary: "结算码解锁的信息",
+              },
+            ],
+          },
+        },
+      },
+      semanticExpectations: {
+        requiredGoalTokens: ["结算码"],
+        forbiddenGoalTokens: ["登记条件", "签名"],
+        requiredActionKind: "SUBMIT_CODE",
+        requiredFactTypes: ["settlement_code_trigger"],
+        requiredTargetTokens: ["结算码"],
+      },
     }),
     variant({
       id: "V02",
@@ -501,6 +536,41 @@ const M07_2 = pack(
       beatPattern: { setup: "权限与内容绑定", develop: "权限被合法使用", resolve: "内容发放给指定接收者" },
       preferredSlots: ["bearer", "revealer"],
       defaults: { concealmentReason: "必须先获得行动资格" },
+      semanticOverrides: {
+        phases: {
+          progression: {
+            goal: "用已声明权限换取被条件锁住的信息",
+            action: "合法使用预声明权限以触发内容开放",
+            target: "预声明权限",
+            actionKind: "USE_PERMISSION",
+            requires: [
+              {
+                id: "permission_trigger",
+                factType: "permission_trigger",
+                kind: "permission_trigger",
+                summary: "权限使用触发条件已满足",
+                sourceKind: "EXTERNAL_TRIGGER",
+                sourceRef: "permission_trigger",
+              },
+            ],
+            produces: [
+              {
+                id: "identity_clue",
+                factType: "identity_clue",
+                kind: "identity_clue",
+                summary: "权限触发解锁的信息",
+              },
+            ],
+          },
+        },
+      },
+      semanticExpectations: {
+        requiredGoalTokens: ["权限"],
+        forbiddenGoalTokens: ["结算码", "登记条件"],
+        requiredActionKind: "USE_PERMISSION",
+        requiredFactTypes: ["permission_trigger"],
+        requiredTargetTokens: ["权限"],
+      },
     }),
     variant({
       id: "V03",

@@ -211,9 +211,9 @@ function buildBeats(template, variant, roleBindings, plot, clues, sourceBlockId 
           "beat-false",
           stages[2]?.id || "FALSE_DIRECTION",
           `${pattern.falseDirection || pattern.develop || ""} ${plot.apparentConclusion || plot.falseLead || ""}`.trim(),
-          ["framedCharacter", "subject"],
+          ["framedCharacter", "subject", "discoverer"],
           clues[0] ? [clues[0].clueId] : [],
-          1,
+          2,
         ),
         make(
           "beat-contra",
@@ -221,7 +221,7 @@ function buildBeats(template, variant, roleBindings, plot, clues, sourceBlockId 
           `${pattern.contradiction || ""} ${plot.contradiction || ""}`.trim(),
           ["discoverer", "investigator", "witness"],
           clues[1] ? [clues[1].clueId] : [],
-          2,
+          3,
         ),
       ],
       climax: [
@@ -231,7 +231,7 @@ function buildBeats(template, variant, roleBindings, plot, clues, sourceBlockId 
           `${pattern.reveal || pattern.resolve || ""} ${plot.decisiveEvidence || plot.coreReveal || ""}`.trim(),
           ["culprit", "framedCharacter", "focusCharacter", "decisionMaker"],
           clues.slice(2).map((c) => c.clueId),
-          2,
+          4,
         ),
       ],
       resolution: [
@@ -241,7 +241,7 @@ function buildBeats(template, variant, roleBindings, plot, clues, sourceBlockId 
           `${template.title}收束。${plot.concealmentMethod || plot.endingA || plot.openCondition || ""}`.trim(),
           Object.keys(roleBindings),
           clues.slice(-1).map((c) => c.clueId),
-          3,
+          4,
         ),
       ],
     };

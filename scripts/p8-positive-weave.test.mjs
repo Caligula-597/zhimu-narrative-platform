@@ -246,7 +246,7 @@ describe("P8.0.5 POS-SHARED-ACTION-01", () => {
 });
 
 describe("P8.0.5 same-block story chain closes", () => {
-  it("M01-style false_lead → suspicion → contradiction closes", () => {
+  it("M01-style false_lead → planted → false_suspicion → contradiction closes", () => {
     const blockId = "m01";
     const b0 = makeBeat({
       id: "b0",
@@ -261,24 +261,36 @@ describe("P8.0.5 same-block story chain closes", () => {
       phaseBand: 1,
       characterIds: ["K"],
       requires: [{ factType: "false_lead", sourceKind: "STORY_FACT" }],
-      produces: [{ factType: "suspicion" }],
+      produces: [
+        { factType: "crime_done" },
+        { factType: "planted_evidence_available" },
+      ],
     });
     const b2 = makeBeat({
       id: "b2",
       blockId,
       phaseBand: 2,
       characterIds: ["D"],
-      requires: [{ factType: "suspicion", sourceKind: "STORY_FACT" }],
-      produces: [{ factType: "contradiction" }],
+      requires: [{ factType: "planted_evidence_available", sourceKind: "STORY_FACT" }],
+      produces: [{ factType: "false_suspicion" }],
     });
     const b3 = makeBeat({
       id: "b3",
       blockId,
       phaseBand: 3,
       characterIds: ["D"],
-      requires: [{ factType: "contradiction", sourceKind: "STORY_FACT" }],
+      requires: [{ factType: "false_suspicion", sourceKind: "STORY_FACT" }],
+      produces: [{ factType: "contradiction" }],
     });
-    const stages = [{ id: "s1", order: 0, beats: [b0, b1, b2, b3] }];
+    const b4 = makeBeat({
+      id: "b4",
+      blockId,
+      phaseBand: 4,
+      characterIds: ["D"],
+      requires: [{ factType: "contradiction", sourceKind: "STORY_FACT" }],
+      produces: [{ factType: "truth_locked" }],
+    });
+    const stages = [{ id: "s1", order: 0, beats: [b0, b1, b2, b3, b4] }];
     const closure = auditRequirementClosure({ stages, factBridges: [] });
     assert.equal(closure.summary.unsatisfied, 0, JSON.stringify(closure.rows, null, 2));
     assert.equal(closure.summary.unclassified, 0);

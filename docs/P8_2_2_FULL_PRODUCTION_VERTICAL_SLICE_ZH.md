@@ -46,3 +46,5 @@ Creation Intent → STORY → Master Outline → PMD V2
 技术闭环 ≠ 商业内容质量。下一阶段切到题材实例化 / Variant / M01 crime-false / GAME narrative / 真实 Writer。
 
 **不要再开 P8.2.3 补基础架构。**
+
+下一阶段：**P9 Content Factory Quality**（首刀 P9.0 Semantic Fidelity，见 `docs/P9_0_SEMANTIC_FIDELITY_ZH.md`）。

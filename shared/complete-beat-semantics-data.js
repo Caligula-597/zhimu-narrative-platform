@@ -14,6 +14,7 @@ function bridge(spec) {
     defaultLocation: "关键场所",
     ...spec,
     roleGoals: Object.freeze(spec.roleGoals || {}),
+    phaseNames: spec.phaseNames ? Object.freeze({ ...spec.phaseNames }) : undefined,
     phases: Object.freeze(
       Object.fromEntries(
         Object.entries(spec.phases || {}).map(([k, v]) => [k, phase(v)]),
@@ -61,6 +62,14 @@ function fact(id, summary) {
 const M01 = bridge({
   defaultActorRole: "culprit",
   defaultLocation: "案发现场周边",
+  /** Named phases for Variant overrides / fidelity audit */
+  phaseNames: Object.freeze({
+    0: "setup",
+    1: "crime",
+    2: "falseDirection",
+    3: "contradiction",
+    4: "reveal",
+  }),
   roleGoals: {
     culprit: "掩盖罪行并维持嫁祸",
     framedCharacter: "洗清自己的嫌疑",
@@ -80,31 +89,42 @@ const M01 = bridge({
     },
     1: {
       primaryRole: "culprit",
-      goal: "完成犯行并指向{framed}",
-      action: "实施犯行并留下指向{framed}的痕迹",
+      goal: "完成犯行并维持对{framed}的嫁祸条件",
+      action: "实施犯罪并留下指向{framed}的误导证据",
       target: "{evidence}",
       actionKind: "COMMIT",
       locationHint: "案发现场",
       requires: [storyReq("false_lead", "误导物")],
       produces: [
         fact("crime_done", "犯行已发生"),
-        fact("suspicion", "错误嫌疑成立"),
+        fact("planted_evidence_available", "误导证据可供发现与解读"),
       ],
       opposes: [fact("clear_framed", "洗清被嫁祸者")],
       independence: "DEPENDENT",
     },
     2: {
       primaryRole: "discoverer",
-      goal: "推翻对{framed}的错误判断",
-      action: "对照现场与证物寻找矛盾",
+      goal: "根据当前证据判断案情并形成对{framed}的主要嫌疑",
+      action: "发现并解读误导证据，把{framed}视为主要嫌疑人",
       target: "{evidence}",
-      actionKind: "INVESTIGATE",
+      actionKind: "MISREAD",
       locationHint: "案发现场",
-      requires: [storyReq("suspicion", "错误嫌疑")],
-      produces: [fact("contradiction", "反证出现")],
+      requires: [storyReq("planted_evidence_available", "可解读的误导证据")],
+      produces: [fact("false_suspicion", "错误嫌疑进入调查")],
       independence: "SHAREABLE",
     },
     3: {
+      primaryRole: "discoverer",
+      goal: "推翻对{framed}的错误判断",
+      action: "对照现场与证物寻找错误嫌疑无法解释的矛盾",
+      target: "{evidence}",
+      actionKind: "INVESTIGATE",
+      locationHint: "案发现场",
+      requires: [storyReq("false_suspicion", "错误嫌疑")],
+      produces: [fact("contradiction", "反证出现")],
+      independence: "SHAREABLE",
+    },
+    4: {
       primaryRole: "discoverer",
       goal: "锁定真凶{culprit}",
       action: "用决定性证据揭穿嫁祸",
@@ -121,6 +141,12 @@ function m07Bridge(extra = {}) {
   return bridge({
     defaultActorRole: "bearer",
     defaultLocation: "藏有记录的场所",
+    phaseNames: Object.freeze({
+      0: "setup",
+      1: "progression",
+      2: "climax",
+      3: "resolution",
+    }),
     roleGoals: {
       bearer: "确认或保护自己的真实身份",
       knower: "决定是否公开所知身份信息",
@@ -187,6 +213,12 @@ function m08Bridge(extra = {}) {
   return bridge({
     defaultActorRole: "factionLead",
     defaultLocation: "阵营关键据点",
+    phaseNames: Object.freeze({
+      0: "setup",
+      1: "progression",
+      2: "climax",
+      3: "resolution",
+    }),
     roleGoals: {
       factionLead: "推动阵营目标达成",
       memberA: "完成阵营任务并保护同伴",
@@ -367,9 +399,12 @@ export const COMPLETE_BEAT_SEMANTICS = Object.freeze({
   }),
   "M08-7": m08Bridge({
     p1: {
-      goal: "让公共任务按本阵营偏好成功、失败或延迟",
-      action: "对公共任务施加正式破坏或支援",
+      // Base family semantics — Variant override specializes success vs failure
+      goal: "按本阵营对公共任务的立场偏好施加影响",
+      action: "对公共任务施加正式支援或破坏",
       target: "公共任务状态",
+      actionKind: "INFLUENCE_PUBLIC_TASK",
+      produces: [fact("faction_pressure", "公共任务立场压力")],
     },
   }),
   "M08-8": m08Bridge({

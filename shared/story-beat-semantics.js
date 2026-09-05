@@ -84,9 +84,43 @@ function fill(template, ctx) {
   return String(template).replace(/\{(\w+)\}/g, (_, k) => ctx[k] ?? `{${k}}`);
 }
 
+function mergePhaseSpec(basePhase, patch) {
+  if (!patch || typeof patch !== "object") return basePhase || {};
+  const base = basePhase || {};
+  return {
+    ...base,
+    ...patch,
+    requires: patch.requires !== undefined ? patch.requires : base.requires,
+    produces: patch.produces !== undefined ? patch.produces : base.produces,
+    opposes: patch.opposes !== undefined ? patch.opposes : base.opposes,
+    protects: patch.protects !== undefined ? patch.protects : base.protects,
+  };
+}
+
+/**
+ * Resolve phase row: base bridge phase + optional variant.semanticOverrides.phases
+ * Keys may be numeric phaseBand, string band, or phaseNames (setup/progression/crime/…).
+ */
+export function resolvePhaseSpec(bridge, phaseBand, variant = null) {
+  const phases = bridge?.phases || {};
+  const base = phases[String(phaseBand)] || phases[phaseBand] || phases.default || {};
+  const overrides = record(variant?.semanticOverrides).phases || {};
+  const phaseName =
+    bridge?.phaseNames?.[String(phaseBand)] ||
+    bridge?.phaseNames?.[phaseBand] ||
+    null;
+  const patch =
+    overrides[String(phaseBand)] ||
+    overrides[phaseBand] ||
+    (phaseName ? overrides[phaseName] : null) ||
+    null;
+  return mergePhaseSpec(base, patch);
+}
+
 /**
  * 从 template.semanticsBridge + 角色绑定生成某 phase 的 BeatSemantics。
  * bridge 形状见 complete-beat-semantics-data.js
+ * P9.0: variant.semanticOverrides.phases merge into base phase (generic, no family if).
  */
 export function resolveBeatSemantics({
   bridge,
@@ -99,8 +133,7 @@ export function resolveBeatSemantics({
   sourceBeatId = null,
 } = {}) {
   if (!bridge) return null;
-  const phases = bridge.phases || {};
-  const phase = phases[String(phaseBand)] || phases[phaseBand] || phases.default || {};
+  const phase = resolvePhaseSpec(bridge, phaseBand, variant);
   const roleGoals = { ...(bridge.roleGoals || {}), ...(variant?.roleGoals || {}) };
   const primaryRole =
     phase.primaryRole ||
