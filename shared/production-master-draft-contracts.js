@@ -48,6 +48,8 @@ export const MASTER_DRAFT_WARNING_TYPES = Object.freeze([
   "MISSING_CLUE_DETAIL",
   "PARALLEL_HEAVY",
   "UNRESOLVED_CONFLICT",
+  "OWNER_UNRESOLVED",
+  "OWNER_RESOLUTION_AMBIGUOUS",
 ]);
 
 export const STRUCTURE_CHANGE_TYPES = Object.freeze([
@@ -138,6 +140,8 @@ export function normalizeProductionBeatDraft(value = {}) {
       };
     }),
     ownerCharacterIds: asArray(src.ownerCharacterIds).map(String).filter(Boolean),
+    ownerUnresolved: Boolean(src.ownerUnresolved),
+    ownerAmbiguous: Boolean(src.ownerAmbiguous),
     goal: cleanText(src.goal, 200) || undefined,
     action: cleanText(src.action, 200) || undefined,
     target: cleanText(src.target, 160) || undefined,

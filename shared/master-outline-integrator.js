@@ -35,6 +35,7 @@ import {
   positionIsBefore,
   factIdOf,
 } from "./semantic-fact.js";
+import { resolveBeatOwnerRefs, applyOwnerResolution } from "./beat-owner-authority.js";
 
 const ACCEPTED = new Set(["USER_ACCEPTED", "USER_MODIFIED", "LOCKED"]);
 
@@ -120,13 +121,16 @@ function sharedActionEvidence(sa, sb, { sharedCharacterIds = [] } = {}) {
   };
 }
 
-function flattenSourceBeats(block) {
+function flattenSourceBeats(block, { roleAssignments = [], characters = [] } = {}) {
   const phases = [
     ["setup", 0],
     ["progression", 1],
     ["climax", 2],
     ["resolution", 3],
   ];
+  const blockAssignments = asArray(roleAssignments).filter(
+    (r) => r.mechanismBlockId === block.id || r.mechanismId === block.mechanismId,
+  );
   const out = [];
   for (const [phase, band] of phases) {
     for (const beat of block[phase] || []) {
@@ -135,11 +139,18 @@ function flattenSourceBeats(block) {
         ...(beat.involvedRoleKeys || []).map((k) => block.roleBindings?.[k]?.id).filter(Boolean),
       ].filter((id, i, arr) => arr.indexOf(id) === i);
 
-      const semantics = ensureScopedBeatSemantics(beat.semantics, {
+      let semantics = ensureScopedBeatSemantics(beat.semantics, {
         sourceBlockId: block.id,
         sourceBeatId: beat.id,
         characterIds,
       });
+      const owner = resolveBeatOwnerRefs({
+        semantics,
+        roleBindings: block.roleBindings || {},
+        roleAssignments: blockAssignments,
+        characters,
+      });
+      semantics = applyOwnerResolution(semantics, owner);
 
       let summary = beat.summary || `${block.title} · ${phase}`;
       if (isInternalCompletionSummary(summary) && semantics) {
@@ -170,6 +181,10 @@ function flattenSourceBeats(block) {
     }
   }
   return out;
+}
+
+function asArray(value) {
+  return Array.isArray(value) ? value : [];
 }
 
 /** 仅 unlocked / 自动推导幕数时压缩空幕；locked project stages 禁止 collapse */
@@ -472,7 +487,12 @@ export function buildMasterOutlineDraft(projectStoryState, { now = () => new Dat
     });
   }
 
-  const allBeats = blocks.flatMap(flattenSourceBeats);
+  const allBeats = blocks.flatMap((block) =>
+    flattenSourceBeats(block, {
+      roleAssignments: state.roleAssignments,
+      characters: state.characters,
+    }),
+  );
   const topology = planStageTopology({ projectStages: state.stages, beats: allBeats });
   let stages = materializeTopologyStages(topology);
   distributeBeatsIntoStages(stages, allBeats);

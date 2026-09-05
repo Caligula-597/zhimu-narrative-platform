@@ -1,10 +1,10 @@
 {
-  "id": "mod-mto3mksp-cc6x",
+  "id": "mod-mto4d065-c62m",
   "version": 1,
   "sourceStoryStateRevision": 0,
   "sourceBlockIds": [
-    "smb-mto3mksn-kph23",
-    "smb-mto3mkso-wntrk"
+    "smb-mto4d064-7x8zw",
+    "smb-mto4d064-odaiq"
   ],
   "createdAt": "2026-09-05T00:00:00.000Z",
   "updatedAt": "2026-09-05T00:00:00.000Z",
@@ -16,8 +16,8 @@
       "order": 0,
       "beats": [
         {
-          "id": "ob-mto3mksp-66eo",
-          "sourceBlockId": "smb-mto3mksn-kph23",
+          "id": "ob-mto4d065-vsag",
+          "sourceBlockId": "smb-mto4d064-7x8zw",
           "sourceBeatId": "beat-setup",
           "familyId": "M08",
           "templateId": "M08-1",
@@ -30,7 +30,7 @@
             "L2"
           ],
           "clueIds": [
-            "smb-mto3mksn-kph23-faction_foreshadow-0"
+            "smb-mto4d064-7x8zw-faction_foreshadow-0"
           ],
           "weaveGroupId": null,
           "semantics": {
@@ -44,9 +44,9 @@
             "requires": [],
             "produces": [
               {
-                "factId": "fact:smb-mto3mksn-kph23:beat-setup:faction:L1",
+                "factId": "fact:smb-mto4d064-7x8zw:beat-setup:faction:L1",
                 "factType": "faction",
-                "id": "fact:smb-mto3mksn-kph23:beat-setup:faction:L1",
+                "id": "fact:smb-mto4d064-7x8zw:beat-setup:faction:L1",
                 "kind": "faction",
                 "scope": {
                   "characterIds": [
@@ -55,7 +55,7 @@
                   "entityIds": [],
                   "factionIds": [],
                   "locationIds": [],
-                  "sourceBlockId": "smb-mto3mksn-kph23",
+                  "sourceBlockId": "smb-mto4d064-7x8zw",
                   "global": false
                 },
                 "summary": "阵营结构已成形"
@@ -66,13 +66,16 @@
             "locationHint": "私下会合点",
             "actionKind": "ORGANIZE",
             "independence": "INDEPENDENT",
-            "needsDetail": false
+            "needsDetail": false,
+            "actorResolution": {
+              "source": "DIRECT"
+            }
           },
           "needsDetail": false
         },
         {
-          "id": "ob-mto3mksp-1xlh",
-          "sourceBlockId": "smb-mto3mkso-wntrk",
+          "id": "ob-mto4d065-62lu",
+          "sourceBlockId": "smb-mto4d064-odaiq",
           "sourceBeatId": "beat-setup",
           "familyId": "M07",
           "templateId": "M07-2",
@@ -85,7 +88,7 @@
             "L3"
           ],
           "clueIds": [
-            "smb-mto3mkso-wntrk-foreshadow-0"
+            "smb-mto4d064-odaiq-foreshadow-0"
           ],
           "weaveGroupId": null,
           "semantics": {
@@ -99,9 +102,9 @@
             "requires": [],
             "produces": [
               {
-                "factId": "fact:smb-mto3mkso-wntrk:beat-setup:identity:L2",
+                "factId": "fact:smb-mto4d064-odaiq:beat-setup:identity:L2",
                 "factType": "identity",
-                "id": "fact:smb-mto3mkso-wntrk:beat-setup:identity:L2",
+                "id": "fact:smb-mto4d064-odaiq:beat-setup:identity:L2",
                 "kind": "identity",
                 "scope": {
                   "characterIds": [
@@ -110,7 +113,7 @@
                   "entityIds": [],
                   "factionIds": [],
                   "locationIds": [],
-                  "sourceBlockId": "smb-mto3mkso-wntrk",
+                  "sourceBlockId": "smb-mto4d064-odaiq",
                   "global": false
                 },
                 "summary": "身份仍未公开"
@@ -121,7 +124,10 @@
             "locationHint": "日常活动场所",
             "actionKind": "CONCEAL",
             "independence": "INDEPENDENT",
-            "needsDetail": false
+            "needsDetail": false,
+            "actorResolution": {
+              "source": "DIRECT"
+            }
           },
           "needsDetail": false
         }
@@ -133,8 +139,8 @@
       "order": 1,
       "beats": [
         {
-          "id": "ob-mto3mksp-lka0",
-          "sourceBlockId": "smb-mto3mksn-kph23",
+          "id": "ob-mto4d065-alyx",
+          "sourceBlockId": "smb-mto4d064-7x8zw",
           "sourceBeatId": "beat-develop",
           "familyId": "M08",
           "templateId": "M08-1",
@@ -150,7 +156,7 @@
             "L5"
           ],
           "clueIds": [
-            "smb-mto3mksn-kph23-faction_foreshadow-0"
+            "smb-mto4d064-7x8zw-faction_foreshadow-0"
           ],
           "weaveGroupId": null,
           "semantics": {
@@ -163,9 +169,9 @@
             "target": "关键账册或信物",
             "requires": [
               {
-                "factId": "fact:smb-mto3mksn-kph23:beat-develop:access:L1",
+                "factId": "fact:smb-mto4d064-7x8zw:beat-develop:access:L1",
                 "factType": "access",
-                "id": "fact:smb-mto3mksn-kph23:beat-develop:access:L1",
+                "id": "fact:smb-mto4d064-7x8zw:beat-develop:access:L1",
                 "kind": "access",
                 "scope": {
                   "characterIds": [
@@ -174,15 +180,15 @@
                   "entityIds": [],
                   "factionIds": [],
                   "locationIds": [],
-                  "sourceBlockId": "smb-mto3mksn-kph23",
+                  "sourceBlockId": "smb-mto4d064-7x8zw",
                   "global": false
                 },
                 "summary": "关键场所可进入"
               },
               {
-                "factId": "fact:smb-mto3mksn-kph23:beat-develop:faction:L1",
+                "factId": "fact:smb-mto4d064-7x8zw:beat-develop:faction:L1",
                 "factType": "faction",
-                "id": "fact:smb-mto3mksn-kph23:beat-develop:faction:L1",
+                "id": "fact:smb-mto4d064-7x8zw:beat-develop:faction:L1",
                 "kind": "faction",
                 "scope": {
                   "characterIds": [
@@ -191,7 +197,7 @@
                   "entityIds": [],
                   "factionIds": [],
                   "locationIds": [],
-                  "sourceBlockId": "smb-mto3mksn-kph23",
+                  "sourceBlockId": "smb-mto4d064-7x8zw",
                   "global": false
                 },
                 "summary": "阵营已成形"
@@ -199,9 +205,9 @@
             ],
             "produces": [
               {
-                "factId": "fact:smb-mto3mksn-kph23:beat-develop:faction:L1",
+                "factId": "fact:smb-mto4d064-7x8zw:beat-develop:faction:L1",
                 "factType": "faction",
-                "id": "fact:smb-mto3mksn-kph23:beat-develop:faction:L1",
+                "id": "fact:smb-mto4d064-7x8zw:beat-develop:faction:L1",
                 "kind": "faction",
                 "scope": {
                   "characterIds": [
@@ -210,7 +216,7 @@
                   "entityIds": [],
                   "factionIds": [],
                   "locationIds": [],
-                  "sourceBlockId": "smb-mto3mksn-kph23",
+                  "sourceBlockId": "smb-mto4d064-7x8zw",
                   "global": false
                 },
                 "summary": "阵营压力升级"
@@ -218,9 +224,9 @@
             ],
             "opposes": [
               {
-                "factId": "fact:smb-mto3mksn-kph23:beat-develop:truth:L1",
+                "factId": "fact:smb-mto4d064-7x8zw:beat-develop:truth:L1",
                 "factType": "truth",
-                "id": "fact:smb-mto3mksn-kph23:beat-develop:truth:L1",
+                "id": "fact:smb-mto4d064-7x8zw:beat-develop:truth:L1",
                 "kind": "truth",
                 "scope": {
                   "characterIds": [
@@ -229,7 +235,7 @@
                   "entityIds": [],
                   "factionIds": [],
                   "locationIds": [],
-                  "sourceBlockId": "smb-mto3mksn-kph23",
+                  "sourceBlockId": "smb-mto4d064-7x8zw",
                   "global": false
                 },
                 "summary": "调查真相公开"
@@ -237,9 +243,9 @@
             ],
             "protects": [
               {
-                "factId": "fact:smb-mto3mksn-kph23:beat-develop:secret:L1",
+                "factId": "fact:smb-mto4d064-7x8zw:beat-develop:secret:L1",
                 "factType": "secret",
-                "id": "fact:smb-mto3mksn-kph23:beat-develop:secret:L1",
+                "id": "fact:smb-mto4d064-7x8zw:beat-develop:secret:L1",
                 "kind": "secret",
                 "scope": {
                   "characterIds": [
@@ -248,7 +254,7 @@
                   "entityIds": [],
                   "factionIds": [],
                   "locationIds": [],
-                  "sourceBlockId": "smb-mto3mksn-kph23",
+                  "sourceBlockId": "smb-mto4d064-7x8zw",
                   "global": false
                 },
                 "summary": "阵营秘密"
@@ -257,13 +263,16 @@
             "locationHint": "关键场所",
             "actionKind": "SECURE",
             "independence": "SHAREABLE",
-            "needsDetail": false
+            "needsDetail": false,
+            "actorResolution": {
+              "source": "DIRECT"
+            }
           },
           "needsDetail": false
         },
         {
-          "id": "ob-mto3mksp-3vg4",
-          "sourceBlockId": "smb-mto3mkso-wntrk",
+          "id": "ob-mto4d065-xus8",
+          "sourceBlockId": "smb-mto4d064-odaiq",
           "sourceBeatId": "beat-develop",
           "familyId": "M07",
           "templateId": "M07-2",
@@ -279,7 +288,7 @@
             "L5"
           ],
           "clueIds": [
-            "smb-mto3mkso-wntrk-foreshadow-0"
+            "smb-mto4d064-odaiq-foreshadow-0"
           ],
           "weaveGroupId": null,
           "semantics": {
@@ -292,9 +301,9 @@
             "target": "身份记录",
             "requires": [
               {
-                "factId": "fact:smb-mto3mkso-wntrk:beat-develop:trigger:L2",
+                "factId": "fact:smb-mto4d064-odaiq:beat-develop:trigger:L2",
                 "factType": "trigger",
-                "id": "fact:smb-mto3mkso-wntrk:beat-develop:trigger:L2",
+                "id": "fact:smb-mto4d064-odaiq:beat-develop:trigger:L2",
                 "kind": "trigger",
                 "scope": {
                   "characterIds": [
@@ -303,7 +312,7 @@
                   "entityIds": [],
                   "factionIds": [],
                   "locationIds": [],
-                  "sourceBlockId": "smb-mto3mkso-wntrk",
+                  "sourceBlockId": "smb-mto4d064-odaiq",
                   "global": false
                 },
                 "summary": "正式触发条件"
@@ -311,9 +320,9 @@
             ],
             "produces": [
               {
-                "factId": "fact:smb-mto3mkso-wntrk:beat-develop:identity_clue:L2",
+                "factId": "fact:smb-mto4d064-odaiq:beat-develop:identity_clue:L2",
                 "factType": "identity_clue",
-                "id": "fact:smb-mto3mkso-wntrk:beat-develop:identity_clue:L2",
+                "id": "fact:smb-mto4d064-odaiq:beat-develop:identity_clue:L2",
                 "kind": "identity_clue",
                 "scope": {
                   "characterIds": [
@@ -322,7 +331,7 @@
                   "entityIds": [],
                   "factionIds": [],
                   "locationIds": [],
-                  "sourceBlockId": "smb-mto3mkso-wntrk",
+                  "sourceBlockId": "smb-mto4d064-odaiq",
                   "global": false
                 },
                 "summary": "条件开放的信息"
@@ -333,7 +342,10 @@
             "locationHint": "藏有记录的场所",
             "actionKind": "SEARCH",
             "independence": "SHAREABLE",
-            "needsDetail": false
+            "needsDetail": false,
+            "actorResolution": {
+              "source": "DIRECT"
+            }
           },
           "needsDetail": false
         }
@@ -345,8 +357,8 @@
       "order": 2,
       "beats": [
         {
-          "id": "ob-mto3mksp-uit5",
-          "sourceBlockId": "smb-mto3mksn-kph23",
+          "id": "ob-mto4d065-qqm4",
+          "sourceBlockId": "smb-mto4d064-7x8zw",
           "sourceBeatId": "beat-climax",
           "familyId": "M08",
           "templateId": "M08-1",
@@ -362,15 +374,15 @@
             "L5"
           ],
           "clueIds": [
-            "smb-mto3mksn-kph23-membership_hint-1",
-            "smb-mto3mksn-kph23-secret_signal-2",
-            "smb-mto3mksn-kph23-recruitment_evidence-3",
-            "smb-mto3mksn-kph23-loyalty_test-4",
-            "smb-mto3mksn-kph23-betrayal_hint-5",
-            "smb-mto3mksn-kph23-internal_conflict-6",
-            "smb-mto3mksn-kph23-hidden_goal_hint-7",
-            "smb-mto3mksn-kph23-membership_confirmation-8",
-            "smb-mto3mksn-kph23-faction_exposure-9"
+            "smb-mto4d064-7x8zw-membership_hint-1",
+            "smb-mto4d064-7x8zw-secret_signal-2",
+            "smb-mto4d064-7x8zw-recruitment_evidence-3",
+            "smb-mto4d064-7x8zw-loyalty_test-4",
+            "smb-mto4d064-7x8zw-betrayal_hint-5",
+            "smb-mto4d064-7x8zw-internal_conflict-6",
+            "smb-mto4d064-7x8zw-hidden_goal_hint-7",
+            "smb-mto4d064-7x8zw-membership_confirmation-8",
+            "smb-mto4d064-7x8zw-faction_exposure-9"
           ],
           "weaveGroupId": null,
           "semantics": {
@@ -381,16 +393,16 @@
             "target": "归属状态",
             "requires": [
               {
-                "factId": "fact:smb-mto3mksn-kph23:beat-climax:faction:block",
+                "factId": "fact:smb-mto4d064-7x8zw:beat-climax:faction:block",
                 "factType": "faction",
-                "id": "fact:smb-mto3mksn-kph23:beat-climax:faction:block",
+                "id": "fact:smb-mto4d064-7x8zw:beat-climax:faction:block",
                 "kind": "faction",
                 "scope": {
                   "characterIds": [],
                   "entityIds": [],
                   "factionIds": [],
                   "locationIds": [],
-                  "sourceBlockId": "smb-mto3mksn-kph23",
+                  "sourceBlockId": "smb-mto4d064-7x8zw",
                   "global": false
                 },
                 "summary": "阵营压力"
@@ -398,31 +410,31 @@
             ],
             "produces": [
               {
-                "factId": "fact:smb-mto3mksn-kph23:beat-climax:faction:block",
+                "factId": "fact:smb-mto4d064-7x8zw:beat-climax:faction:block",
                 "factType": "faction",
-                "id": "fact:smb-mto3mksn-kph23:beat-climax:faction:block",
+                "id": "fact:smb-mto4d064-7x8zw:beat-climax:faction:block",
                 "kind": "faction",
                 "scope": {
                   "characterIds": [],
                   "entityIds": [],
                   "factionIds": [],
                   "locationIds": [],
-                  "sourceBlockId": "smb-mto3mksn-kph23",
+                  "sourceBlockId": "smb-mto4d064-7x8zw",
                   "global": false
                 },
                 "summary": "归属已改变"
               },
               {
-                "factId": "fact:smb-mto3mksn-kph23:beat-climax:exposure:block",
+                "factId": "fact:smb-mto4d064-7x8zw:beat-climax:exposure:block",
                 "factType": "exposure",
-                "id": "fact:smb-mto3mksn-kph23:beat-climax:exposure:block",
+                "id": "fact:smb-mto4d064-7x8zw:beat-climax:exposure:block",
                 "kind": "exposure",
                 "scope": {
                   "characterIds": [],
                   "entityIds": [],
                   "factionIds": [],
                   "locationIds": [],
-                  "sourceBlockId": "smb-mto3mksn-kph23",
+                  "sourceBlockId": "smb-mto4d064-7x8zw",
                   "global": false
                 },
                 "summary": "暴露风险上升"
@@ -433,13 +445,17 @@
             "locationHint": "阵营关键据点",
             "actionKind": "SHIFT",
             "independence": "DEPENDENT",
-            "needsDetail": true
+            "needsDetail": true,
+            "actorResolution": {
+              "source": "UNRESOLVED",
+              "symbolicRole": "defector"
+            }
           },
           "needsDetail": true
         },
         {
-          "id": "ob-mto3mksp-wc5w",
-          "sourceBlockId": "smb-mto3mkso-wntrk",
+          "id": "ob-mto4d065-xzcn",
+          "sourceBlockId": "smb-mto4d064-odaiq",
           "sourceBeatId": "beat-climax",
           "familyId": "M07",
           "templateId": "M07-2",
@@ -455,11 +471,11 @@
             "L5"
           ],
           "clueIds": [
-            "smb-mto3mkso-wntrk-memory_fragment-1",
-            "smb-mto3mkso-wntrk-identity_hint-2",
-            "smb-mto3mkso-wntrk-misdirection-3",
-            "smb-mto3mkso-wntrk-confirmation-4",
-            "smb-mto3mkso-wntrk-decisive_reveal-5"
+            "smb-mto4d064-odaiq-memory_fragment-1",
+            "smb-mto4d064-odaiq-identity_hint-2",
+            "smb-mto4d064-odaiq-misdirection-3",
+            "smb-mto4d064-odaiq-confirmation-4",
+            "smb-mto4d064-odaiq-decisive_reveal-5"
           ],
           "weaveGroupId": null,
           "semantics": {
@@ -472,9 +488,9 @@
             "target": "真实身份",
             "requires": [
               {
-                "factId": "fact:smb-mto3mkso-wntrk:beat-climax:identity_clue:L2",
+                "factId": "fact:smb-mto4d064-odaiq:beat-climax:identity_clue:L2",
                 "factType": "identity_clue",
-                "id": "fact:smb-mto3mkso-wntrk:beat-climax:identity_clue:L2",
+                "id": "fact:smb-mto4d064-odaiq:beat-climax:identity_clue:L2",
                 "kind": "identity_clue",
                 "scope": {
                   "characterIds": [
@@ -483,7 +499,7 @@
                   "entityIds": [],
                   "factionIds": [],
                   "locationIds": [],
-                  "sourceBlockId": "smb-mto3mkso-wntrk",
+                  "sourceBlockId": "smb-mto4d064-odaiq",
                   "global": false
                 },
                 "summary": "身份线索"
@@ -491,9 +507,9 @@
             ],
             "produces": [
               {
-                "factId": "fact:smb-mto3mkso-wntrk:beat-climax:identity:L2",
+                "factId": "fact:smb-mto4d064-odaiq:beat-climax:identity:L2",
                 "factType": "identity",
-                "id": "fact:smb-mto3mkso-wntrk:beat-climax:identity:L2",
+                "id": "fact:smb-mto4d064-odaiq:beat-climax:identity:L2",
                 "kind": "identity",
                 "scope": {
                   "characterIds": [
@@ -502,15 +518,15 @@
                   "entityIds": [],
                   "factionIds": [],
                   "locationIds": [],
-                  "sourceBlockId": "smb-mto3mkso-wntrk",
+                  "sourceBlockId": "smb-mto4d064-odaiq",
                   "global": false
                 },
                 "summary": "身份已确认"
               },
               {
-                "factId": "fact:smb-mto3mkso-wntrk:beat-climax:status:L2",
+                "factId": "fact:smb-mto4d064-odaiq:beat-climax:status:L2",
                 "factType": "status",
-                "id": "fact:smb-mto3mkso-wntrk:beat-climax:status:L2",
+                "id": "fact:smb-mto4d064-odaiq:beat-climax:status:L2",
                 "kind": "status",
                 "scope": {
                   "characterIds": [
@@ -519,7 +535,7 @@
                   "entityIds": [],
                   "factionIds": [],
                   "locationIds": [],
-                  "sourceBlockId": "smb-mto3mkso-wntrk",
+                  "sourceBlockId": "smb-mto4d064-odaiq",
                   "global": false
                 },
                 "summary": "家族/资格状态"
@@ -530,7 +546,10 @@
             "locationHint": "藏有记录的场所",
             "actionKind": "CONFIRM",
             "independence": "DEPENDENT",
-            "needsDetail": false
+            "needsDetail": false,
+            "actorResolution": {
+              "source": "DIRECT"
+            }
           },
           "needsDetail": false
         }
@@ -542,8 +561,8 @@
       "order": 3,
       "beats": [
         {
-          "id": "ob-mto3mksp-qjvu",
-          "sourceBlockId": "smb-mto3mksn-kph23",
+          "id": "ob-mto4d065-z28v",
+          "sourceBlockId": "smb-mto4d064-7x8zw",
           "sourceBeatId": "beat-res",
           "familyId": "M08",
           "templateId": "M08-1",
@@ -570,9 +589,9 @@
             "target": "阵营胜负条件",
             "requires": [
               {
-                "factId": "fact:smb-mto3mksn-kph23:beat-res:faction:L1",
+                "factId": "fact:smb-mto4d064-7x8zw:beat-res:faction:L1",
                 "factType": "faction",
-                "id": "fact:smb-mto3mksn-kph23:beat-res:faction:L1",
+                "id": "fact:smb-mto4d064-7x8zw:beat-res:faction:L1",
                 "kind": "faction",
                 "scope": {
                   "characterIds": [
@@ -581,7 +600,7 @@
                   "entityIds": [],
                   "factionIds": [],
                   "locationIds": [],
-                  "sourceBlockId": "smb-mto3mksn-kph23",
+                  "sourceBlockId": "smb-mto4d064-7x8zw",
                   "global": false
                 },
                 "summary": "归属变化"
@@ -589,9 +608,9 @@
             ],
             "produces": [
               {
-                "factId": "fact:smb-mto3mksn-kph23:beat-res:faction:L1",
+                "factId": "fact:smb-mto4d064-7x8zw:beat-res:faction:L1",
                 "factType": "faction",
-                "id": "fact:smb-mto3mksn-kph23:beat-res:faction:L1",
+                "id": "fact:smb-mto4d064-7x8zw:beat-res:faction:L1",
                 "kind": "faction",
                 "scope": {
                   "characterIds": [
@@ -600,7 +619,7 @@
                   "entityIds": [],
                   "factionIds": [],
                   "locationIds": [],
-                  "sourceBlockId": "smb-mto3mksn-kph23",
+                  "sourceBlockId": "smb-mto4d064-7x8zw",
                   "global": false
                 },
                 "summary": "阵营线结算"
@@ -611,13 +630,16 @@
             "locationHint": "阵营关键据点",
             "actionKind": "SETTLE",
             "independence": "DEPENDENT",
-            "needsDetail": false
+            "needsDetail": false,
+            "actorResolution": {
+              "source": "DIRECT"
+            }
           },
           "needsDetail": false
         },
         {
-          "id": "ob-mto3mksp-apcu",
-          "sourceBlockId": "smb-mto3mkso-wntrk",
+          "id": "ob-mto4d065-ts3y",
+          "sourceBlockId": "smb-mto4d064-odaiq",
           "sourceBeatId": "beat-res",
           "familyId": "M07",
           "templateId": "M07-2",
@@ -644,9 +666,9 @@
             "target": "关系重组",
             "requires": [
               {
-                "factId": "fact:smb-mto3mkso-wntrk:beat-res:identity:L2",
+                "factId": "fact:smb-mto4d064-odaiq:beat-res:identity:L2",
                 "factType": "identity",
-                "id": "fact:smb-mto3mkso-wntrk:beat-res:identity:L2",
+                "id": "fact:smb-mto4d064-odaiq:beat-res:identity:L2",
                 "kind": "identity",
                 "scope": {
                   "characterIds": [
@@ -655,7 +677,7 @@
                   "entityIds": [],
                   "factionIds": [],
                   "locationIds": [],
-                  "sourceBlockId": "smb-mto3mkso-wntrk",
+                  "sourceBlockId": "smb-mto4d064-odaiq",
                   "global": false
                 },
                 "summary": "身份确认"
@@ -663,9 +685,9 @@
             ],
             "produces": [
               {
-                "factId": "fact:smb-mto3mkso-wntrk:beat-res:identity:L2",
+                "factId": "fact:smb-mto4d064-odaiq:beat-res:identity:L2",
                 "factType": "identity",
-                "id": "fact:smb-mto3mkso-wntrk:beat-res:identity:L2",
+                "id": "fact:smb-mto4d064-odaiq:beat-res:identity:L2",
                 "kind": "identity",
                 "scope": {
                   "characterIds": [
@@ -674,7 +696,7 @@
                   "entityIds": [],
                   "factionIds": [],
                   "locationIds": [],
-                  "sourceBlockId": "smb-mto3mkso-wntrk",
+                  "sourceBlockId": "smb-mto4d064-odaiq",
                   "global": false
                 },
                 "summary": "身份进入公开层"
@@ -685,7 +707,10 @@
             "locationHint": "藏有记录的场所",
             "actionKind": "CONSEQUENCE",
             "independence": "DEPENDENT",
-            "needsDetail": false
+            "needsDetail": false,
+            "actorResolution": {
+              "source": "DIRECT"
+            }
           },
           "needsDetail": false
         }
@@ -694,17 +719,17 @@
   ],
   "weaveLinks": [
     {
-      "id": "wl-mto3mksp-a6of",
+      "id": "wl-mto4d065-q8hj",
       "kind": "WEAVE_SHARED_SCENE",
       "relationQuality": "COLOCATED",
       "status": "PROPOSED",
       "beatIds": [
-        "ob-mto3mksp-66eo",
-        "ob-mto3mksp-1xlh"
+        "ob-mto4d065-vsag",
+        "ob-mto4d065-62lu"
       ],
       "blockIds": [
-        "smb-mto3mksn-kph23",
-        "smb-mto3mkso-wntrk"
+        "smb-mto4d064-7x8zw",
+        "smb-mto4d064-odaiq"
       ],
       "reason": "同阶段共享角色 L2——可同场并列，不算真正交织",
       "sharedCharacterIds": [
@@ -714,17 +739,17 @@
       "sharedTargets": []
     },
     {
-      "id": "wl-mto3mksp-7sky",
+      "id": "wl-mto4d065-mjcl",
       "kind": "WEAVE_SHARED_CHARACTER",
       "relationQuality": "COLOCATED",
       "status": "PROPOSED",
       "beatIds": [
-        "ob-mto3mksp-66eo",
-        "ob-mto3mksp-3vg4"
+        "ob-mto4d065-vsag",
+        "ob-mto4d065-xus8"
       ],
       "blockIds": [
-        "smb-mto3mksn-kph23",
-        "smb-mto3mkso-wntrk"
+        "smb-mto4d064-7x8zw",
+        "smb-mto4d064-odaiq"
       ],
       "reason": "共享角色 L1、L2——仅角色重合，保持同场并列而非强制合并",
       "sharedCharacterIds": [
@@ -735,17 +760,17 @@
       "sharedTargets": []
     },
     {
-      "id": "wl-mto3mksp-tbp8",
+      "id": "wl-mto4d065-0cyq",
       "kind": "WEAVE_SHARED_SCENE",
       "relationQuality": "COLOCATED",
       "status": "PROPOSED",
       "beatIds": [
-        "ob-mto3mksp-lka0",
-        "ob-mto3mksp-3vg4"
+        "ob-mto4d065-alyx",
+        "ob-mto4d065-xus8"
       ],
       "blockIds": [
-        "smb-mto3mksn-kph23",
-        "smb-mto3mkso-wntrk"
+        "smb-mto4d064-7x8zw",
+        "smb-mto4d064-odaiq"
       ],
       "reason": "同阶段共享角色 L1、L2、L3、L4、L5——可同场并列，不算真正交织",
       "sharedCharacterIds": [
@@ -759,17 +784,17 @@
       "sharedTargets": []
     },
     {
-      "id": "wl-mto3mksp-639i",
+      "id": "wl-mto4d065-2gnp",
       "kind": "WEAVE_SHARED_CHARACTER",
       "relationQuality": "COLOCATED",
       "status": "PROPOSED",
       "beatIds": [
-        "ob-mto3mksp-lka0",
-        "ob-mto3mksp-wc5w"
+        "ob-mto4d065-alyx",
+        "ob-mto4d065-xzcn"
       ],
       "blockIds": [
-        "smb-mto3mksn-kph23",
-        "smb-mto3mkso-wntrk"
+        "smb-mto4d064-7x8zw",
+        "smb-mto4d064-odaiq"
       ],
       "reason": "共享角色 L1、L2、L3、L4、L5——仅角色重合，保持同场并列而非强制合并",
       "sharedCharacterIds": [
@@ -783,17 +808,17 @@
       "sharedTargets": []
     },
     {
-      "id": "wl-mto3mksp-87dg",
+      "id": "wl-mto4d065-oxou",
       "kind": "WEAVE_SHARED_SCENE",
       "relationQuality": "COLOCATED",
       "status": "PROPOSED",
       "beatIds": [
-        "ob-mto3mksp-uit5",
-        "ob-mto3mksp-wc5w"
+        "ob-mto4d065-qqm4",
+        "ob-mto4d065-xzcn"
       ],
       "blockIds": [
-        "smb-mto3mksn-kph23",
-        "smb-mto3mkso-wntrk"
+        "smb-mto4d064-7x8zw",
+        "smb-mto4d064-odaiq"
       ],
       "reason": "同阶段共享角色 L1、L2、L3、L4、L5——可同场并列，不算真正交织",
       "sharedCharacterIds": [
@@ -807,17 +832,17 @@
       "sharedTargets": []
     },
     {
-      "id": "wl-mto3mksp-fu4q",
+      "id": "wl-mto4d065-zdhx",
       "kind": "WEAVE_SHARED_CHARACTER",
       "relationQuality": "COLOCATED",
       "status": "PROPOSED",
       "beatIds": [
-        "ob-mto3mksp-uit5",
-        "ob-mto3mksp-apcu"
+        "ob-mto4d065-qqm4",
+        "ob-mto4d065-ts3y"
       ],
       "blockIds": [
-        "smb-mto3mksn-kph23",
-        "smb-mto3mkso-wntrk"
+        "smb-mto4d064-7x8zw",
+        "smb-mto4d064-odaiq"
       ],
       "reason": "共享角色 L1、L2、L3、L4、L5——仅角色重合，保持同场并列而非强制合并",
       "sharedCharacterIds": [
@@ -831,17 +856,17 @@
       "sharedTargets": []
     },
     {
-      "id": "wl-mto3mksp-uk3e",
+      "id": "wl-mto4d065-13k8",
       "kind": "WEAVE_SHARED_SCENE",
       "relationQuality": "COLOCATED",
       "status": "PROPOSED",
       "beatIds": [
-        "ob-mto3mksp-qjvu",
-        "ob-mto3mksp-apcu"
+        "ob-mto4d065-z28v",
+        "ob-mto4d065-ts3y"
       ],
       "blockIds": [
-        "smb-mto3mksn-kph23",
-        "smb-mto3mkso-wntrk"
+        "smb-mto4d064-7x8zw",
+        "smb-mto4d064-odaiq"
       ],
       "reason": "同阶段共享角色 L1、L2、L3、L4、L5——可同场并列，不算真正交织",
       "sharedCharacterIds": [
@@ -855,17 +880,17 @@
       "sharedTargets": []
     },
     {
-      "id": "wl-mto3mksp-uy8f",
+      "id": "wl-mto4d065-tem6",
       "kind": "KEEP_PARALLEL",
       "relationQuality": "PARALLEL",
       "status": "PROPOSED",
       "beatIds": [
-        "ob-mto3mksp-lka0",
-        "ob-mto3mksp-3vg4"
+        "ob-mto4d065-alyx",
+        "ob-mto4d065-xus8"
       ],
       "blockIds": [
-        "smb-mto3mksn-kph23",
-        "smb-mto3mkso-wntrk"
+        "smb-mto4d064-7x8zw",
+        "smb-mto4d064-odaiq"
       ],
       "reason": "固定公开阵营｜公开阵营加公共任务赛道 与 条件触发开放｜权限使用触发 无线索级交织证据，叙事线保持平行（同场/同角不算交织）",
       "sharedCharacterIds": [
@@ -881,7 +906,7 @@
   ],
   "conflictReport": [
     {
-      "id": "cf-mto3mksp-zu8d",
+      "id": "cf-mto4d065-t79a",
       "type": "ROLE_OVERLOAD",
       "severity": "info",
       "characterId": "L1",
@@ -903,7 +928,7 @@
       "decision": null
     },
     {
-      "id": "cf-mto3mksp-jmj9",
+      "id": "cf-mto4d065-8mbc",
       "type": "ROLE_OVERLOAD",
       "severity": "info",
       "characterId": "L2",
@@ -925,7 +950,7 @@
       "decision": null
     },
     {
-      "id": "cf-mto3mksp-uby3",
+      "id": "cf-mto4d065-qh7n",
       "type": "ROLE_OVERLOAD",
       "severity": "info",
       "characterId": "L5",
@@ -954,14 +979,14 @@
       "totalLoad": 3,
       "roles": [
         {
-          "blockId": "smb-mto3mksn-kph23",
+          "blockId": "smb-mto4d064-7x8zw",
           "slotId": "factionLead",
           "narrativeRole": "faction_lead",
           "intensity": 2,
           "intentionalOverlap": false
         },
         {
-          "blockId": "smb-mto3mkso-wntrk",
+          "blockId": "smb-mto4d064-odaiq",
           "slotId": "revealer",
           "narrativeRole": "discoverer",
           "intensity": 1,
@@ -975,14 +1000,14 @@
       "totalLoad": 3,
       "roles": [
         {
-          "blockId": "smb-mto3mksn-kph23",
+          "blockId": "smb-mto4d064-7x8zw",
           "slotId": "memberA",
           "narrativeRole": "member",
           "intensity": 1,
           "intentionalOverlap": false
         },
         {
-          "blockId": "smb-mto3mkso-wntrk",
+          "blockId": "smb-mto4d064-odaiq",
           "slotId": "bearer",
           "narrativeRole": "identity_bearer",
           "intensity": 2,
@@ -996,14 +1021,14 @@
       "totalLoad": 3,
       "roles": [
         {
-          "blockId": "smb-mto3mksn-kph23",
+          "blockId": "smb-mto4d064-7x8zw",
           "slotId": "rivalLead",
           "narrativeRole": "rival_lead",
           "intensity": 2,
           "intentionalOverlap": false
         },
         {
-          "blockId": "smb-mto3mkso-wntrk",
+          "blockId": "smb-mto4d064-odaiq",
           "slotId": "related",
           "narrativeRole": "support",
           "intensity": 1,
@@ -1017,14 +1042,14 @@
       "totalLoad": 2,
       "roles": [
         {
-          "blockId": "smb-mto3mksn-kph23",
+          "blockId": "smb-mto4d064-7x8zw",
           "slotId": "memberB",
           "narrativeRole": "member",
           "intensity": 1,
           "intentionalOverlap": false
         },
         {
-          "blockId": "smb-mto3mkso-wntrk",
+          "blockId": "smb-mto4d064-odaiq",
           "slotId": "knower",
           "narrativeRole": "witness",
           "intensity": 1,
@@ -1038,14 +1063,14 @@
       "totalLoad": 2,
       "roles": [
         {
-          "blockId": "smb-mto3mksn-kph23",
+          "blockId": "smb-mto4d064-7x8zw",
           "slotId": "outsider",
           "narrativeRole": "outsider",
           "intensity": 1,
           "intentionalOverlap": false
         },
         {
-          "blockId": "smb-mto3mkso-wntrk",
+          "blockId": "smb-mto4d064-odaiq",
           "slotId": "misled",
           "narrativeRole": "misled",
           "intensity": 1,

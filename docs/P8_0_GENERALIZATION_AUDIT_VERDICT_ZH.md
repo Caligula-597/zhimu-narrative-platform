@@ -91,9 +91,8 @@ Universal Pipeline            ❌ 尚未通过
 ```text
 P8.0 Gate Patch              ✅ ca170be
 P8.0.1 Stage Remap           ✅ f0b4700 FROZEN
-P8.0.2 Fact Scope + Topology ✅ 本刀
-↓
-P8.0.3 Owner Authority Patch
+P8.0.2 Fact Scope + Topology ✅ 90ec934 FROZEN
+P8.0.3 Owner Authority Patch ✅（docs/P8_0_3_OWNER_AUTHORITY_ZH.md）
 ↓
 P8.0.4 Re-run 8-case Audit
 ↓

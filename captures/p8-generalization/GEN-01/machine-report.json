@@ -136,6 +136,30 @@
         "pass": true,
         "message": "draft present",
         "details": {}
+      },
+      {
+        "id": "G2.ownerAuthorityForwardConsistency",
+        "pass": true,
+        "message": "each ownerCharacterId has OWNER",
+        "details": {}
+      },
+      {
+        "id": "G2.ownerAuthorityReverseConsistency",
+        "pass": true,
+        "message": "each OWNER ∈ ownerCharacterIds",
+        "details": {}
+      },
+      {
+        "id": "G2.noImplicitOwnerFromCharacterIds",
+        "pass": true,
+        "message": "empty owners ⇒ no OWNER from characterIds",
+        "details": {}
+      },
+      {
+        "id": "G2.unresolvedSymbolicOwnerNotGuessed",
+        "pass": true,
+        "message": "unresolved symbolic owner not guessed",
+        "details": {}
       }
     ],
     "G3": [

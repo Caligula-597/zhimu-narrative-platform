@@ -1,6 +1,6 @@
 # P8.0 Multi-Script Generalization — Machine Report
 
-> 生成时间：2026-09-05T08:06:18.331Z
+> 生成时间：2026-09-05T08:26:51.308Z
 > Corpus：GEN-01～GEN-08（A–H 仍为 regression，不计入泛化证明）
 > Editorial Gate：✅ 完成 — 见 `docs/P8_0_GENERALIZATION_AUDIT_VERDICT_ZH.md`
 > 总裁决：`P8.0 Audit ✅` · `Universal Pipeline ❌`

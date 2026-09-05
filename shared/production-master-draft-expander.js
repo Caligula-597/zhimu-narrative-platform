@@ -15,6 +15,7 @@ import {
   outlineStructureRevision,
   refreshProductionDraftStaleStatus,
 } from "./production-master-draft-contracts.js";
+import { resolveBeatOwnerRefs, applyOwnerResolution } from "./beat-owner-authority.js";
 
 export class ProductionMasterDraftError extends Error {
   constructor(code, message, details = {}) {
@@ -48,21 +49,17 @@ function charName(state, id) {
   return ch?.name || id || "某人";
 }
 
-function actorList(beat, state) {
-  const fromSem = beat.semantics?.actorRefs || [];
-  const ids = [...new Set([...(fromSem || []), ...(beat.characterIds || [])])].filter(Boolean);
-  if (beat.semantics?.actorLabel && ids.length === 1) {
-    return [{ id: ids[0], name: beat.semantics.actorLabel }];
-  }
-  if (beat.semantics?.actorLabel && !ids.length) {
-    return [{ id: "unknown", name: beat.semantics.actorLabel }];
-  }
-  return ids.map((id) => ({ id, name: charName(state, id) }));
+function actorList(beat, state, ownerCharacterIds = []) {
+  const owners = (ownerCharacterIds || []).filter((id) => id && id !== "unknown");
+  const related = [
+    ...new Set([...(owners || []), ...(beat.characterIds || [])].filter((id) => id && id !== "unknown")),
+  ];
+  return related.map((id) => ({ id, name: charName(state, id) }));
 }
 
 /** 确定性中文展开：忠实、可读、不新增事实 */
-export function expandBeatProse({ actors, goal, action, target, fallbackSummary, needsDetail }) {
-  const actor = actors?.[0]?.name || "某人";
+export function expandBeatProse({ actors, goal, action, target, fallbackSummary, needsDetail, actorLabel }) {
+  const actor = actors?.[0]?.name || actorLabel || "某人";
   if (goal && action) {
     const targetBit = target ? `（目标：${target}）` : "";
     return `${actor}为了${goal}，${action}${targetBit}`;
@@ -129,16 +126,38 @@ export function relationNotesForBeat(links) {
 
 function expandOneBeat(outlineBeat, outline, state, blocks, stageId) {
   const block = blockById(blocks, outlineBeat.sourceBlockId);
-  const sem = outlineBeat.semantics || null;
-  const actors = actorList(outlineBeat, state);
+  let sem = outlineBeat.semantics || null;
+  const blockAssignments = (state.roleAssignments || []).filter(
+    (r) =>
+      r.mechanismBlockId === outlineBeat.sourceBlockId ||
+      r.mechanismId === block?.mechanismId,
+  );
+  const ownerRes = resolveBeatOwnerRefs({
+    semantics: sem,
+    roleBindings: block?.roleBindings || {},
+    roleAssignments: blockAssignments,
+    characters: state.characters || [],
+  });
+  sem = applyOwnerResolution(sem, ownerRes);
+  const ownerCharacterIds = [...(ownerRes.actorRefs || [])];
+  const actors = actorList(outlineBeat, state, ownerCharacterIds);
   const links = linksForBeat(outline, outlineBeat.id);
   const primary = primaryRelation(links);
   const relationQuality = primary?.q;
   const needsDetail = Boolean(
-    outlineBeat.needsDetail || sem?.needsDetail || !sem?.goal || !sem?.action,
+    outlineBeat.needsDetail ||
+      sem?.needsDetail ||
+      !sem?.goal ||
+      !sem?.action ||
+      ownerRes.unresolved,
   );
+  const ownerActors = ownerCharacterIds.map((id) => ({
+    id,
+    name: actors.find((a) => a.id === id)?.name || charName(state, id),
+  }));
   const eventSummary = expandBeatProse({
-    actors,
+    actors: ownerActors,
+    actorLabel: sem?.actorLabel,
     goal: sem?.goal,
     action: sem?.action,
     target: sem?.target,
@@ -162,7 +181,9 @@ function expandOneBeat(outlineBeat, outline, state, blocks, stageId) {
     templateId: outlineBeat.templateId || block?.templateId,
     familyId: outlineBeat.familyId || block?.familyId,
     actors,
-    ownerCharacterIds: (sem?.actorRefs || []).filter(Boolean),
+    ownerCharacterIds,
+    ownerUnresolved: Boolean(ownerRes.unresolved),
+    ownerAmbiguous: Boolean(ownerRes.ambiguous),
     goal: sem?.goal,
     action: sem?.action,
     target: sem?.target,
@@ -174,10 +195,13 @@ function expandOneBeat(outlineBeat, outline, state, blocks, stageId) {
     playerKnowledge: playerKnowledgeLine(sem, relationQuality),
     hostTruth: hostTruthLine(sem, eventSummary),
     clueRefs,
-    relatedCharacterIds: (actors.map((a) => a.id).filter(Boolean).length
-      ? actors.map((a) => a.id)
-      : outlineBeat.characterIds || []
-    ).filter((id) => id && id !== "unknown"),
+    relatedCharacterIds: [
+      ...new Set(
+        [...ownerCharacterIds, ...(outlineBeat.characterIds || []), ...actors.map((a) => a.id)].filter(
+          (id) => id && id !== "unknown",
+        ),
+      ),
+    ],
     relationQuality,
     weaveLinkIds: links.map((l) => l.id),
     relationNotes: relationNotesForBeat(links),
@@ -292,6 +316,30 @@ function buildWarnings(outline, stages, state) {
     });
   }
 
+  for (const st of stages) {
+    for (const b of st.beats) {
+      if (b.ownerAmbiguous) {
+        warnings.push({
+          id: stableId("warn", "owner-amb", b.sourceOutlineBeatId),
+          type: "OWNER_RESOLUTION_AMBIGUOUS",
+          severity: "warn",
+          message: `「${b.eventSummary || b.sourceOutlineBeatId}」的 symbolic owner 有多个绑定候选，未推断 OWNER。`,
+          stageIds: [st.stageId],
+          beatIds: [b.sourceOutlineBeatId],
+        });
+      } else if (b.ownerUnresolved && (b.goal || b.action)) {
+        warnings.push({
+          id: stableId("warn", "owner-unres", b.sourceOutlineBeatId),
+          type: "OWNER_UNRESOLVED",
+          severity: "info",
+          message: `「${b.eventSummary || b.sourceOutlineBeatId}」需要主导角色，但当前没有明确角色绑定；未推断 OWNER。`,
+          stageIds: [st.stageId],
+          beatIds: [b.sourceOutlineBeatId],
+        });
+      }
+    }
+  }
+
   return warnings;
 }
 
@@ -368,7 +416,7 @@ function clueLooksMisleading({ label, clueId, fromBlock, fromState, beat }) {
 function roleInBeatForCharacter(characterId, characterName, beat) {
   const owners = (beat.ownerCharacterIds || []).filter(Boolean);
   if (owners.includes(characterId)) return "OWNER";
-  if (!owners.length && beat.actors?.[0]?.id === characterId) return "OWNER";
+  // P8.0.3: never invent OWNER from actors[0] / empty owners
   const name = String(characterName || "");
   const goal = String(beat.goal || "");
   const target = String(beat.target || "");
@@ -416,12 +464,24 @@ function projectCharacterViews(stages) {
 
   for (const st of stages) {
     for (const b of st.beats) {
-      for (const actor of b.actors || []) {
-        if (!actor.id || actor.id === "unknown") continue;
-        if (!byChar.has(actor.id)) {
-          byChar.set(actor.id, { characterId: actor.id, name: actor.name, stages: [] });
+      const people = [
+        ...new Set(
+          [
+            ...(b.ownerCharacterIds || []),
+            ...(b.relatedCharacterIds || []),
+            ...(b.actors || []).map((a) => a.id),
+          ].filter((id) => id && id !== "unknown"),
+        ),
+      ];
+      for (const characterId of people) {
+        const actor =
+          (b.actors || []).find((a) => a.id === characterId) ||
+          { id: characterId, name: characterId };
+        if (!byChar.has(characterId)) {
+          byChar.set(characterId, { characterId, name: actor.name, stages: [] });
         }
-        const entry = byChar.get(actor.id);
+        const entry = byChar.get(characterId);
+        if (actor.name && entry.name === characterId) entry.name = actor.name;
         let stageRow = entry.stages.find((s) => s.stageId === st.stageId);
         if (!stageRow) {
           stageRow = {
@@ -440,7 +500,7 @@ function projectCharacterViews(stages) {
           entry.stages.push(stageRow);
         }
 
-        const roleInBeat = roleInBeatForCharacter(actor.id, actor.name, b);
+        const roleInBeat = roleInBeatForCharacter(characterId, actor.name, b);
         const isOwner = roleInBeat === "OWNER";
         const gained =
           isOwner && b.produces?.length

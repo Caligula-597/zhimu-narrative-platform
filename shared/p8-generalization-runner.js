@@ -471,6 +471,77 @@ function evaluateG2(fixture, state, outline, draft) {
     ),
   );
 
+  // P8.0.3 — Owner Authority bidirectional + no implicit OWNER
+  const draftBeats = (draft?.stages || []).flatMap((s) => s.beats || []);
+  const contribByBeat = new Map();
+  for (const ch of draft?.characterViews?.characters || []) {
+    const cid = ch.characterId || ch.id;
+    for (const st of ch.stages || []) {
+      for (const c of st.contributions || []) {
+        const bid = c.sourceOutlineBeatId || c.sourceBeatId;
+        if (!bid) continue;
+        if (!contribByBeat.has(bid)) contribByBeat.set(bid, []);
+        contribByBeat.get(bid).push({ characterId: cid, roleInBeat: c.roleInBeat });
+      }
+    }
+  }
+  let forwardFail = 0;
+  let reverseFail = 0;
+  let implicitFromIds = 0;
+  let guessedUnresolved = 0;
+  for (const b of draftBeats) {
+    const owners = b.ownerCharacterIds || [];
+    const related = new Set(b.relatedCharacterIds || b.characterIds || []);
+    const rows = contribByBeat.get(b.sourceOutlineBeatId) || [];
+    const ownerContribs = rows.filter((r) => r.roleInBeat === "OWNER");
+    for (const oid of owners) {
+      if (!ownerContribs.some((r) => r.characterId === oid)) forwardFail += 1;
+    }
+    for (const r of ownerContribs) {
+      if (!owners.includes(r.characterId)) reverseFail += 1;
+    }
+    if (owners.length === 0 && ownerContribs.length > 0) {
+      // OWNER invented while authority empty — often from characterIds / actors[0]
+      for (const r of ownerContribs) {
+        if (related.has(r.characterId)) implicitFromIds += 1;
+        else reverseFail += 1;
+      }
+    }
+    if (b.ownerUnresolved && ownerContribs.length > 0) guessedUnresolved += 1;
+  }
+  checks.push(
+    gate(
+      "G2.ownerAuthorityForwardConsistency",
+      forwardFail === 0,
+      forwardFail ? `owners missing OWNER contrib=${forwardFail}` : "each ownerCharacterId has OWNER",
+    ),
+  );
+  checks.push(
+    gate(
+      "G2.ownerAuthorityReverseConsistency",
+      reverseFail === 0,
+      reverseFail ? `OWNER outside ownerCharacterIds=${reverseFail}` : "each OWNER ∈ ownerCharacterIds",
+    ),
+  );
+  checks.push(
+    gate(
+      "G2.noImplicitOwnerFromCharacterIds",
+      implicitFromIds === 0,
+      implicitFromIds
+        ? `OWNER while ownerCharacterIds=[] via related ids=${implicitFromIds}`
+        : "empty owners ⇒ no OWNER from characterIds",
+    ),
+  );
+  checks.push(
+    gate(
+      "G2.unresolvedSymbolicOwnerNotGuessed",
+      guessedUnresolved === 0,
+      guessedUnresolved
+        ? `ownerUnresolved beats still have OWNER=${guessedUnresolved}`
+        : "unresolved symbolic owner not guessed",
+    ),
+  );
+
   return checks;
 }
 
