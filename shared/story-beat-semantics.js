@@ -121,6 +121,7 @@ export function resolvePhaseSpec(bridge, phaseBand, variant = null) {
  * 从 template.semanticsBridge + 角色绑定生成某 phase 的 BeatSemantics。
  * bridge 形状见 complete-beat-semantics-data.js
  * P9.0: variant.semanticOverrides.phases merge into base phase (generic, no family if).
+ * P9.1: optional contextLabelMap fills {ctx.slot} on surface fields before role fill / facts.
  */
 export function resolveBeatSemantics({
   bridge,
@@ -129,11 +130,15 @@ export function resolveBeatSemantics({
   plot = {},
   involvedRoleKeys = [],
   variant = null,
+  contextLabelMap = null,
   sourceBlockId = null,
   sourceBeatId = null,
 } = {}) {
   if (!bridge) return null;
-  const phase = resolvePhaseSpec(bridge, phaseBand, variant);
+  let phase = resolvePhaseSpec(bridge, phaseBand, variant);
+  if (contextLabelMap && Object.keys(contextLabelMap).length) {
+    phase = applyContextLabelsToPhase(phase, contextLabelMap);
+  }
   const roleGoals = { ...(bridge.roleGoals || {}), ...(variant?.roleGoals || {}) };
   const primaryRole =
     phase.primaryRole ||
@@ -143,6 +148,10 @@ export function resolveBeatSemantics({
   const actorId = roleBindings[primaryRole]?.id;
   const actorName = nameOf(roleBindings, primaryRole);
   const goalFromRole = roleGoals[primaryRole];
+  const locationFromCtx =
+    contextLabelMap?.recordLocation ||
+    contextLabelMap?.crimeScene ||
+    contextLabelMap?.factionMeetingPlace;
   const ctx = {
     actor: actorName,
     culprit: nameOf(roleBindings, "culprit"),
@@ -150,11 +159,21 @@ export function resolveBeatSemantics({
     bearer: nameOf(roleBindings, "bearer"),
     factionLead: nameOf(roleBindings, "factionLead"),
     member: nameOf(roleBindings, "memberA") || nameOf(roleBindings, "member"),
-    evidence: plot.plantedEvidence || plot.decisiveEvidence || plot.target || "关键证物",
+    evidence:
+      contextLabelMap?.plantedEvidence ||
+      plot.plantedEvidence ||
+      plot.decisiveEvidence ||
+      plot.target ||
+      "关键证物",
     motive: plot.trueMotive || "隐藏动机",
-    factionGoal: plot.factionGoal || plot.hiddenGoal || "阵营目标",
-    location: phase.locationHint || bridge.defaultLocation || "关键场所",
-    target: phase.target || plot.plantedEvidence || plot.hiddenContent || "关键物证",
+    factionGoal: plot.factionGoal || plot.hiddenGoal || contextLabelMap?.publicTask || "阵营目标",
+    location: locationFromCtx || phase.locationHint || bridge.defaultLocation || "关键场所",
+    target:
+      phase.target ||
+      contextLabelMap?.identityRecord ||
+      plot.plantedEvidence ||
+      plot.hiddenContent ||
+      "关键物证",
   };
 
   const goal = fill(phase.goal || goalFromRole || bridge.defaultGoal, ctx);
@@ -210,6 +229,37 @@ export function resolveBeatSemantics({
   if (!check.ok) sem.needsDetail = true;
   sem.actorLabel = actorName;
   return sem;
+}
+
+function applyContextLabelsToPhase(phase, labelMap) {
+  const fillCtx = (text) => {
+    if (text == null || text === "") return text;
+    return String(text).replace(/\{ctx\.([a-zA-Z0-9_]+)\}/g, (full, key) =>
+      Object.prototype.hasOwnProperty.call(labelMap, key) ? String(labelMap[key]) : full,
+    );
+  };
+  const mapDeep = (value) => {
+    if (typeof value === "string") return fillCtx(value);
+    if (Array.isArray(value)) return value.map(mapDeep);
+    if (value && typeof value === "object") {
+      const out = { ...value };
+      if (out.summary != null) out.summary = fillCtx(out.summary);
+      return out;
+    }
+    return value;
+  };
+  const src = record(phase);
+  return {
+    ...src,
+    goal: src.goal != null ? fillCtx(src.goal) : src.goal,
+    action: src.action != null ? fillCtx(src.action) : src.action,
+    target: src.target != null ? fillCtx(src.target) : src.target,
+    locationHint: src.locationHint != null ? fillCtx(src.locationHint) : src.locationHint,
+    requires: asArray(src.requires).map(mapDeep),
+    produces: asArray(src.produces).map(mapDeep),
+    opposes: asArray(src.opposes).map(mapDeep),
+    protects: asArray(src.protects).map(mapDeep),
+  };
 }
 
 /** Re-instantiate facts on already-built semantics (outline flatten safety). */

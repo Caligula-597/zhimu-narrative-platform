@@ -21,6 +21,10 @@ import {
   resolveBeatSemantics,
 } from "./story-beat-semantics.js";
 import { semanticsBridgeForTemplate } from "./complete-beat-semantics-data.js";
+import {
+  labelMapFromBindings,
+  resolveContextBindingsForSlots,
+} from "./project-context-profile.js";
 
 export class StoryMechanismEngineError extends Error {
   constructor(code, message, details = undefined) {
@@ -146,8 +150,24 @@ function buildClueBindings(template, plot, roleBindings, blockId) {
   });
 }
 
-function enrichBeat(beat, { template, variant, roleBindings, plot, phaseBand, sourceBlockId }) {
+function enrichBeat(beat, {
+  template,
+  variant,
+  roleBindings,
+  plot,
+  phaseBand,
+  sourceBlockId,
+  contextProfile = null,
+}) {
   const bridge = template.semanticsBridge || semanticsBridgeForTemplate(template.id);
+  let contextLabelMap = null;
+  if (bridge?.contextSlots) {
+    const { bindings } = resolveContextBindingsForSlots({
+      contextProfile,
+      contextSlots: bridge.contextSlots,
+    });
+    contextLabelMap = labelMapFromBindings(bindings);
+  }
   const semantics = resolveBeatSemantics({
     bridge,
     phaseBand,
@@ -155,6 +175,7 @@ function enrichBeat(beat, { template, variant, roleBindings, plot, phaseBand, so
     plot,
     involvedRoleKeys: beat.involvedRoleKeys,
     variant,
+    contextLabelMap,
     sourceBlockId,
     sourceBeatId: beat.id,
   });
@@ -164,13 +185,12 @@ function enrichBeat(beat, { template, variant, roleBindings, plot, phaseBand, so
       ? formatAgencySummary(semantics, "NEEDS_DETAIL：缺具体行动")
       : "NEEDS_DETAIL：缺具体行动";
   } else if (semantics?.goal && semantics?.action) {
-    // Prefer agency sentence for COMPLETE bridges; keep original as fallback detail
     summary = formatAgencySummary(semantics, summary);
   }
   return { ...beat, summary, semantics };
 }
 
-function buildBeats(template, variant, roleBindings, plot, clues, sourceBlockId = null) {
+function buildBeats(template, variant, roleBindings, plot, clues, sourceBlockId = null, contextProfile = null) {
   const pattern = variant.beatPattern || {};
   const keys = Object.keys(pattern);
   const stages = template.stagePattern || [];
@@ -183,7 +203,7 @@ function buildBeats(template, variant, roleBindings, plot, clues, sourceBlockId 
         involvedRoleKeys: roleKeys.filter((k) => roleBindings[k]),
         clueIds,
       },
-      { template, variant, roleBindings, plot, phaseBand, sourceBlockId },
+      { template, variant, roleBindings, plot, phaseBand, sourceBlockId, contextProfile },
     );
   // M01-FRAMING shaped beats
   if (pattern.setup && pattern.crime) {
@@ -329,7 +349,16 @@ function buildBlockFromTemplate({
   }
 
   const clueBindings = buildClueBindings(template, plotBindings, roleBindings, id);
-  const beats = buildBeats(template, variant, roleBindings, plotBindings, clueBindings, id);
+  const contextProfile = state.contextProfile || null;
+  const beats = buildBeats(
+    template,
+    variant,
+    roleBindings,
+    plotBindings,
+    clueBindings,
+    id,
+    contextProfile,
+  );
   const stageBindings = (template.stagePattern || []).map((stage, order) => {
     const patternKey = typeof stage === "string" ? stage : stage.id;
     const matched = state.stages[order] || null;
@@ -381,6 +410,7 @@ function buildBlockFromTemplate({
     })),
     lockedSlots,
     integrationHints: template.integrationHints || {},
+    sourceContextRevision: contextProfile?.revision ?? null,
     status: status || "DRAFT",
   });
 }

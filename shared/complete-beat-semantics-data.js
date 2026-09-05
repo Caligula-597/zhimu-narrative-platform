@@ -15,6 +15,7 @@ function bridge(spec) {
     ...spec,
     roleGoals: Object.freeze(spec.roleGoals || {}),
     phaseNames: spec.phaseNames ? Object.freeze({ ...spec.phaseNames }) : undefined,
+    contextSlots: spec.contextSlots ? Object.freeze({ ...spec.contextSlots }) : undefined,
     phases: Object.freeze(
       Object.fromEntries(
         Object.entries(spec.phases || {}).map(([k, v]) => [k, phase(v)]),
@@ -61,14 +62,18 @@ function fact(id, summary) {
 
 const M01 = bridge({
   defaultActorRole: "culprit",
-  defaultLocation: "案发现场周边",
-  /** Named phases for Variant overrides / fidelity audit */
+  defaultLocation: "{ctx.crimeScene}",
   phaseNames: Object.freeze({
     0: "setup",
     1: "crime",
     2: "falseDirection",
     3: "contradiction",
     4: "reveal",
+  }),
+  contextSlots: Object.freeze({
+    plantedEvidence: Object.freeze({ kind: "OBJECT", fallbackLabel: "误导证物", required: true }),
+    crimeScene: Object.freeze({ kind: "LOCATION", fallbackLabel: "案发现场", required: true }),
+    decisiveEvidence: Object.freeze({ kind: "OBJECT", fallbackLabel: "决定性证据", required: true }),
   }),
   roleGoals: {
     culprit: "掩盖罪行并维持嫁祸",
@@ -80,24 +85,24 @@ const M01 = bridge({
     0: {
       primaryRole: "culprit",
       goal: "准备可嫁祸的假象",
-      action: "布置与{framed}相关的误导物",
-      target: "{evidence}",
+      action: "在{ctx.crimeScene}周边布置与{framed}相关的{ctx.plantedEvidence}",
+      target: "{ctx.plantedEvidence}",
       actionKind: "PREPARE",
       locationHint: "作案准备地",
-      produces: [fact("false_lead", "误导物已就绪")],
+      produces: [fact("false_lead", "{ctx.plantedEvidence}已就绪")],
       independence: "DEPENDENT",
     },
     1: {
       primaryRole: "culprit",
       goal: "完成犯行并维持对{framed}的嫁祸条件",
-      action: "实施犯罪并留下指向{framed}的误导证据",
-      target: "{evidence}",
+      action: "在{ctx.crimeScene}实施犯罪并留下指向{framed}的{ctx.plantedEvidence}",
+      target: "{ctx.plantedEvidence}",
       actionKind: "COMMIT",
-      locationHint: "案发现场",
+      locationHint: "{ctx.crimeScene}",
       requires: [storyReq("false_lead", "误导物")],
       produces: [
         fact("crime_done", "犯行已发生"),
-        fact("planted_evidence_available", "误导证据可供发现与解读"),
+        fact("planted_evidence_available", "{ctx.plantedEvidence}可供发现与解读"),
       ],
       opposes: [fact("clear_framed", "洗清被嫁祸者")],
       independence: "DEPENDENT",
@@ -105,10 +110,10 @@ const M01 = bridge({
     2: {
       primaryRole: "discoverer",
       goal: "根据当前证据判断案情并形成对{framed}的主要嫌疑",
-      action: "发现并解读误导证据，把{framed}视为主要嫌疑人",
-      target: "{evidence}",
+      action: "发现并解读{ctx.plantedEvidence}，把{framed}视为主要嫌疑人",
+      target: "{ctx.plantedEvidence}",
       actionKind: "MISREAD",
-      locationHint: "案发现场",
+      locationHint: "{ctx.crimeScene}",
       requires: [storyReq("planted_evidence_available", "可解读的误导证据")],
       produces: [fact("false_suspicion", "错误嫌疑进入调查")],
       independence: "SHAREABLE",
@@ -116,10 +121,10 @@ const M01 = bridge({
     3: {
       primaryRole: "discoverer",
       goal: "推翻对{framed}的错误判断",
-      action: "对照现场与证物寻找错误嫌疑无法解释的矛盾",
-      target: "{evidence}",
+      action: "对照{ctx.crimeScene}与证物寻找错误嫌疑无法解释的矛盾",
+      target: "{ctx.plantedEvidence}",
       actionKind: "INVESTIGATE",
-      locationHint: "案发现场",
+      locationHint: "{ctx.crimeScene}",
       requires: [storyReq("false_suspicion", "错误嫌疑")],
       produces: [fact("contradiction", "反证出现")],
       independence: "SHAREABLE",
@@ -127,8 +132,8 @@ const M01 = bridge({
     4: {
       primaryRole: "discoverer",
       goal: "锁定真凶{culprit}",
-      action: "用决定性证据揭穿嫁祸",
-      target: "决定性证据",
+      action: "用{ctx.decisiveEvidence}揭穿嫁祸",
+      target: "{ctx.decisiveEvidence}",
       actionKind: "REVEAL",
       requires: [storyReq("contradiction", "反证")],
       produces: [fact("truth_locked", "真凶锁定")],
@@ -140,12 +145,20 @@ const M01 = bridge({
 function m07Bridge(extra = {}) {
   return bridge({
     defaultActorRole: "bearer",
-    defaultLocation: "藏有记录的场所",
+    defaultLocation: "{ctx.recordLocation}",
     phaseNames: Object.freeze({
       0: "setup",
       1: "progression",
       2: "climax",
       3: "resolution",
+    }),
+    contextSlots: Object.freeze({
+      identityRecord: Object.freeze({ kind: "RECORD", fallbackLabel: "身份记录", required: true }),
+      recordLocation: Object.freeze({ kind: "LOCATION", fallbackLabel: "藏有记录的场所", required: true }),
+      accessCredential: Object.freeze({ kind: "CREDENTIAL", fallbackLabel: "身份权限" }),
+      settlementCode: Object.freeze({ kind: "TRIGGER", fallbackLabel: "结算码" }),
+      centralDocument: Object.freeze({ kind: "RECORD", fallbackLabel: "关键文书" }),
+      ...(extra.contextSlots || {}),
     }),
     roleGoals: {
       bearer: "确认或保护自己的真实身份",
@@ -170,20 +183,20 @@ function m07Bridge(extra = {}) {
       },
       1: {
         primaryRole: "bearer",
-        goal: "寻找能确认身份的记录或信物",
-        action: "进入{location}搜查身份相关物证",
-        target: "身份记录",
+        goal: "寻找能确认身份的{ctx.identityRecord}",
+        action: "进入{ctx.recordLocation}搜查{ctx.identityRecord}",
+        target: "{ctx.identityRecord}",
         actionKind: "SEARCH",
-        locationHint: "藏有记录的场所",
-        requires: [projectReq("site_accessible", "关键场所可进入")],
-        produces: [fact("identity_clue", "身份线索")],
+        locationHint: "{ctx.recordLocation}",
+        requires: [projectReq("site_accessible", "{ctx.recordLocation}可进入")],
+        produces: [fact("identity_clue", "与{ctx.identityRecord}相关的线索")],
         independence: "SHAREABLE",
         ...(extra.p1 || {}),
       },
       2: {
         primaryRole: "bearer",
         goal: "确认真实身份并决定是否公开",
-        action: "核对身份线索并作出公开或隐瞒选择",
+        action: "核对{ctx.identityRecord}并作出公开或隐瞒选择",
         target: "真实身份",
         actionKind: "CONFIRM",
         requires: [storyReq("identity_clue", "身份线索")],
@@ -212,12 +225,19 @@ function m07Bridge(extra = {}) {
 function m08Bridge(extra = {}) {
   return bridge({
     defaultActorRole: "factionLead",
-    defaultLocation: "阵营关键据点",
+    defaultLocation: "{ctx.factionMeetingPlace}",
     phaseNames: Object.freeze({
       0: "setup",
       1: "progression",
       2: "climax",
       3: "resolution",
+    }),
+    contextSlots: Object.freeze({
+      contestedResource: Object.freeze({ kind: "RESOURCE", fallbackLabel: "关键账册或信物", required: true }),
+      factionMeetingPlace: Object.freeze({ kind: "LOCATION", fallbackLabel: "阵营会合点" }),
+      factionCredential: Object.freeze({ kind: "CREDENTIAL", fallbackLabel: "阵营名单/暗号" }),
+      publicTask: Object.freeze({ kind: "TASK", fallbackLabel: "公共任务" }),
+      ...(extra.contextSlots || {}),
     }),
     roleGoals: {
       factionLead: "推动阵营目标达成",
@@ -237,10 +257,10 @@ function m08Bridge(extra = {}) {
       0: {
         primaryRole: "factionLead",
         goal: "巩固或潜伏阵营结构",
-        action: "确认成员知情范围与联络方式",
-        target: "阵营名单/暗号",
+        action: "确认成员知情范围与{ctx.factionCredential}",
+        target: "{ctx.factionCredential}",
         actionKind: "ORGANIZE",
-        locationHint: "私下会合点",
+        locationHint: "{ctx.factionMeetingPlace}",
         produces: [fact("faction_latent", "阵营结构已成形")],
         independence: "DEPENDENT",
         ...(extra.p0 || {}),
@@ -248,8 +268,8 @@ function m08Bridge(extra = {}) {
       1: {
         primaryRole: "factionLead",
         goal: "{factionGoal}",
-        action: "组织成员夺取或销毁关键物证/资源",
-        target: "关键账册或信物",
+        action: "组织成员夺取或销毁{ctx.contestedResource}",
+        target: "{ctx.contestedResource}",
         actionKind: "SECURE",
         locationHint: "关键场所",
         requires: [
@@ -303,10 +323,12 @@ export const COMPLETE_BEAT_SEMANTICS = Object.freeze({
   }),
   "M07-2": m07Bridge({
     p1: {
-      goal: "用正式动作换取被条件锁住的信息",
-      action: "完成登记条件以触发内容开放",
+      goal: "用正式动作换取被条件锁住的{ctx.identityRecord}",
+      action: "在{ctx.recordLocation}完成登记条件以触发{ctx.identityRecord}开放",
+      target: "{ctx.identityRecord}",
+      locationHint: "{ctx.recordLocation}",
       requires: [externalReq("formal_trigger", "正式触发条件", "formal_trigger")],
-      produces: [fact("identity_clue", "条件开放的信息")],
+      produces: [fact("identity_clue", "条件开放的{ctx.identityRecord}相关信息")],
     },
   }),
   "M07-3": m07Bridge(),
@@ -399,12 +421,11 @@ export const COMPLETE_BEAT_SEMANTICS = Object.freeze({
   }),
   "M08-7": m08Bridge({
     p1: {
-      // Base family semantics — Variant override specializes success vs failure
-      goal: "按本阵营对公共任务的立场偏好施加影响",
-      action: "对公共任务施加正式支援或破坏",
-      target: "公共任务状态",
+      goal: "按本阵营对{ctx.publicTask}的立场偏好施加影响",
+      action: "对{ctx.publicTask}施加正式支援或破坏",
+      target: "{ctx.publicTask}",
       actionKind: "INFLUENCE_PUBLIC_TASK",
-      produces: [fact("faction_pressure", "公共任务立场压力")],
+      produces: [fact("faction_pressure", "{ctx.publicTask}立场压力")],
     },
   }),
   "M08-8": m08Bridge({

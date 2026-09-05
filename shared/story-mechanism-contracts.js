@@ -17,6 +17,7 @@ import {
 } from "./production-master-draft-contracts.js";
 import { normalizeStoryFactBridge } from "./semantic-fact.js";
 import { normalizePlayableCreationSpec } from "./playable-creation-spec.js";
+import { normalizeProjectContextProfile } from "./project-context-profile.js";
 
 export const STORY_MECHANISM_CONTRACT_VERSION = 1;
 
@@ -183,6 +184,8 @@ export function normalizeStoryMechanismBlock(value = {}) {
     lockedSlots,
     integrationHints: record(src.integrationHints),
     status,
+    sourceContextRevision:
+      src.sourceContextRevision != null ? Math.max(0, Math.trunc(Number(src.sourceContextRevision))) : null,
   };
 }
 
@@ -297,6 +300,9 @@ export function createProjectStoryState(input = {}) {
     unresolvedNeeds: asArray(src.unresolvedNeeds),
     /** P8.1 — null = LEGACY_UNSPECIFIED; never invent from old projects */
     creationSpec: src.creationSpec != null ? normalizePlayableCreationSpec(src.creationSpec) : null,
+    /** P9.1 — project-level context surface bindings */
+    contextProfile:
+      src.contextProfile != null ? normalizeProjectContextProfile(src.contextProfile) : null,
     masterOutlineDraft: normalizeMasterOutlineDraft(src.masterOutlineDraft),
     productionMasterDraft: (() => {
       const draft = normalizeProductionMasterDraft(src.productionMasterDraft);

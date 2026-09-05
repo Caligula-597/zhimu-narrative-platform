@@ -6,6 +6,10 @@
 import { semanticsBridgeForTemplate } from "./complete-beat-semantics-data.js";
 import { resolveBeatSemantics, formatAgencySummary } from "./story-beat-semantics.js";
 import { getStoryTemplate, getStoryVariant } from "./story-mechanism-registry.js";
+import {
+  labelMapFromBindings,
+  resolveContextBindingsForSlots,
+} from "./project-context-profile.js";
 
 function asArray(value) {
   return Array.isArray(value) ? value : [];
@@ -39,6 +43,7 @@ export function resolveVariantProgressionSemantics({
   roleBindings = null,
   plot = {},
   phaseBand = 1,
+  contextProfile = null,
 } = {}) {
   const template = getStoryTemplate(templateId);
   const variant = getStoryVariant(templateId, variantId) || template?.variants?.[0] || null;
@@ -54,12 +59,22 @@ export function resolveVariantProgressionSemantics({
       memberA: { id: "M", name: "成员" },
       defector: { id: "X", name: "变节者" },
     });
+  // P9.1: without project profile, still apply template fallback labels so {ctx.*} resolve.
+  let contextLabelMap = null;
+  if (bridge?.contextSlots) {
+    const resolved = resolveContextBindingsForSlots({
+      contextProfile,
+      contextSlots: bridge.contextSlots,
+    });
+    contextLabelMap = labelMapFromBindings(resolved.bindings);
+  }
   const semantics = resolveBeatSemantics({
     bridge,
     phaseBand,
     roleBindings: bindings,
     plot,
     variant,
+    contextLabelMap,
     sourceBlockId: `audit-${templateId}`,
     sourceBeatId: `phase-${phaseBand}`,
   });

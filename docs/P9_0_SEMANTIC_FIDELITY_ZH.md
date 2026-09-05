@@ -57,9 +57,9 @@ Base Template Semantics
 ## P9 后续顺序（已锁）
 
 ```text
-P9.0 Semantic Fidelity          ← 本刀
+P9.0 Semantic Fidelity          ✅ FROZEN
 ↓
-P9.1 Context Instantiation      premise / era / genre → 实体
+P9.1 Context Instantiation      ← next（见 docs/P9_1_CONTEXT_INSTANTIATION_ZH.md）
 ↓
 P9.2 GAME Narrative Binding
 ↓

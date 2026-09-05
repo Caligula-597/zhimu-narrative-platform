@@ -27,6 +27,9 @@ docs/ops/email-previews/
 output/
 tmp/
 
+# Local one-off scratch under mother-draft-compiler (never commit)
+mother-draft-compiler/_w*.mjs
+
 # Third-party reference scripts and scans stay local for editorial study only.
 案例/
 

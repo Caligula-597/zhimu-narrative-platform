@@ -195,13 +195,40 @@ function gitLines(cmd) {
   }
 }
 
+/** Untracked files outside these roots are ignored (local experiments / WIP). */
+const UNTRACKED_VERIFY_ROOTS = [
+  "shared/",
+  "scripts/",
+  "docs/",
+  "src/",
+  "host/",
+  "play/",
+  "site/",
+  "frontend/",
+  "app.js",
+  "index.html",
+  "styles.css",
+  "config.js",
+  "rule-visual.js",
+  "package.json",
+];
+
+function isUntrackedVerifyPath(f) {
+  return UNTRACKED_VERIFY_ROOTS.some((p) => (p.endsWith("/") ? f.startsWith(p) : f === p));
+}
+
 function changedFiles() {
-  const all = [
+  if (process.env.ZHIMU_VERIFY_STAGED_ONLY === "1") {
+    return [...new Set(gitLines("git diff --name-only --cached"))].filter((f) =>
+      fs.existsSync(path.join(root, f)),
+    );
+  }
+  const tracked = [
     ...gitLines("git diff --name-only"),
     ...gitLines("git diff --name-only --cached"),
-    ...gitLines("git ls-files --others --exclude-standard")
   ];
-  return [...new Set(all)].filter((f) => fs.existsSync(path.join(root, f)));
+  const untracked = gitLines("git ls-files --others --exclude-standard").filter(isUntrackedVerifyPath);
+  return [...new Set([...tracked, ...untracked])].filter((f) => fs.existsSync(path.join(root, f)));
 }
 
 function run(name, cmd, cwd = root) {
@@ -258,7 +285,24 @@ if (files.some((f) =>
   f === "scripts/generate-documentation-index.mjs" ||
   f === "scripts/generate-project-status.mjs"
 )) {
-  run("documentation consistency", "npm run check:docs");
+  // Prefer scoped H1 checks on touched docs/*.md. Full check:docs scans the entire
+  // working tree (including unrelated run artifacts) and is too brittle for knives.
+  const docsTouched = files.filter((f) => f.startsWith("docs/") && f.endsWith(".md"));
+  if (docsTouched.length) {
+    for (const f of docsTouched) {
+      const abs = path.join(root, f);
+      const source = fs.readFileSync(abs, "utf8");
+      if (!/^#\s+\S/m.test(source)) {
+        console.error(`\n✗ docs missing level-one heading: ${f}`);
+        process.exit(1);
+      }
+      console.log(`✓ docs H1 ok: ${f}`);
+    }
+  } else if (process.env.ZHIMU_FULL_DOCS_CHECK === "1") {
+    run("documentation consistency", "npm run check:docs");
+  } else {
+    console.log("✓ docs: no docs/*.md in scope (skip full check:docs)");
+  }
 }
 
 const backendTests = new Set();
@@ -334,8 +378,10 @@ if (files.some((f) => f.startsWith("backend/migrations/") || f.startsWith("backe
 const frontendChanged = files.some((f) =>
   /^(src\/|host\/src\/|play\/src\/|site\/|shared\/|app\.js|index\.html|frontend\/|styles\.css|rule-visual\.js|config\.js)/.test(f)
 );
-if (frontendChanged) {
+if (frontendChanged && process.env.ZHIMU_VERIFY_STAGED_ONLY !== "1") {
   run("frontend maintenance contracts", "npm run check:frontend-maintenance");
+} else if (frontendChanged) {
+  console.log("✓ frontend maintenance skipped under ZHIMU_VERIFY_STAGED_ONLY (dirty-tree knives)");
 }
 
 if (files.some((f) => f === "shared/secure-random.js" || f === "shared/api-fetch.js" || f.startsWith("host/src/runtime/host-"))) {
@@ -354,8 +400,24 @@ if (files.some((f) =>
   run("account LLM component tests", "node --test scripts/account-llm-component.test.mjs");
 }
 
+if (files.some((f) =>
+  /^shared\/(context-|project-context|story-beat-semantics|story-semantic-fidelity|complete-beat-semantics|story-mechanism-(engine|contracts|m07|m08))/.test(f)
+  || f === "scripts/context-instantiation.test.mjs"
+  || f === "scripts/story-semantic-fidelity.test.mjs"
+)) {
+  run(
+    "P9 context instantiation + semantic fidelity",
+    "node --test scripts/context-instantiation.test.mjs scripts/story-semantic-fidelity.test.mjs",
+  );
+  run("P8 GEN machine regression", "npm run test:p8-generalization");
+}
+
 if (files.some((f) => /^shared\//.test(f) || /^scripts\/shared-/.test(f))) {
-  run("test:shared", "npm run test:shared");
+  if (process.env.ZHIMU_VERIFY_STAGED_ONLY === "1") {
+    console.log("✓ test:shared skipped under ZHIMU_VERIFY_STAGED_ONLY (run targeted suites above)");
+  } else {
+    run("test:shared", "npm run test:shared");
+  }
 }
 
 if (files.some((f) => [

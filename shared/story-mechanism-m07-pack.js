@@ -496,16 +496,16 @@ const M07_2 = pack(
       semanticOverrides: {
         phases: {
           progression: {
-            goal: "用结算码换取被条件锁住的信息",
-            action: "提交或验证结算码以触发内容开放",
-            target: "结算码",
+            goal: "用{ctx.settlementCode}换取被条件锁住的信息",
+            action: "提交或验证{ctx.settlementCode}以触发内容开放",
+            target: "{ctx.settlementCode}",
             actionKind: "SUBMIT_CODE",
             requires: [
               {
                 id: "settlement_code_trigger",
                 factType: "settlement_code_trigger",
                 kind: "settlement_code_trigger",
-                summary: "结算码触发条件已满足",
+                summary: "{ctx.settlementCode}触发条件已满足",
                 sourceKind: "EXTERNAL_TRIGGER",
                 sourceRef: "settlement_code_trigger",
               },
@@ -515,18 +515,18 @@ const M07_2 = pack(
                 id: "identity_clue",
                 factType: "identity_clue",
                 kind: "identity_clue",
-                summary: "结算码解锁的信息",
+                summary: "{ctx.settlementCode}解锁的信息",
               },
             ],
           },
         },
       },
       semanticExpectations: {
-        requiredGoalTokens: ["结算码"],
+        requiredGoalTokens: [],
         forbiddenGoalTokens: ["登记条件", "签名"],
         requiredActionKind: "SUBMIT_CODE",
         requiredFactTypes: ["settlement_code_trigger"],
-        requiredTargetTokens: ["结算码"],
+        requiredTargetTokens: [],
       },
     }),
     variant({
@@ -539,16 +539,16 @@ const M07_2 = pack(
       semanticOverrides: {
         phases: {
           progression: {
-            goal: "用已声明权限换取被条件锁住的信息",
-            action: "合法使用预声明权限以触发内容开放",
-            target: "预声明权限",
+            goal: "用{ctx.accessCredential}换取被条件锁住的信息",
+            action: "合法使用{ctx.accessCredential}以触发内容开放",
+            target: "{ctx.accessCredential}",
             actionKind: "USE_PERMISSION",
             requires: [
               {
                 id: "permission_trigger",
                 factType: "permission_trigger",
                 kind: "permission_trigger",
-                summary: "权限使用触发条件已满足",
+                summary: "{ctx.accessCredential}使用触发条件已满足",
                 sourceKind: "EXTERNAL_TRIGGER",
                 sourceRef: "permission_trigger",
               },
@@ -558,18 +558,18 @@ const M07_2 = pack(
                 id: "identity_clue",
                 factType: "identity_clue",
                 kind: "identity_clue",
-                summary: "权限触发解锁的信息",
+                summary: "{ctx.accessCredential}触发解锁的信息",
               },
             ],
           },
         },
       },
       semanticExpectations: {
-        requiredGoalTokens: ["权限"],
+        requiredGoalTokens: [],
         forbiddenGoalTokens: ["结算码", "登记条件"],
         requiredActionKind: "USE_PERMISSION",
         requiredFactTypes: ["permission_trigger"],
-        requiredTargetTokens: ["权限"],
+        requiredTargetTokens: [],
       },
     }),
     variant({
