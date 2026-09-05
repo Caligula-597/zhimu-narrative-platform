@@ -18,6 +18,7 @@ import {
 import { normalizeStoryFactBridge } from "./semantic-fact.js";
 import { normalizePlayableCreationSpec } from "./playable-creation-spec.js";
 import { normalizeProjectContextProfile } from "./project-context-profile.js";
+import { normalizeGameNarrativePlan } from "./game-narrative-plan.js";
 
 export const STORY_MECHANISM_CONTRACT_VERSION = 1;
 
@@ -303,6 +304,9 @@ export function createProjectStoryState(input = {}) {
     /** P9.1 — project-level context surface bindings */
     contextProfile:
       src.contextProfile != null ? normalizeProjectContextProfile(src.contextProfile) : null,
+    /** P9.2 — GAME narrative sidecar (null = legacy / unset) */
+    gameNarrativePlan:
+      src.gameNarrativePlan != null ? normalizeGameNarrativePlan(src.gameNarrativePlan) : null,
     masterOutlineDraft: normalizeMasterOutlineDraft(src.masterOutlineDraft),
     productionMasterDraft: (() => {
       const draft = normalizeProductionMasterDraft(src.productionMasterDraft);

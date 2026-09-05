@@ -21,7 +21,8 @@ export function toPlayableCompileSource(pkgInput) {
     title: s.title,
     paragraphs: s.paragraphs,
     type: "REVEAL",
-    delivery: "AUTO_ON_STAGE",
+    delivery: s.delivery || "CONDITION_UNLOCK",
+    unlockPermissionId: s.unlockPermissionId,
   }));
 
   return {

@@ -59,9 +59,9 @@ Base Template Semantics
 ```text
 P9.0 Semantic Fidelity          ✅ FROZEN
 ↓
-P9.1 Context Instantiation      ← next（见 docs/P9_1_CONTEXT_INSTANTIATION_ZH.md）
+P9.1 Context Instantiation      ✅ FROZEN（见 docs/P9_1_CONTEXT_INSTANTIATION_ZH.md）
 ↓
-P9.2 GAME Narrative Binding
+P9.2 GAME Narrative Binding     ← next（见 docs/P9_2_GAME_NARRATIVE_BINDING_ZH.md）
 ↓
 P9.3 Real Writer V1
 ↓

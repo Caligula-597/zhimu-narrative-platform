@@ -129,4 +129,5 @@ npm run verify:playable
 
 ## 下一步
 
-**P9.2 GAME Narrative Binding** — 解释「为什么这一幕要竞价 / 玩家在争什么」，不要回头扩 P8 / 不要开真实 Writer（P9.3）。
+**P9.2 GAME Narrative Binding** ✅ 见 `docs/P9_2_GAME_NARRATIVE_BINDING_ZH.md`  
+再下一刀：**P9.3 Real Writer V1** — 仍不回头扩 P8 / 不扩全量 GAME bridge。

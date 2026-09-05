@@ -401,13 +401,14 @@ if (files.some((f) =>
 }
 
 if (files.some((f) =>
-  /^shared\/(context-|project-context|story-beat-semantics|story-semantic-fidelity|complete-beat-semantics|story-mechanism-(engine|contracts|m07|m08))/.test(f)
+  /^shared\/(context-|project-context|story-beat-semantics|story-semantic-fidelity|complete-beat-semantics|story-mechanism-(engine|contracts|m07|m08)|game-narrative)/.test(f)
   || f === "scripts/context-instantiation.test.mjs"
   || f === "scripts/story-semantic-fidelity.test.mjs"
+  || f === "scripts/game-narrative-binding.test.mjs"
 )) {
   run(
-    "P9 context instantiation + semantic fidelity",
-    "node --test scripts/context-instantiation.test.mjs scripts/story-semantic-fidelity.test.mjs",
+    "P9 context + semantic fidelity + game narrative",
+    "node --test scripts/context-instantiation.test.mjs scripts/story-semantic-fidelity.test.mjs scripts/game-narrative-binding.test.mjs",
   );
   run("P8 GEN machine regression", "npm run test:p8-generalization");
 }
