@@ -1,10 +1,10 @@
 {
-  "id": "pmd-mod-mto2wwgw-qohk",
+  "id": "pmd-mod-mto37pkd-ihpd",
   "version": 2,
   "projectId": "p8-gen-04",
   "sourceStoryStateRevision": 0,
-  "sourceMasterOutlineId": "mod-mto2wwgw-qohk",
-  "sourceMasterOutlineRevision": "v1:mod-mto2wwgw-qohk:act1@0:{ob-mto2wwgw-c0xu|smb-mto2wwgu-2p3zj|beat-setup,ob-mto2wwgw-xdt7|smb-mto2wwgu-yufl7|beat-setup,ob-mto2wwgw-d1wl|smb-mto2wwgv-2ebzl|beat-setup,ob-mto2wwgw-0wfp|smb-mto2wwgu-yufl7|beat-develop,ob-mto2wwgw-cfiz|smb-mto2wwgu-2p3zj|beat-develop,ob-mto2wwgw-1y9g|smb-mto2wwgu-yufl7|beat-climax,ob-mto2wwgw-7m1j|smb-mto2wwgu-2p3zj|beat-climax,ob-mto2wwgw-6756|smb-mto2wwgu-yufl7|beat-res,ob-mto2wwgw-97zo|smb-mto2wwgu-2p3zj|beat-res};act2@1:{ob-mto2wwgw-1fgq|smb-mto2wwgv-2ebzl|beat-develop};act3@2:{ob-mto2wwgw-at01|smb-mto2wwgv-2ebzl|beat-climax};act4@3:{ob-mto2wwgw-u98b|smb-mto2wwgv-2ebzl|beat-res}#wl-mto2wwgw-0jq2:WEAVE_SHARED_SCENE:ob-mto2wwgw-xdt7,ob-mto2wwgw-d1wl|wl-mto2wwgw-29uo:WEAVE_CAUSAL:ob-mto2wwgw-7m1j,ob-mto2wwgw-6756|wl-mto2wwgw-51c6:WEAVE_CAUSAL:ob-mto2wwgw-c0xu,ob-mto2wwgw-0wfp|wl-mto2wwgw-54mf:WEAVE_SHARED_ACTION:ob-mto2wwgw-cfiz,ob-mto2wwgw-0wfp|wl-mto2wwgw-619q:WEAVE_SHARED_CHARACTER:ob-mto2wwgw-c0xu,ob-mto2wwgw-1fgq|wl-mto2wwgw-73cx:WEAVE_SHARED_SCENE:ob-mto2wwgw-cfiz,ob-mto2wwgw-1fgq|wl-mto2wwgw-80y8:WEAVE_SHARED_SCENE:ob-mto2wwgw-6756,ob-mto2wwgw-u98b|wl-mto2wwgw-9i8r:WEAVE_SHARED_CHARACTER:ob-mto2wwgw-7m1j,ob-mto2wwgw-u98b|wl-mto2wwgw-bscf:WEAVE_SHARED_CHARACTER:ob-mto2wwgw-0wfp,ob-mto2wwgw-at01|wl-mto2wwgw-ccy8:WEAVE_SHARED_ACTION:ob-mto2wwgw-7m1j,ob-mto2wwgw-1y9g|wl-mto2wwgw-cqjh:KEEP_PARALLEL:ob-mto2wwgw-cfiz,ob-mto2wwgw-1fgq|wl-mto2wwgw-fq0v:WEAVE_STRONG:ob-mto2wwgw-c0xu,ob-mto2wwgw-xdt7|wl-mto2wwgw-hhu9:WEAVE_SHARED_SCENE:ob-mto2wwgw-1y9g,ob-mto2wwgw-at01|wl-mto2wwgw-i8yc:WEAVE_SHARED_ACTION:ob-mto2wwgw-97zo,ob-mto2wwgw-6756|wl-mto2wwgw-l7pe:WEAVE_SHARED_CHARACTER:ob-mto2wwgw-1y9g,ob-mto2wwgw-u98b|wl-mto2wwgw-lno3:WEAVE_SHARED_CHARACTER:ob-mto2wwgw-xdt7,ob-mto2wwgw-1fgq|wl-mto2wwgw-m6am:WEAVE_SHARED_SCENE:ob-mto2wwgw-0wfp,ob-mto2wwgw-1fgq|wl-mto2wwgw-ntqx:WEAVE_SHARED_SCENE:ob-mto2wwgw-97zo,ob-mto2wwgw-u98b|wl-mto2wwgw-owao:WEAVE_CAUSAL:ob-mto2wwgw-cfiz,ob-mto2wwgw-1y9g|wl-mto2wwgw-vfy5:WEAVE_SHARED_CHARACTER:ob-mto2wwgw-cfiz,ob-mto2wwgw-at01|wl-mto2wwgw-x8v3:WEAVE_SHARED_SCENE:ob-mto2wwgw-7m1j,ob-mto2wwgw-at01|wl-mto2wwgw-yzem:KEEP_PARALLEL:ob-mto2wwgw-0wfp,ob-mto2wwgw-1fgq",
+  "sourceMasterOutlineId": "mod-mto37pkd-ihpd",
+  "sourceMasterOutlineRevision": "v1:mod-mto37pkd-ihpd:act1@0:{ob-mto37pkd-3zog|smb-mto37pkb-j40ym|beat-setup,ob-mto37pkd-bhwk|smb-mto37pkc-rxkfi|beat-setup,ob-mto37pkd-b3bv|smb-mto37pkc-qrxom|beat-setup,ob-mto37pkd-atci|smb-mto37pkc-rxkfi|beat-develop};act2@1:{ob-mto37pkd-hpfw|smb-mto37pkb-j40ym|beat-develop,ob-mto37pkd-843m|smb-mto37pkc-rxkfi|beat-climax,ob-mto37pkd-anwr|smb-mto37pkb-j40ym|beat-climax,ob-mto37pkd-x6p1|smb-mto37pkc-rxkfi|beat-res,ob-mto37pkd-6sry|smb-mto37pkb-j40ym|beat-res};act3@2:{ob-mto37pkd-qfp2|smb-mto37pkc-qrxom|beat-develop};act4@3:{ob-mto37pkd-16xr|smb-mto37pkc-qrxom|beat-climax};act5@4:{ob-mto37pkd-i7i2|smb-mto37pkc-qrxom|beat-res}#wl-mto37pkd-5zlm:WEAVE_SHARED_ACTION:ob-mto37pkd-6sry,ob-mto37pkd-x6p1|wl-mto37pkd-6gsj:WEAVE_CAUSAL:ob-mto37pkd-hpfw,ob-mto37pkd-843m|wl-mto37pkd-8fkd:WEAVE_SHARED_CHARACTER:ob-mto37pkd-3zog,ob-mto37pkd-qfp2|wl-mto37pkd-9b77:KEEP_PARALLEL:ob-mto37pkd-hpfw,ob-mto37pkd-qfp2|wl-mto37pkd-9ght:WEAVE_SHARED_CHARACTER:ob-mto37pkd-anwr,ob-mto37pkd-i7i2|wl-mto37pkd-bttn:WEAVE_SHARED_ACTION:ob-mto37pkd-anwr,ob-mto37pkd-843m|wl-mto37pkd-cgok:WEAVE_SHARED_SCENE:ob-mto37pkd-bhwk,ob-mto37pkd-b3bv|wl-mto37pkd-diuz:WEAVE_SHARED_CHARACTER:ob-mto37pkd-843m,ob-mto37pkd-i7i2|wl-mto37pkd-ep6h:WEAVE_SHARED_SCENE:ob-mto37pkd-anwr,ob-mto37pkd-16xr|wl-mto37pkd-ez2y:WEAVE_STRONG:ob-mto37pkd-3zog,ob-mto37pkd-bhwk|wl-mto37pkd-fdp2:KEEP_PARALLEL:ob-mto37pkd-atci,ob-mto37pkd-qfp2|wl-mto37pkd-g4qp:WEAVE_SHARED_SCENE:ob-mto37pkd-atci,ob-mto37pkd-qfp2|wl-mto37pkd-k5cu:WEAVE_CAUSAL:ob-mto37pkd-anwr,ob-mto37pkd-x6p1|wl-mto37pkd-l28z:WEAVE_SHARED_SCENE:ob-mto37pkd-hpfw,ob-mto37pkd-qfp2|wl-mto37pkd-o4fn:WEAVE_SHARED_SCENE:ob-mto37pkd-x6p1,ob-mto37pkd-i7i2|wl-mto37pkd-owml:WEAVE_SHARED_CHARACTER:ob-mto37pkd-hpfw,ob-mto37pkd-16xr|wl-mto37pkd-repg:WEAVE_CAUSAL:ob-mto37pkd-3zog,ob-mto37pkd-atci|wl-mto37pkd-snd1:WEAVE_SHARED_ACTION:ob-mto37pkd-hpfw,ob-mto37pkd-atci|wl-mto37pkd-u3s1:WEAVE_SHARED_SCENE:ob-mto37pkd-6sry,ob-mto37pkd-i7i2|wl-mto37pkd-w124:WEAVE_SHARED_CHARACTER:ob-mto37pkd-atci,ob-mto37pkd-16xr|wl-mto37pkd-x31x:WEAVE_SHARED_SCENE:ob-mto37pkd-843m,ob-mto37pkd-16xr|wl-mto37pkd-zknj:WEAVE_SHARED_CHARACTER:ob-mto37pkd-bhwk,ob-mto37pkd-qfp2",
   "title": "GEN-04 毕业照之后",
   "premiseSummary": "校园现实群像 · 当代校园回忆 · 责任 · 隐瞒 · 群像",
   "stages": [
@@ -13,14 +13,14 @@
       "stageRole": "SETUP",
       "title": "铺垫",
       "order": 0,
-      "purpose": "陈夏：公开亮明阵营归属与目标；乔安：巩固或潜伏阵营结构；沐白：隐藏或维持当前身份表象；乔安：让公共任务按本阵营偏好成功、失败或延迟；陈夏：夺取关键资源；梁柚：在暴露风险下改归属或保住秘密",
+      "purpose": "陈夏：公开亮明阵营归属与目标；乔安：巩固或潜伏阵营结构；沐白：隐藏或维持当前身份表象；乔安：让公共任务按本阵营偏好成功、失败或延迟",
       "beats": [
         {
-          "id": "pbeat-ob-mto2wwgw-c0xu",
+          "id": "pbeat-ob-mto37pkd-3zog",
           "sourceBeatId": "beat-setup",
-          "sourceOutlineBeatId": "ob-mto2wwgw-c0xu",
-          "sourceBlockId": "smb-mto2wwgu-2p3zj",
-          "sourceMechanismId": "smb-mto2wwgu-2p3zj",
+          "sourceOutlineBeatId": "ob-mto37pkd-3zog",
+          "sourceBlockId": "smb-mto37pkb-j40ym",
+          "sourceMechanismId": "smb-mto37pkb-j40ym",
           "templateId": "M08-1",
           "familyId": "M08",
           "actors": [
@@ -53,7 +53,7 @@
           "playerKnowledge": "玩家可见：确认成员知情范围与联络方式",
           "hostTruth": "主持真相：陈夏为了公开亮明阵营归属与目标，确认成员知情范围与联络方式（目标：阵营名单/暗号）",
           "clueRefs": [
-            "smb-mto2wwgu-2p3zj-faction_foreshadow-0"
+            "smb-mto37pkb-j40ym-faction_foreshadow-0"
           ],
           "relatedCharacterIds": [
             "S1",
@@ -61,9 +61,9 @@
           ],
           "relationQuality": "INTERWOVEN",
           "weaveLinkIds": [
-            "wl-mto2wwgw-fq0v",
-            "wl-mto2wwgw-51c6",
-            "wl-mto2wwgw-619q"
+            "wl-mto37pkd-ez2y",
+            "wl-mto37pkd-repg",
+            "wl-mto37pkd-8fkd"
           ],
           "relationNotes": [
             "【真正交织】共享行动目标「阵营名单/暗号」，且目标方向可对齐或对撞",
@@ -74,11 +74,11 @@
           "contentConfirmed": false
         },
         {
-          "id": "pbeat-ob-mto2wwgw-xdt7",
+          "id": "pbeat-ob-mto37pkd-bhwk",
           "sourceBeatId": "beat-setup",
-          "sourceOutlineBeatId": "ob-mto2wwgw-xdt7",
-          "sourceBlockId": "smb-mto2wwgu-yufl7",
-          "sourceMechanismId": "smb-mto2wwgu-yufl7",
+          "sourceOutlineBeatId": "ob-mto37pkd-bhwk",
+          "sourceBlockId": "smb-mto37pkc-rxkfi",
+          "sourceMechanismId": "smb-mto37pkc-rxkfi",
           "templateId": "M08-7",
           "familyId": "M08",
           "actors": [
@@ -111,7 +111,7 @@
           "playerKnowledge": "玩家可见：确认成员知情范围与联络方式",
           "hostTruth": "主持真相：乔安为了巩固或潜伏阵营结构，确认成员知情范围与联络方式（目标：阵营名单/暗号）",
           "clueRefs": [
-            "smb-mto2wwgu-yufl7-faction_foreshadow-0"
+            "smb-mto37pkc-rxkfi-faction_foreshadow-0"
           ],
           "relatedCharacterIds": [
             "S6",
@@ -119,9 +119,9 @@
           ],
           "relationQuality": "INTERWOVEN",
           "weaveLinkIds": [
-            "wl-mto2wwgw-fq0v",
-            "wl-mto2wwgw-0jq2",
-            "wl-mto2wwgw-lno3"
+            "wl-mto37pkd-ez2y",
+            "wl-mto37pkd-cgok",
+            "wl-mto37pkd-zknj"
           ],
           "relationNotes": [
             "【真正交织】共享行动目标「阵营名单/暗号」，且目标方向可对齐或对撞",
@@ -132,11 +132,11 @@
           "contentConfirmed": false
         },
         {
-          "id": "pbeat-ob-mto2wwgw-d1wl",
+          "id": "pbeat-ob-mto37pkd-b3bv",
           "sourceBeatId": "beat-setup",
-          "sourceOutlineBeatId": "ob-mto2wwgw-d1wl",
-          "sourceBlockId": "smb-mto2wwgv-2ebzl",
-          "sourceMechanismId": "smb-mto2wwgv-2ebzl",
+          "sourceOutlineBeatId": "ob-mto37pkd-b3bv",
+          "sourceBlockId": "smb-mto37pkc-qrxom",
+          "sourceMechanismId": "smb-mto37pkc-qrxom",
           "templateId": "M07-2",
           "familyId": "M07",
           "actors": [
@@ -169,7 +169,7 @@
           "playerKnowledge": "玩家可见：按伪装/未知状态行动，避免过早暴露（仅同场，不暗示因果）",
           "hostTruth": "主持真相：沐白为了隐藏或维持当前身份表象，按伪装/未知状态行动，避免过早暴露（目标：身份表象）",
           "clueRefs": [
-            "smb-mto2wwgv-2ebzl-foreshadow-0"
+            "smb-mto37pkc-qrxom-foreshadow-0"
           ],
           "relatedCharacterIds": [
             "S7",
@@ -177,7 +177,7 @@
           ],
           "relationQuality": "COLOCATED",
           "weaveLinkIds": [
-            "wl-mto2wwgw-0jq2"
+            "wl-mto37pkd-cgok"
           ],
           "relationNotes": [
             "【同场并列】同阶段共享角色 S7——可同场并列，不算真正交织"
@@ -186,11 +186,11 @@
           "contentConfirmed": false
         },
         {
-          "id": "pbeat-ob-mto2wwgw-0wfp",
+          "id": "pbeat-ob-mto37pkd-atci",
           "sourceBeatId": "beat-develop",
-          "sourceOutlineBeatId": "ob-mto2wwgw-0wfp",
-          "sourceBlockId": "smb-mto2wwgu-yufl7",
-          "sourceMechanismId": "smb-mto2wwgu-yufl7",
+          "sourceOutlineBeatId": "ob-mto37pkd-atci",
+          "sourceBlockId": "smb-mto37pkc-rxkfi",
+          "sourceMechanismId": "smb-mto37pkc-rxkfi",
           "templateId": "M08-7",
           "familyId": "M08",
           "actors": [
@@ -250,7 +250,7 @@
           "playerKnowledge": "玩家可见：对公共任务施加正式破坏或支援",
           "hostTruth": "主持真相：乔安为了让公共任务按本阵营偏好成功、失败或延迟，对公共任务施加正式破坏或支援（目标：公共任务状态）",
           "clueRefs": [
-            "smb-mto2wwgu-yufl7-faction_foreshadow-0"
+            "smb-mto37pkc-rxkfi-faction_foreshadow-0"
           ],
           "relatedCharacterIds": [
             "S6",
@@ -262,11 +262,11 @@
           ],
           "relationQuality": "INTERWOVEN",
           "weaveLinkIds": [
-            "wl-mto2wwgw-51c6",
-            "wl-mto2wwgw-54mf",
-            "wl-mto2wwgw-m6am",
-            "wl-mto2wwgw-bscf",
-            "wl-mto2wwgw-yzem"
+            "wl-mto37pkd-repg",
+            "wl-mto37pkd-snd1",
+            "wl-mto37pkd-g4qp",
+            "wl-mto37pkd-w124",
+            "wl-mto37pkd-fdp2"
           ],
           "relationNotes": [
             "【真正交织】固定公开阵营｜公开阵营加公共任务赛道 的结果（faction_latent）满足 阵营影响公共任务｜希望任务成功 的前置条件",
@@ -277,13 +277,132 @@
           ],
           "needsDetail": false,
           "contentConfirmed": false
+        }
+      ],
+      "playerVisibleSummary": "玩家可见：确认成员知情范围与联络方式 / 玩家可见：按伪装/未知状态行动，避免过早暴露（仅同场，不暗示因果） / 玩家可见：对公共任务施加正式破坏或支援",
+      "hostTruthSummary": "主持真相：陈夏为了公开亮明阵营归属与目标，确认成员知情范围与联络方式（目标：阵营名单/暗号） / 主持真相：乔安为了巩固或潜伏阵营结构，确认成员知情范围与联络方式（目标：阵营名单/暗号） / 主持真相：沐白为了隐藏或维持当前身份表象，按伪装/未知状态行动，避免过早暴露（目标：身份表象） / 主持真相：乔安为了让公共任务按本阵营偏好成功、失败或延迟，对公共任务施加正式破坏或支援（目标：公共任务状态）",
+      "stageStartState": "开局：各线按积木 setup 状态进入（不新增前提）",
+      "stageEndState": "阵营结构已成形；身份仍未公开；阵营压力升级",
+      "clueEntries": [
+        {
+          "clueId": "smb-mto37pkb-j40ym-faction_foreshadow-0",
+          "label": "阵营伏笔",
+          "mechanismId": "smb-mto37pkb-j40ym",
+          "templateId": "M08-1",
+          "introducedAt": "act1",
+          "availableStages": [
+            "act1",
+            "act2"
+          ],
+          "persists": true,
+          "stageId": "act1",
+          "possibleFinders": [
+            "S1",
+            "S2",
+            "S3",
+            "S4",
+            "S5"
+          ],
+          "supportsFact": "阵营伏笔",
+          "isMisleading": false,
+          "isDecisive": false,
+          "missingDetail": false
         },
         {
-          "id": "pbeat-ob-mto2wwgw-cfiz",
+          "clueId": "smb-mto37pkc-rxkfi-faction_foreshadow-0",
+          "label": "阵营伏笔",
+          "mechanismId": "smb-mto37pkc-rxkfi",
+          "templateId": "M08-7",
+          "introducedAt": "act1",
+          "availableStages": [
+            "act1"
+          ],
+          "persists": false,
+          "stageId": "act1",
+          "possibleFinders": [
+            "S6",
+            "S7",
+            "S8",
+            "S2",
+            "S3",
+            "S4"
+          ],
+          "supportsFact": "阵营伏笔",
+          "isMisleading": false,
+          "isDecisive": false,
+          "missingDetail": false
+        },
+        {
+          "clueId": "smb-mto37pkc-qrxom-foreshadow-0",
+          "label": "早期伏笔",
+          "mechanismId": "smb-mto37pkc-qrxom",
+          "templateId": "M07-2",
+          "introducedAt": "act1",
+          "availableStages": [
+            "act1",
+            "act3"
+          ],
+          "persists": true,
+          "stageId": "act1",
+          "possibleFinders": [
+            "S7",
+            "S8",
+            "S1",
+            "S4",
+            "S5"
+          ],
+          "supportsFact": "早期伏笔",
+          "isMisleading": false,
+          "isDecisive": false,
+          "missingDetail": false
+        }
+      ],
+      "characterEntries": [
+        {
+          "id": "S1",
+          "name": "陈夏"
+        },
+        {
+          "id": "S2",
+          "name": "方禾"
+        },
+        {
+          "id": "S6",
+          "name": "乔安"
+        },
+        {
+          "id": "S7",
+          "name": "沐白"
+        },
+        {
+          "id": "S8",
+          "name": "程野"
+        },
+        {
+          "id": "S3",
+          "name": "梁柚"
+        },
+        {
+          "id": "S4",
+          "name": "韩汀"
+        }
+      ],
+      "unresolvedDetails": [],
+      "warnings": []
+    },
+    {
+      "stageId": "act2",
+      "stageRole": "PRESSURE",
+      "title": "发展",
+      "order": 1,
+      "purpose": "陈夏：夺取关键资源；梁柚：在暴露风险下改归属或保住秘密；陈夏：在暴露风险下改归属或保住秘密；乔安：结算阵营目标并承受公开后果；陈夏：结算阵营目标并承受公开后果",
+      "beats": [
+        {
+          "id": "pbeat-ob-mto37pkd-hpfw",
           "sourceBeatId": "beat-develop",
-          "sourceOutlineBeatId": "ob-mto2wwgw-cfiz",
-          "sourceBlockId": "smb-mto2wwgu-2p3zj",
-          "sourceMechanismId": "smb-mto2wwgu-2p3zj",
+          "sourceOutlineBeatId": "ob-mto37pkd-hpfw",
+          "sourceBlockId": "smb-mto37pkb-j40ym",
+          "sourceMechanismId": "smb-mto37pkb-j40ym",
           "templateId": "M08-1",
           "familyId": "M08",
           "actors": [
@@ -339,7 +458,7 @@
           "playerKnowledge": "玩家可见：组织成员夺取或销毁关键物证/资源",
           "hostTruth": "主持真相：陈夏为了夺取关键资源，组织成员夺取或销毁关键物证/资源（目标：关键账册或信物）",
           "clueRefs": [
-            "smb-mto2wwgu-2p3zj-faction_foreshadow-0"
+            "smb-mto37pkb-j40ym-faction_foreshadow-0"
           ],
           "relatedCharacterIds": [
             "S1",
@@ -350,11 +469,11 @@
           ],
           "relationQuality": "INTERWOVEN",
           "weaveLinkIds": [
-            "wl-mto2wwgw-54mf",
-            "wl-mto2wwgw-owao",
-            "wl-mto2wwgw-73cx",
-            "wl-mto2wwgw-vfy5",
-            "wl-mto2wwgw-cqjh"
+            "wl-mto37pkd-snd1",
+            "wl-mto37pkd-6gsj",
+            "wl-mto37pkd-l28z",
+            "wl-mto37pkd-owml",
+            "wl-mto37pkd-9b77"
           ],
           "relationNotes": [
             "【真正交织】两条剧情都需要在「关键场所」执行相近行动（SECURE），可共享一次行动",
@@ -367,11 +486,11 @@
           "contentConfirmed": false
         },
         {
-          "id": "pbeat-ob-mto2wwgw-1y9g",
+          "id": "pbeat-ob-mto37pkd-843m",
           "sourceBeatId": "beat-climax",
-          "sourceOutlineBeatId": "ob-mto2wwgw-1y9g",
-          "sourceBlockId": "smb-mto2wwgu-yufl7",
-          "sourceMechanismId": "smb-mto2wwgu-yufl7",
+          "sourceOutlineBeatId": "ob-mto37pkd-843m",
+          "sourceBlockId": "smb-mto37pkc-rxkfi",
+          "sourceMechanismId": "smb-mto37pkc-rxkfi",
           "templateId": "M08-7",
           "familyId": "M08",
           "actors": [
@@ -431,15 +550,15 @@
           "playerKnowledge": "玩家可见：在关键选择点背叛、退出或清洗异己",
           "hostTruth": "主持真相：梁柚为了在暴露风险下改归属或保住秘密，在关键选择点背叛、退出或清洗异己（目标：归属状态）",
           "clueRefs": [
-            "smb-mto2wwgu-yufl7-membership_hint-1",
-            "smb-mto2wwgu-yufl7-secret_signal-2",
-            "smb-mto2wwgu-yufl7-recruitment_evidence-3",
-            "smb-mto2wwgu-yufl7-loyalty_test-4",
-            "smb-mto2wwgu-yufl7-betrayal_hint-5",
-            "smb-mto2wwgu-yufl7-internal_conflict-6",
-            "smb-mto2wwgu-yufl7-hidden_goal_hint-7",
-            "smb-mto2wwgu-yufl7-membership_confirmation-8",
-            "smb-mto2wwgu-yufl7-faction_exposure-9"
+            "smb-mto37pkc-rxkfi-membership_hint-1",
+            "smb-mto37pkc-rxkfi-secret_signal-2",
+            "smb-mto37pkc-rxkfi-recruitment_evidence-3",
+            "smb-mto37pkc-rxkfi-loyalty_test-4",
+            "smb-mto37pkc-rxkfi-betrayal_hint-5",
+            "smb-mto37pkc-rxkfi-internal_conflict-6",
+            "smb-mto37pkc-rxkfi-hidden_goal_hint-7",
+            "smb-mto37pkc-rxkfi-membership_confirmation-8",
+            "smb-mto37pkc-rxkfi-faction_exposure-9"
           ],
           "relatedCharacterIds": [
             "S3",
@@ -451,10 +570,10 @@
           ],
           "relationQuality": "INTERWOVEN",
           "weaveLinkIds": [
-            "wl-mto2wwgw-owao",
-            "wl-mto2wwgw-ccy8",
-            "wl-mto2wwgw-hhu9",
-            "wl-mto2wwgw-l7pe"
+            "wl-mto37pkd-6gsj",
+            "wl-mto37pkd-bttn",
+            "wl-mto37pkd-x31x",
+            "wl-mto37pkd-diuz"
           ],
           "relationNotes": [
             "【真正交织】固定公开阵营｜公开阵营加公共任务赛道 的结果（faction_pressure）满足 阵营影响公共任务｜希望任务成功 的前置条件",
@@ -466,11 +585,11 @@
           "contentConfirmed": false
         },
         {
-          "id": "pbeat-ob-mto2wwgw-7m1j",
+          "id": "pbeat-ob-mto37pkd-anwr",
           "sourceBeatId": "beat-climax",
-          "sourceOutlineBeatId": "ob-mto2wwgw-7m1j",
-          "sourceBlockId": "smb-mto2wwgu-2p3zj",
-          "sourceMechanismId": "smb-mto2wwgu-2p3zj",
+          "sourceOutlineBeatId": "ob-mto37pkd-anwr",
+          "sourceBlockId": "smb-mto37pkb-j40ym",
+          "sourceMechanismId": "smb-mto37pkb-j40ym",
           "templateId": "M08-1",
           "familyId": "M08",
           "actors": [
@@ -524,15 +643,15 @@
           "playerKnowledge": "玩家可见：在关键选择点背叛、退出或清洗异己",
           "hostTruth": "主持真相：陈夏为了在暴露风险下改归属或保住秘密，在关键选择点背叛、退出或清洗异己（目标：归属状态）",
           "clueRefs": [
-            "smb-mto2wwgu-2p3zj-membership_hint-1",
-            "smb-mto2wwgu-2p3zj-secret_signal-2",
-            "smb-mto2wwgu-2p3zj-recruitment_evidence-3",
-            "smb-mto2wwgu-2p3zj-loyalty_test-4",
-            "smb-mto2wwgu-2p3zj-betrayal_hint-5",
-            "smb-mto2wwgu-2p3zj-internal_conflict-6",
-            "smb-mto2wwgu-2p3zj-hidden_goal_hint-7",
-            "smb-mto2wwgu-2p3zj-membership_confirmation-8",
-            "smb-mto2wwgu-2p3zj-faction_exposure-9"
+            "smb-mto37pkb-j40ym-membership_hint-1",
+            "smb-mto37pkb-j40ym-secret_signal-2",
+            "smb-mto37pkb-j40ym-recruitment_evidence-3",
+            "smb-mto37pkb-j40ym-loyalty_test-4",
+            "smb-mto37pkb-j40ym-betrayal_hint-5",
+            "smb-mto37pkb-j40ym-internal_conflict-6",
+            "smb-mto37pkb-j40ym-hidden_goal_hint-7",
+            "smb-mto37pkb-j40ym-membership_confirmation-8",
+            "smb-mto37pkb-j40ym-faction_exposure-9"
           ],
           "relatedCharacterIds": [
             "S1",
@@ -543,10 +662,10 @@
           ],
           "relationQuality": "INTERWOVEN",
           "weaveLinkIds": [
-            "wl-mto2wwgw-ccy8",
-            "wl-mto2wwgw-29uo",
-            "wl-mto2wwgw-x8v3",
-            "wl-mto2wwgw-9i8r"
+            "wl-mto37pkd-bttn",
+            "wl-mto37pkd-k5cu",
+            "wl-mto37pkd-ep6h",
+            "wl-mto37pkd-9ght"
           ],
           "relationNotes": [
             "【真正交织】两条剧情都需要在「阵营关键据点」执行相近行动（SHIFT），可共享一次行动",
@@ -559,11 +678,11 @@
           "contentConfirmed": false
         },
         {
-          "id": "pbeat-ob-mto2wwgw-6756",
+          "id": "pbeat-ob-mto37pkd-x6p1",
           "sourceBeatId": "beat-res",
-          "sourceOutlineBeatId": "ob-mto2wwgw-6756",
-          "sourceBlockId": "smb-mto2wwgu-yufl7",
-          "sourceMechanismId": "smb-mto2wwgu-yufl7",
+          "sourceOutlineBeatId": "ob-mto37pkd-x6p1",
+          "sourceBlockId": "smb-mto37pkc-rxkfi",
+          "sourceMechanismId": "smb-mto37pkc-rxkfi",
           "templateId": "M08-7",
           "familyId": "M08",
           "actors": [
@@ -628,9 +747,9 @@
           ],
           "relationQuality": "INTERWOVEN",
           "weaveLinkIds": [
-            "wl-mto2wwgw-29uo",
-            "wl-mto2wwgw-i8yc",
-            "wl-mto2wwgw-80y8"
+            "wl-mto37pkd-k5cu",
+            "wl-mto37pkd-5zlm",
+            "wl-mto37pkd-o4fn"
           ],
           "relationNotes": [
             "【真正交织】固定公开阵营｜公开阵营加公共任务赛道 的结果（allegiance_changed）满足 阵营影响公共任务｜希望任务成功 的前置条件",
@@ -641,11 +760,11 @@
           "contentConfirmed": false
         },
         {
-          "id": "pbeat-ob-mto2wwgw-97zo",
+          "id": "pbeat-ob-mto37pkd-6sry",
           "sourceBeatId": "beat-res",
-          "sourceOutlineBeatId": "ob-mto2wwgw-97zo",
-          "sourceBlockId": "smb-mto2wwgu-2p3zj",
-          "sourceMechanismId": "smb-mto2wwgu-2p3zj",
+          "sourceOutlineBeatId": "ob-mto37pkd-6sry",
+          "sourceBlockId": "smb-mto37pkb-j40ym",
+          "sourceMechanismId": "smb-mto37pkb-j40ym",
           "templateId": "M08-1",
           "familyId": "M08",
           "actors": [
@@ -705,8 +824,8 @@
           ],
           "relationQuality": "INTERWOVEN",
           "weaveLinkIds": [
-            "wl-mto2wwgw-i8yc",
-            "wl-mto2wwgw-ntqx"
+            "wl-mto37pkd-5zlm",
+            "wl-mto37pkd-u3s1"
           ],
           "relationNotes": [
             "【真正交织】两条剧情都需要在「阵营关键据点」执行相近行动（SETTLE），可共享一次行动",
@@ -716,63 +835,16 @@
           "contentConfirmed": false
         }
       ],
-      "playerVisibleSummary": "玩家可见：确认成员知情范围与联络方式 / 玩家可见：按伪装/未知状态行动，避免过早暴露（仅同场，不暗示因果） / 玩家可见：对公共任务施加正式破坏或支援 / 玩家可见：组织成员夺取或销毁关键物证/资源 / 玩家可见：在关键选择点背叛、退出或清洗异己 / 玩家可见：公开站队或接受阵营败露后的关系重排",
-      "hostTruthSummary": "主持真相：陈夏为了公开亮明阵营归属与目标，确认成员知情范围与联络方式（目标：阵营名单/暗号） / 主持真相：乔安为了巩固或潜伏阵营结构，确认成员知情范围与联络方式（目标：阵营名单/暗号） / 主持真相：沐白为了隐藏或维持当前身份表象，按伪装/未知状态行动，避免过早暴露（目标：身份表象） / 主持真相：乔安为了让公共任务按本阵营偏好成功、失败或延迟，对公共任务施加正式破坏或支援（目标：公共任务状态） / 主持真相：陈夏为了夺取关键资源，组织成员夺取或销毁关键物证/资源（目标：关键账册或信物） / 主持真相：梁柚为了在暴露风险下改归属或保住秘密，在关键选择点背叛、退出或清洗异己（目标：归属状态） / 主持真相：陈夏为了在暴露风险下改归属或保住秘密，在关键选择点背叛、退出或清洗异己（目标：归属状态） / 主持真相：乔安为了结算阵营目标并承受公开后果，公开站队或接受阵营败露后的关系重排（目标：阵营胜负条件） / 主持真相：陈夏为了结算阵营目标并承受公开后果，公开站队或接受阵营败露后的关系重排（目标：阵营胜负条件）",
-      "stageStartState": "开局：各线按积木 setup 状态进入（不新增前提）",
-      "stageEndState": "阵营结构已成形；身份仍未公开；阵营压力升级；归属已改变；暴露风险上升；阵营线结算",
+      "playerVisibleSummary": "玩家可见：组织成员夺取或销毁关键物证/资源 / 玩家可见：在关键选择点背叛、退出或清洗异己 / 玩家可见：公开站队或接受阵营败露后的关系重排",
+      "hostTruthSummary": "主持真相：陈夏为了夺取关键资源，组织成员夺取或销毁关键物证/资源（目标：关键账册或信物） / 主持真相：梁柚为了在暴露风险下改归属或保住秘密，在关键选择点背叛、退出或清洗异己（目标：归属状态） / 主持真相：陈夏为了在暴露风险下改归属或保住秘密，在关键选择点背叛、退出或清洗异己（目标：归属状态） / 主持真相：乔安为了结算阵营目标并承受公开后果，公开站队或接受阵营败露后的关系重排（目标：阵营胜负条件） / 主持真相：陈夏为了结算阵营目标并承受公开后果，公开站队或接受阵营败露后的关系重排（目标：阵营胜负条件）",
+      "stageStartState": "承接上一阶段已声明后果；未声明者标 UNKNOWN",
+      "stageEndState": "阵营压力升级；归属已改变；暴露风险上升；阵营线结算",
       "clueEntries": [
         {
-          "clueId": "smb-mto2wwgu-2p3zj-faction_foreshadow-0",
+          "clueId": "smb-mto37pkb-j40ym-faction_foreshadow-0",
           "label": "阵营伏笔",
-          "mechanismId": "smb-mto2wwgu-2p3zj",
+          "mechanismId": "smb-mto37pkb-j40ym",
           "templateId": "M08-1",
-          "introducedAt": "act1",
-          "availableStages": [
-            "act1"
-          ],
-          "persists": false,
-          "stageId": "act1",
-          "possibleFinders": [
-            "S1",
-            "S2",
-            "S3",
-            "S4",
-            "S5"
-          ],
-          "supportsFact": "阵营伏笔",
-          "isMisleading": false,
-          "isDecisive": false,
-          "missingDetail": false
-        },
-        {
-          "clueId": "smb-mto2wwgu-yufl7-faction_foreshadow-0",
-          "label": "阵营伏笔",
-          "mechanismId": "smb-mto2wwgu-yufl7",
-          "templateId": "M08-7",
-          "introducedAt": "act1",
-          "availableStages": [
-            "act1"
-          ],
-          "persists": false,
-          "stageId": "act1",
-          "possibleFinders": [
-            "S6",
-            "S7",
-            "S8",
-            "S2",
-            "S3",
-            "S4"
-          ],
-          "supportsFact": "阵营伏笔",
-          "isMisleading": false,
-          "isDecisive": false,
-          "missingDetail": false
-        },
-        {
-          "clueId": "smb-mto2wwgv-2ebzl-foreshadow-0",
-          "label": "早期伏笔",
-          "mechanismId": "smb-mto2wwgv-2ebzl",
-          "templateId": "M07-2",
           "introducedAt": "act1",
           "availableStages": [
             "act1",
@@ -781,28 +853,28 @@
           "persists": true,
           "stageId": "act1",
           "possibleFinders": [
-            "S7",
-            "S8",
             "S1",
+            "S2",
+            "S3",
             "S4",
             "S5"
           ],
-          "supportsFact": "早期伏笔",
+          "supportsFact": "阵营伏笔",
           "isMisleading": false,
           "isDecisive": false,
           "missingDetail": false
         },
         {
-          "clueId": "smb-mto2wwgu-yufl7-membership_hint-1",
+          "clueId": "smb-mto37pkc-rxkfi-membership_hint-1",
           "label": "成员暗示",
-          "mechanismId": "smb-mto2wwgu-yufl7",
+          "mechanismId": "smb-mto37pkc-rxkfi",
           "templateId": "M08-7",
-          "introducedAt": "act1",
+          "introducedAt": "act2",
           "availableStages": [
-            "act1"
+            "act2"
           ],
           "persists": false,
-          "stageId": "act1",
+          "stageId": "act2",
           "possibleFinders": [
             "S3",
             "S6",
@@ -817,16 +889,16 @@
           "missingDetail": false
         },
         {
-          "clueId": "smb-mto2wwgu-yufl7-secret_signal-2",
+          "clueId": "smb-mto37pkc-rxkfi-secret_signal-2",
           "label": "秘密信号",
-          "mechanismId": "smb-mto2wwgu-yufl7",
+          "mechanismId": "smb-mto37pkc-rxkfi",
           "templateId": "M08-7",
-          "introducedAt": "act1",
+          "introducedAt": "act2",
           "availableStages": [
-            "act1"
+            "act2"
           ],
           "persists": false,
-          "stageId": "act1",
+          "stageId": "act2",
           "possibleFinders": [
             "S3",
             "S6",
@@ -841,16 +913,16 @@
           "missingDetail": false
         },
         {
-          "clueId": "smb-mto2wwgu-yufl7-recruitment_evidence-3",
+          "clueId": "smb-mto37pkc-rxkfi-recruitment_evidence-3",
           "label": "招募证据",
-          "mechanismId": "smb-mto2wwgu-yufl7",
+          "mechanismId": "smb-mto37pkc-rxkfi",
           "templateId": "M08-7",
-          "introducedAt": "act1",
+          "introducedAt": "act2",
           "availableStages": [
-            "act1"
+            "act2"
           ],
           "persists": false,
-          "stageId": "act1",
+          "stageId": "act2",
           "possibleFinders": [
             "S3",
             "S6",
@@ -865,16 +937,16 @@
           "missingDetail": false
         },
         {
-          "clueId": "smb-mto2wwgu-yufl7-loyalty_test-4",
+          "clueId": "smb-mto37pkc-rxkfi-loyalty_test-4",
           "label": "忠诚考验",
-          "mechanismId": "smb-mto2wwgu-yufl7",
+          "mechanismId": "smb-mto37pkc-rxkfi",
           "templateId": "M08-7",
-          "introducedAt": "act1",
+          "introducedAt": "act2",
           "availableStages": [
-            "act1"
+            "act2"
           ],
           "persists": false,
-          "stageId": "act1",
+          "stageId": "act2",
           "possibleFinders": [
             "S3",
             "S6",
@@ -889,16 +961,16 @@
           "missingDetail": false
         },
         {
-          "clueId": "smb-mto2wwgu-yufl7-betrayal_hint-5",
+          "clueId": "smb-mto37pkc-rxkfi-betrayal_hint-5",
           "label": "背叛暗示",
-          "mechanismId": "smb-mto2wwgu-yufl7",
+          "mechanismId": "smb-mto37pkc-rxkfi",
           "templateId": "M08-7",
-          "introducedAt": "act1",
+          "introducedAt": "act2",
           "availableStages": [
-            "act1"
+            "act2"
           ],
           "persists": false,
-          "stageId": "act1",
+          "stageId": "act2",
           "possibleFinders": [
             "S3",
             "S6",
@@ -913,16 +985,16 @@
           "missingDetail": false
         },
         {
-          "clueId": "smb-mto2wwgu-yufl7-internal_conflict-6",
+          "clueId": "smb-mto37pkc-rxkfi-internal_conflict-6",
           "label": "内部冲突",
-          "mechanismId": "smb-mto2wwgu-yufl7",
+          "mechanismId": "smb-mto37pkc-rxkfi",
           "templateId": "M08-7",
-          "introducedAt": "act1",
+          "introducedAt": "act2",
           "availableStages": [
-            "act1"
+            "act2"
           ],
           "persists": false,
-          "stageId": "act1",
+          "stageId": "act2",
           "possibleFinders": [
             "S3",
             "S6",
@@ -937,16 +1009,16 @@
           "missingDetail": false
         },
         {
-          "clueId": "smb-mto2wwgu-yufl7-hidden_goal_hint-7",
+          "clueId": "smb-mto37pkc-rxkfi-hidden_goal_hint-7",
           "label": "隐藏目标暗示",
-          "mechanismId": "smb-mto2wwgu-yufl7",
+          "mechanismId": "smb-mto37pkc-rxkfi",
           "templateId": "M08-7",
-          "introducedAt": "act1",
+          "introducedAt": "act2",
           "availableStages": [
-            "act1"
+            "act2"
           ],
           "persists": false,
-          "stageId": "act1",
+          "stageId": "act2",
           "possibleFinders": [
             "S3",
             "S6",
@@ -961,16 +1033,16 @@
           "missingDetail": false
         },
         {
-          "clueId": "smb-mto2wwgu-yufl7-membership_confirmation-8",
+          "clueId": "smb-mto37pkc-rxkfi-membership_confirmation-8",
           "label": "归属确认",
-          "mechanismId": "smb-mto2wwgu-yufl7",
+          "mechanismId": "smb-mto37pkc-rxkfi",
           "templateId": "M08-7",
-          "introducedAt": "act1",
+          "introducedAt": "act2",
           "availableStages": [
-            "act1"
+            "act2"
           ],
           "persists": false,
-          "stageId": "act1",
+          "stageId": "act2",
           "possibleFinders": [
             "S3",
             "S6",
@@ -985,16 +1057,16 @@
           "missingDetail": false
         },
         {
-          "clueId": "smb-mto2wwgu-yufl7-faction_exposure-9",
+          "clueId": "smb-mto37pkc-rxkfi-faction_exposure-9",
           "label": "阵营暴露",
-          "mechanismId": "smb-mto2wwgu-yufl7",
+          "mechanismId": "smb-mto37pkc-rxkfi",
           "templateId": "M08-7",
-          "introducedAt": "act1",
+          "introducedAt": "act2",
           "availableStages": [
-            "act1"
+            "act2"
           ],
           "persists": false,
-          "stageId": "act1",
+          "stageId": "act2",
           "possibleFinders": [
             "S3",
             "S6",
@@ -1009,16 +1081,16 @@
           "missingDetail": false
         },
         {
-          "clueId": "smb-mto2wwgu-2p3zj-membership_hint-1",
+          "clueId": "smb-mto37pkb-j40ym-membership_hint-1",
           "label": "成员暗示",
-          "mechanismId": "smb-mto2wwgu-2p3zj",
+          "mechanismId": "smb-mto37pkb-j40ym",
           "templateId": "M08-1",
-          "introducedAt": "act1",
+          "introducedAt": "act2",
           "availableStages": [
-            "act1"
+            "act2"
           ],
           "persists": false,
-          "stageId": "act1",
+          "stageId": "act2",
           "possibleFinders": [
             "S1",
             "S2",
@@ -1032,16 +1104,16 @@
           "missingDetail": false
         },
         {
-          "clueId": "smb-mto2wwgu-2p3zj-secret_signal-2",
+          "clueId": "smb-mto37pkb-j40ym-secret_signal-2",
           "label": "秘密信号",
-          "mechanismId": "smb-mto2wwgu-2p3zj",
+          "mechanismId": "smb-mto37pkb-j40ym",
           "templateId": "M08-1",
-          "introducedAt": "act1",
+          "introducedAt": "act2",
           "availableStages": [
-            "act1"
+            "act2"
           ],
           "persists": false,
-          "stageId": "act1",
+          "stageId": "act2",
           "possibleFinders": [
             "S1",
             "S2",
@@ -1055,16 +1127,16 @@
           "missingDetail": false
         },
         {
-          "clueId": "smb-mto2wwgu-2p3zj-recruitment_evidence-3",
+          "clueId": "smb-mto37pkb-j40ym-recruitment_evidence-3",
           "label": "招募证据",
-          "mechanismId": "smb-mto2wwgu-2p3zj",
+          "mechanismId": "smb-mto37pkb-j40ym",
           "templateId": "M08-1",
-          "introducedAt": "act1",
+          "introducedAt": "act2",
           "availableStages": [
-            "act1"
+            "act2"
           ],
           "persists": false,
-          "stageId": "act1",
+          "stageId": "act2",
           "possibleFinders": [
             "S1",
             "S2",
@@ -1078,16 +1150,16 @@
           "missingDetail": false
         },
         {
-          "clueId": "smb-mto2wwgu-2p3zj-loyalty_test-4",
+          "clueId": "smb-mto37pkb-j40ym-loyalty_test-4",
           "label": "忠诚考验",
-          "mechanismId": "smb-mto2wwgu-2p3zj",
+          "mechanismId": "smb-mto37pkb-j40ym",
           "templateId": "M08-1",
-          "introducedAt": "act1",
+          "introducedAt": "act2",
           "availableStages": [
-            "act1"
+            "act2"
           ],
           "persists": false,
-          "stageId": "act1",
+          "stageId": "act2",
           "possibleFinders": [
             "S1",
             "S2",
@@ -1101,16 +1173,16 @@
           "missingDetail": false
         },
         {
-          "clueId": "smb-mto2wwgu-2p3zj-betrayal_hint-5",
+          "clueId": "smb-mto37pkb-j40ym-betrayal_hint-5",
           "label": "背叛暗示",
-          "mechanismId": "smb-mto2wwgu-2p3zj",
+          "mechanismId": "smb-mto37pkb-j40ym",
           "templateId": "M08-1",
-          "introducedAt": "act1",
+          "introducedAt": "act2",
           "availableStages": [
-            "act1"
+            "act2"
           ],
           "persists": false,
-          "stageId": "act1",
+          "stageId": "act2",
           "possibleFinders": [
             "S1",
             "S2",
@@ -1124,16 +1196,16 @@
           "missingDetail": false
         },
         {
-          "clueId": "smb-mto2wwgu-2p3zj-internal_conflict-6",
+          "clueId": "smb-mto37pkb-j40ym-internal_conflict-6",
           "label": "内部冲突",
-          "mechanismId": "smb-mto2wwgu-2p3zj",
+          "mechanismId": "smb-mto37pkb-j40ym",
           "templateId": "M08-1",
-          "introducedAt": "act1",
+          "introducedAt": "act2",
           "availableStages": [
-            "act1"
+            "act2"
           ],
           "persists": false,
-          "stageId": "act1",
+          "stageId": "act2",
           "possibleFinders": [
             "S1",
             "S2",
@@ -1147,16 +1219,16 @@
           "missingDetail": false
         },
         {
-          "clueId": "smb-mto2wwgu-2p3zj-hidden_goal_hint-7",
+          "clueId": "smb-mto37pkb-j40ym-hidden_goal_hint-7",
           "label": "隐藏目标暗示",
-          "mechanismId": "smb-mto2wwgu-2p3zj",
+          "mechanismId": "smb-mto37pkb-j40ym",
           "templateId": "M08-1",
-          "introducedAt": "act1",
+          "introducedAt": "act2",
           "availableStages": [
-            "act1"
+            "act2"
           ],
           "persists": false,
-          "stageId": "act1",
+          "stageId": "act2",
           "possibleFinders": [
             "S1",
             "S2",
@@ -1170,16 +1242,16 @@
           "missingDetail": false
         },
         {
-          "clueId": "smb-mto2wwgu-2p3zj-membership_confirmation-8",
+          "clueId": "smb-mto37pkb-j40ym-membership_confirmation-8",
           "label": "归属确认",
-          "mechanismId": "smb-mto2wwgu-2p3zj",
+          "mechanismId": "smb-mto37pkb-j40ym",
           "templateId": "M08-1",
-          "introducedAt": "act1",
+          "introducedAt": "act2",
           "availableStages": [
-            "act1"
+            "act2"
           ],
           "persists": false,
-          "stageId": "act1",
+          "stageId": "act2",
           "possibleFinders": [
             "S1",
             "S2",
@@ -1193,16 +1265,16 @@
           "missingDetail": false
         },
         {
-          "clueId": "smb-mto2wwgu-2p3zj-faction_exposure-9",
+          "clueId": "smb-mto37pkb-j40ym-faction_exposure-9",
           "label": "阵营暴露",
-          "mechanismId": "smb-mto2wwgu-2p3zj",
+          "mechanismId": "smb-mto37pkb-j40ym",
           "templateId": "M08-1",
-          "introducedAt": "act1",
+          "introducedAt": "act2",
           "availableStages": [
-            "act1"
+            "act2"
           ],
           "persists": false,
-          "stageId": "act1",
+          "stageId": "act2",
           "possibleFinders": [
             "S1",
             "S2",
@@ -1216,16 +1288,16 @@
           "missingDetail": false
         },
         {
-          "clueId": "fact-interface:ob-mto2wwgw-6756",
+          "clueId": "fact-interface:ob-mto37pkd-x6p1",
           "label": "事实接口（尚无线索实体）",
-          "mechanismId": "smb-mto2wwgu-yufl7",
+          "mechanismId": "smb-mto37pkc-rxkfi",
           "templateId": "M08-7",
-          "introducedAt": "act1",
+          "introducedAt": "act2",
           "availableStages": [
-            "act1"
+            "act2"
           ],
           "persists": false,
-          "stageId": "act1",
+          "stageId": "act2",
           "possibleFinders": [
             "S6",
             "S7",
@@ -1241,16 +1313,16 @@
           "detailNote": "这个剧情 beat 需要关键线索，但模板尚未提供具体线索内容。"
         },
         {
-          "clueId": "fact-interface:ob-mto2wwgw-97zo",
+          "clueId": "fact-interface:ob-mto37pkd-6sry",
           "label": "事实接口（尚无线索实体）",
-          "mechanismId": "smb-mto2wwgu-2p3zj",
+          "mechanismId": "smb-mto37pkb-j40ym",
           "templateId": "M08-1",
-          "introducedAt": "act1",
+          "introducedAt": "act2",
           "availableStages": [
-            "act1"
+            "act2"
           ],
           "persists": false,
-          "stageId": "act1",
+          "stageId": "act2",
           "possibleFinders": [
             "S1",
             "S2",
@@ -1275,18 +1347,6 @@
           "name": "方禾"
         },
         {
-          "id": "S6",
-          "name": "乔安"
-        },
-        {
-          "id": "S7",
-          "name": "沐白"
-        },
-        {
-          "id": "S8",
-          "name": "程野"
-        },
-        {
           "id": "S3",
           "name": "梁柚"
         },
@@ -1297,6 +1357,18 @@
         {
           "id": "S5",
           "name": "许南"
+        },
+        {
+          "id": "S6",
+          "name": "乔安"
+        },
+        {
+          "id": "S7",
+          "name": "沐白"
+        },
+        {
+          "id": "S8",
+          "name": "程野"
         }
       ],
       "unresolvedDetails": [
@@ -1304,76 +1376,56 @@
       ],
       "warnings": [
         {
-          "id": "warn-crowd-act1",
-          "type": "STAGE_CROWDING",
-          "severity": "warn",
-          "message": "「铺垫」包含 9 个剧情 beat，当前阶段密度偏高。P6 未自动迁移 beat，请返回交织骨架调整。",
-          "stageIds": [
-            "act1"
-          ],
-          "beatIds": [
-            "ob-mto2wwgw-c0xu",
-            "ob-mto2wwgw-xdt7",
-            "ob-mto2wwgw-d1wl",
-            "ob-mto2wwgw-0wfp",
-            "ob-mto2wwgw-cfiz",
-            "ob-mto2wwgw-1y9g",
-            "ob-mto2wwgw-7m1j",
-            "ob-mto2wwgw-6756",
-            "ob-mto2wwgw-97zo"
-          ]
-        },
-        {
-          "id": "warn-detail-ob-mto2wwgw-7m1j",
+          "id": "warn-detail-ob-mto37pkd-anwr",
           "type": "NEEDS_DETAIL",
           "severity": "info",
           "message": "「陈夏为了在暴露风险下改归属或保住秘密，在关键选择点背叛、退出或清洗异己（目标：归属状态）」仍缺具体细节。",
           "stageIds": [
-            "act1"
+            "act2"
           ],
           "beatIds": [
-            "ob-mto2wwgw-7m1j"
+            "ob-mto37pkd-anwr"
           ]
         },
         {
-          "id": "warn-clue-ob-mto2wwgw-6756",
+          "id": "warn-clue-ob-mto37pkd-x6p1",
           "type": "MISSING_CLUE_DETAIL",
           "severity": "info",
           "message": "该剧情 beat 需要/产生事实接口，但模板尚未绑定具体线索内容。",
           "stageIds": [
-            "act1"
+            "act2"
           ],
           "beatIds": [
-            "ob-mto2wwgw-6756"
+            "ob-mto37pkd-x6p1"
           ]
         },
         {
-          "id": "warn-clue-ob-mto2wwgw-97zo",
+          "id": "warn-clue-ob-mto37pkd-6sry",
           "type": "MISSING_CLUE_DETAIL",
           "severity": "info",
           "message": "该剧情 beat 需要/产生事实接口，但模板尚未绑定具体线索内容。",
           "stageIds": [
-            "act1"
+            "act2"
           ],
           "beatIds": [
-            "ob-mto2wwgw-97zo"
+            "ob-mto37pkd-6sry"
           ]
         }
       ]
     },
     {
-      "stageId": "act2",
+      "stageId": "act3",
       "stageRole": "PRESSURE",
       "title": "加压",
-      "order": 1,
+      "order": 2,
       "purpose": "沐白：用正式动作换取被条件锁住的信息",
       "beats": [
         {
-          "id": "pbeat-ob-mto2wwgw-1fgq",
+          "id": "pbeat-ob-mto37pkd-qfp2",
           "sourceBeatId": "beat-develop",
-          "sourceOutlineBeatId": "ob-mto2wwgw-1fgq",
-          "sourceBlockId": "smb-mto2wwgv-2ebzl",
-          "sourceMechanismId": "smb-mto2wwgv-2ebzl",
+          "sourceOutlineBeatId": "ob-mto37pkd-qfp2",
+          "sourceBlockId": "smb-mto37pkc-qrxom",
+          "sourceMechanismId": "smb-mto37pkc-qrxom",
           "templateId": "M07-2",
           "familyId": "M07",
           "actors": [
@@ -1424,7 +1476,7 @@
           "playerKnowledge": "玩家可见：完成登记条件以触发内容开放（仅同场，不暗示因果）",
           "hostTruth": "主持真相：沐白为了用正式动作换取被条件锁住的信息，完成登记条件以触发内容开放（目标：身份记录）",
           "clueRefs": [
-            "smb-mto2wwgv-2ebzl-foreshadow-0"
+            "smb-mto37pkc-qrxom-foreshadow-0"
           ],
           "relatedCharacterIds": [
             "S7",
@@ -1435,12 +1487,12 @@
           ],
           "relationQuality": "COLOCATED",
           "weaveLinkIds": [
-            "wl-mto2wwgw-619q",
-            "wl-mto2wwgw-73cx",
-            "wl-mto2wwgw-lno3",
-            "wl-mto2wwgw-m6am",
-            "wl-mto2wwgw-cqjh",
-            "wl-mto2wwgw-yzem"
+            "wl-mto37pkd-8fkd",
+            "wl-mto37pkd-l28z",
+            "wl-mto37pkd-zknj",
+            "wl-mto37pkd-g4qp",
+            "wl-mto37pkd-9b77",
+            "wl-mto37pkd-fdp2"
           ],
           "relationNotes": [
             "【同场并列】共享角色 S1——仅角色重合，保持同场并列而非强制合并",
@@ -1460,14 +1512,14 @@
       "stageEndState": "条件开放的信息",
       "clueEntries": [
         {
-          "clueId": "smb-mto2wwgv-2ebzl-foreshadow-0",
+          "clueId": "smb-mto37pkc-qrxom-foreshadow-0",
           "label": "早期伏笔",
-          "mechanismId": "smb-mto2wwgv-2ebzl",
+          "mechanismId": "smb-mto37pkc-qrxom",
           "templateId": "M07-2",
           "introducedAt": "act1",
           "availableStages": [
             "act1",
-            "act2"
+            "act3"
           ],
           "persists": true,
           "stageId": "act1",
@@ -1510,18 +1562,18 @@
       "warnings": []
     },
     {
-      "stageId": "act3",
+      "stageId": "act4",
       "stageRole": "ESCALATION",
       "title": "升级",
-      "order": 2,
+      "order": 3,
       "purpose": "沐白：确认真实身份并决定是否公开",
       "beats": [
         {
-          "id": "pbeat-ob-mto2wwgw-at01",
+          "id": "pbeat-ob-mto37pkd-16xr",
           "sourceBeatId": "beat-climax",
-          "sourceOutlineBeatId": "ob-mto2wwgw-at01",
-          "sourceBlockId": "smb-mto2wwgv-2ebzl",
-          "sourceMechanismId": "smb-mto2wwgv-2ebzl",
+          "sourceOutlineBeatId": "ob-mto37pkd-16xr",
+          "sourceBlockId": "smb-mto37pkc-qrxom",
+          "sourceMechanismId": "smb-mto37pkc-qrxom",
           "templateId": "M07-2",
           "familyId": "M07",
           "actors": [
@@ -1577,11 +1629,11 @@
           "playerKnowledge": "玩家可见：核对身份线索并作出公开或隐瞒选择（仅同场，不暗示因果）",
           "hostTruth": "主持真相：沐白为了确认真实身份并决定是否公开，核对身份线索并作出公开或隐瞒选择（目标：真实身份）",
           "clueRefs": [
-            "smb-mto2wwgv-2ebzl-memory_fragment-1",
-            "smb-mto2wwgv-2ebzl-identity_hint-2",
-            "smb-mto2wwgv-2ebzl-misdirection-3",
-            "smb-mto2wwgv-2ebzl-confirmation-4",
-            "smb-mto2wwgv-2ebzl-decisive_reveal-5"
+            "smb-mto37pkc-qrxom-memory_fragment-1",
+            "smb-mto37pkc-qrxom-identity_hint-2",
+            "smb-mto37pkc-qrxom-misdirection-3",
+            "smb-mto37pkc-qrxom-confirmation-4",
+            "smb-mto37pkc-qrxom-decisive_reveal-5"
           ],
           "relatedCharacterIds": [
             "S7",
@@ -1592,10 +1644,10 @@
           ],
           "relationQuality": "COLOCATED",
           "weaveLinkIds": [
-            "wl-mto2wwgw-vfy5",
-            "wl-mto2wwgw-x8v3",
-            "wl-mto2wwgw-bscf",
-            "wl-mto2wwgw-hhu9"
+            "wl-mto37pkd-owml",
+            "wl-mto37pkd-ep6h",
+            "wl-mto37pkd-w124",
+            "wl-mto37pkd-x31x"
           ],
           "relationNotes": [
             "【同场并列】共享角色 S1、S4、S5——仅角色重合，保持同场并列而非强制合并",
@@ -1613,16 +1665,16 @@
       "stageEndState": "身份已确认；家族/资格状态",
       "clueEntries": [
         {
-          "clueId": "smb-mto2wwgv-2ebzl-memory_fragment-1",
+          "clueId": "smb-mto37pkc-qrxom-memory_fragment-1",
           "label": "记忆碎片",
-          "mechanismId": "smb-mto2wwgv-2ebzl",
+          "mechanismId": "smb-mto37pkc-qrxom",
           "templateId": "M07-2",
-          "introducedAt": "act3",
+          "introducedAt": "act4",
           "availableStages": [
-            "act3"
+            "act4"
           ],
           "persists": false,
-          "stageId": "act3",
+          "stageId": "act4",
           "possibleFinders": [
             "S7",
             "S8",
@@ -1636,16 +1688,16 @@
           "missingDetail": false
         },
         {
-          "clueId": "smb-mto2wwgv-2ebzl-identity_hint-2",
+          "clueId": "smb-mto37pkc-qrxom-identity_hint-2",
           "label": "身份暗示",
-          "mechanismId": "smb-mto2wwgv-2ebzl",
+          "mechanismId": "smb-mto37pkc-qrxom",
           "templateId": "M07-2",
-          "introducedAt": "act3",
+          "introducedAt": "act4",
           "availableStages": [
-            "act3"
+            "act4"
           ],
           "persists": false,
-          "stageId": "act3",
+          "stageId": "act4",
           "possibleFinders": [
             "S7",
             "S8",
@@ -1659,16 +1711,16 @@
           "missingDetail": false
         },
         {
-          "clueId": "smb-mto2wwgv-2ebzl-misdirection-3",
+          "clueId": "smb-mto37pkc-qrxom-misdirection-3",
           "label": "误导",
-          "mechanismId": "smb-mto2wwgv-2ebzl",
+          "mechanismId": "smb-mto37pkc-qrxom",
           "templateId": "M07-2",
-          "introducedAt": "act3",
+          "introducedAt": "act4",
           "availableStages": [
-            "act3"
+            "act4"
           ],
           "persists": false,
-          "stageId": "act3",
+          "stageId": "act4",
           "possibleFinders": [
             "S7",
             "S8",
@@ -1682,16 +1734,16 @@
           "missingDetail": false
         },
         {
-          "clueId": "smb-mto2wwgv-2ebzl-confirmation-4",
+          "clueId": "smb-mto37pkc-qrxom-confirmation-4",
           "label": "确认",
-          "mechanismId": "smb-mto2wwgv-2ebzl",
+          "mechanismId": "smb-mto37pkc-qrxom",
           "templateId": "M07-2",
-          "introducedAt": "act3",
+          "introducedAt": "act4",
           "availableStages": [
-            "act3"
+            "act4"
           ],
           "persists": false,
-          "stageId": "act3",
+          "stageId": "act4",
           "possibleFinders": [
             "S7",
             "S8",
@@ -1705,16 +1757,16 @@
           "missingDetail": false
         },
         {
-          "clueId": "smb-mto2wwgv-2ebzl-decisive_reveal-5",
+          "clueId": "smb-mto37pkc-qrxom-decisive_reveal-5",
           "label": "决定性揭示",
-          "mechanismId": "smb-mto2wwgv-2ebzl",
+          "mechanismId": "smb-mto37pkc-qrxom",
           "templateId": "M07-2",
-          "introducedAt": "act3",
+          "introducedAt": "act4",
           "availableStages": [
-            "act3"
+            "act4"
           ],
           "persists": false,
-          "stageId": "act3",
+          "stageId": "act4",
           "possibleFinders": [
             "S7",
             "S8",
@@ -1754,18 +1806,18 @@
       "warnings": []
     },
     {
-      "stageId": "act4",
+      "stageId": "act5",
       "stageRole": "PAYOFF",
       "title": "收束",
-      "order": 3,
+      "order": 4,
       "purpose": "沐白：承受身份公开后的关系后果",
       "beats": [
         {
-          "id": "pbeat-ob-mto2wwgw-u98b",
+          "id": "pbeat-ob-mto37pkd-i7i2",
           "sourceBeatId": "beat-res",
-          "sourceOutlineBeatId": "ob-mto2wwgw-u98b",
-          "sourceBlockId": "smb-mto2wwgv-2ebzl",
-          "sourceMechanismId": "smb-mto2wwgv-2ebzl",
+          "sourceOutlineBeatId": "ob-mto37pkd-i7i2",
+          "sourceBlockId": "smb-mto37pkc-qrxom",
+          "sourceMechanismId": "smb-mto37pkc-qrxom",
           "templateId": "M07-2",
           "familyId": "M07",
           "actors": [
@@ -1825,10 +1877,10 @@
           ],
           "relationQuality": "COLOCATED",
           "weaveLinkIds": [
-            "wl-mto2wwgw-9i8r",
-            "wl-mto2wwgw-ntqx",
-            "wl-mto2wwgw-l7pe",
-            "wl-mto2wwgw-80y8"
+            "wl-mto37pkd-9ght",
+            "wl-mto37pkd-u3s1",
+            "wl-mto37pkd-diuz",
+            "wl-mto37pkd-o4fn"
           ],
           "relationNotes": [
             "【同场并列】共享角色 S1、S4、S5——仅角色重合，保持同场并列而非强制合并",
@@ -1846,16 +1898,16 @@
       "stageEndState": "身份进入公开层",
       "clueEntries": [
         {
-          "clueId": "fact-interface:ob-mto2wwgw-u98b",
+          "clueId": "fact-interface:ob-mto37pkd-i7i2",
           "label": "事实接口（尚无线索实体）",
-          "mechanismId": "smb-mto2wwgv-2ebzl",
+          "mechanismId": "smb-mto37pkc-qrxom",
           "templateId": "M07-2",
-          "introducedAt": "act4",
+          "introducedAt": "act5",
           "availableStages": [
-            "act4"
+            "act5"
           ],
           "persists": false,
-          "stageId": "act4",
+          "stageId": "act5",
           "possibleFinders": [
             "S7",
             "S8",
@@ -1895,15 +1947,15 @@
       "unresolvedDetails": [],
       "warnings": [
         {
-          "id": "warn-clue-ob-mto2wwgw-u98b",
+          "id": "warn-clue-ob-mto37pkd-i7i2",
           "type": "MISSING_CLUE_DETAIL",
           "severity": "info",
           "message": "该剧情 beat 需要/产生事实接口，但模板尚未绑定具体线索内容。",
           "stageIds": [
-            "act4"
+            "act5"
           ],
           "beatIds": [
-            "ob-mto2wwgw-u98b"
+            "ob-mto37pkd-i7i2"
           ]
         }
       ]
@@ -1912,7 +1964,7 @@
   "truthView": {
     "events": [
       {
-        "beatId": "ob-mto2wwgw-c0xu",
+        "beatId": "ob-mto37pkd-3zog",
         "stageId": "act1",
         "whatHappened": "陈夏为了公开亮明阵营归属与目标，确认成员知情范围与联络方式（目标：阵营名单/暗号）",
         "who": [
@@ -1929,7 +1981,7 @@
         "needsDetail": false
       },
       {
-        "beatId": "ob-mto2wwgw-xdt7",
+        "beatId": "ob-mto37pkd-bhwk",
         "stageId": "act1",
         "whatHappened": "乔安为了巩固或潜伏阵营结构，确认成员知情范围与联络方式（目标：阵营名单/暗号）",
         "who": [
@@ -1946,7 +1998,7 @@
         "needsDetail": false
       },
       {
-        "beatId": "ob-mto2wwgw-d1wl",
+        "beatId": "ob-mto37pkd-b3bv",
         "stageId": "act1",
         "whatHappened": "沐白为了隐藏或维持当前身份表象，按伪装/未知状态行动，避免过早暴露（目标：身份表象）",
         "who": [
@@ -1963,7 +2015,7 @@
         "needsDetail": false
       },
       {
-        "beatId": "ob-mto2wwgw-0wfp",
+        "beatId": "ob-mto37pkd-atci",
         "stageId": "act1",
         "whatHappened": "乔安为了让公共任务按本阵营偏好成功、失败或延迟，对公共任务施加正式破坏或支援（目标：公共任务状态）",
         "who": [
@@ -1984,8 +2036,8 @@
         "needsDetail": false
       },
       {
-        "beatId": "ob-mto2wwgw-cfiz",
-        "stageId": "act1",
+        "beatId": "ob-mto37pkd-hpfw",
+        "stageId": "act2",
         "whatHappened": "陈夏为了夺取关键资源，组织成员夺取或销毁关键物证/资源（目标：关键账册或信物）",
         "who": [
           "S1",
@@ -2004,8 +2056,8 @@
         "needsDetail": false
       },
       {
-        "beatId": "ob-mto2wwgw-1y9g",
-        "stageId": "act1",
+        "beatId": "ob-mto37pkd-843m",
+        "stageId": "act2",
         "whatHappened": "梁柚为了在暴露风险下改归属或保住秘密，在关键选择点背叛、退出或清洗异己（目标：归属状态）",
         "who": [
           "S3",
@@ -2025,8 +2077,8 @@
         "needsDetail": false
       },
       {
-        "beatId": "ob-mto2wwgw-7m1j",
-        "stageId": "act1",
+        "beatId": "ob-mto37pkd-anwr",
+        "stageId": "act2",
         "whatHappened": "陈夏为了在暴露风险下改归属或保住秘密，在关键选择点背叛、退出或清洗异己（目标：归属状态）",
         "who": [
           "S1",
@@ -2045,8 +2097,8 @@
         "needsDetail": true
       },
       {
-        "beatId": "ob-mto2wwgw-6756",
-        "stageId": "act1",
+        "beatId": "ob-mto37pkd-x6p1",
+        "stageId": "act2",
         "whatHappened": "乔安为了结算阵营目标并承受公开后果，公开站队或接受阵营败露后的关系重排（目标：阵营胜负条件）",
         "who": [
           "S6",
@@ -2066,8 +2118,8 @@
         "needsDetail": false
       },
       {
-        "beatId": "ob-mto2wwgw-97zo",
-        "stageId": "act1",
+        "beatId": "ob-mto37pkd-6sry",
+        "stageId": "act2",
         "whatHappened": "陈夏为了结算阵营目标并承受公开后果，公开站队或接受阵营败露后的关系重排（目标：阵营胜负条件）",
         "who": [
           "S1",
@@ -2086,8 +2138,8 @@
         "needsDetail": false
       },
       {
-        "beatId": "ob-mto2wwgw-1fgq",
-        "stageId": "act2",
+        "beatId": "ob-mto37pkd-qfp2",
+        "stageId": "act3",
         "whatHappened": "沐白为了用正式动作换取被条件锁住的信息，完成登记条件以触发内容开放（目标：身份记录）",
         "who": [
           "S7",
@@ -2106,8 +2158,8 @@
         "needsDetail": false
       },
       {
-        "beatId": "ob-mto2wwgw-at01",
-        "stageId": "act3",
+        "beatId": "ob-mto37pkd-16xr",
+        "stageId": "act4",
         "whatHappened": "沐白为了确认真实身份并决定是否公开，核对身份线索并作出公开或隐瞒选择（目标：真实身份）",
         "who": [
           "S7",
@@ -2126,8 +2178,8 @@
         "needsDetail": false
       },
       {
-        "beatId": "ob-mto2wwgw-u98b",
-        "stageId": "act4",
+        "beatId": "ob-mto37pkd-i7i2",
+        "stageId": "act5",
         "whatHappened": "沐白为了承受身份公开后的关系后果，面对知情者与阵营/调查方的反应（目标：关系重组）",
         "who": [
           "S7",
@@ -2158,8 +2210,8 @@
             "contributions": [
               {
                 "sourceBeatId": "beat-setup",
-                "sourceOutlineBeatId": "ob-mto2wwgw-c0xu",
-                "sourceBlockId": "smb-mto2wwgu-2p3zj",
+                "sourceOutlineBeatId": "ob-mto37pkd-3zog",
+                "sourceBlockId": "smb-mto37pkb-j40ym",
                 "familyId": "M08",
                 "templateId": "M08-1",
                 "roleInBeat": "OWNER",
@@ -2168,11 +2220,27 @@
                 "gainedInfo": "阵营结构已成形",
                 "relationQuality": "INTERWOVEN",
                 "needsDetail": false
-              },
+              }
+            ],
+            "stageSummary": "公开亮明阵营归属与目标",
+            "knows": "本阶段主导行动：确认成员知情范围与联络方式",
+            "goal": "公开亮明阵营归属与目标",
+            "action": "确认成员知情范围与联络方式",
+            "relationChanges": [
+              "参与真正交织行动"
+            ],
+            "gainedInfo": "阵营结构已成形",
+            "misunderstanding": "NEEDS_DETAIL",
+            "endChange": "阵营结构已成形",
+            "needsDetail": false
+          },
+          {
+            "stageId": "act2",
+            "contributions": [
               {
                 "sourceBeatId": "beat-develop",
-                "sourceOutlineBeatId": "ob-mto2wwgw-cfiz",
-                "sourceBlockId": "smb-mto2wwgu-2p3zj",
+                "sourceOutlineBeatId": "ob-mto37pkd-hpfw",
+                "sourceBlockId": "smb-mto37pkb-j40ym",
                 "familyId": "M08",
                 "templateId": "M08-1",
                 "roleInBeat": "OWNER",
@@ -2184,8 +2252,8 @@
               },
               {
                 "sourceBeatId": "beat-climax",
-                "sourceOutlineBeatId": "ob-mto2wwgw-7m1j",
-                "sourceBlockId": "smb-mto2wwgu-2p3zj",
+                "sourceOutlineBeatId": "ob-mto37pkd-anwr",
+                "sourceBlockId": "smb-mto37pkb-j40ym",
                 "familyId": "M08",
                 "templateId": "M08-1",
                 "roleInBeat": "OWNER",
@@ -2197,8 +2265,8 @@
               },
               {
                 "sourceBeatId": "beat-res",
-                "sourceOutlineBeatId": "ob-mto2wwgw-97zo",
-                "sourceBlockId": "smb-mto2wwgu-2p3zj",
+                "sourceOutlineBeatId": "ob-mto37pkd-6sry",
+                "sourceBlockId": "smb-mto37pkb-j40ym",
                 "familyId": "M08",
                 "templateId": "M08-1",
                 "roleInBeat": "OWNER",
@@ -2209,25 +2277,25 @@
                 "needsDetail": false
               }
             ],
-            "stageSummary": "公开亮明阵营归属与目标；夺取关键资源；在暴露风险下改归属或保住秘密；结算阵营目标并承受公开后果",
-            "knows": "本阶段主导行动：确认成员知情范围与联络方式；组织成员夺取或销毁关键物证/资源；在关键选择点背叛、退出或清洗异己；公开站队或接受阵营败露后的关系重排",
-            "goal": "公开亮明阵营归属与目标；夺取关键资源；在暴露风险下改归属或保住秘密；结算阵营目标并承受公开后果",
-            "action": "确认成员知情范围与联络方式；组织成员夺取或销毁关键物证/资源；在关键选择点背叛、退出或清洗异己；公开站队或接受阵营败露后的关系重排",
+            "stageSummary": "夺取关键资源；在暴露风险下改归属或保住秘密；结算阵营目标并承受公开后果",
+            "knows": "本阶段主导行动：组织成员夺取或销毁关键物证/资源；在关键选择点背叛、退出或清洗异己；公开站队或接受阵营败露后的关系重排",
+            "goal": "夺取关键资源；在暴露风险下改归属或保住秘密；结算阵营目标并承受公开后果",
+            "action": "组织成员夺取或销毁关键物证/资源；在关键选择点背叛、退出或清洗异己；公开站队或接受阵营败露后的关系重排",
             "relationChanges": [
               "参与真正交织行动"
             ],
-            "gainedInfo": "阵营结构已成形；阵营压力升级；归属已改变；暴露风险上升；阵营线结算",
+            "gainedInfo": "阵营压力升级；归属已改变；暴露风险上升；阵营线结算",
             "misunderstanding": "NEEDS_DETAIL",
-            "endChange": "阵营结构已成形；阵营压力升级；归属已改变；暴露风险上升；阵营线结算",
+            "endChange": "阵营压力升级；归属已改变；暴露风险上升；阵营线结算",
             "needsDetail": true
           },
           {
-            "stageId": "act2",
+            "stageId": "act3",
             "contributions": [
               {
                 "sourceBeatId": "beat-develop",
-                "sourceOutlineBeatId": "ob-mto2wwgw-1fgq",
-                "sourceBlockId": "smb-mto2wwgv-2ebzl",
+                "sourceOutlineBeatId": "ob-mto37pkd-qfp2",
+                "sourceBlockId": "smb-mto37pkc-qrxom",
                 "familyId": "M07",
                 "templateId": "M07-2",
                 "roleInBeat": "PARTICIPANT",
@@ -2251,12 +2319,12 @@
             "needsDetail": false
           },
           {
-            "stageId": "act3",
+            "stageId": "act4",
             "contributions": [
               {
                 "sourceBeatId": "beat-climax",
-                "sourceOutlineBeatId": "ob-mto2wwgw-at01",
-                "sourceBlockId": "smb-mto2wwgv-2ebzl",
+                "sourceOutlineBeatId": "ob-mto37pkd-16xr",
+                "sourceBlockId": "smb-mto37pkc-qrxom",
                 "familyId": "M07",
                 "templateId": "M07-2",
                 "roleInBeat": "PARTICIPANT",
@@ -2280,12 +2348,12 @@
             "needsDetail": false
           },
           {
-            "stageId": "act4",
+            "stageId": "act5",
             "contributions": [
               {
                 "sourceBeatId": "beat-res",
-                "sourceOutlineBeatId": "ob-mto2wwgw-u98b",
-                "sourceBlockId": "smb-mto2wwgv-2ebzl",
+                "sourceOutlineBeatId": "ob-mto37pkd-i7i2",
+                "sourceBlockId": "smb-mto37pkc-qrxom",
                 "familyId": "M07",
                 "templateId": "M07-2",
                 "roleInBeat": "PARTICIPANT",
@@ -2319,8 +2387,8 @@
             "contributions": [
               {
                 "sourceBeatId": "beat-setup",
-                "sourceOutlineBeatId": "ob-mto2wwgw-c0xu",
-                "sourceBlockId": "smb-mto2wwgu-2p3zj",
+                "sourceOutlineBeatId": "ob-mto37pkd-3zog",
+                "sourceBlockId": "smb-mto37pkb-j40ym",
                 "familyId": "M08",
                 "templateId": "M08-1",
                 "roleInBeat": "PARTICIPANT",
@@ -2332,8 +2400,8 @@
               },
               {
                 "sourceBeatId": "beat-develop",
-                "sourceOutlineBeatId": "ob-mto2wwgw-0wfp",
-                "sourceBlockId": "smb-mto2wwgu-yufl7",
+                "sourceOutlineBeatId": "ob-mto37pkd-atci",
+                "sourceBlockId": "smb-mto37pkc-rxkfi",
                 "familyId": "M08",
                 "templateId": "M08-7",
                 "roleInBeat": "PARTICIPANT",
@@ -2342,11 +2410,25 @@
                 "gainedInfo": null,
                 "relationQuality": "INTERWOVEN",
                 "needsDetail": false
-              },
+              }
+            ],
+            "stageSummary": "本阶段无独立主目标（仅参与/对象）",
+            "knows": "本阶段主要为参与/对象，无主导公开行动摘要",
+            "goal": "本阶段无独立主目标（仅参与/对象）",
+            "action": "见 contributions（参与/对象）",
+            "relationChanges": [],
+            "gainedInfo": "NEEDS_DETAIL",
+            "misunderstanding": "NEEDS_DETAIL",
+            "endChange": "NEEDS_DETAIL",
+            "needsDetail": false
+          },
+          {
+            "stageId": "act2",
+            "contributions": [
               {
                 "sourceBeatId": "beat-develop",
-                "sourceOutlineBeatId": "ob-mto2wwgw-cfiz",
-                "sourceBlockId": "smb-mto2wwgu-2p3zj",
+                "sourceOutlineBeatId": "ob-mto37pkd-hpfw",
+                "sourceBlockId": "smb-mto37pkb-j40ym",
                 "familyId": "M08",
                 "templateId": "M08-1",
                 "roleInBeat": "PARTICIPANT",
@@ -2358,8 +2440,8 @@
               },
               {
                 "sourceBeatId": "beat-climax",
-                "sourceOutlineBeatId": "ob-mto2wwgw-1y9g",
-                "sourceBlockId": "smb-mto2wwgu-yufl7",
+                "sourceOutlineBeatId": "ob-mto37pkd-843m",
+                "sourceBlockId": "smb-mto37pkc-rxkfi",
                 "familyId": "M08",
                 "templateId": "M08-7",
                 "roleInBeat": "PARTICIPANT",
@@ -2371,8 +2453,8 @@
               },
               {
                 "sourceBeatId": "beat-climax",
-                "sourceOutlineBeatId": "ob-mto2wwgw-7m1j",
-                "sourceBlockId": "smb-mto2wwgu-2p3zj",
+                "sourceOutlineBeatId": "ob-mto37pkd-anwr",
+                "sourceBlockId": "smb-mto37pkb-j40ym",
                 "familyId": "M08",
                 "templateId": "M08-1",
                 "roleInBeat": "PARTICIPANT",
@@ -2384,8 +2466,8 @@
               },
               {
                 "sourceBeatId": "beat-res",
-                "sourceOutlineBeatId": "ob-mto2wwgw-6756",
-                "sourceBlockId": "smb-mto2wwgu-yufl7",
+                "sourceOutlineBeatId": "ob-mto37pkd-x6p1",
+                "sourceBlockId": "smb-mto37pkc-rxkfi",
                 "familyId": "M08",
                 "templateId": "M08-7",
                 "roleInBeat": "PARTICIPANT",
@@ -2397,8 +2479,8 @@
               },
               {
                 "sourceBeatId": "beat-res",
-                "sourceOutlineBeatId": "ob-mto2wwgw-97zo",
-                "sourceBlockId": "smb-mto2wwgu-2p3zj",
+                "sourceOutlineBeatId": "ob-mto37pkd-6sry",
+                "sourceBlockId": "smb-mto37pkb-j40ym",
                 "familyId": "M08",
                 "templateId": "M08-1",
                 "roleInBeat": "PARTICIPANT",
@@ -2430,8 +2512,8 @@
             "contributions": [
               {
                 "sourceBeatId": "beat-setup",
-                "sourceOutlineBeatId": "ob-mto2wwgw-xdt7",
-                "sourceBlockId": "smb-mto2wwgu-yufl7",
+                "sourceOutlineBeatId": "ob-mto37pkd-bhwk",
+                "sourceBlockId": "smb-mto37pkc-rxkfi",
                 "familyId": "M08",
                 "templateId": "M08-7",
                 "roleInBeat": "OWNER",
@@ -2443,8 +2525,8 @@
               },
               {
                 "sourceBeatId": "beat-develop",
-                "sourceOutlineBeatId": "ob-mto2wwgw-0wfp",
-                "sourceBlockId": "smb-mto2wwgu-yufl7",
+                "sourceOutlineBeatId": "ob-mto37pkd-atci",
+                "sourceBlockId": "smb-mto37pkc-rxkfi",
                 "familyId": "M08",
                 "templateId": "M08-7",
                 "roleInBeat": "OWNER",
@@ -2453,11 +2535,27 @@
                 "gainedInfo": "阵营压力升级",
                 "relationQuality": "INTERWOVEN",
                 "needsDetail": false
-              },
+              }
+            ],
+            "stageSummary": "巩固或潜伏阵营结构；让公共任务按本阵营偏好成功、失败或延迟",
+            "knows": "本阶段主导行动：确认成员知情范围与联络方式；对公共任务施加正式破坏或支援",
+            "goal": "巩固或潜伏阵营结构；让公共任务按本阵营偏好成功、失败或延迟",
+            "action": "确认成员知情范围与联络方式；对公共任务施加正式破坏或支援",
+            "relationChanges": [
+              "参与真正交织行动"
+            ],
+            "gainedInfo": "阵营结构已成形；阵营压力升级",
+            "misunderstanding": "NEEDS_DETAIL",
+            "endChange": "阵营结构已成形；阵营压力升级",
+            "needsDetail": false
+          },
+          {
+            "stageId": "act2",
+            "contributions": [
               {
                 "sourceBeatId": "beat-climax",
-                "sourceOutlineBeatId": "ob-mto2wwgw-1y9g",
-                "sourceBlockId": "smb-mto2wwgu-yufl7",
+                "sourceOutlineBeatId": "ob-mto37pkd-843m",
+                "sourceBlockId": "smb-mto37pkc-rxkfi",
                 "familyId": "M08",
                 "templateId": "M08-7",
                 "roleInBeat": "PARTICIPANT",
@@ -2469,8 +2567,8 @@
               },
               {
                 "sourceBeatId": "beat-res",
-                "sourceOutlineBeatId": "ob-mto2wwgw-6756",
-                "sourceBlockId": "smb-mto2wwgu-yufl7",
+                "sourceOutlineBeatId": "ob-mto37pkd-x6p1",
+                "sourceBlockId": "smb-mto37pkc-rxkfi",
                 "familyId": "M08",
                 "templateId": "M08-7",
                 "roleInBeat": "OWNER",
@@ -2481,16 +2579,16 @@
                 "needsDetail": false
               }
             ],
-            "stageSummary": "巩固或潜伏阵营结构；让公共任务按本阵营偏好成功、失败或延迟；结算阵营目标并承受公开后果",
-            "knows": "本阶段主导行动：确认成员知情范围与联络方式；对公共任务施加正式破坏或支援；公开站队或接受阵营败露后的关系重排",
-            "goal": "巩固或潜伏阵营结构；让公共任务按本阵营偏好成功、失败或延迟；结算阵营目标并承受公开后果",
-            "action": "确认成员知情范围与联络方式；对公共任务施加正式破坏或支援；公开站队或接受阵营败露后的关系重排",
+            "stageSummary": "结算阵营目标并承受公开后果",
+            "knows": "本阶段主导行动：公开站队或接受阵营败露后的关系重排",
+            "goal": "结算阵营目标并承受公开后果",
+            "action": "公开站队或接受阵营败露后的关系重排",
             "relationChanges": [
               "参与真正交织行动"
             ],
-            "gainedInfo": "阵营结构已成形；阵营压力升级；阵营线结算",
+            "gainedInfo": "阵营线结算",
             "misunderstanding": "NEEDS_DETAIL",
-            "endChange": "阵营结构已成形；阵营压力升级；阵营线结算",
+            "endChange": "阵营线结算",
             "needsDetail": false
           }
         ]
@@ -2504,8 +2602,8 @@
             "contributions": [
               {
                 "sourceBeatId": "beat-setup",
-                "sourceOutlineBeatId": "ob-mto2wwgw-xdt7",
-                "sourceBlockId": "smb-mto2wwgu-yufl7",
+                "sourceOutlineBeatId": "ob-mto37pkd-bhwk",
+                "sourceBlockId": "smb-mto37pkc-rxkfi",
                 "familyId": "M08",
                 "templateId": "M08-7",
                 "roleInBeat": "PARTICIPANT",
@@ -2517,8 +2615,8 @@
               },
               {
                 "sourceBeatId": "beat-setup",
-                "sourceOutlineBeatId": "ob-mto2wwgw-d1wl",
-                "sourceBlockId": "smb-mto2wwgv-2ebzl",
+                "sourceOutlineBeatId": "ob-mto37pkd-b3bv",
+                "sourceBlockId": "smb-mto37pkc-qrxom",
                 "familyId": "M07",
                 "templateId": "M07-2",
                 "roleInBeat": "OWNER",
@@ -2530,39 +2628,13 @@
               },
               {
                 "sourceBeatId": "beat-develop",
-                "sourceOutlineBeatId": "ob-mto2wwgw-0wfp",
-                "sourceBlockId": "smb-mto2wwgu-yufl7",
+                "sourceOutlineBeatId": "ob-mto37pkd-atci",
+                "sourceBlockId": "smb-mto37pkc-rxkfi",
                 "familyId": "M08",
                 "templateId": "M08-7",
                 "roleInBeat": "PARTICIPANT",
                 "goal": null,
                 "action": "参与（非主导）：乔安为了让公共任务按本阵营偏好成功、失败或延迟，对公共任务施加正式破坏或支援（目标：公共任务状态）",
-                "gainedInfo": null,
-                "relationQuality": "INTERWOVEN",
-                "needsDetail": false
-              },
-              {
-                "sourceBeatId": "beat-climax",
-                "sourceOutlineBeatId": "ob-mto2wwgw-1y9g",
-                "sourceBlockId": "smb-mto2wwgu-yufl7",
-                "familyId": "M08",
-                "templateId": "M08-7",
-                "roleInBeat": "PARTICIPANT",
-                "goal": null,
-                "action": "参与（非主导）：梁柚为了在暴露风险下改归属或保住秘密，在关键选择点背叛、退出或清洗异己（目标：归属状态）",
-                "gainedInfo": null,
-                "relationQuality": "INTERWOVEN",
-                "needsDetail": false
-              },
-              {
-                "sourceBeatId": "beat-res",
-                "sourceOutlineBeatId": "ob-mto2wwgw-6756",
-                "sourceBlockId": "smb-mto2wwgu-yufl7",
-                "familyId": "M08",
-                "templateId": "M08-7",
-                "roleInBeat": "PARTICIPANT",
-                "goal": null,
-                "action": "参与（非主导）：乔安为了结算阵营目标并承受公开后果，公开站队或接受阵营败露后的关系重排（目标：阵营胜负条件）",
                 "gainedInfo": null,
                 "relationQuality": "INTERWOVEN",
                 "needsDetail": false
@@ -2584,9 +2656,49 @@
             "stageId": "act2",
             "contributions": [
               {
+                "sourceBeatId": "beat-climax",
+                "sourceOutlineBeatId": "ob-mto37pkd-843m",
+                "sourceBlockId": "smb-mto37pkc-rxkfi",
+                "familyId": "M08",
+                "templateId": "M08-7",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：梁柚为了在暴露风险下改归属或保住秘密，在关键选择点背叛、退出或清洗异己（目标：归属状态）",
+                "gainedInfo": null,
+                "relationQuality": "INTERWOVEN",
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-res",
+                "sourceOutlineBeatId": "ob-mto37pkd-x6p1",
+                "sourceBlockId": "smb-mto37pkc-rxkfi",
+                "familyId": "M08",
+                "templateId": "M08-7",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：乔安为了结算阵营目标并承受公开后果，公开站队或接受阵营败露后的关系重排（目标：阵营胜负条件）",
+                "gainedInfo": null,
+                "relationQuality": "INTERWOVEN",
+                "needsDetail": false
+              }
+            ],
+            "stageSummary": "本阶段无独立主目标（仅参与/对象）",
+            "knows": "本阶段主要为参与/对象，无主导公开行动摘要",
+            "goal": "本阶段无独立主目标（仅参与/对象）",
+            "action": "见 contributions（参与/对象）",
+            "relationChanges": [],
+            "gainedInfo": "NEEDS_DETAIL",
+            "misunderstanding": "NEEDS_DETAIL",
+            "endChange": "NEEDS_DETAIL",
+            "needsDetail": false
+          },
+          {
+            "stageId": "act3",
+            "contributions": [
+              {
                 "sourceBeatId": "beat-develop",
-                "sourceOutlineBeatId": "ob-mto2wwgw-1fgq",
-                "sourceBlockId": "smb-mto2wwgv-2ebzl",
+                "sourceOutlineBeatId": "ob-mto37pkd-qfp2",
+                "sourceBlockId": "smb-mto37pkc-qrxom",
                 "familyId": "M07",
                 "templateId": "M07-2",
                 "roleInBeat": "OWNER",
@@ -2610,12 +2722,12 @@
             "needsDetail": false
           },
           {
-            "stageId": "act3",
+            "stageId": "act4",
             "contributions": [
               {
                 "sourceBeatId": "beat-climax",
-                "sourceOutlineBeatId": "ob-mto2wwgw-at01",
-                "sourceBlockId": "smb-mto2wwgv-2ebzl",
+                "sourceOutlineBeatId": "ob-mto37pkd-16xr",
+                "sourceBlockId": "smb-mto37pkc-qrxom",
                 "familyId": "M07",
                 "templateId": "M07-2",
                 "roleInBeat": "OWNER",
@@ -2639,12 +2751,12 @@
             "needsDetail": false
           },
           {
-            "stageId": "act4",
+            "stageId": "act5",
             "contributions": [
               {
                 "sourceBeatId": "beat-res",
-                "sourceOutlineBeatId": "ob-mto2wwgw-u98b",
-                "sourceBlockId": "smb-mto2wwgv-2ebzl",
+                "sourceOutlineBeatId": "ob-mto37pkd-i7i2",
+                "sourceBlockId": "smb-mto37pkc-qrxom",
                 "familyId": "M07",
                 "templateId": "M07-2",
                 "roleInBeat": "OWNER",
@@ -2678,8 +2790,8 @@
             "contributions": [
               {
                 "sourceBeatId": "beat-setup",
-                "sourceOutlineBeatId": "ob-mto2wwgw-d1wl",
-                "sourceBlockId": "smb-mto2wwgv-2ebzl",
+                "sourceOutlineBeatId": "ob-mto37pkd-b3bv",
+                "sourceBlockId": "smb-mto37pkc-qrxom",
                 "familyId": "M07",
                 "templateId": "M07-2",
                 "roleInBeat": "PARTICIPANT",
@@ -2691,39 +2803,13 @@
               },
               {
                 "sourceBeatId": "beat-develop",
-                "sourceOutlineBeatId": "ob-mto2wwgw-0wfp",
-                "sourceBlockId": "smb-mto2wwgu-yufl7",
+                "sourceOutlineBeatId": "ob-mto37pkd-atci",
+                "sourceBlockId": "smb-mto37pkc-rxkfi",
                 "familyId": "M08",
                 "templateId": "M08-7",
                 "roleInBeat": "PARTICIPANT",
                 "goal": null,
                 "action": "参与（非主导）：乔安为了让公共任务按本阵营偏好成功、失败或延迟，对公共任务施加正式破坏或支援（目标：公共任务状态）",
-                "gainedInfo": null,
-                "relationQuality": "INTERWOVEN",
-                "needsDetail": false
-              },
-              {
-                "sourceBeatId": "beat-climax",
-                "sourceOutlineBeatId": "ob-mto2wwgw-1y9g",
-                "sourceBlockId": "smb-mto2wwgu-yufl7",
-                "familyId": "M08",
-                "templateId": "M08-7",
-                "roleInBeat": "PARTICIPANT",
-                "goal": null,
-                "action": "参与（非主导）：梁柚为了在暴露风险下改归属或保住秘密，在关键选择点背叛、退出或清洗异己（目标：归属状态）",
-                "gainedInfo": null,
-                "relationQuality": "INTERWOVEN",
-                "needsDetail": false
-              },
-              {
-                "sourceBeatId": "beat-res",
-                "sourceOutlineBeatId": "ob-mto2wwgw-6756",
-                "sourceBlockId": "smb-mto2wwgu-yufl7",
-                "familyId": "M08",
-                "templateId": "M08-7",
-                "roleInBeat": "PARTICIPANT",
-                "goal": null,
-                "action": "参与（非主导）：乔安为了结算阵营目标并承受公开后果，公开站队或接受阵营败露后的关系重排（目标：阵营胜负条件）",
                 "gainedInfo": null,
                 "relationQuality": "INTERWOVEN",
                 "needsDetail": false
@@ -2745,9 +2831,49 @@
             "stageId": "act2",
             "contributions": [
               {
+                "sourceBeatId": "beat-climax",
+                "sourceOutlineBeatId": "ob-mto37pkd-843m",
+                "sourceBlockId": "smb-mto37pkc-rxkfi",
+                "familyId": "M08",
+                "templateId": "M08-7",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：梁柚为了在暴露风险下改归属或保住秘密，在关键选择点背叛、退出或清洗异己（目标：归属状态）",
+                "gainedInfo": null,
+                "relationQuality": "INTERWOVEN",
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-res",
+                "sourceOutlineBeatId": "ob-mto37pkd-x6p1",
+                "sourceBlockId": "smb-mto37pkc-rxkfi",
+                "familyId": "M08",
+                "templateId": "M08-7",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：乔安为了结算阵营目标并承受公开后果，公开站队或接受阵营败露后的关系重排（目标：阵营胜负条件）",
+                "gainedInfo": null,
+                "relationQuality": "INTERWOVEN",
+                "needsDetail": false
+              }
+            ],
+            "stageSummary": "本阶段无独立主目标（仅参与/对象）",
+            "knows": "本阶段主要为参与/对象，无主导公开行动摘要",
+            "goal": "本阶段无独立主目标（仅参与/对象）",
+            "action": "见 contributions（参与/对象）",
+            "relationChanges": [],
+            "gainedInfo": "NEEDS_DETAIL",
+            "misunderstanding": "NEEDS_DETAIL",
+            "endChange": "NEEDS_DETAIL",
+            "needsDetail": false
+          },
+          {
+            "stageId": "act3",
+            "contributions": [
+              {
                 "sourceBeatId": "beat-develop",
-                "sourceOutlineBeatId": "ob-mto2wwgw-1fgq",
-                "sourceBlockId": "smb-mto2wwgv-2ebzl",
+                "sourceOutlineBeatId": "ob-mto37pkd-qfp2",
+                "sourceBlockId": "smb-mto37pkc-qrxom",
                 "familyId": "M07",
                 "templateId": "M07-2",
                 "roleInBeat": "PARTICIPANT",
@@ -2771,12 +2897,12 @@
             "needsDetail": false
           },
           {
-            "stageId": "act3",
+            "stageId": "act4",
             "contributions": [
               {
                 "sourceBeatId": "beat-climax",
-                "sourceOutlineBeatId": "ob-mto2wwgw-at01",
-                "sourceBlockId": "smb-mto2wwgv-2ebzl",
+                "sourceOutlineBeatId": "ob-mto37pkd-16xr",
+                "sourceBlockId": "smb-mto37pkc-qrxom",
                 "familyId": "M07",
                 "templateId": "M07-2",
                 "roleInBeat": "PARTICIPANT",
@@ -2800,12 +2926,12 @@
             "needsDetail": false
           },
           {
-            "stageId": "act4",
+            "stageId": "act5",
             "contributions": [
               {
                 "sourceBeatId": "beat-res",
-                "sourceOutlineBeatId": "ob-mto2wwgw-u98b",
-                "sourceBlockId": "smb-mto2wwgv-2ebzl",
+                "sourceOutlineBeatId": "ob-mto37pkd-i7i2",
+                "sourceBlockId": "smb-mto37pkc-qrxom",
                 "familyId": "M07",
                 "templateId": "M07-2",
                 "roleInBeat": "PARTICIPANT",
@@ -2839,8 +2965,8 @@
             "contributions": [
               {
                 "sourceBeatId": "beat-develop",
-                "sourceOutlineBeatId": "ob-mto2wwgw-0wfp",
-                "sourceBlockId": "smb-mto2wwgu-yufl7",
+                "sourceOutlineBeatId": "ob-mto37pkd-atci",
+                "sourceBlockId": "smb-mto37pkc-rxkfi",
                 "familyId": "M08",
                 "templateId": "M08-7",
                 "roleInBeat": "PARTICIPANT",
@@ -2849,11 +2975,25 @@
                 "gainedInfo": null,
                 "relationQuality": "INTERWOVEN",
                 "needsDetail": false
-              },
+              }
+            ],
+            "stageSummary": "本阶段无独立主目标（仅参与/对象）",
+            "knows": "本阶段主要为参与/对象，无主导公开行动摘要",
+            "goal": "本阶段无独立主目标（仅参与/对象）",
+            "action": "见 contributions（参与/对象）",
+            "relationChanges": [],
+            "gainedInfo": "NEEDS_DETAIL",
+            "misunderstanding": "NEEDS_DETAIL",
+            "endChange": "NEEDS_DETAIL",
+            "needsDetail": false
+          },
+          {
+            "stageId": "act2",
+            "contributions": [
               {
                 "sourceBeatId": "beat-develop",
-                "sourceOutlineBeatId": "ob-mto2wwgw-cfiz",
-                "sourceBlockId": "smb-mto2wwgu-2p3zj",
+                "sourceOutlineBeatId": "ob-mto37pkd-hpfw",
+                "sourceBlockId": "smb-mto37pkb-j40ym",
                 "familyId": "M08",
                 "templateId": "M08-1",
                 "roleInBeat": "PARTICIPANT",
@@ -2865,8 +3005,8 @@
               },
               {
                 "sourceBeatId": "beat-climax",
-                "sourceOutlineBeatId": "ob-mto2wwgw-1y9g",
-                "sourceBlockId": "smb-mto2wwgu-yufl7",
+                "sourceOutlineBeatId": "ob-mto37pkd-843m",
+                "sourceBlockId": "smb-mto37pkc-rxkfi",
                 "familyId": "M08",
                 "templateId": "M08-7",
                 "roleInBeat": "OWNER",
@@ -2878,8 +3018,8 @@
               },
               {
                 "sourceBeatId": "beat-climax",
-                "sourceOutlineBeatId": "ob-mto2wwgw-7m1j",
-                "sourceBlockId": "smb-mto2wwgu-2p3zj",
+                "sourceOutlineBeatId": "ob-mto37pkd-anwr",
+                "sourceBlockId": "smb-mto37pkb-j40ym",
                 "familyId": "M08",
                 "templateId": "M08-1",
                 "roleInBeat": "PARTICIPANT",
@@ -2891,8 +3031,8 @@
               },
               {
                 "sourceBeatId": "beat-res",
-                "sourceOutlineBeatId": "ob-mto2wwgw-6756",
-                "sourceBlockId": "smb-mto2wwgu-yufl7",
+                "sourceOutlineBeatId": "ob-mto37pkd-x6p1",
+                "sourceBlockId": "smb-mto37pkc-rxkfi",
                 "familyId": "M08",
                 "templateId": "M08-7",
                 "roleInBeat": "PARTICIPANT",
@@ -2904,8 +3044,8 @@
               },
               {
                 "sourceBeatId": "beat-res",
-                "sourceOutlineBeatId": "ob-mto2wwgw-97zo",
-                "sourceBlockId": "smb-mto2wwgu-2p3zj",
+                "sourceOutlineBeatId": "ob-mto37pkd-6sry",
+                "sourceBlockId": "smb-mto37pkb-j40ym",
                 "familyId": "M08",
                 "templateId": "M08-1",
                 "roleInBeat": "PARTICIPANT",
@@ -2939,8 +3079,8 @@
             "contributions": [
               {
                 "sourceBeatId": "beat-develop",
-                "sourceOutlineBeatId": "ob-mto2wwgw-0wfp",
-                "sourceBlockId": "smb-mto2wwgu-yufl7",
+                "sourceOutlineBeatId": "ob-mto37pkd-atci",
+                "sourceBlockId": "smb-mto37pkc-rxkfi",
                 "familyId": "M08",
                 "templateId": "M08-7",
                 "roleInBeat": "PARTICIPANT",
@@ -2949,11 +3089,25 @@
                 "gainedInfo": null,
                 "relationQuality": "INTERWOVEN",
                 "needsDetail": false
-              },
+              }
+            ],
+            "stageSummary": "本阶段无独立主目标（仅参与/对象）",
+            "knows": "本阶段主要为参与/对象，无主导公开行动摘要",
+            "goal": "本阶段无独立主目标（仅参与/对象）",
+            "action": "见 contributions（参与/对象）",
+            "relationChanges": [],
+            "gainedInfo": "NEEDS_DETAIL",
+            "misunderstanding": "NEEDS_DETAIL",
+            "endChange": "NEEDS_DETAIL",
+            "needsDetail": false
+          },
+          {
+            "stageId": "act2",
+            "contributions": [
               {
                 "sourceBeatId": "beat-develop",
-                "sourceOutlineBeatId": "ob-mto2wwgw-cfiz",
-                "sourceBlockId": "smb-mto2wwgu-2p3zj",
+                "sourceOutlineBeatId": "ob-mto37pkd-hpfw",
+                "sourceBlockId": "smb-mto37pkb-j40ym",
                 "familyId": "M08",
                 "templateId": "M08-1",
                 "roleInBeat": "PARTICIPANT",
@@ -2965,8 +3119,8 @@
               },
               {
                 "sourceBeatId": "beat-climax",
-                "sourceOutlineBeatId": "ob-mto2wwgw-1y9g",
-                "sourceBlockId": "smb-mto2wwgu-yufl7",
+                "sourceOutlineBeatId": "ob-mto37pkd-843m",
+                "sourceBlockId": "smb-mto37pkc-rxkfi",
                 "familyId": "M08",
                 "templateId": "M08-7",
                 "roleInBeat": "PARTICIPANT",
@@ -2978,8 +3132,8 @@
               },
               {
                 "sourceBeatId": "beat-climax",
-                "sourceOutlineBeatId": "ob-mto2wwgw-7m1j",
-                "sourceBlockId": "smb-mto2wwgu-2p3zj",
+                "sourceOutlineBeatId": "ob-mto37pkd-anwr",
+                "sourceBlockId": "smb-mto37pkb-j40ym",
                 "familyId": "M08",
                 "templateId": "M08-1",
                 "roleInBeat": "PARTICIPANT",
@@ -2991,8 +3145,8 @@
               },
               {
                 "sourceBeatId": "beat-res",
-                "sourceOutlineBeatId": "ob-mto2wwgw-6756",
-                "sourceBlockId": "smb-mto2wwgu-yufl7",
+                "sourceOutlineBeatId": "ob-mto37pkd-x6p1",
+                "sourceBlockId": "smb-mto37pkc-rxkfi",
                 "familyId": "M08",
                 "templateId": "M08-7",
                 "roleInBeat": "PARTICIPANT",
@@ -3004,8 +3158,8 @@
               },
               {
                 "sourceBeatId": "beat-res",
-                "sourceOutlineBeatId": "ob-mto2wwgw-97zo",
-                "sourceBlockId": "smb-mto2wwgu-2p3zj",
+                "sourceOutlineBeatId": "ob-mto37pkd-6sry",
+                "sourceBlockId": "smb-mto37pkb-j40ym",
                 "familyId": "M08",
                 "templateId": "M08-1",
                 "roleInBeat": "PARTICIPANT",
@@ -3027,12 +3181,12 @@
             "needsDetail": false
           },
           {
-            "stageId": "act2",
+            "stageId": "act3",
             "contributions": [
               {
                 "sourceBeatId": "beat-develop",
-                "sourceOutlineBeatId": "ob-mto2wwgw-1fgq",
-                "sourceBlockId": "smb-mto2wwgv-2ebzl",
+                "sourceOutlineBeatId": "ob-mto37pkd-qfp2",
+                "sourceBlockId": "smb-mto37pkc-qrxom",
                 "familyId": "M07",
                 "templateId": "M07-2",
                 "roleInBeat": "PARTICIPANT",
@@ -3056,12 +3210,12 @@
             "needsDetail": false
           },
           {
-            "stageId": "act3",
+            "stageId": "act4",
             "contributions": [
               {
                 "sourceBeatId": "beat-climax",
-                "sourceOutlineBeatId": "ob-mto2wwgw-at01",
-                "sourceBlockId": "smb-mto2wwgv-2ebzl",
+                "sourceOutlineBeatId": "ob-mto37pkd-16xr",
+                "sourceBlockId": "smb-mto37pkc-qrxom",
                 "familyId": "M07",
                 "templateId": "M07-2",
                 "roleInBeat": "PARTICIPANT",
@@ -3085,12 +3239,12 @@
             "needsDetail": false
           },
           {
-            "stageId": "act4",
+            "stageId": "act5",
             "contributions": [
               {
                 "sourceBeatId": "beat-res",
-                "sourceOutlineBeatId": "ob-mto2wwgw-u98b",
-                "sourceBlockId": "smb-mto2wwgv-2ebzl",
+                "sourceOutlineBeatId": "ob-mto37pkd-i7i2",
+                "sourceBlockId": "smb-mto37pkc-qrxom",
                 "familyId": "M07",
                 "templateId": "M07-2",
                 "roleInBeat": "PARTICIPANT",
@@ -3120,12 +3274,12 @@
         "name": "许南",
         "stages": [
           {
-            "stageId": "act1",
+            "stageId": "act2",
             "contributions": [
               {
                 "sourceBeatId": "beat-develop",
-                "sourceOutlineBeatId": "ob-mto2wwgw-cfiz",
-                "sourceBlockId": "smb-mto2wwgu-2p3zj",
+                "sourceOutlineBeatId": "ob-mto37pkd-hpfw",
+                "sourceBlockId": "smb-mto37pkb-j40ym",
                 "familyId": "M08",
                 "templateId": "M08-1",
                 "roleInBeat": "PARTICIPANT",
@@ -3137,8 +3291,8 @@
               },
               {
                 "sourceBeatId": "beat-climax",
-                "sourceOutlineBeatId": "ob-mto2wwgw-7m1j",
-                "sourceBlockId": "smb-mto2wwgu-2p3zj",
+                "sourceOutlineBeatId": "ob-mto37pkd-anwr",
+                "sourceBlockId": "smb-mto37pkb-j40ym",
                 "familyId": "M08",
                 "templateId": "M08-1",
                 "roleInBeat": "PARTICIPANT",
@@ -3150,8 +3304,8 @@
               },
               {
                 "sourceBeatId": "beat-res",
-                "sourceOutlineBeatId": "ob-mto2wwgw-97zo",
-                "sourceBlockId": "smb-mto2wwgu-2p3zj",
+                "sourceOutlineBeatId": "ob-mto37pkd-6sry",
+                "sourceBlockId": "smb-mto37pkb-j40ym",
                 "familyId": "M08",
                 "templateId": "M08-1",
                 "roleInBeat": "PARTICIPANT",
@@ -3173,12 +3327,12 @@
             "needsDetail": false
           },
           {
-            "stageId": "act2",
+            "stageId": "act3",
             "contributions": [
               {
                 "sourceBeatId": "beat-develop",
-                "sourceOutlineBeatId": "ob-mto2wwgw-1fgq",
-                "sourceBlockId": "smb-mto2wwgv-2ebzl",
+                "sourceOutlineBeatId": "ob-mto37pkd-qfp2",
+                "sourceBlockId": "smb-mto37pkc-qrxom",
                 "familyId": "M07",
                 "templateId": "M07-2",
                 "roleInBeat": "PARTICIPANT",
@@ -3202,12 +3356,12 @@
             "needsDetail": false
           },
           {
-            "stageId": "act3",
+            "stageId": "act4",
             "contributions": [
               {
                 "sourceBeatId": "beat-climax",
-                "sourceOutlineBeatId": "ob-mto2wwgw-at01",
-                "sourceBlockId": "smb-mto2wwgv-2ebzl",
+                "sourceOutlineBeatId": "ob-mto37pkd-16xr",
+                "sourceBlockId": "smb-mto37pkc-qrxom",
                 "familyId": "M07",
                 "templateId": "M07-2",
                 "roleInBeat": "PARTICIPANT",
@@ -3231,12 +3385,12 @@
             "needsDetail": false
           },
           {
-            "stageId": "act4",
+            "stageId": "act5",
             "contributions": [
               {
                 "sourceBeatId": "beat-res",
-                "sourceOutlineBeatId": "ob-mto2wwgw-u98b",
-                "sourceBlockId": "smb-mto2wwgv-2ebzl",
+                "sourceOutlineBeatId": "ob-mto37pkd-i7i2",
+                "sourceBlockId": "smb-mto37pkc-qrxom",
                 "familyId": "M07",
                 "templateId": "M07-2",
                 "roleInBeat": "PARTICIPANT",
@@ -3266,15 +3420,16 @@
   "clueView": {
     "clues": [
       {
-        "clueId": "smb-mto2wwgu-2p3zj-faction_foreshadow-0",
+        "clueId": "smb-mto37pkb-j40ym-faction_foreshadow-0",
         "label": "阵营伏笔",
-        "mechanismId": "smb-mto2wwgu-2p3zj",
+        "mechanismId": "smb-mto37pkb-j40ym",
         "templateId": "M08-1",
         "introducedAt": "act1",
         "availableStages": [
-          "act1"
+          "act1",
+          "act2"
         ],
-        "persists": false,
+        "persists": true,
         "stageId": "act1",
         "possibleFinders": [
           "S1",
@@ -3289,9 +3444,9 @@
         "missingDetail": false
       },
       {
-        "clueId": "smb-mto2wwgu-yufl7-faction_foreshadow-0",
+        "clueId": "smb-mto37pkc-rxkfi-faction_foreshadow-0",
         "label": "阵营伏笔",
-        "mechanismId": "smb-mto2wwgu-yufl7",
+        "mechanismId": "smb-mto37pkc-rxkfi",
         "templateId": "M08-7",
         "introducedAt": "act1",
         "availableStages": [
@@ -3313,14 +3468,14 @@
         "missingDetail": false
       },
       {
-        "clueId": "smb-mto2wwgv-2ebzl-foreshadow-0",
+        "clueId": "smb-mto37pkc-qrxom-foreshadow-0",
         "label": "早期伏笔",
-        "mechanismId": "smb-mto2wwgv-2ebzl",
+        "mechanismId": "smb-mto37pkc-qrxom",
         "templateId": "M07-2",
         "introducedAt": "act1",
         "availableStages": [
           "act1",
-          "act2"
+          "act3"
         ],
         "persists": true,
         "stageId": "act1",
@@ -3337,16 +3492,16 @@
         "missingDetail": false
       },
       {
-        "clueId": "smb-mto2wwgu-yufl7-membership_hint-1",
+        "clueId": "smb-mto37pkc-rxkfi-membership_hint-1",
         "label": "成员暗示",
-        "mechanismId": "smb-mto2wwgu-yufl7",
+        "mechanismId": "smb-mto37pkc-rxkfi",
         "templateId": "M08-7",
-        "introducedAt": "act1",
+        "introducedAt": "act2",
         "availableStages": [
-          "act1"
+          "act2"
         ],
         "persists": false,
-        "stageId": "act1",
+        "stageId": "act2",
         "possibleFinders": [
           "S3",
           "S6",
@@ -3361,16 +3516,16 @@
         "missingDetail": false
       },
       {
-        "clueId": "smb-mto2wwgu-yufl7-secret_signal-2",
+        "clueId": "smb-mto37pkc-rxkfi-secret_signal-2",
         "label": "秘密信号",
-        "mechanismId": "smb-mto2wwgu-yufl7",
+        "mechanismId": "smb-mto37pkc-rxkfi",
         "templateId": "M08-7",
-        "introducedAt": "act1",
+        "introducedAt": "act2",
         "availableStages": [
-          "act1"
+          "act2"
         ],
         "persists": false,
-        "stageId": "act1",
+        "stageId": "act2",
         "possibleFinders": [
           "S3",
           "S6",
@@ -3385,16 +3540,16 @@
         "missingDetail": false
       },
       {
-        "clueId": "smb-mto2wwgu-yufl7-recruitment_evidence-3",
+        "clueId": "smb-mto37pkc-rxkfi-recruitment_evidence-3",
         "label": "招募证据",
-        "mechanismId": "smb-mto2wwgu-yufl7",
+        "mechanismId": "smb-mto37pkc-rxkfi",
         "templateId": "M08-7",
-        "introducedAt": "act1",
+        "introducedAt": "act2",
         "availableStages": [
-          "act1"
+          "act2"
         ],
         "persists": false,
-        "stageId": "act1",
+        "stageId": "act2",
         "possibleFinders": [
           "S3",
           "S6",
@@ -3409,16 +3564,16 @@
         "missingDetail": false
       },
       {
-        "clueId": "smb-mto2wwgu-yufl7-loyalty_test-4",
+        "clueId": "smb-mto37pkc-rxkfi-loyalty_test-4",
         "label": "忠诚考验",
-        "mechanismId": "smb-mto2wwgu-yufl7",
+        "mechanismId": "smb-mto37pkc-rxkfi",
         "templateId": "M08-7",
-        "introducedAt": "act1",
+        "introducedAt": "act2",
         "availableStages": [
-          "act1"
+          "act2"
         ],
         "persists": false,
-        "stageId": "act1",
+        "stageId": "act2",
         "possibleFinders": [
           "S3",
           "S6",
@@ -3433,16 +3588,16 @@
         "missingDetail": false
       },
       {
-        "clueId": "smb-mto2wwgu-yufl7-betrayal_hint-5",
+        "clueId": "smb-mto37pkc-rxkfi-betrayal_hint-5",
         "label": "背叛暗示",
-        "mechanismId": "smb-mto2wwgu-yufl7",
+        "mechanismId": "smb-mto37pkc-rxkfi",
         "templateId": "M08-7",
-        "introducedAt": "act1",
+        "introducedAt": "act2",
         "availableStages": [
-          "act1"
+          "act2"
         ],
         "persists": false,
-        "stageId": "act1",
+        "stageId": "act2",
         "possibleFinders": [
           "S3",
           "S6",
@@ -3457,16 +3612,16 @@
         "missingDetail": false
       },
       {
-        "clueId": "smb-mto2wwgu-yufl7-internal_conflict-6",
+        "clueId": "smb-mto37pkc-rxkfi-internal_conflict-6",
         "label": "内部冲突",
-        "mechanismId": "smb-mto2wwgu-yufl7",
+        "mechanismId": "smb-mto37pkc-rxkfi",
         "templateId": "M08-7",
-        "introducedAt": "act1",
+        "introducedAt": "act2",
         "availableStages": [
-          "act1"
+          "act2"
         ],
         "persists": false,
-        "stageId": "act1",
+        "stageId": "act2",
         "possibleFinders": [
           "S3",
           "S6",
@@ -3481,16 +3636,16 @@
         "missingDetail": false
       },
       {
-        "clueId": "smb-mto2wwgu-yufl7-hidden_goal_hint-7",
+        "clueId": "smb-mto37pkc-rxkfi-hidden_goal_hint-7",
         "label": "隐藏目标暗示",
-        "mechanismId": "smb-mto2wwgu-yufl7",
+        "mechanismId": "smb-mto37pkc-rxkfi",
         "templateId": "M08-7",
-        "introducedAt": "act1",
+        "introducedAt": "act2",
         "availableStages": [
-          "act1"
+          "act2"
         ],
         "persists": false,
-        "stageId": "act1",
+        "stageId": "act2",
         "possibleFinders": [
           "S3",
           "S6",
@@ -3505,16 +3660,16 @@
         "missingDetail": false
       },
       {
-        "clueId": "smb-mto2wwgu-yufl7-membership_confirmation-8",
+        "clueId": "smb-mto37pkc-rxkfi-membership_confirmation-8",
         "label": "归属确认",
-        "mechanismId": "smb-mto2wwgu-yufl7",
+        "mechanismId": "smb-mto37pkc-rxkfi",
         "templateId": "M08-7",
-        "introducedAt": "act1",
+        "introducedAt": "act2",
         "availableStages": [
-          "act1"
+          "act2"
         ],
         "persists": false,
-        "stageId": "act1",
+        "stageId": "act2",
         "possibleFinders": [
           "S3",
           "S6",
@@ -3529,16 +3684,16 @@
         "missingDetail": false
       },
       {
-        "clueId": "smb-mto2wwgu-yufl7-faction_exposure-9",
+        "clueId": "smb-mto37pkc-rxkfi-faction_exposure-9",
         "label": "阵营暴露",
-        "mechanismId": "smb-mto2wwgu-yufl7",
+        "mechanismId": "smb-mto37pkc-rxkfi",
         "templateId": "M08-7",
-        "introducedAt": "act1",
+        "introducedAt": "act2",
         "availableStages": [
-          "act1"
+          "act2"
         ],
         "persists": false,
-        "stageId": "act1",
+        "stageId": "act2",
         "possibleFinders": [
           "S3",
           "S6",
@@ -3553,16 +3708,16 @@
         "missingDetail": false
       },
       {
-        "clueId": "smb-mto2wwgu-2p3zj-membership_hint-1",
+        "clueId": "smb-mto37pkb-j40ym-membership_hint-1",
         "label": "成员暗示",
-        "mechanismId": "smb-mto2wwgu-2p3zj",
+        "mechanismId": "smb-mto37pkb-j40ym",
         "templateId": "M08-1",
-        "introducedAt": "act1",
+        "introducedAt": "act2",
         "availableStages": [
-          "act1"
+          "act2"
         ],
         "persists": false,
-        "stageId": "act1",
+        "stageId": "act2",
         "possibleFinders": [
           "S1",
           "S2",
@@ -3576,16 +3731,16 @@
         "missingDetail": false
       },
       {
-        "clueId": "smb-mto2wwgu-2p3zj-secret_signal-2",
+        "clueId": "smb-mto37pkb-j40ym-secret_signal-2",
         "label": "秘密信号",
-        "mechanismId": "smb-mto2wwgu-2p3zj",
+        "mechanismId": "smb-mto37pkb-j40ym",
         "templateId": "M08-1",
-        "introducedAt": "act1",
+        "introducedAt": "act2",
         "availableStages": [
-          "act1"
+          "act2"
         ],
         "persists": false,
-        "stageId": "act1",
+        "stageId": "act2",
         "possibleFinders": [
           "S1",
           "S2",
@@ -3599,16 +3754,16 @@
         "missingDetail": false
       },
       {
-        "clueId": "smb-mto2wwgu-2p3zj-recruitment_evidence-3",
+        "clueId": "smb-mto37pkb-j40ym-recruitment_evidence-3",
         "label": "招募证据",
-        "mechanismId": "smb-mto2wwgu-2p3zj",
+        "mechanismId": "smb-mto37pkb-j40ym",
         "templateId": "M08-1",
-        "introducedAt": "act1",
+        "introducedAt": "act2",
         "availableStages": [
-          "act1"
+          "act2"
         ],
         "persists": false,
-        "stageId": "act1",
+        "stageId": "act2",
         "possibleFinders": [
           "S1",
           "S2",
@@ -3622,16 +3777,16 @@
         "missingDetail": false
       },
       {
-        "clueId": "smb-mto2wwgu-2p3zj-loyalty_test-4",
+        "clueId": "smb-mto37pkb-j40ym-loyalty_test-4",
         "label": "忠诚考验",
-        "mechanismId": "smb-mto2wwgu-2p3zj",
+        "mechanismId": "smb-mto37pkb-j40ym",
         "templateId": "M08-1",
-        "introducedAt": "act1",
+        "introducedAt": "act2",
         "availableStages": [
-          "act1"
+          "act2"
         ],
         "persists": false,
-        "stageId": "act1",
+        "stageId": "act2",
         "possibleFinders": [
           "S1",
           "S2",
@@ -3645,16 +3800,16 @@
         "missingDetail": false
       },
       {
-        "clueId": "smb-mto2wwgu-2p3zj-betrayal_hint-5",
+        "clueId": "smb-mto37pkb-j40ym-betrayal_hint-5",
         "label": "背叛暗示",
-        "mechanismId": "smb-mto2wwgu-2p3zj",
+        "mechanismId": "smb-mto37pkb-j40ym",
         "templateId": "M08-1",
-        "introducedAt": "act1",
+        "introducedAt": "act2",
         "availableStages": [
-          "act1"
+          "act2"
         ],
         "persists": false,
-        "stageId": "act1",
+        "stageId": "act2",
         "possibleFinders": [
           "S1",
           "S2",
@@ -3668,16 +3823,16 @@
         "missingDetail": false
       },
       {
-        "clueId": "smb-mto2wwgu-2p3zj-internal_conflict-6",
+        "clueId": "smb-mto37pkb-j40ym-internal_conflict-6",
         "label": "内部冲突",
-        "mechanismId": "smb-mto2wwgu-2p3zj",
+        "mechanismId": "smb-mto37pkb-j40ym",
         "templateId": "M08-1",
-        "introducedAt": "act1",
+        "introducedAt": "act2",
         "availableStages": [
-          "act1"
+          "act2"
         ],
         "persists": false,
-        "stageId": "act1",
+        "stageId": "act2",
         "possibleFinders": [
           "S1",
           "S2",
@@ -3691,16 +3846,16 @@
         "missingDetail": false
       },
       {
-        "clueId": "smb-mto2wwgu-2p3zj-hidden_goal_hint-7",
+        "clueId": "smb-mto37pkb-j40ym-hidden_goal_hint-7",
         "label": "隐藏目标暗示",
-        "mechanismId": "smb-mto2wwgu-2p3zj",
+        "mechanismId": "smb-mto37pkb-j40ym",
         "templateId": "M08-1",
-        "introducedAt": "act1",
+        "introducedAt": "act2",
         "availableStages": [
-          "act1"
+          "act2"
         ],
         "persists": false,
-        "stageId": "act1",
+        "stageId": "act2",
         "possibleFinders": [
           "S1",
           "S2",
@@ -3714,16 +3869,16 @@
         "missingDetail": false
       },
       {
-        "clueId": "smb-mto2wwgu-2p3zj-membership_confirmation-8",
+        "clueId": "smb-mto37pkb-j40ym-membership_confirmation-8",
         "label": "归属确认",
-        "mechanismId": "smb-mto2wwgu-2p3zj",
+        "mechanismId": "smb-mto37pkb-j40ym",
         "templateId": "M08-1",
-        "introducedAt": "act1",
+        "introducedAt": "act2",
         "availableStages": [
-          "act1"
+          "act2"
         ],
         "persists": false,
-        "stageId": "act1",
+        "stageId": "act2",
         "possibleFinders": [
           "S1",
           "S2",
@@ -3737,16 +3892,16 @@
         "missingDetail": false
       },
       {
-        "clueId": "smb-mto2wwgu-2p3zj-faction_exposure-9",
+        "clueId": "smb-mto37pkb-j40ym-faction_exposure-9",
         "label": "阵营暴露",
-        "mechanismId": "smb-mto2wwgu-2p3zj",
+        "mechanismId": "smb-mto37pkb-j40ym",
         "templateId": "M08-1",
-        "introducedAt": "act1",
+        "introducedAt": "act2",
         "availableStages": [
-          "act1"
+          "act2"
         ],
         "persists": false,
-        "stageId": "act1",
+        "stageId": "act2",
         "possibleFinders": [
           "S1",
           "S2",
@@ -3760,16 +3915,16 @@
         "missingDetail": false
       },
       {
-        "clueId": "fact-interface:ob-mto2wwgw-6756",
+        "clueId": "fact-interface:ob-mto37pkd-x6p1",
         "label": "事实接口（尚无线索实体）",
-        "mechanismId": "smb-mto2wwgu-yufl7",
+        "mechanismId": "smb-mto37pkc-rxkfi",
         "templateId": "M08-7",
-        "introducedAt": "act1",
+        "introducedAt": "act2",
         "availableStages": [
-          "act1"
+          "act2"
         ],
         "persists": false,
-        "stageId": "act1",
+        "stageId": "act2",
         "possibleFinders": [
           "S6",
           "S7",
@@ -3785,16 +3940,16 @@
         "detailNote": "这个剧情 beat 需要关键线索，但模板尚未提供具体线索内容。"
       },
       {
-        "clueId": "fact-interface:ob-mto2wwgw-97zo",
+        "clueId": "fact-interface:ob-mto37pkd-6sry",
         "label": "事实接口（尚无线索实体）",
-        "mechanismId": "smb-mto2wwgu-2p3zj",
+        "mechanismId": "smb-mto37pkb-j40ym",
         "templateId": "M08-1",
-        "introducedAt": "act1",
+        "introducedAt": "act2",
         "availableStages": [
-          "act1"
+          "act2"
         ],
         "persists": false,
-        "stageId": "act1",
+        "stageId": "act2",
         "possibleFinders": [
           "S1",
           "S2",
@@ -3809,16 +3964,16 @@
         "detailNote": "这个剧情 beat 需要关键线索，但模板尚未提供具体线索内容。"
       },
       {
-        "clueId": "smb-mto2wwgv-2ebzl-memory_fragment-1",
+        "clueId": "smb-mto37pkc-qrxom-memory_fragment-1",
         "label": "记忆碎片",
-        "mechanismId": "smb-mto2wwgv-2ebzl",
+        "mechanismId": "smb-mto37pkc-qrxom",
         "templateId": "M07-2",
-        "introducedAt": "act3",
+        "introducedAt": "act4",
         "availableStages": [
-          "act3"
+          "act4"
         ],
         "persists": false,
-        "stageId": "act3",
+        "stageId": "act4",
         "possibleFinders": [
           "S7",
           "S8",
@@ -3832,16 +3987,16 @@
         "missingDetail": false
       },
       {
-        "clueId": "smb-mto2wwgv-2ebzl-identity_hint-2",
+        "clueId": "smb-mto37pkc-qrxom-identity_hint-2",
         "label": "身份暗示",
-        "mechanismId": "smb-mto2wwgv-2ebzl",
+        "mechanismId": "smb-mto37pkc-qrxom",
         "templateId": "M07-2",
-        "introducedAt": "act3",
+        "introducedAt": "act4",
         "availableStages": [
-          "act3"
+          "act4"
         ],
         "persists": false,
-        "stageId": "act3",
+        "stageId": "act4",
         "possibleFinders": [
           "S7",
           "S8",
@@ -3855,16 +4010,16 @@
         "missingDetail": false
       },
       {
-        "clueId": "smb-mto2wwgv-2ebzl-misdirection-3",
+        "clueId": "smb-mto37pkc-qrxom-misdirection-3",
         "label": "误导",
-        "mechanismId": "smb-mto2wwgv-2ebzl",
+        "mechanismId": "smb-mto37pkc-qrxom",
         "templateId": "M07-2",
-        "introducedAt": "act3",
+        "introducedAt": "act4",
         "availableStages": [
-          "act3"
+          "act4"
         ],
         "persists": false,
-        "stageId": "act3",
+        "stageId": "act4",
         "possibleFinders": [
           "S7",
           "S8",
@@ -3878,16 +4033,16 @@
         "missingDetail": false
       },
       {
-        "clueId": "smb-mto2wwgv-2ebzl-confirmation-4",
+        "clueId": "smb-mto37pkc-qrxom-confirmation-4",
         "label": "确认",
-        "mechanismId": "smb-mto2wwgv-2ebzl",
+        "mechanismId": "smb-mto37pkc-qrxom",
         "templateId": "M07-2",
-        "introducedAt": "act3",
+        "introducedAt": "act4",
         "availableStages": [
-          "act3"
+          "act4"
         ],
         "persists": false,
-        "stageId": "act3",
+        "stageId": "act4",
         "possibleFinders": [
           "S7",
           "S8",
@@ -3901,16 +4056,16 @@
         "missingDetail": false
       },
       {
-        "clueId": "smb-mto2wwgv-2ebzl-decisive_reveal-5",
+        "clueId": "smb-mto37pkc-qrxom-decisive_reveal-5",
         "label": "决定性揭示",
-        "mechanismId": "smb-mto2wwgv-2ebzl",
+        "mechanismId": "smb-mto37pkc-qrxom",
         "templateId": "M07-2",
-        "introducedAt": "act3",
+        "introducedAt": "act4",
         "availableStages": [
-          "act3"
+          "act4"
         ],
         "persists": false,
-        "stageId": "act3",
+        "stageId": "act4",
         "possibleFinders": [
           "S7",
           "S8",
@@ -3924,16 +4079,16 @@
         "missingDetail": false
       },
       {
-        "clueId": "fact-interface:ob-mto2wwgw-u98b",
+        "clueId": "fact-interface:ob-mto37pkd-i7i2",
         "label": "事实接口（尚无线索实体）",
-        "mechanismId": "smb-mto2wwgv-2ebzl",
+        "mechanismId": "smb-mto37pkc-qrxom",
         "templateId": "M07-2",
-        "introducedAt": "act4",
+        "introducedAt": "act5",
         "availableStages": [
-          "act4"
+          "act5"
         ],
         "persists": false,
-        "stageId": "act4",
+        "stageId": "act5",
         "possibleFinders": [
           "S7",
           "S8",
@@ -3954,42 +4109,17 @@
       {
         "stageId": "act1",
         "openingState": "开局：各线按积木 setup 状态进入（不新增前提）",
-        "stageGoal": "陈夏：公开亮明阵营归属与目标；乔安：巩固或潜伏阵营结构；沐白：隐藏或维持当前身份表象；乔安：让公共任务按本阵营偏好成功、失败或延迟；陈夏：夺取关键资源；梁柚：在暴露风险下改归属或保住秘密",
+        "stageGoal": "陈夏：公开亮明阵营归属与目标；乔安：巩固或潜伏阵营结构；沐白：隐藏或维持当前身份表象；乔安：让公共任务按本阵营偏好成功、失败或延迟",
         "beatsToAdvance": [
-          "ob-mto2wwgw-c0xu",
-          "ob-mto2wwgw-xdt7",
-          "ob-mto2wwgw-d1wl",
-          "ob-mto2wwgw-0wfp",
-          "ob-mto2wwgw-cfiz",
-          "ob-mto2wwgw-1y9g",
-          "ob-mto2wwgw-7m1j",
-          "ob-mto2wwgw-6756",
-          "ob-mto2wwgw-97zo"
+          "ob-mto37pkd-3zog",
+          "ob-mto37pkd-bhwk",
+          "ob-mto37pkd-b3bv",
+          "ob-mto37pkd-atci"
         ],
         "cluesAvailable": [
-          "smb-mto2wwgu-2p3zj-faction_foreshadow-0",
-          "smb-mto2wwgu-yufl7-faction_foreshadow-0",
-          "smb-mto2wwgv-2ebzl-foreshadow-0",
-          "smb-mto2wwgu-yufl7-membership_hint-1",
-          "smb-mto2wwgu-yufl7-secret_signal-2",
-          "smb-mto2wwgu-yufl7-recruitment_evidence-3",
-          "smb-mto2wwgu-yufl7-loyalty_test-4",
-          "smb-mto2wwgu-yufl7-betrayal_hint-5",
-          "smb-mto2wwgu-yufl7-internal_conflict-6",
-          "smb-mto2wwgu-yufl7-hidden_goal_hint-7",
-          "smb-mto2wwgu-yufl7-membership_confirmation-8",
-          "smb-mto2wwgu-yufl7-faction_exposure-9",
-          "smb-mto2wwgu-2p3zj-membership_hint-1",
-          "smb-mto2wwgu-2p3zj-secret_signal-2",
-          "smb-mto2wwgu-2p3zj-recruitment_evidence-3",
-          "smb-mto2wwgu-2p3zj-loyalty_test-4",
-          "smb-mto2wwgu-2p3zj-betrayal_hint-5",
-          "smb-mto2wwgu-2p3zj-internal_conflict-6",
-          "smb-mto2wwgu-2p3zj-hidden_goal_hint-7",
-          "smb-mto2wwgu-2p3zj-membership_confirmation-8",
-          "smb-mto2wwgu-2p3zj-faction_exposure-9",
-          "fact-interface:ob-mto2wwgw-6756",
-          "fact-interface:ob-mto2wwgw-97zo"
+          "smb-mto37pkb-j40ym-faction_foreshadow-0",
+          "smb-mto37pkc-rxkfi-faction_foreshadow-0",
+          "smb-mto37pkc-qrxom-foreshadow-0"
         ],
         "charactersInPlay": [
           "S1",
@@ -3998,114 +4128,163 @@
           "S7",
           "S8",
           "S3",
-          "S4",
-          "S5"
+          "S4"
         ],
         "candidateGameInsertionPoints": [
           {
-            "placementId": "game-candidate-ob-mto2wwgw-c0xu",
+            "placementId": "game-candidate-ob-mto37pkd-3zog",
             "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
-            "afterBeatId": "ob-mto2wwgw-c0xu"
+            "afterBeatId": "ob-mto37pkd-3zog"
           },
           {
-            "placementId": "game-candidate-ob-mto2wwgw-xdt7",
+            "placementId": "game-candidate-ob-mto37pkd-bhwk",
             "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
-            "afterBeatId": "ob-mto2wwgw-xdt7"
+            "afterBeatId": "ob-mto37pkd-bhwk"
           },
           {
-            "placementId": "game-candidate-ob-mto2wwgw-d1wl",
+            "placementId": "game-candidate-ob-mto37pkd-b3bv",
             "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
-            "afterBeatId": "ob-mto2wwgw-d1wl"
+            "afterBeatId": "ob-mto37pkd-b3bv"
           },
           {
-            "placementId": "game-candidate-ob-mto2wwgw-0wfp",
+            "placementId": "game-candidate-ob-mto37pkd-atci",
             "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
-            "afterBeatId": "ob-mto2wwgw-0wfp"
-          },
-          {
-            "placementId": "game-candidate-ob-mto2wwgw-cfiz",
-            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
-            "afterBeatId": "ob-mto2wwgw-cfiz"
-          },
-          {
-            "placementId": "game-candidate-ob-mto2wwgw-1y9g",
-            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
-            "afterBeatId": "ob-mto2wwgw-1y9g"
-          },
-          {
-            "placementId": "game-candidate-ob-mto2wwgw-7m1j",
-            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
-            "afterBeatId": "ob-mto2wwgw-7m1j"
-          },
-          {
-            "placementId": "game-candidate-ob-mto2wwgw-6756",
-            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
-            "afterBeatId": "ob-mto2wwgw-6756"
-          },
-          {
-            "placementId": "game-candidate-ob-mto2wwgw-97zo",
-            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
-            "afterBeatId": "ob-mto2wwgw-97zo"
+            "afterBeatId": "ob-mto37pkd-atci"
           }
         ],
         "gameMechanismSlots": [
           {
-            "placementId": "game-candidate-ob-mto2wwgw-c0xu",
+            "placementId": "game-candidate-ob-mto37pkd-3zog",
             "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
-            "afterBeatId": "ob-mto2wwgw-c0xu"
+            "afterBeatId": "ob-mto37pkd-3zog"
           },
           {
-            "placementId": "game-candidate-ob-mto2wwgw-xdt7",
+            "placementId": "game-candidate-ob-mto37pkd-bhwk",
             "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
-            "afterBeatId": "ob-mto2wwgw-xdt7"
+            "afterBeatId": "ob-mto37pkd-bhwk"
           },
           {
-            "placementId": "game-candidate-ob-mto2wwgw-d1wl",
+            "placementId": "game-candidate-ob-mto37pkd-b3bv",
             "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
-            "afterBeatId": "ob-mto2wwgw-d1wl"
+            "afterBeatId": "ob-mto37pkd-b3bv"
           },
           {
-            "placementId": "game-candidate-ob-mto2wwgw-0wfp",
+            "placementId": "game-candidate-ob-mto37pkd-atci",
             "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
-            "afterBeatId": "ob-mto2wwgw-0wfp"
-          },
-          {
-            "placementId": "game-candidate-ob-mto2wwgw-cfiz",
-            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
-            "afterBeatId": "ob-mto2wwgw-cfiz"
-          },
-          {
-            "placementId": "game-candidate-ob-mto2wwgw-1y9g",
-            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
-            "afterBeatId": "ob-mto2wwgw-1y9g"
-          },
-          {
-            "placementId": "game-candidate-ob-mto2wwgw-7m1j",
-            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
-            "afterBeatId": "ob-mto2wwgw-7m1j"
-          },
-          {
-            "placementId": "game-candidate-ob-mto2wwgw-6756",
-            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
-            "afterBeatId": "ob-mto2wwgw-6756"
-          },
-          {
-            "placementId": "game-candidate-ob-mto2wwgw-97zo",
-            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
-            "afterBeatId": "ob-mto2wwgw-97zo"
+            "afterBeatId": "ob-mto37pkd-atci"
           }
         ],
-        "requiredStateBeforeNext": "阵营结构已成形；身份仍未公开；阵营压力升级；归属已改变；暴露风险上升；阵营线结算"
+        "requiredStateBeforeNext": "阵营结构已成形；身份仍未公开；阵营压力升级"
       },
       {
         "stageId": "act2",
         "openingState": "承接上一阶段已声明后果；未声明者标 UNKNOWN",
-        "stageGoal": "沐白：用正式动作换取被条件锁住的信息",
+        "stageGoal": "陈夏：夺取关键资源；梁柚：在暴露风险下改归属或保住秘密；陈夏：在暴露风险下改归属或保住秘密；乔安：结算阵营目标并承受公开后果；陈夏：结算阵营目标并承受公开后果",
         "beatsToAdvance": [
-          "ob-mto2wwgw-1fgq"
+          "ob-mto37pkd-hpfw",
+          "ob-mto37pkd-843m",
+          "ob-mto37pkd-anwr",
+          "ob-mto37pkd-x6p1",
+          "ob-mto37pkd-6sry"
         ],
         "cluesAvailable": [
-          "smb-mto2wwgv-2ebzl-foreshadow-0"
+          "smb-mto37pkb-j40ym-faction_foreshadow-0",
+          "smb-mto37pkc-rxkfi-membership_hint-1",
+          "smb-mto37pkc-rxkfi-secret_signal-2",
+          "smb-mto37pkc-rxkfi-recruitment_evidence-3",
+          "smb-mto37pkc-rxkfi-loyalty_test-4",
+          "smb-mto37pkc-rxkfi-betrayal_hint-5",
+          "smb-mto37pkc-rxkfi-internal_conflict-6",
+          "smb-mto37pkc-rxkfi-hidden_goal_hint-7",
+          "smb-mto37pkc-rxkfi-membership_confirmation-8",
+          "smb-mto37pkc-rxkfi-faction_exposure-9",
+          "smb-mto37pkb-j40ym-membership_hint-1",
+          "smb-mto37pkb-j40ym-secret_signal-2",
+          "smb-mto37pkb-j40ym-recruitment_evidence-3",
+          "smb-mto37pkb-j40ym-loyalty_test-4",
+          "smb-mto37pkb-j40ym-betrayal_hint-5",
+          "smb-mto37pkb-j40ym-internal_conflict-6",
+          "smb-mto37pkb-j40ym-hidden_goal_hint-7",
+          "smb-mto37pkb-j40ym-membership_confirmation-8",
+          "smb-mto37pkb-j40ym-faction_exposure-9",
+          "fact-interface:ob-mto37pkd-x6p1",
+          "fact-interface:ob-mto37pkd-6sry"
+        ],
+        "charactersInPlay": [
+          "S1",
+          "S2",
+          "S3",
+          "S4",
+          "S5",
+          "S6",
+          "S7",
+          "S8"
+        ],
+        "candidateGameInsertionPoints": [
+          {
+            "placementId": "game-candidate-ob-mto37pkd-hpfw",
+            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+            "afterBeatId": "ob-mto37pkd-hpfw"
+          },
+          {
+            "placementId": "game-candidate-ob-mto37pkd-843m",
+            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+            "afterBeatId": "ob-mto37pkd-843m"
+          },
+          {
+            "placementId": "game-candidate-ob-mto37pkd-anwr",
+            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+            "afterBeatId": "ob-mto37pkd-anwr"
+          },
+          {
+            "placementId": "game-candidate-ob-mto37pkd-x6p1",
+            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+            "afterBeatId": "ob-mto37pkd-x6p1"
+          },
+          {
+            "placementId": "game-candidate-ob-mto37pkd-6sry",
+            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+            "afterBeatId": "ob-mto37pkd-6sry"
+          }
+        ],
+        "gameMechanismSlots": [
+          {
+            "placementId": "game-candidate-ob-mto37pkd-hpfw",
+            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+            "afterBeatId": "ob-mto37pkd-hpfw"
+          },
+          {
+            "placementId": "game-candidate-ob-mto37pkd-843m",
+            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+            "afterBeatId": "ob-mto37pkd-843m"
+          },
+          {
+            "placementId": "game-candidate-ob-mto37pkd-anwr",
+            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+            "afterBeatId": "ob-mto37pkd-anwr"
+          },
+          {
+            "placementId": "game-candidate-ob-mto37pkd-x6p1",
+            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+            "afterBeatId": "ob-mto37pkd-x6p1"
+          },
+          {
+            "placementId": "game-candidate-ob-mto37pkd-6sry",
+            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+            "afterBeatId": "ob-mto37pkd-6sry"
+          }
+        ],
+        "requiredStateBeforeNext": "阵营压力升级；归属已改变；暴露风险上升；阵营线结算"
+      },
+      {
+        "stageId": "act3",
+        "openingState": "承接上一阶段已声明后果；未声明者标 UNKNOWN",
+        "stageGoal": "沐白：用正式动作换取被条件锁住的信息",
+        "beatsToAdvance": [
+          "ob-mto37pkd-qfp2"
+        ],
+        "cluesAvailable": [
+          "smb-mto37pkc-qrxom-foreshadow-0"
         ],
         "charactersInPlay": [
           "S7",
@@ -4116,33 +4295,33 @@
         ],
         "candidateGameInsertionPoints": [
           {
-            "placementId": "game-candidate-ob-mto2wwgw-1fgq",
+            "placementId": "game-candidate-ob-mto37pkd-qfp2",
             "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
-            "afterBeatId": "ob-mto2wwgw-1fgq"
+            "afterBeatId": "ob-mto37pkd-qfp2"
           }
         ],
         "gameMechanismSlots": [
           {
-            "placementId": "game-candidate-ob-mto2wwgw-1fgq",
+            "placementId": "game-candidate-ob-mto37pkd-qfp2",
             "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
-            "afterBeatId": "ob-mto2wwgw-1fgq"
+            "afterBeatId": "ob-mto37pkd-qfp2"
           }
         ],
         "requiredStateBeforeNext": "条件开放的信息"
       },
       {
-        "stageId": "act3",
+        "stageId": "act4",
         "openingState": "承接上一阶段已声明后果；未声明者标 UNKNOWN",
         "stageGoal": "沐白：确认真实身份并决定是否公开",
         "beatsToAdvance": [
-          "ob-mto2wwgw-at01"
+          "ob-mto37pkd-16xr"
         ],
         "cluesAvailable": [
-          "smb-mto2wwgv-2ebzl-memory_fragment-1",
-          "smb-mto2wwgv-2ebzl-identity_hint-2",
-          "smb-mto2wwgv-2ebzl-misdirection-3",
-          "smb-mto2wwgv-2ebzl-confirmation-4",
-          "smb-mto2wwgv-2ebzl-decisive_reveal-5"
+          "smb-mto37pkc-qrxom-memory_fragment-1",
+          "smb-mto37pkc-qrxom-identity_hint-2",
+          "smb-mto37pkc-qrxom-misdirection-3",
+          "smb-mto37pkc-qrxom-confirmation-4",
+          "smb-mto37pkc-qrxom-decisive_reveal-5"
         ],
         "charactersInPlay": [
           "S7",
@@ -4153,29 +4332,29 @@
         ],
         "candidateGameInsertionPoints": [
           {
-            "placementId": "game-candidate-ob-mto2wwgw-at01",
+            "placementId": "game-candidate-ob-mto37pkd-16xr",
             "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
-            "afterBeatId": "ob-mto2wwgw-at01"
+            "afterBeatId": "ob-mto37pkd-16xr"
           }
         ],
         "gameMechanismSlots": [
           {
-            "placementId": "game-candidate-ob-mto2wwgw-at01",
+            "placementId": "game-candidate-ob-mto37pkd-16xr",
             "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
-            "afterBeatId": "ob-mto2wwgw-at01"
+            "afterBeatId": "ob-mto37pkd-16xr"
           }
         ],
         "requiredStateBeforeNext": "身份已确认；家族/资格状态"
       },
       {
-        "stageId": "act4",
+        "stageId": "act5",
         "openingState": "承接上一阶段已声明后果；未声明者标 UNKNOWN",
         "stageGoal": "沐白：承受身份公开后的关系后果",
         "beatsToAdvance": [
-          "ob-mto2wwgw-u98b"
+          "ob-mto37pkd-i7i2"
         ],
         "cluesAvailable": [
-          "fact-interface:ob-mto2wwgw-u98b"
+          "fact-interface:ob-mto37pkd-i7i2"
         ],
         "charactersInPlay": [
           "S7",
@@ -4186,16 +4365,16 @@
         ],
         "candidateGameInsertionPoints": [
           {
-            "placementId": "game-candidate-ob-mto2wwgw-u98b",
+            "placementId": "game-candidate-ob-mto37pkd-i7i2",
             "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
-            "afterBeatId": "ob-mto2wwgw-u98b"
+            "afterBeatId": "ob-mto37pkd-i7i2"
           }
         ],
         "gameMechanismSlots": [
           {
-            "placementId": "game-candidate-ob-mto2wwgw-u98b",
+            "placementId": "game-candidate-ob-mto37pkd-i7i2",
             "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
-            "afterBeatId": "ob-mto2wwgw-u98b"
+            "afterBeatId": "ob-mto37pkd-i7i2"
           }
         ],
         "requiredStateBeforeNext": "终幕：无强制下一阶段"
@@ -4204,75 +4383,55 @@
   },
   "warnings": [
     {
-      "id": "warn-crowd-act1",
-      "type": "STAGE_CROWDING",
-      "severity": "warn",
-      "message": "「铺垫」包含 9 个剧情 beat，当前阶段密度偏高。P6 未自动迁移 beat，请返回交织骨架调整。",
-      "stageIds": [
-        "act1"
-      ],
-      "beatIds": [
-        "ob-mto2wwgw-c0xu",
-        "ob-mto2wwgw-xdt7",
-        "ob-mto2wwgw-d1wl",
-        "ob-mto2wwgw-0wfp",
-        "ob-mto2wwgw-cfiz",
-        "ob-mto2wwgw-1y9g",
-        "ob-mto2wwgw-7m1j",
-        "ob-mto2wwgw-6756",
-        "ob-mto2wwgw-97zo"
-      ]
-    },
-    {
-      "id": "warn-detail-ob-mto2wwgw-7m1j",
+      "id": "warn-detail-ob-mto37pkd-anwr",
       "type": "NEEDS_DETAIL",
       "severity": "info",
       "message": "「陈夏为了在暴露风险下改归属或保住秘密，在关键选择点背叛、退出或清洗异己（目标：归属状态）」仍缺具体细节。",
       "stageIds": [
-        "act1"
+        "act2"
       ],
       "beatIds": [
-        "ob-mto2wwgw-7m1j"
+        "ob-mto37pkd-anwr"
       ]
     },
     {
-      "id": "warn-clue-ob-mto2wwgw-6756",
+      "id": "warn-clue-ob-mto37pkd-x6p1",
       "type": "MISSING_CLUE_DETAIL",
       "severity": "info",
       "message": "该剧情 beat 需要/产生事实接口，但模板尚未绑定具体线索内容。",
       "stageIds": [
-        "act1"
+        "act2"
       ],
       "beatIds": [
-        "ob-mto2wwgw-6756"
+        "ob-mto37pkd-x6p1"
       ]
     },
     {
-      "id": "warn-clue-ob-mto2wwgw-97zo",
+      "id": "warn-clue-ob-mto37pkd-6sry",
       "type": "MISSING_CLUE_DETAIL",
       "severity": "info",
       "message": "该剧情 beat 需要/产生事实接口，但模板尚未绑定具体线索内容。",
       "stageIds": [
-        "act1"
+        "act2"
       ],
       "beatIds": [
-        "ob-mto2wwgw-97zo"
+        "ob-mto37pkd-6sry"
       ]
     },
     {
-      "id": "warn-clue-ob-mto2wwgw-u98b",
+      "id": "warn-clue-ob-mto37pkd-i7i2",
       "type": "MISSING_CLUE_DETAIL",
       "severity": "info",
       "message": "该剧情 beat 需要/产生事实接口，但模板尚未绑定具体线索内容。",
       "stageIds": [
-        "act4"
+        "act5"
       ],
       "beatIds": [
-        "ob-mto2wwgw-u98b"
+        "ob-mto37pkd-i7i2"
       ]
     },
     {
-      "id": "warn-conflict-cf-mto2wwgw-yog4",
+      "id": "warn-conflict-cf-mto37pkd-lt7o",
       "type": "ROLE_OVERLOAD",
       "severity": "info",
       "message": "陈夏 当前承担：faction_lead HIGH、misled（负载 3）",
@@ -4280,7 +4439,7 @@
       "beatIds": []
     },
     {
-      "id": "warn-conflict-cf-mto2wwgw-n2dy",
+      "id": "warn-conflict-cf-mto37pkd-6omk",
       "type": "ROLE_OVERLOAD",
       "severity": "info",
       "message": "方禾 当前承担：member、rival_lead HIGH（负载 3）",
@@ -4288,7 +4447,7 @@
       "beatIds": []
     },
     {
-      "id": "warn-conflict-cf-mto2wwgw-trwp",
+      "id": "warn-conflict-cf-mto37pkd-s3vo",
       "type": "ROLE_OVERLOAD",
       "severity": "info",
       "message": "梁柚 当前承担：member、defector HIGH（负载 3）",
@@ -4296,7 +4455,7 @@
       "beatIds": []
     },
     {
-      "id": "warn-conflict-cf-mto2wwgw-carl",
+      "id": "warn-conflict-cf-mto37pkd-9qsu",
       "type": "ROLE_OVERLOAD",
       "severity": "info",
       "message": "韩汀 当前承担：outsider、outsider、discoverer（负载 3）",
@@ -4304,7 +4463,7 @@
       "beatIds": []
     },
     {
-      "id": "warn-conflict-cf-mto2wwgw-5p2a",
+      "id": "warn-conflict-cf-mto37pkd-n7gs",
       "type": "ROLE_OVERLOAD",
       "severity": "info",
       "message": "许南 当前承担：rival_lead HIGH、support（负载 3）",
@@ -4312,7 +4471,7 @@
       "beatIds": []
     },
     {
-      "id": "warn-conflict-cf-mto2wwgw-cqne",
+      "id": "warn-conflict-cf-mto37pkd-tlzi",
       "type": "ROLE_OVERLOAD",
       "severity": "info",
       "message": "沐白 当前承担：member、identity_bearer HIGH（负载 3）",
@@ -4320,30 +4479,7 @@
       "beatIds": []
     }
   ],
-  "structureChangeRequests": [
-    {
-      "id": "scr-split-act1",
-      "type": "SPLIT_STAGE",
-      "sourceStageIds": [
-        "act1"
-      ],
-      "sourceBeatIds": [
-        "ob-mto2wwgw-cfiz",
-        "ob-mto2wwgw-1y9g",
-        "ob-mto2wwgw-7m1j",
-        "ob-mto2wwgw-6756",
-        "ob-mto2wwgw-97zo"
-      ],
-      "sourceBlockIds": [
-        "smb-mto2wwgu-2p3zj",
-        "smb-mto2wwgu-yufl7"
-      ],
-      "reason": "「铺垫」包含 9 个剧情 beat，当前阶段密度偏高。P6 未自动迁移 beat，请返回交织骨架调整。",
-      "severity": "warn",
-      "proposal": "建议将「铺垫」后半 5 个 beat 拆到后续阶段；P6 仅提议，不自动应用。",
-      "status": "PROPOSED"
-    }
-  ],
+  "structureChangeRequests": [],
   "status": "DRAFT",
   "revision": 0,
   "updatedAt": "2026-09-05T00:00:00.000Z"

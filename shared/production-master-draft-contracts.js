@@ -53,6 +53,7 @@ export const MASTER_DRAFT_WARNING_TYPES = Object.freeze([
 export const STRUCTURE_CHANGE_TYPES = Object.freeze([
   "MOVE_BEAT",
   "SPLIT_STAGE",
+  "REBALANCE_STAGE",
   "MERGE_STAGE",
   "CREATE_WEAVE",
   "BREAK_WEAVE",

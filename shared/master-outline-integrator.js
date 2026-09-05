@@ -21,6 +21,11 @@ import {
   relationQualityForWeaveKind,
 } from "./master-outline-contracts.js";
 import { isInternalCompletionSummary } from "./story-beat-semantics.js";
+import {
+  planStageTopology,
+  materializeTopologyStages,
+  distributeBeatsIntoStages,
+} from "./master-outline-stage-topology.js";
 
 const ACCEPTED = new Set(["USER_ACCEPTED", "USER_MODIFIED", "LOCKED"]);
 
@@ -167,38 +172,9 @@ function flattenSourceBeats(block) {
   return out;
 }
 
-function resolveOutlineStages(projectStages, beatCount) {
-  const sorted = [...(projectStages || [])].sort((a, b) => a.order - b.order);
-  if (sorted.length >= 2) {
-    return sorted.map((s, i) => ({
-      id: s.id,
-      label: s.label || STAGE_ARC_LABELS[Math.min(i, STAGE_ARC_LABELS.length - 1)] || `第${i + 1}阶段`,
-      order: Number.isFinite(s.order) ? s.order : i,
-      beats: [],
-    }));
-  }
-  const n = beatCount <= 6 ? 3 : Math.min(4, Math.max(3, Math.ceil(beatCount / 4)));
-  return Array.from({ length: n }, (_, i) => ({
-    id: `outline-stage-${i + 1}`,
-    label: STAGE_ARC_LABELS[Math.min(i, STAGE_ARC_LABELS.length - 1)] || `第${i + 1}阶段`,
-    order: i,
-    beats: [],
-  }));
-}
-
-function assignBeatToStageIndex(phaseBand, stageCount) {
-  if (stageCount <= 1) return 0;
-  if (stageCount === 2) return phaseBand <= 1 ? 0 : 1;
-  if (stageCount === 3) {
-    if (phaseBand <= 0) return 0;
-    if (phaseBand <= 2) return 1;
-    return 2;
-  }
-  return Math.min(stageCount - 1, Math.max(0, phaseBand));
-}
-
-/** 禁止中间空幕：压缩无内容阶段并重标号 */
-export function compressEmptyStages(stages) {
+/** 仅 unlocked / 自动推导幕数时压缩空幕；locked project stages 禁止 collapse */
+export function compressEmptyStages(stages, { allowCollapse = true } = {}) {
+  if (!allowCollapse) return stages || [];
   const kept = (stages || []).filter((s) => (s.beats || []).length > 0);
   if (!kept.length) return stages || [];
   return kept.map((s, i) => ({
@@ -426,7 +402,7 @@ function buildConflictReport(state, loadReport) {
   return conflicts;
 }
 
-function alignInterwovenBeats(stages, weaveLinks) {
+function alignInterwovenBeats(stages, weaveLinks, { protectEmptyStages = false } = {}) {
   const interwoven = new Set(["WEAVE_CAUSAL", "WEAVE_STRONG", "WEAVE_SHARED_ACTION"]);
   for (const link of weaveLinks) {
     if (!interwoven.has(link.kind) || link.beatIds.length < 2) continue;
@@ -451,6 +427,7 @@ function alignInterwovenBeats(stages, weaveLinks) {
     const target = stageA.order <= stageB.order ? stageA : stageB;
     const source = target === stageA ? stageB : stageA;
     const moving = target === stageA ? beatB : beatA;
+    if (protectEmptyStages && source.beats.length <= 1) continue;
     source.beats = source.beats.filter((b) => b.id !== moving.id);
     const groupId = newId("wg");
     beatA.weaveGroupId = groupId;
@@ -472,23 +449,22 @@ export function buildMasterOutlineDraft(projectStoryState, { now = () => new Dat
   }
 
   const allBeats = blocks.flatMap(flattenSourceBeats);
-  let stages = resolveOutlineStages(state.stages, allBeats.length);
-
-  for (const beat of allBeats) {
-    const idx = assignBeatToStageIndex(beat.phaseBand, stages.length);
-    stages[idx].beats.push(beat);
-  }
+  const topology = planStageTopology({ projectStages: state.stages, beats: allBeats });
+  let stages = materializeTopologyStages(topology);
+  distributeBeatsIntoStages(stages, allBeats);
 
   const weaveLinks = proposeWeaveLinks(allBeats, blocks);
-  alignInterwovenBeats(stages, weaveLinks);
-  stages = compressEmptyStages(stages);
+  alignInterwovenBeats(stages, weaveLinks, { protectEmptyStages: topology.stageCountLocked });
 
-  if (stages.length >= 2) {
-    const last = stages[stages.length - 1];
-    const hasAgency = last.beats.some((b) => b.semantics?.goal && b.semantics?.action && !b.needsDetail);
-    if (!hasAgency && last.beats.length > 0 && stages[stages.length - 2].beats.length > 0) {
-      stages[stages.length - 2].beats.push(...last.beats);
-      stages = compressEmptyStages(stages.slice(0, -1));
+  if (!topology.stageCountLocked) {
+    stages = compressEmptyStages(stages, { allowCollapse: true });
+    if (stages.length >= 2) {
+      const last = stages[stages.length - 1];
+      const hasAgency = last.beats.some((b) => b.semantics?.goal && b.semantics?.action && !b.needsDetail);
+      if (!hasAgency && last.beats.length > 0 && stages[stages.length - 2].beats.length > 0) {
+        stages[stages.length - 2].beats.push(...last.beats);
+        stages = compressEmptyStages(stages.slice(0, -1), { allowCollapse: true });
+      }
     }
   }
 

@@ -191,13 +191,14 @@ function expandOneBeat(outlineBeat, outline, state, blocks, stageId) {
 }
 
 function stageRoleOf(label, index, total) {
-  if (/铺垫|setup/i.test(label)) return "SETUP";
-  if (/加压|pressure/i.test(label)) return "PRESSURE";
-  if (/升级|escalation/i.test(label)) return "ESCALATION";
-  if (/收束|payoff|resolution/i.test(label)) return "PAYOFF";
+  // Final stage is always PAYOFF under target-stage remap (label keywords must not override).
   if (total <= 1) return "SETUP";
-  if (index === 0) return "SETUP";
   if (index === total - 1) return "PAYOFF";
+  if (/铺垫|setup/i.test(label)) return "SETUP";
+  if (/收束|payoff|resolution|终局/i.test(label)) return "PAYOFF";
+  if (/加压|pressure|发展/i.test(label)) return "PRESSURE";
+  if (/升级|escalation/i.test(label)) return "ESCALATION";
+  if (index === 0) return "SETUP";
   if (index === 1) return "PRESSURE";
   return "ESCALATION";
 }
@@ -294,7 +295,7 @@ function buildWarnings(outline, stages, state) {
   return warnings;
 }
 
-function proposeStructureChanges(stages, warnings) {
+function proposeStructureChanges(stages, warnings, { stageCountLocked = false } = {}) {
   const requests = [];
   for (const w of warnings) {
     if (w.type !== "STAGE_CROWDING") continue;
@@ -302,6 +303,24 @@ function proposeStructureChanges(stages, warnings) {
     if (!stage || stage.beats.length < 2) continue;
     const mid = Math.floor(stage.beats.length / 2);
     const moveCandidates = stage.beats.slice(mid);
+    if (stageCountLocked) {
+      const later = stages.filter((s) => (s.order ?? 0) > (stage.order ?? 0));
+      const targetHint = later.map((s) => s.stageId).join(" / ") || "后续已有阶段";
+      requests.push(
+        normalizeStructureChangeRequest({
+          id: stableId("scr", "rebalance", stage.stageId),
+          type: "REBALANCE_STAGE",
+          sourceStageIds: [stage.stageId, ...later.map((s) => s.stageId)].slice(0, 4),
+          sourceBeatIds: moveCandidates.map((b) => b.sourceOutlineBeatId),
+          sourceBlockIds: [...new Set(moveCandidates.map((b) => b.sourceBlockId))],
+          reason: w.message,
+          severity: "warn",
+          proposal: `固定 ${stages.length} 幕约束下，建议将「${stage.title}」后半 ${moveCandidates.length} 个合格 beat 重平衡到 ${targetHint}（保持时间顺序）；P6 仅提议，不自动应用，禁止拆出新幕。`,
+          status: "PROPOSED",
+        }),
+      );
+      continue;
+    }
     requests.push(
       normalizeStructureChangeRequest({
         id: stableId("scr", "split", stage.stageId),
@@ -668,7 +687,10 @@ export function expandProductionMasterDraft(projectStoryState, options = {}) {
   }
 
   const warnings = buildWarnings(outline, productionStages, state);
-  const structureChangeRequests = proposeStructureChanges(productionStages, warnings);
+  const stageCountLocked = (state.stages || []).length >= 2;
+  const structureChangeRequests = proposeStructureChanges(productionStages, warnings, {
+    stageCountLocked,
+  });
 
   const truthView = projectTruthView(productionStages);
   const characterViews = projectCharacterViews(productionStages);

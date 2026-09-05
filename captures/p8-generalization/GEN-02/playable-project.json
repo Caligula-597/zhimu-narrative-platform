@@ -11,7 +11,10 @@
   ],
   "stageIds": [
     "act1",
-    "act4"
+    "act2",
+    "act3",
+    "act4",
+    "act5"
   ],
   "requireCulprit": false,
   "gamePlan": [
@@ -23,5 +26,5 @@
     }
   ],
   "candidateGameInsertionPoints": [],
-  "compatible": false
+  "compatible": true
 }

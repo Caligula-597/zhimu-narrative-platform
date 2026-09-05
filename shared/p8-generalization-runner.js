@@ -236,6 +236,45 @@ function evaluateG1(fixture, state, outline, draft) {
     );
   }
 
+  if ((draft?.stages || []).length === wantStages && wantStages >= 2) {
+    const empty = (draft.stages || []).filter((s) => !(s.beats || []).length);
+    const totalBeats = (draft.stages || []).reduce((n, s) => n + (s.beats || []).length, 0);
+    if (totalBeats >= wantStages) {
+      checks.push(
+        gate(
+          "G1.noEmptyNarrativeStage",
+          empty.length === 0,
+          empty.length
+            ? `empty stages with sufficient beats: ${empty.map((s) => s.stageId || s.id).join(",")}`
+            : "no empty narrative stages",
+          { empty: empty.map((s) => s.stageId || s.id), totalBeats, wantStages },
+        ),
+      );
+    } else {
+      checks.push(
+        gate(
+          "G1.insufficientBeatDensity",
+          true,
+          `INSUFFICIENT_BEAT_DENSITY: beats=${totalBeats} < stages=${wantStages} (diagnostic only)`,
+          { totalBeats, wantStages },
+        ),
+      );
+    }
+  }
+
+  // Locked project stage IDs must match outline/draft exactly (no collapse / invent)
+  if ((state.stages || []).length >= 2 && outline?.stages?.length) {
+    const projectIds = (state.stages || []).map((s) => s.id);
+    const outlineIds = (outline.stages || []).map((s) => s.id);
+    checks.push(
+      gate(
+        "G1.outlineStagesMatchProject",
+        projectIds.length === outlineIds.length && projectIds.every((id, i) => id === outlineIds[i]),
+        `project=[${projectIds}] outline=[${outlineIds}]`,
+      ),
+    );
+  }
+
   return checks;
 }
 

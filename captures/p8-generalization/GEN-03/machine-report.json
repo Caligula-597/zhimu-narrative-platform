@@ -76,6 +76,22 @@
             "act4"
           ]
         }
+      },
+      {
+        "id": "G1.noEmptyNarrativeStage",
+        "pass": true,
+        "message": "no empty narrative stages",
+        "details": {
+          "empty": [],
+          "totalBeats": 12,
+          "wantStages": 4
+        }
+      },
+      {
+        "id": "G1.outlineStagesMatchProject",
+        "pass": true,
+        "message": "project=[act1,act2,act3,act4] outline=[act1,act2,act3,act4]",
+        "details": {}
       }
     ],
     "G2": [

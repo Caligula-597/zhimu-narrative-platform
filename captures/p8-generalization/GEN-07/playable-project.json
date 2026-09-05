@@ -14,7 +14,8 @@
     "act1",
     "act2",
     "act3",
-    "act4"
+    "act4",
+    "act5"
   ],
   "requireCulprit": true,
   "gamePlan": [
@@ -32,5 +33,5 @@
     }
   ],
   "candidateGameInsertionPoints": [],
-  "compatible": false
+  "compatible": true
 }

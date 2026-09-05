@@ -33,20 +33,22 @@
       },
       {
         "id": "G1.stageCount",
-        "pass": false,
-        "message": "outline=4 draft=4 want=5",
+        "pass": true,
+        "message": "outline=5 draft=5 want=5",
         "details": {
           "outlineStageIds": [
             "act1",
             "act2",
             "act3",
-            "act4"
+            "act4",
+            "act5"
           ],
           "draftStageIds": [
             "act1",
             "act2",
             "act3",
-            "act4"
+            "act4",
+            "act5"
           ]
         }
       },
@@ -67,7 +69,8 @@
             "act1",
             "act2",
             "act3",
-            "act4"
+            "act4",
+            "act5"
           ],
           "projectIds": [
             "act1",
@@ -77,6 +80,22 @@
             "act5"
           ]
         }
+      },
+      {
+        "id": "G1.noEmptyNarrativeStage",
+        "pass": true,
+        "message": "no empty narrative stages",
+        "details": {
+          "empty": [],
+          "totalBeats": 14,
+          "wantStages": 5
+        }
+      },
+      {
+        "id": "G1.outlineStagesMatchProject",
+        "pass": true,
+        "message": "project=[act1,act2,act3,act4,act5] outline=[act1,act2,act3,act4,act5]",
+        "details": {}
       }
     ],
     "G2": [
@@ -129,25 +148,21 @@
       {
         "id": "G3.stagesPresent",
         "pass": true,
-        "message": "draft stages=4 (complete scripts not required in P8.0)",
+        "message": "draft stages=5 (complete scripts not required in P8.0)",
         "details": {}
       },
       {
         "id": "G3.gameStageReferenceIntegrity",
-        "pass": false,
-        "message": "GAME placement stageId not in draft stages: M09@act5",
+        "pass": true,
+        "message": "all gamePlan stageIds ⊆ draft stageIds",
         "details": {
-          "orphanPlacements": [
-            {
-              "familyId": "M09",
-              "stageId": "act5"
-            }
-          ],
+          "orphanPlacements": [],
           "draftStageIds": [
             "act1",
             "act2",
             "act3",
-            "act4"
+            "act4",
+            "act5"
           ]
         }
       },
@@ -178,18 +193,18 @@
     ]
   },
   "gatePass": {
-    "G1": false,
+    "G1": true,
     "G2": true,
-    "G3": false,
-    "all": false
+    "G3": true,
+    "all": true
   },
-  "failureClass": "CONTRACT_FAILURE",
+  "failureClass": null,
   "editorialStatus": "PENDING",
   "counts": {
     "players": 7,
     "stagesProject": 5,
-    "stagesOutline": 4,
-    "stagesDraft": 4,
+    "stagesOutline": 5,
+    "stagesDraft": 5,
     "acceptedBlocks": 3,
     "weaveLinks": 23,
     "interwoven": 1,

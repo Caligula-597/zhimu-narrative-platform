@@ -104,14 +104,13 @@ describe("P8.0B generalization corpus", () => {
     assert.ok((g2.details?.contributions || 0) > 0);
   });
 
-  it("GEN-02/07 G3 fails orphan GAME stage references (no false-green)", () => {
+  it("GEN-02/07 G3 resolves M09 act5 after stage remap (no orphan)", () => {
     for (const id of ["GEN-02", "GEN-07"]) {
       const { fixture } = loadAllCaseFixtures().find((r) => r.fixture.caseId === id);
       const { report } = auditOneCase(fixture, { writeCaptures: false });
       const g3 = report.gates.G3.find((g) => g.id === "G3.gameStageReferenceIntegrity");
       assert.ok(g3, `${id} integrity gate`);
-      assert.equal(g3.pass, false, `${id} must fail orphan act5: ${g3.message}`);
-      assert.equal(report.gatePass.G3, false);
+      assert.equal(g3.pass, true, `${id} must not orphan act5: ${g3.message}`);
     }
   });
 
@@ -121,7 +120,38 @@ describe("P8.0B generalization corpus", () => {
       const { report } = auditOneCase(fixture, { writeCaptures: false });
       const g1 = report.gates.G1.find((g) => g.id === "G1.finalStagePayoffSemantics");
       assert.ok(g1, `${id} payoff semantics gate`);
-      assert.equal(g1.pass, false, `${id} final should not be ESCALATION: ${g1.message}`);
+      assert.equal(g1.pass, true, `${id} final should be PAYOFF after P8.0.1: ${g1.message}`);
+    }
+  });
+
+  it("GEN-02/04/07 keep exactly 5 project stages with PAYOFF final", () => {
+    for (const id of ["GEN-02", "GEN-04", "GEN-07"]) {
+      const { fixture } = loadAllCaseFixtures().find((r) => r.fixture.caseId === id);
+      const { report, outline, draft } = auditOneCase(fixture, { writeCaptures: false });
+      assert.equal(outline?.stages?.length, 5, `${id} outline stages`);
+      assert.equal(draft?.stages?.length, 5, `${id} draft stages`);
+      assert.deepEqual(
+        (outline.stages || []).map((s) => s.id),
+        ["act1", "act2", "act3", "act4", "act5"],
+      );
+      const last = draft.stages[draft.stages.length - 1];
+      assert.equal(last.stageRole, "PAYOFF", `${id} final role`);
+      const empty = report.gates.G1.find((g) => g.id === "G1.noEmptyNarrativeStage");
+      if (empty) assert.equal(empty.pass, true, `${id} ${empty.message}`);
+      const g3 = report.gates.G3.find((g) => g.id === "G3.gameStageReferenceIntegrity");
+      if (g3 && (fixture.gamePlan || []).some((p) => p.stageId === "act5")) {
+        assert.equal(g3.pass, true, `${id} M09 act5 must resolve: ${g3.message}`);
+      }
+    }
+  });
+
+  it("GEN-03/05/06 keep 4 stages (regression)", () => {
+    for (const id of ["GEN-03", "GEN-05", "GEN-06"]) {
+      const { fixture } = loadAllCaseFixtures().find((r) => r.fixture.caseId === id);
+      const { outline, draft, report } = auditOneCase(fixture, { writeCaptures: false });
+      assert.equal(outline?.stages?.length, 4, id);
+      assert.equal(draft?.stages?.length, 4, id);
+      assert.equal(report.gatePass.G1, true, `${id} G1 ${JSON.stringify(report.gates.G1.filter((g) => !g.pass))}`);
     }
   });
 });

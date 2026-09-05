@@ -89,15 +89,17 @@ Universal Pipeline            ❌ 尚未通过
 ## 下一步建议刀序
 
 ```text
-P8.0 Gate Patch（本批）     — 假绿/假红/3幕终幕语义漏检
+P8.0 Gate Patch              ✅ ca170be
+P8.0.1 Stage Remap           ✅ 本刀
 ↓
-P8.0.1 Stage Remap         — 3/5 幕真正重映射（P0-1）
+P8.0.2 Semantic Fact Scope
+     + Causal Topology
 ↓
-P8.0.2 Fact Scope + Causal — P0-4/5
+P8.0.3 Owner Authority Patch
 ↓
-P8.0.3 Owner Authority     — 窄修 unresolved slot path
+P8.0.4 Re-run 8-case Audit
 ↓
-再开 P8.1 PlayableCreationSpec / 题材实例化
+Universal Structural Pipeline Gate
 ```
 
 详细逐本表见对话裁决；Machine 原始捕获：`captures/p8-generalization/`。

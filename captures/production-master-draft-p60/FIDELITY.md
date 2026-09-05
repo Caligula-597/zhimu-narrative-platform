@@ -4,10 +4,10 @@
 
 | id | set | stages | warnings | result |
 |---|---|---:|---:|---|
-| A-standard-mystery | DEV | 4 | 11 | PASS |
-| C-faction-ensemble | DEV | 4 | 12 | PASS |
-| E-low-affinity | DEV | 4 | 5 | PASS |
-| H-conditional-public-task | FIDELITY | 4 | 11 | PASS |
-| D-high-weave-overlap | DEV | 4 | 10 | PASS |
+| A-standard-mystery | DEV | 5 | 11 | PASS |
+| C-faction-ensemble | DEV | 5 | 11 | PASS |
+| E-low-affinity | DEV | 5 | 5 | PASS |
+| H-conditional-public-task | FIDELITY | 5 | 11 | PASS |
+| D-high-weave-overlap | DEV | 5 | 10 | PASS |
 
-生成时间：2026-09-05T05:35:20.508Z
+生成时间：2026-09-05T07:54:44.042Z

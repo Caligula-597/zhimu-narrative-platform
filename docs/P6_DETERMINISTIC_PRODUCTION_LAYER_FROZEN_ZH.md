@@ -81,7 +81,8 @@ P7 Technical Vertical Slice       ✅
 ↓
 P8.0 Multi-Script Generalization Audit  ✅ 完成（Universal Pipeline ❌）
   · 见 docs/P8_0_GENERALIZATION_AUDIT_VERDICT_ZH.md
-  · 下一步优先：Stage Remap / Fact Scope / Owner Authority 窄修（不解冻整层 Expander）
+  · P8.0.1 Stage Remap ✅（docs/P8_0_1_STAGE_REMAP_ZH.md）
+  · 下一步：P8.0.2 Fact Scope + Causal Topology（不解冻整层 Expander）
 
 ↓
 P8.1 PlayableCreationSpec

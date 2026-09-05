@@ -74,12 +74,28 @@
       },
       {
         "id": "G1.finalStagePayoffSemantics",
-        "pass": false,
-        "message": "3-act final stageRole=ESCALATION title=升级 (must be PAYOFF-class, not ESCALATION)",
+        "pass": true,
+        "message": "3-act final stageRole=PAYOFF title=收束 (must be PAYOFF-class, not ESCALATION)",
         "details": {
           "stageId": "act3",
-          "stageRole": "ESCALATION"
+          "stageRole": "PAYOFF"
         }
+      },
+      {
+        "id": "G1.noEmptyNarrativeStage",
+        "pass": true,
+        "message": "no empty narrative stages",
+        "details": {
+          "empty": [],
+          "totalBeats": 14,
+          "wantStages": 3
+        }
+      },
+      {
+        "id": "G1.outlineStagesMatchProject",
+        "pass": true,
+        "message": "project=[act1,act2,act3] outline=[act1,act2,act3]",
+        "details": {}
       }
     ],
     "G2": [
@@ -151,12 +167,12 @@
     ]
   },
   "gatePass": {
-    "G1": false,
+    "G1": true,
     "G2": true,
     "G3": true,
-    "all": false
+    "all": true
   },
-  "failureClass": "CONTRACT_FAILURE",
+  "failureClass": null,
   "editorialStatus": "PENDING",
   "counts": {
     "players": 6,
