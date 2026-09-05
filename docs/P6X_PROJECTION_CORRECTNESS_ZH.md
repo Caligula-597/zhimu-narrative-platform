@@ -38,4 +38,4 @@ A/C/D/E/H fidelity 仍 PASS；投影回归覆盖 A/D/H 关键缺陷。
 
 本刀通过后，**Deterministic Production Layer 正式 FROZEN**。  
 见 [`P6_DETERMINISTIC_PRODUCTION_LAYER_FROZEN_ZH.md`](./P6_DETERMINISTIC_PRODUCTION_LAYER_FROZEN_ZH.md)。  
-除非桌测证明合同错了，否则不再改核心 Expander；下一次开 `Full Script Production V1`，不是继续 P6.n。
+解冻仅当跨样本 / CompleteScriptPackage / projection regression 证明合同结构性缺陷；下一步是 [`P8_0A_GENERALIZATION_TEST_MATRIX_ZH.md`](./P8_0A_GENERALIZATION_TEST_MATRIX_ZH.md)，不是继续 P6.n，也不是桌测 Gate。
