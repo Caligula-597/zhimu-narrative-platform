@@ -1,7 +1,15 @@
 /**
  * BeatSemantics — Goal / Action / Target / Requires / Produces
  * COMPLETE 模板可进入 Integrator 的戏剧行动语义。
+ * P8.0.2: requires/produces 使用 scoped SemanticFactRef（type ≠ instance）.
  */
+
+import {
+  instantiateFactList,
+  normalizeLocationRef,
+  normalizeSemanticFactRef,
+  normalizeTargetRef,
+} from "./semantic-fact.js";
 
 function record(value) {
   return value && typeof value === "object" && !Array.isArray(value) ? value : {};
@@ -17,39 +25,39 @@ function cleanText(value, maximum = 400) {
 
 export const BEAT_INDEPENDENCE = Object.freeze(["DEPENDENT", "SHAREABLE", "INDEPENDENT"]);
 
-export function normalizeStoryFactRef(value = {}) {
-  if (typeof value === "string") {
-    const id = cleanText(value, 120);
-    return id ? { id, kind: id, summary: id } : null;
-  }
-  const src = record(value);
-  const id = cleanText(src.id || src.kind, 120);
-  if (!id) return null;
-  return {
-    id,
-    kind: cleanText(src.kind, 80) || id,
-    summary: cleanText(src.summary, 200) || id,
-  };
+/** @deprecated prefer normalizeSemanticFactRef — kept as alias */
+export function normalizeStoryFactRef(value = {}, context = {}) {
+  return normalizeSemanticFactRef(value, context);
 }
 
-export function normalizeBeatSemantics(value) {
+export function normalizeBeatSemantics(value, context = {}) {
   if (value == null) return null;
   const src = record(value);
   const independence = BEAT_INDEPENDENCE.includes(src.independence)
     ? src.independence
     : "SHAREABLE";
   const needsDetail = Boolean(src.needsDetail);
+  const actorRefs = asArray(src.actorRefs).map(String).filter(Boolean);
+  const factCtx = {
+    sourceBlockId: context.sourceBlockId,
+    sourceBeatId: context.sourceBeatId,
+    characterIds: context.characterIds?.length ? context.characterIds : actorRefs,
+    ...context,
+  };
   return {
-    actorRefs: asArray(src.actorRefs).map(String).filter(Boolean),
+    actorRefs,
     actorLabel: cleanText(src.actorLabel, 80) || undefined,
     goal: cleanText(src.goal, 200) || undefined,
     action: cleanText(src.action, 200) || undefined,
+    /** Display-only target label — not INTERWOVEN evidence */
     target: cleanText(src.target, 160) || undefined,
-    requires: asArray(src.requires).map(normalizeStoryFactRef).filter(Boolean),
-    produces: asArray(src.produces).map(normalizeStoryFactRef).filter(Boolean),
-    opposes: asArray(src.opposes).map(normalizeStoryFactRef).filter(Boolean),
-    protects: asArray(src.protects).map(normalizeStoryFactRef).filter(Boolean),
+    targetRef: normalizeTargetRef(src.targetRef, factCtx) || undefined,
+    requires: instantiateFactList(src.requires, factCtx),
+    produces: instantiateFactList(src.produces, factCtx),
+    opposes: instantiateFactList(src.opposes, factCtx),
+    protects: instantiateFactList(src.protects, factCtx),
     locationHint: cleanText(src.locationHint, 120) || undefined,
+    locationRef: normalizeLocationRef(src.locationRef, factCtx) || undefined,
     actionKind: cleanText(src.actionKind, 80) || undefined,
     independence,
     needsDetail,
@@ -87,6 +95,8 @@ export function resolveBeatSemantics({
   plot = {},
   involvedRoleKeys = [],
   variant = null,
+  sourceBlockId = null,
+  sourceBeatId = null,
 } = {}) {
   if (!bridge) return null;
   const phases = bridge.phases || {};
@@ -119,34 +129,60 @@ export function resolveBeatSemantics({
   const target = fill(phase.target || bridge.defaultTarget, ctx);
   const locationHint = fill(phase.locationHint || bridge.defaultLocation, ctx);
 
+  const factCtx = {
+    sourceBlockId,
+    sourceBeatId: sourceBeatId || `phase-${phaseBand}`,
+    characterIds: actorId ? [actorId] : [],
+  };
+
   const mapFacts = (list) =>
     asArray(list).map((f) => {
-      if (typeof f === "string") return normalizeStoryFactRef({ id: f, kind: f, summary: fill(f, ctx) });
-      return normalizeStoryFactRef({
-        ...f,
-        summary: fill(f.summary || f.id, ctx),
-      });
+      if (typeof f === "string") {
+        return normalizeSemanticFactRef(
+          { factType: f, kind: f, summary: fill(f, ctx) },
+          factCtx,
+        );
+      }
+      return normalizeSemanticFactRef(
+        {
+          ...f,
+          factType: f.factType || f.kind || f.id,
+          summary: fill(f.summary || f.id || f.factType, ctx),
+        },
+        factCtx,
+      );
     });
 
-  const sem = normalizeBeatSemantics({
-    actorRefs: actorId ? [actorId] : [],
-    goal,
-    action,
-    target,
-    requires: mapFacts(phase.requires || bridge.requires || []),
-    produces: mapFacts(phase.produces || bridge.produces || []),
-    opposes: mapFacts(phase.opposes || []),
-    protects: mapFacts(phase.protects || []),
-    locationHint,
-    actionKind: phase.actionKind || bridge.defaultActionKind,
-    independence: phase.independence || bridge.defaultIndependence || "SHAREABLE",
-    needsDetail: Boolean(phase.needsDetail),
-  });
+  const sem = normalizeBeatSemantics(
+    {
+      actorRefs: actorId ? [actorId] : [],
+      goal,
+      action,
+      target,
+      requires: mapFacts(phase.requires || bridge.requires || []),
+      produces: mapFacts(phase.produces || bridge.produces || []),
+      opposes: mapFacts(phase.opposes || []),
+      protects: mapFacts(phase.protects || []),
+      locationHint,
+      locationRef: phase.locationRef || bridge.locationRef || null,
+      targetRef: phase.targetRef || null,
+      actionKind: phase.actionKind || bridge.defaultActionKind,
+      independence: phase.independence || bridge.defaultIndependence || "SHAREABLE",
+      needsDetail: Boolean(phase.needsDetail),
+    },
+    factCtx,
+  );
 
   const check = beatSemanticsCompleteness(sem);
   if (!check.ok) sem.needsDetail = true;
   sem.actorLabel = actorName;
   return sem;
+}
+
+/** Re-instantiate facts on already-built semantics (outline flatten safety). */
+export function ensureScopedBeatSemantics(sem, { sourceBlockId, sourceBeatId, characterIds } = {}) {
+  if (!sem) return null;
+  return normalizeBeatSemantics(sem, { sourceBlockId, sourceBeatId, characterIds });
 }
 
 /** 用户可见剧情句：Actor 为了 Goal 去做 Action */

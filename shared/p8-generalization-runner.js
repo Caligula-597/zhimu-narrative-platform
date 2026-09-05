@@ -13,6 +13,7 @@ import {
 } from "./story-mechanism-engine.js";
 import { integrateMasterOutline } from "./master-outline-integrator.js";
 import { expandProductionMasterDraft } from "./production-master-draft-expander.js";
+import { matchProducedToRequired } from "./semantic-fact.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 export const P8_CASES_DIR = path.join(__dirname, "p8-generalization-cases");
@@ -320,6 +321,93 @@ function evaluateG2(fixture, state, outline, draft) {
     );
   }
 
+  const causal = links.filter((l) => l.kind === "WEAVE_CAUSAL" && l.status !== "SPLIT");
+  const positions = new Map();
+  (outline?.stages || [])
+    .slice()
+    .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+    .forEach((st, stageIndex) => {
+      (st.beats || []).forEach((b, beatIndex) => positions.set(b.id, { stageIndex, beatIndex }));
+    });
+  const beatsById = new Map();
+  for (const st of outline?.stages || []) {
+    for (const b of st.beats || []) beatsById.set(b.id, b);
+  }
+  let causalTopoFail = 0;
+  for (const link of causal) {
+    const [idA, idB] = link.beatIds || [];
+    const ba = beatsById.get(idA);
+    const bb = beatsById.get(idB);
+    if (!ba || !bb) continue;
+    const ab = matchProducedToRequired(ba.semantics?.produces, bb.semantics?.requires);
+    const baMatch = matchProducedToRequired(bb.semantics?.produces, ba.semantics?.requires);
+    const pa = positions.get(idA);
+    const pb = positions.get(idB);
+    if (ab.length && pa && pb) {
+      const ok = pa.stageIndex < pb.stageIndex || (pa.stageIndex === pb.stageIndex && pa.beatIndex < pb.beatIndex);
+      if (!ok) causalTopoFail += 1;
+    }
+    if (baMatch.length && pa && pb) {
+      const ok = pb.stageIndex < pa.stageIndex || (pb.stageIndex === pa.stageIndex && pb.beatIndex < pa.beatIndex);
+      if (!ok) causalTopoFail += 1;
+    }
+  }
+  checks.push(
+    gate(
+      "G2.causalProducerBeforeConsumer",
+      causalTopoFail === 0,
+      causalTopoFail ? `backward causal edges=${causalTopoFail}` : "no backward WEAVE_CAUSAL",
+      { causal: causal.length, causalTopoFail },
+    ),
+  );
+
+  const interwovenFromGenericTarget = interwoven.filter(
+    (l) =>
+      /共享行动目标「|争夺同一目标「/.test(String(l.reason || "")) &&
+      !/目标实例|场所实例|FactBridge/.test(String(l.reason || "")),
+  );
+  checks.push(
+    gate(
+      "G2.genericTargetTextNotFactEvidence",
+      interwovenFromGenericTarget.length === 0,
+      `generic-target INTERWOVEN=${interwovenFromGenericTarget.length}`,
+    ),
+  );
+  const interwovenFromHint = interwoven.filter(
+    (l) => /都需要在「/.test(String(l.reason || "")) && !/场所实例/.test(String(l.reason || "")),
+  );
+  checks.push(
+    gate(
+      "G2.genericLocationHintNotInstanceEvidence",
+      interwovenFromHint.length === 0,
+      `locationHint-only INTERWOVEN=${interwovenFromHint.length}`,
+    ),
+  );
+
+  if (fixture.caseId === "GEN-03" || fixture.caseId === "GEN-04") {
+    checks.push(
+      gate(
+        "G2.sameFactTypeDifferentScopeNotMerged",
+        !interwoven.some((l) => /身份表象|阵营名单|暗号/.test(String(l.reason || ""))),
+        `${fixture.caseId}: no INTERWOVEN from generic identity/faction labels`,
+      ),
+    );
+  }
+  if (fixture.caseId === "GEN-05") {
+    checks.push(
+      gate("G2.noBackwardCausalEdge", causalTopoFail === 0, `GEN-05 backward=${causalTopoFail}`),
+    );
+  }
+  if (fixture.caseId === "GEN-06" || fixture.caseId === "GEN-08") {
+    checks.push(
+      gate(
+        "G2.lowAffinityNoNewFakeWeave",
+        interwoven.length === 0,
+        `${fixture.caseId} INTERWOVEN=${interwoven.length} (must stay 0)`,
+      ),
+    );
+  }
+
   const clues = draft?.clueView?.clues || [];
   const dupIds = clues.map((c) => c.clueId).filter(Boolean);
   const unique = new Set(dupIds);
@@ -331,8 +419,6 @@ function evaluateG2(fixture, state, outline, draft) {
     ),
   );
 
-  const truths = (draft?.stages || []).flatMap((s) => s.beats || []).flatMap((b) => b.truthItems || b.hostTruthFlags || []);
-  // Truth flags presence is soft when expander uses hostTruth string; check misleading consistency on clues
   const misleadingBad = clues.filter(
     (c) =>
       (String(c.label || "").includes("误导") || String(c.summary || "").includes("误导")) &&

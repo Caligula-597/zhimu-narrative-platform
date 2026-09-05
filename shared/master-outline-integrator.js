@@ -20,12 +20,21 @@ import {
   normalizeConflictItem,
   relationQualityForWeaveKind,
 } from "./master-outline-contracts.js";
-import { isInternalCompletionSummary } from "./story-beat-semantics.js";
+import { isInternalCompletionSummary, ensureScopedBeatSemantics } from "./story-beat-semantics.js";
 import {
   planStageTopology,
   materializeTopologyStages,
   distributeBeatsIntoStages,
 } from "./master-outline-stage-topology.js";
+import {
+  matchProducedToRequired,
+  targetRefsMatch,
+  locationRefsMatch,
+  bridgesSatisfy,
+  buildBeatPositionIndex,
+  positionIsBefore,
+  factIdOf,
+} from "./semantic-fact.js";
 
 const ACCEPTED = new Set(["USER_ACCEPTED", "USER_MODIFIED", "LOCKED"]);
 
@@ -61,28 +70,12 @@ function blockById(blocks, id) {
 
 function factKeys(list) {
   return (list || [])
-    .map((f) => String(f?.id || f?.kind || "").toLowerCase())
+    .map((f) => String(f?.factType || f?.kind || f?.factId || f?.id || "").toLowerCase())
     .filter(Boolean);
 }
 
-function factMatch(produces, requires) {
-  const prod = factKeys(produces);
-  const req = factKeys(requires);
-  return prod.filter((p) => req.some((r) => p === r || p.includes(r) || r.includes(p)));
-}
-
-function normTarget(t) {
-  return String(t || "")
-    .toLowerCase()
-    .replace(/\s+/g, "")
-    .slice(0, 40);
-}
-
-function targetsCompatible(a, b) {
-  const ta = normTarget(a);
-  const tb = normTarget(b);
-  if (!ta || !tb) return false;
-  return ta === tb || ta.includes(tb) || tb.includes(ta);
+function factMatch(produces, requires, options = {}) {
+  return matchProducedToRequired(produces, requires, options);
 }
 
 function goalsConflict(sa, sb) {
@@ -94,7 +87,8 @@ function goalsConflict(sa, sb) {
   const aProd = factKeys(sa.produces);
   if (aOpp.some((x) => bProd.includes(x) || factKeys(sb.requires).includes(x))) return true;
   if (bOpp.some((x) => aProd.includes(x) || factKeys(sa.requires).includes(x))) return true;
-  if (targetsCompatible(sa.target, sb.target)) {
+  // Instance target conflict only — generic labels ignored for strong weave
+  if (targetRefsMatch(sa.targetRef, sb.targetRef)) {
     const conflictPair =
       (/销毁|掩盖|阻止|隐瞒/.test(sa.goal) && /寻找|洗清|确认|揭穿|公开/.test(sb.goal)) ||
       (/销毁|掩盖|阻止|隐瞒/.test(sb.goal) && /寻找|洗清|确认|揭穿|公开/.test(sa.goal));
@@ -103,27 +97,27 @@ function goalsConflict(sa, sb) {
   return false;
 }
 
-function sharedActionEvidence(sa, sb) {
+/**
+ * Shared action requires instance locationRef + (shared character | targetRef | bridge).
+ * locationHint-only is insufficient for INTERWOVEN.
+ */
+function sharedActionEvidence(sa, sb, { sharedCharacterIds = [] } = {}) {
   if (!sa || !sb) return null;
   if (sa.independence === "INDEPENDENT" || sb.independence === "INDEPENDENT") return null;
   const kindA = sa.actionKind || "";
   const kindB = sb.actionKind || "";
-  const locA = normTarget(sa.locationHint);
-  const locB = normTarget(sb.locationHint);
-  const sameLoc = locA && locB && (locA === locB || locA.includes(locB) || locB.includes(locA));
-  if (kindA && kindA === kindB && (sameLoc || targetsCompatible(sa.target, sb.target))) {
-    return { kind: kindA, location: sa.locationHint || sb.locationHint };
-  }
-  if (SEARCHISH.has(kindA) && SEARCHISH.has(kindB) && sameLoc) {
-    return { kind: `${kindA}/${kindB}`, location: sa.locationHint || sb.locationHint };
-  }
-  const reqA = factKeys(sa.requires);
-  const reqB = factKeys(sb.requires);
-  const sharedReq = reqA.filter((x) => reqB.includes(x));
-  if (sharedReq.includes("site_accessible") && SEARCHISH.has(kindA) && SEARCHISH.has(kindB)) {
-    return { kind: "shared-site-search", location: sa.locationHint || sb.locationHint || "关键场所" };
-  }
-  return null;
+  if (!kindA || !kindB) return null;
+  const kindOk = kindA === kindB || (SEARCHISH.has(kindA) && SEARCHISH.has(kindB));
+  if (!kindOk) return null;
+  if (!locationRefsMatch(sa.locationRef, sb.locationRef)) return null;
+  const extra =
+    sharedCharacterIds.length > 0 ||
+    targetRefsMatch(sa.targetRef, sb.targetRef);
+  if (!extra) return null;
+  return {
+    kind: kindA === kindB ? kindA : `${kindA}/${kindB}`,
+    location: sa.locationRef?.label || sb.locationRef?.label || sa.locationRef?.locationId,
+  };
 }
 
 function flattenSourceBeats(block) {
@@ -141,12 +135,18 @@ function flattenSourceBeats(block) {
         ...(beat.involvedRoleKeys || []).map((k) => block.roleBindings?.[k]?.id).filter(Boolean),
       ].filter((id, i, arr) => arr.indexOf(id) === i);
 
+      const semantics = ensureScopedBeatSemantics(beat.semantics, {
+        sourceBlockId: block.id,
+        sourceBeatId: beat.id,
+        characterIds,
+      });
+
       let summary = beat.summary || `${block.title} · ${phase}`;
-      if (isInternalCompletionSummary(summary) && beat.semantics) {
-        const actor = beat.semantics.actorLabel || characterIds[0] || "角色";
+      if (isInternalCompletionSummary(summary) && semantics) {
+        const actor = semantics.actorLabel || characterIds[0] || "角色";
         summary =
-          beat.semantics.goal && beat.semantics.action
-            ? `${actor}为了${beat.semantics.goal}，${beat.semantics.action}`
+          semantics.goal && semantics.action
+            ? `${actor}为了${semantics.goal}，${semantics.action}`
             : `NEEDS_DETAIL：${block.title}收束缺具体行动`;
       }
 
@@ -163,8 +163,8 @@ function flattenSourceBeats(block) {
           stageKey: beat.stageKey,
           characterIds,
           clueIds: beat.clueIds || [],
-          semantics: beat.semantics || null,
-          needsDetail: Boolean(beat.semantics?.needsDetail),
+          semantics,
+          needsDetail: Boolean(semantics?.needsDetail),
         }),
       );
     }
@@ -191,12 +191,14 @@ function sharedChars(a, b) {
 }
 
 /**
- * 语义驱动交织：默认 KEEP_PARALLEL；禁止仅凭共享角色升到 INTERWOVEN。
+ * 语义驱动交织：默认 KEEP_PARALLEL；禁止仅凭共享角色 / generic target / locationHint 升到 INTERWOVEN。
+ * P8.0.2: fact instance scope + causal producer-before-consumer.
  */
-export function proposeWeaveLinks(beats, blocks) {
+export function proposeWeaveLinks(beats, blocks, { stages = null, factBridges = [] } = {}) {
   const links = [];
-  const seenPair = new Set();
+  const seen = new Set();
   const blockPairEmitted = new Set();
+  const positions = stages ? buildBeatPositionIndex(stages) : null;
 
   for (let i = 0; i < beats.length; i += 1) {
     for (let j = i + 1; j < beats.length; j += 1) {
@@ -209,16 +211,26 @@ export function proposeWeaveLinks(beats, blocks) {
       if (Math.abs(ba.phaseBand - bb.phaseBand) > 1) continue;
 
       const pairKey = [ba.sourceBlockId, bb.sourceBlockId, ba.phaseBand, bb.phaseBand].sort().join("|");
-      if (seenPair.has(pairKey)) continue;
-      seenPair.add(pairKey);
+      if (seen.has(pairKey)) continue;
+      seen.add(pairKey);
 
       const sa = ba.semantics;
       const sb = bb.semantics;
       const shared = sharedChars(ba, bb);
       const causalAB = factMatch(sa?.produces, sb?.requires);
       const causalBA = factMatch(sb?.produces, sa?.requires);
-      const sharedAction = sharedActionEvidence(sa, sb);
-      const sharedTarget = targetsCompatible(sa?.target, sb?.target);
+      const bridgeAB = (sa?.produces || []).some((p) =>
+        (sb?.requires || []).some(
+          (r) => bridgesSatisfy(factBridges, factIdOf(p), factIdOf(r)),
+        ),
+      );
+      const bridgeBA = (sb?.produces || []).some((p) =>
+        (sa?.requires || []).some(
+          (r) => bridgesSatisfy(factBridges, factIdOf(p), factIdOf(r)),
+        ),
+      );
+      const sharedAction = sharedActionEvidence(sa, sb, { sharedCharacterIds: shared });
+      const sharedTargetInstance = targetRefsMatch(sa?.targetRef, sb?.targetRef);
       const conflict = goalsConflict(sa, sb);
 
       let kind = "KEEP_PARALLEL";
@@ -226,24 +238,36 @@ export function proposeWeaveLinks(beats, blocks) {
       let sharedTargets = [];
       let sharedFactKinds = [];
 
-      if (causalAB.length || causalBA.length) {
+      const causalForwardOk = (producerBeat, consumerBeat) => {
+        if (!positions) return true; // no stage map yet — allow; topology re-checked when stages passed
+        const p = positions.get(producerBeat.id);
+        const c = positions.get(consumerBeat.id);
+        return positionIsBefore(p, c);
+      };
+
+      if ((causalAB.length || bridgeAB) && causalForwardOk(ba, bb)) {
         kind = "WEAVE_CAUSAL";
-        const facts = causalAB.length ? causalAB : causalBA;
-        sharedFactKinds = facts;
-        reason = causalAB.length
-          ? `${blockA.title} 的结果（${facts.join("、")}）满足 ${blockB.title} 的前置条件`
-          : `${blockB.title} 的结果（${facts.join("、")}）满足 ${blockA.title} 的前置条件`;
-      } else if (sharedTarget && conflict) {
+        sharedFactKinds = causalAB.length ? causalAB : ["explicit_bridge"];
+        reason = bridgeAB && !causalAB.length
+          ? `${blockA.title} 经显式 FactBridge 满足 ${blockB.title} 的前置条件`
+          : `${blockA.title} 的结果（${sharedFactKinds.join("、")}）满足 ${blockB.title} 的前置条件`;
+      } else if ((causalBA.length || bridgeBA) && causalForwardOk(bb, ba)) {
+        kind = "WEAVE_CAUSAL";
+        sharedFactKinds = causalBA.length ? causalBA : ["explicit_bridge"];
+        reason = bridgeBA && !causalBA.length
+          ? `${blockB.title} 经显式 FactBridge 满足 ${blockA.title} 的前置条件`
+          : `${blockB.title} 的结果（${sharedFactKinds.join("、")}）满足 ${blockA.title} 的前置条件`;
+      } else if (sharedTargetInstance && conflict) {
         kind = "WEAVE_STRONG";
-        sharedTargets = [sa.target, sb.target].filter(Boolean);
-        reason = `两条剧情争夺同一目标「${sa.target || sb.target}」，目标相冲：${sa.goal || "?"} vs ${sb.goal || "?"}`;
+        sharedTargets = [sa.targetRef?.label || sa.target, sb.targetRef?.label || sb.target].filter(Boolean);
+        reason = `两条剧情争夺同一目标实例「${sa.targetRef?.targetId}」，目标相冲：${sa.goal || "?"} vs ${sb.goal || "?"}`;
       } else if (sharedAction) {
         kind = "WEAVE_SHARED_ACTION";
-        reason = `两条剧情都需要在「${sharedAction.location || "同一场所"}」执行相近行动（${sharedAction.kind}），可共享一次行动`;
-      } else if (sharedTarget && sa?.goal && sb?.goal) {
+        reason = `两条剧情在同一场所实例「${sharedAction.location}」执行相近行动（${sharedAction.kind}），且另有角色/目标实例重合`;
+      } else if (sharedTargetInstance && sa?.goal && sb?.goal) {
         kind = "WEAVE_STRONG";
-        sharedTargets = [sa.target];
-        reason = `共享行动目标「${sa.target}」，且目标方向可对齐或对撞`;
+        sharedTargets = [sa.targetRef?.label || sa.targetRef?.targetId];
+        reason = `共享目标实例「${sa.targetRef?.targetId}」，且目标方向可对齐或对撞`;
       } else if (shared.length && ba.phaseBand === bb.phaseBand) {
         kind = "WEAVE_SHARED_SCENE";
         reason = `同阶段共享角色 ${shared.join("、")}——可同场并列，不算真正交织`;
@@ -453,7 +477,7 @@ export function buildMasterOutlineDraft(projectStoryState, { now = () => new Dat
   let stages = materializeTopologyStages(topology);
   distributeBeatsIntoStages(stages, allBeats);
 
-  const weaveLinks = proposeWeaveLinks(allBeats, blocks);
+  const weaveLinks = proposeWeaveLinks(allBeats, blocks, { stages });
   alignInterwovenBeats(stages, weaveLinks, { protectEmptyStages: topology.stageCountLocked });
 
   if (!topology.stageCountLocked) {

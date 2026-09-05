@@ -146,7 +146,7 @@ function buildClueBindings(template, plot, roleBindings, blockId) {
   });
 }
 
-function enrichBeat(beat, { template, variant, roleBindings, plot, phaseBand }) {
+function enrichBeat(beat, { template, variant, roleBindings, plot, phaseBand, sourceBlockId }) {
   const bridge = template.semanticsBridge || semanticsBridgeForTemplate(template.id);
   const semantics = resolveBeatSemantics({
     bridge,
@@ -155,6 +155,8 @@ function enrichBeat(beat, { template, variant, roleBindings, plot, phaseBand }) 
     plot,
     involvedRoleKeys: beat.involvedRoleKeys,
     variant,
+    sourceBlockId,
+    sourceBeatId: beat.id,
   });
   let summary = beat.summary;
   if (isInternalCompletionSummary(summary)) {
@@ -168,7 +170,7 @@ function enrichBeat(beat, { template, variant, roleBindings, plot, phaseBand }) 
   return { ...beat, summary, semantics };
 }
 
-function buildBeats(template, variant, roleBindings, plot, clues) {
+function buildBeats(template, variant, roleBindings, plot, clues, sourceBlockId = null) {
   const pattern = variant.beatPattern || {};
   const keys = Object.keys(pattern);
   const stages = template.stagePattern || [];
@@ -181,7 +183,7 @@ function buildBeats(template, variant, roleBindings, plot, clues) {
         involvedRoleKeys: roleKeys.filter((k) => roleBindings[k]),
         clueIds,
       },
-      { template, variant, roleBindings, plot, phaseBand },
+      { template, variant, roleBindings, plot, phaseBand, sourceBlockId },
     );
   // M01-FRAMING shaped beats
   if (pattern.setup && pattern.crime) {
@@ -327,7 +329,7 @@ function buildBlockFromTemplate({
   }
 
   const clueBindings = buildClueBindings(template, plotBindings, roleBindings, id);
-  const beats = buildBeats(template, variant, roleBindings, plotBindings, clueBindings);
+  const beats = buildBeats(template, variant, roleBindings, plotBindings, clueBindings, id);
   const stageBindings = (template.stagePattern || []).map((stage, order) => {
     const patternKey = typeof stage === "string" ? stage : stage.id;
     const matched = state.stages[order] || null;

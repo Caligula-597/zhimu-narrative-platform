@@ -102,6 +102,33 @@
     ],
     "G2": [
       {
+        "id": "G2.causalProducerBeforeConsumer",
+        "pass": true,
+        "message": "no backward WEAVE_CAUSAL",
+        "details": {
+          "causal": 0,
+          "causalTopoFail": 0
+        }
+      },
+      {
+        "id": "G2.genericTargetTextNotFactEvidence",
+        "pass": true,
+        "message": "generic-target INTERWOVEN=0",
+        "details": {}
+      },
+      {
+        "id": "G2.genericLocationHintNotInstanceEvidence",
+        "pass": true,
+        "message": "locationHint-only INTERWOVEN=0",
+        "details": {}
+      },
+      {
+        "id": "G2.sameFactTypeDifferentScopeNotMerged",
+        "pass": true,
+        "message": "GEN-04: no INTERWOVEN from generic identity/faction labels",
+        "details": {}
+      },
+      {
         "id": "G2.clueLifecycleIds",
         "pass": true,
         "message": "clue rows=29 uniqueIds=29",
@@ -192,10 +219,10 @@
     "stagesDraft": 5,
     "acceptedBlocks": 3,
     "weaveLinks": 22,
-    "interwoven": 7,
-    "keepParallel": 2,
+    "interwoven": 0,
+    "keepParallel": 3,
     "clues": 29,
-    "warnings": 10,
+    "warnings": 12,
     "gameCandidates": 0
   }
 }
