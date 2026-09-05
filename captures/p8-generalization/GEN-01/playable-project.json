@@ -1,0 +1,20 @@
+{
+  "caseId": "GEN-01",
+  "note": "P8.0 structural compatibility only; no CompleteScriptPackage / role prose",
+  "playerRoleIds": [
+    "R1",
+    "R2",
+    "R3",
+    "R4",
+    "R5"
+  ],
+  "stageIds": [
+    "act1",
+    "act2",
+    "act3"
+  ],
+  "requireCulprit": true,
+  "gamePlan": [],
+  "candidateGameInsertionPoints": [],
+  "compatible": true
+}

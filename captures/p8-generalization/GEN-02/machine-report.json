@@ -1,0 +1,166 @@
+{
+  "caseId": "GEN-02",
+  "title": "长安夜宴",
+  "schemaVersion": 1,
+  "projectConfig": {
+    "playerCount": 6,
+    "stageCount": 5,
+    "genreTags": [
+      "古风",
+      "双阵营",
+      "临时联盟"
+    ]
+  },
+  "pipelineOk": true,
+  "pipelineError": null,
+  "gates": {
+    "G1": [
+      {
+        "id": "G1.playerCount",
+        "pass": true,
+        "message": "premise/players=6/6, want=6",
+        "details": {
+          "players": [
+            "C1",
+            "C2",
+            "C3",
+            "C4",
+            "C5",
+            "C6"
+          ]
+        }
+      },
+      {
+        "id": "G1.stageCount",
+        "pass": false,
+        "message": "outline=2 draft=2 want=5",
+        "details": {
+          "outlineStageIds": [
+            "act1",
+            "act4"
+          ],
+          "draftStageIds": [
+            "act1",
+            "act4"
+          ]
+        }
+      },
+      {
+        "id": "G1.noPadPlayers",
+        "pass": true,
+        "message": "no padded players",
+        "details": {
+          "invented": []
+        }
+      },
+      {
+        "id": "G1.stageIdsFromProject",
+        "pass": true,
+        "message": "draft stage ids should come from project stages (or empty on hard fail)",
+        "details": {
+          "draftIds": [
+            "act1",
+            "act4"
+          ],
+          "projectIds": [
+            "act1",
+            "act2",
+            "act3",
+            "act4",
+            "act5"
+          ]
+        }
+      }
+    ],
+    "G2": [
+      {
+        "id": "G2.clueLifecycleIds",
+        "pass": true,
+        "message": "clue rows=29 uniqueIds=29",
+        "details": {}
+      },
+      {
+        "id": "G2.misleadingConsistency",
+        "pass": true,
+        "message": "misleading mismatches=0",
+        "details": {}
+      },
+      {
+        "id": "G2.pipelineProducedDraft",
+        "pass": true,
+        "message": "draft present",
+        "details": {}
+      }
+    ],
+    "G3": [
+      {
+        "id": "G3.structuralRoleCount",
+        "pass": true,
+        "message": "player roles available for playable adapt=6",
+        "details": {}
+      },
+      {
+        "id": "G3.stagesPresent",
+        "pass": true,
+        "message": "draft stages=2 (complete scripts not required in P8.0)",
+        "details": {}
+      },
+      {
+        "id": "G3.noForcedCulprit",
+        "pass": true,
+        "message": "no M01; killerAssignments=0",
+        "details": {
+          "killers": [],
+          "hasM01": false
+        }
+      },
+      {
+        "id": "G3.draftValidWithoutCulpritField",
+        "pass": true,
+        "message": "PMD must exist without correctCulpritRoleId / CompleteScriptPackage",
+        "details": {}
+      },
+      {
+        "id": "G3.gamePlanDeclared",
+        "pass": true,
+        "message": "declared placements=1; PMD candidates=0 (informational; runtime placements belong downstream)",
+        "details": {
+          "placements": [
+            {
+              "familyId": "M09",
+              "stageId": "act5"
+            }
+          ],
+          "candidateCount": 0
+        }
+      },
+      {
+        "id": "G3.noCompleteScriptRequired",
+        "pass": true,
+        "message": "P8.0 playable compatibility is structural only",
+        "details": {}
+      }
+    ]
+  },
+  "gatePass": {
+    "G1": false,
+    "G2": true,
+    "G3": true,
+    "all": false
+  },
+  "failureClass": "CONTRACT_FAILURE",
+  "editorialStatus": "PENDING",
+  "counts": {
+    "players": 6,
+    "stagesProject": 5,
+    "stagesOutline": 2,
+    "stagesDraft": 2,
+    "acceptedBlocks": 3,
+    "weaveLinks": 21,
+    "interwoven": 11,
+    "keepParallel": 0,
+    "clues": 29,
+    "warnings": 12,
+    "gameCandidates": 0
+  }
+}

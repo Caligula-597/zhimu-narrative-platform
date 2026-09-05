@@ -1,0 +1,136 @@
+{
+  "schemaVersion": 1,
+  "caseId": "GEN-05",
+  "title": "零点拍卖会",
+  "slug": "midnight-auction",
+  "projectConfig": {
+    "playerCount": 6,
+    "stageCount": 4,
+    "genreTags": [
+      "强玩法",
+      "弱推理",
+      "多GAME"
+    ]
+  },
+  "premise": {
+    "genre": "利益竞价悬疑",
+    "era": "当代地下拍卖",
+    "tone": [
+      "竞价",
+      "表决",
+      "资源"
+    ],
+    "playerCount": 6,
+    "targetDuration": 160
+  },
+  "characters": [
+    {
+      "id": "A1",
+      "name": "顾衡"
+    },
+    {
+      "id": "A2",
+      "name": "沈珂"
+    },
+    {
+      "id": "A3",
+      "name": "白川"
+    },
+    {
+      "id": "A4",
+      "name": "唐霁"
+    },
+    {
+      "id": "A5",
+      "name": "温拾"
+    },
+    {
+      "id": "A6",
+      "name": "宋临"
+    }
+  ],
+  "stages": [
+    {
+      "id": "act1",
+      "label": "第1幕",
+      "order": 0
+    },
+    {
+      "id": "act2",
+      "label": "第2幕",
+      "order": 1
+    },
+    {
+      "id": "act3",
+      "label": "第3幕",
+      "order": 2
+    },
+    {
+      "id": "act4",
+      "label": "第4幕",
+      "order": 3
+    }
+  ],
+  "storyPlan": [
+    {
+      "templateId": "M08-1",
+      "preferredVariantId": "V07",
+      "intentionalOverlap": false
+    },
+    {
+      "templateId": "M07-5",
+      "preferredVariantId": "V01",
+      "intentionalOverlap": true
+    }
+  ],
+  "gamePlan": [
+    {
+      "familyId": "M03",
+      "templateId": "M03",
+      "stageId": "act2",
+      "instanceKey": "intel-bid"
+    },
+    {
+      "familyId": "M03",
+      "templateId": "M03",
+      "stageId": "act3",
+      "instanceKey": "resource-bid"
+    },
+    {
+      "familyId": "M09",
+      "templateId": "M09",
+      "stageId": "act4",
+      "instanceKey": "final-vote"
+    }
+  ],
+  "expectedStructuralProperties": {
+    "playerCount": 6,
+    "stageCount": 4,
+    "forbidAutoPadSixthPlayer": true
+  },
+  "playableExpectation": {
+    "requireCulprit": false,
+    "gamePlacements": [
+      {
+        "familyId": "M03",
+        "stageId": "act2"
+      },
+      {
+        "familyId": "M03",
+        "stageId": "act3"
+      },
+      {
+        "familyId": "M09",
+        "stageId": "act4"
+      }
+    ],
+    "allowMissingCompleteScripts": true,
+    "allowOptionalKillerAssignments": true
+  },
+  "editorialFocus": [
+    "同family多实例",
+    "GAME不得吞掉剧情",
+    "多placement"
+  ],
+  "notes": "不引入第三 GAME family；只压 M03×2 + M09。"
+}

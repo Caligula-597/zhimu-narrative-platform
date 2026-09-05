@@ -1,0 +1,143 @@
+{
+  "caseId": "GEN-01",
+  "title": "雨夜公寓",
+  "schemaVersion": 1,
+  "projectConfig": {
+    "playerCount": 5,
+    "stageCount": 3,
+    "genreTags": [
+      "现代",
+      "封闭推凶",
+      "单中心"
+    ]
+  },
+  "pipelineOk": true,
+  "pipelineError": null,
+  "gates": {
+    "G1": [
+      {
+        "id": "G1.playerCount",
+        "pass": true,
+        "message": "premise/players=5/5, want=5",
+        "details": {
+          "players": [
+            "R1",
+            "R2",
+            "R3",
+            "R4",
+            "R5"
+          ]
+        }
+      },
+      {
+        "id": "G1.stageCount",
+        "pass": true,
+        "message": "outline=3 draft=3 want=3",
+        "details": {
+          "outlineStageIds": [
+            "act1",
+            "act2",
+            "act3"
+          ],
+          "draftStageIds": [
+            "act1",
+            "act2",
+            "act3"
+          ]
+        }
+      },
+      {
+        "id": "G1.noPadPlayers",
+        "pass": true,
+        "message": "no padded players",
+        "details": {
+          "invented": []
+        }
+      },
+      {
+        "id": "G1.stageIdsFromProject",
+        "pass": true,
+        "message": "draft stage ids should come from project stages (or empty on hard fail)",
+        "details": {
+          "draftIds": [
+            "act1",
+            "act2",
+            "act3"
+          ],
+          "projectIds": [
+            "act1",
+            "act2",
+            "act3"
+          ]
+        }
+      }
+    ],
+    "G2": [
+      {
+        "id": "G2.clueLifecycleIds",
+        "pass": true,
+        "message": "clue rows=12 uniqueIds=12",
+        "details": {}
+      },
+      {
+        "id": "G2.misleadingConsistency",
+        "pass": true,
+        "message": "misleading mismatches=0",
+        "details": {}
+      },
+      {
+        "id": "G2.pipelineProducedDraft",
+        "pass": true,
+        "message": "draft present",
+        "details": {}
+      }
+    ],
+    "G3": [
+      {
+        "id": "G3.structuralRoleCount",
+        "pass": true,
+        "message": "player roles available for playable adapt=5",
+        "details": {}
+      },
+      {
+        "id": "G3.stagesPresent",
+        "pass": true,
+        "message": "draft stages=3 (complete scripts not required in P8.0)",
+        "details": {}
+      },
+      {
+        "id": "G3.noGameStillHasExecutionView",
+        "pass": true,
+        "message": "execution view present without GAME plan",
+        "details": {}
+      },
+      {
+        "id": "G3.noCompleteScriptRequired",
+        "pass": true,
+        "message": "P8.0 playable compatibility is structural only",
+        "details": {}
+      }
+    ]
+  },
+  "gatePass": {
+    "G1": true,
+    "G2": true,
+    "G3": true,
+    "all": true
+  },
+  "failureClass": null,
+  "editorialStatus": "PENDING",
+  "counts": {
+    "players": 5,
+    "stagesProject": 3,
+    "stagesOutline": 3,
+    "stagesDraft": 3,
+    "acceptedBlocks": 2,
+    "weaveLinks": 7,
+    "interwoven": 0,
+    "keepParallel": 1,
+    "clues": 12,
+    "warnings": 8,
+    "gameCandidates": 0
+  }
+}

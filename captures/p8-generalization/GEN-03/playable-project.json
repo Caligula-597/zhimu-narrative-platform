@@ -1,0 +1,30 @@
+{
+  "caseId": "GEN-03",
+  "note": "P8.0 structural compatibility only; no CompleteScriptPackage / role prose",
+  "playerRoleIds": [
+    "H1",
+    "H2",
+    "H3",
+    "H4",
+    "H5",
+    "H6",
+    "H7"
+  ],
+  "stageIds": [
+    "act1",
+    "act2",
+    "act3",
+    "act4"
+  ],
+  "requireCulprit": false,
+  "gamePlan": [
+    {
+      "familyId": "M03",
+      "templateId": "M03",
+      "stageId": "act3",
+      "instanceKey": "reactor-access-bid"
+    }
+  ],
+  "candidateGameInsertionPoints": [],
+  "compatible": true
+}

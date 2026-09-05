@@ -135,7 +135,9 @@
     "test:story-mechanism-m08": "node --test scripts/story-mechanism-m08-pack.test.mjs",
     "test:master-outline": "node --test scripts/master-outline-integrator.test.mjs",
     "trial:integrator": "node scripts/integrator-product-trial.mjs",
-    "verify:playable": "node scripts/verify-playable.mjs"
+    "verify:playable": "node scripts/verify-playable.mjs",
+    "test:p8-generalization": "node --test scripts/p8-generalization.test.mjs",
+    "audit:p8-generalization": "node scripts/p8-generalization-audit.mjs"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.12.1",

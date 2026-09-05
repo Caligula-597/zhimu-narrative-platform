@@ -1,0 +1,63 @@
+{
+  "schemaVersion": 1,
+  "corpus": "P8.0B",
+  "note": "A-H remain regression-only; GEN-01..08 are generalization corpus",
+  "cases": [
+    {
+      "caseId": "GEN-01",
+      "title": "雨夜公寓",
+      "file": "GEN-01-rainy-apartment.json",
+      "playerCount": 5,
+      "stageCount": 3
+    },
+    {
+      "caseId": "GEN-02",
+      "title": "长安夜宴",
+      "file": "GEN-02-changan-banquet.json",
+      "playerCount": 6,
+      "stageCount": 5
+    },
+    {
+      "caseId": "GEN-03",
+      "title": "赫利俄斯站",
+      "file": "GEN-03-helios-station.json",
+      "playerCount": 7,
+      "stageCount": 4
+    },
+    {
+      "caseId": "GEN-04",
+      "title": "毕业照之后",
+      "file": "GEN-04-after-graduation-photo.json",
+      "playerCount": 8,
+      "stageCount": 5
+    },
+    {
+      "caseId": "GEN-05",
+      "title": "零点拍卖会",
+      "file": "GEN-05-midnight-auction.json",
+      "playerCount": 6,
+      "stageCount": 4
+    },
+    {
+      "caseId": "GEN-06",
+      "title": "两封没有寄出的信",
+      "file": "GEN-06-unsent-letters.json",
+      "playerCount": 5,
+      "stageCount": 4
+    },
+    {
+      "caseId": "GEN-07",
+      "title": "王座之下",
+      "file": "GEN-07-beneath-the-throne.json",
+      "playerCount": 7,
+      "stageCount": 5
+    },
+    {
+      "caseId": "GEN-08",
+      "title": "停电之前",
+      "file": "GEN-08-before-blackout.json",
+      "playerCount": 6,
+      "stageCount": 3
+    }
+  ]
+}

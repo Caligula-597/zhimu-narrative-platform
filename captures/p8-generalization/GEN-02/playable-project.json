@@ -1,0 +1,27 @@
+{
+  "caseId": "GEN-02",
+  "note": "P8.0 structural compatibility only; no CompleteScriptPackage / role prose",
+  "playerRoleIds": [
+    "C1",
+    "C2",
+    "C3",
+    "C4",
+    "C5",
+    "C6"
+  ],
+  "stageIds": [
+    "act1",
+    "act4"
+  ],
+  "requireCulprit": false,
+  "gamePlan": [
+    {
+      "familyId": "M09",
+      "templateId": "M09",
+      "stageId": "act5",
+      "instanceKey": "banquet-final-vote"
+    }
+  ],
+  "candidateGameInsertionPoints": [],
+  "compatible": true
+}

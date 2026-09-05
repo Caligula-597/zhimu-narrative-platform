@@ -1,0 +1,41 @@
+{
+  "caseId": "GEN-05",
+  "note": "P8.0 structural compatibility only; no CompleteScriptPackage / role prose",
+  "playerRoleIds": [
+    "A1",
+    "A2",
+    "A3",
+    "A4",
+    "A5",
+    "A6"
+  ],
+  "stageIds": [
+    "act1",
+    "act2",
+    "act3",
+    "act4"
+  ],
+  "requireCulprit": false,
+  "gamePlan": [
+    {
+      "familyId": "M03",
+      "templateId": "M03",
+      "stageId": "act2",
+      "instanceKey": "intel-bid"
+    },
+    {
+      "familyId": "M03",
+      "templateId": "M03",
+      "stageId": "act3",
+      "instanceKey": "resource-bid"
+    },
+    {
+      "familyId": "M09",
+      "templateId": "M09",
+      "stageId": "act4",
+      "instanceKey": "final-vote"
+    }
+  ],
+  "candidateGameInsertionPoints": [],
+  "compatible": true
+}

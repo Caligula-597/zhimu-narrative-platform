@@ -1,0 +1,4308 @@
+{
+  "id": "pmd-mod-mto1p96p-d6od",
+  "version": 2,
+  "projectId": "p8-gen-03",
+  "sourceStoryStateRevision": 0,
+  "sourceMasterOutlineId": "mod-mto1p96p-d6od",
+  "sourceMasterOutlineRevision": "v1:mod-mto1p96p-d6od:act1@0:{ob-mto1p96o-zq21|smb-mto1p96n-iihg8|beat-setup,ob-mto1p96o-8mdu|smb-mto1p96n-9gdrc|beat-setup,ob-mto1p96o-0awh|smb-mto1p96o-a1e6d|beat-setup};act2@1:{ob-mto1p96o-y2yr|smb-mto1p96n-iihg8|beat-develop,ob-mto1p96o-d00b|smb-mto1p96n-9gdrc|beat-develop,ob-mto1p96o-unxb|smb-mto1p96o-a1e6d|beat-develop,ob-mto1p96o-x0kp|smb-mto1p96n-9gdrc|beat-climax,ob-mto1p96o-p5py|smb-mto1p96n-iihg8|beat-climax,ob-mto1p96o-hk3y|smb-mto1p96n-9gdrc|beat-res,ob-mto1p96o-1z27|smb-mto1p96n-iihg8|beat-res};act3@2:{ob-mto1p96o-ppcb|smb-mto1p96o-a1e6d|beat-climax};act4@3:{ob-mto1p96o-fgj9|smb-mto1p96o-a1e6d|beat-res}#wl-mto1p96o-0b44:WEAVE_SHARED_ACTION:ob-mto1p96o-y2yr,ob-mto1p96o-d00b|wl-mto1p96o-0vzf:WEAVE_SHARED_CHARACTER:ob-mto1p96o-zq21,ob-mto1p96o-unxb|wl-mto1p96o-0wmr:WEAVE_SHARED_CHARACTER:ob-mto1p96o-zq21,ob-mto1p96o-d00b|wl-mto1p96o-1biw:WEAVE_SHARED_SCENE:ob-mto1p96o-x0kp,ob-mto1p96o-ppcb|wl-mto1p96o-1j42:WEAVE_SHARED_ACTION:ob-mto1p96o-1z27,ob-mto1p96o-hk3y|wl-mto1p96o-5g4m:WEAVE_SHARED_ACTION:ob-mto1p96o-y2yr,ob-mto1p96o-unxb|wl-mto1p96o-5jds:WEAVE_SHARED_SCENE:ob-mto1p96o-1z27,ob-mto1p96o-fgj9|wl-mto1p96o-8k5u:WEAVE_SHARED_SCENE:ob-mto1p96o-hk3y,ob-mto1p96o-fgj9|wl-mto1p96o-cjr1:WEAVE_SHARED_ACTION:ob-mto1p96o-p5py,ob-mto1p96o-x0kp|wl-mto1p96o-d7ff:WEAVE_CAUSAL:ob-mto1p96o-p5py,ob-mto1p96o-hk3y|wl-mto1p96o-hfd3:WEAVE_CAUSAL:ob-mto1p96o-y2yr,ob-mto1p96o-x0kp|wl-mto1p96o-i8c1:WEAVE_SHARED_ACTION:ob-mto1p96o-d00b,ob-mto1p96o-unxb|wl-mto1p96o-ique:WEAVE_SHARED_CHARACTER:ob-mto1p96o-8mdu,ob-mto1p96o-unxb|wl-mto1p96o-j4ai:WEAVE_SHARED_SCENE:ob-mto1p96o-8mdu,ob-mto1p96o-0awh|wl-mto1p96o-nltt:WEAVE_SHARED_CHARACTER:ob-mto1p96o-x0kp,ob-mto1p96o-fgj9|wl-mto1p96o-stus:WEAVE_STRONG:ob-mto1p96o-zq21,ob-mto1p96o-8mdu|wl-mto1p96o-u67l:WEAVE_SHARED_CHARACTER:ob-mto1p96o-d00b,ob-mto1p96o-ppcb|wl-mto1p96o-u97t:WEAVE_SHARED_CHARACTER:ob-mto1p96o-p5py,ob-mto1p96o-fgj9|wl-mto1p96o-vaf4:WEAVE_SHARED_SCENE:ob-mto1p96o-p5py,ob-mto1p96o-ppcb|wl-mto1p96o-vsj8:WEAVE_SHARED_CHARACTER:ob-mto1p96o-y2yr,ob-mto1p96o-ppcb",
+  "title": "GEN-03 赫利俄斯站",
+  "premiseSummary": "科幻身份权限 · 近未来空间站 · 权限 · 身份记录 · 资源",
+  "stages": [
+    {
+      "stageId": "act1",
+      "stageRole": "SETUP",
+      "title": "铺垫",
+      "order": 0,
+      "purpose": "诺娃：隐藏或维持当前身份表象；米拉：隐藏或维持当前身份表象；托尔：维持隐营互认且不被外人察觉",
+      "beats": [
+        {
+          "id": "pbeat-ob-mto1p96o-zq21",
+          "sourceBeatId": "beat-setup",
+          "sourceOutlineBeatId": "ob-mto1p96o-zq21",
+          "sourceBlockId": "smb-mto1p96n-iihg8",
+          "sourceMechanismId": "smb-mto1p96n-iihg8",
+          "templateId": "M07-2",
+          "familyId": "M07",
+          "actors": [
+            {
+              "id": "H1",
+              "name": "诺娃"
+            },
+            {
+              "id": "H2",
+              "name": "凯"
+            }
+          ],
+          "ownerCharacterIds": [
+            "H1"
+          ],
+          "goal": "隐藏或维持当前身份表象",
+          "action": "按伪装/未知状态行动，避免过早暴露",
+          "target": "身份表象",
+          "setupContext": "日常活动场所",
+          "eventSummary": "诺娃为了隐藏或维持当前身份表象，按伪装/未知状态行动，避免过早暴露（目标：身份表象）",
+          "immediateConsequence": "身份仍未公开",
+          "requires": [],
+          "produces": [
+            {
+              "id": "identity_latent",
+              "kind": "identity",
+              "summary": "身份仍未公开"
+            }
+          ],
+          "playerKnowledge": "玩家可见：按伪装/未知状态行动，避免过早暴露",
+          "hostTruth": "主持真相：诺娃为了隐藏或维持当前身份表象，按伪装/未知状态行动，避免过早暴露（目标：身份表象）",
+          "clueRefs": [
+            "smb-mto1p96n-iihg8-foreshadow-0"
+          ],
+          "relatedCharacterIds": [
+            "H1",
+            "H2"
+          ],
+          "relationQuality": "INTERWOVEN",
+          "weaveLinkIds": [
+            "wl-mto1p96o-stus",
+            "wl-mto1p96o-0wmr",
+            "wl-mto1p96o-0vzf"
+          ],
+          "relationNotes": [
+            "【真正交织】共享行动目标「身份表象」，且目标方向可对齐或对撞",
+            "【同场并列】共享角色 H2——仅角色重合，保持同场并列而非强制合并",
+            "【同场并列】共享角色 H1、H2——仅角色重合，保持同场并列而非强制合并"
+          ],
+          "needsDetail": false,
+          "contentConfirmed": false
+        },
+        {
+          "id": "pbeat-ob-mto1p96o-8mdu",
+          "sourceBeatId": "beat-setup",
+          "sourceOutlineBeatId": "ob-mto1p96o-8mdu",
+          "sourceBlockId": "smb-mto1p96n-9gdrc",
+          "sourceMechanismId": "smb-mto1p96n-9gdrc",
+          "templateId": "M07-5",
+          "familyId": "M07",
+          "actors": [
+            {
+              "id": "H6",
+              "name": "米拉"
+            },
+            {
+              "id": "H7",
+              "name": "森"
+            }
+          ],
+          "ownerCharacterIds": [
+            "H6"
+          ],
+          "goal": "隐藏或维持当前身份表象",
+          "action": "按伪装/未知状态行动，避免过早暴露",
+          "target": "身份表象",
+          "setupContext": "日常活动场所",
+          "eventSummary": "米拉为了隐藏或维持当前身份表象，按伪装/未知状态行动，避免过早暴露（目标：身份表象）",
+          "immediateConsequence": "身份仍未公开",
+          "requires": [],
+          "produces": [
+            {
+              "id": "identity_latent",
+              "kind": "identity",
+              "summary": "身份仍未公开"
+            }
+          ],
+          "playerKnowledge": "玩家可见：按伪装/未知状态行动，避免过早暴露",
+          "hostTruth": "主持真相：米拉为了隐藏或维持当前身份表象，按伪装/未知状态行动，避免过早暴露（目标：身份表象）",
+          "clueRefs": [
+            "smb-mto1p96n-9gdrc-foreshadow-0"
+          ],
+          "relatedCharacterIds": [
+            "H6",
+            "H7"
+          ],
+          "relationQuality": "INTERWOVEN",
+          "weaveLinkIds": [
+            "wl-mto1p96o-stus",
+            "wl-mto1p96o-j4ai",
+            "wl-mto1p96o-ique"
+          ],
+          "relationNotes": [
+            "【真正交织】共享行动目标「身份表象」，且目标方向可对齐或对撞",
+            "【同场并列】同阶段共享角色 H7——可同场并列，不算真正交织",
+            "【同场并列】共享角色 H6、H7——仅角色重合，保持同场并列而非强制合并"
+          ],
+          "needsDetail": false,
+          "contentConfirmed": false
+        },
+        {
+          "id": "pbeat-ob-mto1p96o-0awh",
+          "sourceBeatId": "beat-setup",
+          "sourceOutlineBeatId": "ob-mto1p96o-0awh",
+          "sourceBlockId": "smb-mto1p96o-a1e6d",
+          "sourceMechanismId": "smb-mto1p96o-a1e6d",
+          "templateId": "M08-2",
+          "familyId": "M08",
+          "actors": [
+            {
+              "id": "H5",
+              "name": "托尔"
+            },
+            {
+              "id": "H7",
+              "name": "森"
+            }
+          ],
+          "ownerCharacterIds": [
+            "H5"
+          ],
+          "goal": "维持隐营互认且不被外人察觉",
+          "action": "确认成员知情范围与联络方式",
+          "target": "阵营名单/暗号",
+          "setupContext": "私下会合点",
+          "eventSummary": "托尔为了维持隐营互认且不被外人察觉，确认成员知情范围与联络方式（目标：阵营名单/暗号）",
+          "immediateConsequence": "阵营结构已成形",
+          "requires": [],
+          "produces": [
+            {
+              "id": "faction_latent",
+              "kind": "faction",
+              "summary": "阵营结构已成形"
+            }
+          ],
+          "playerKnowledge": "玩家可见：确认成员知情范围与联络方式（仅同场，不暗示因果）",
+          "hostTruth": "主持真相：托尔为了维持隐营互认且不被外人察觉，确认成员知情范围与联络方式（目标：阵营名单/暗号）",
+          "clueRefs": [
+            "smb-mto1p96o-a1e6d-faction_foreshadow-0"
+          ],
+          "relatedCharacterIds": [
+            "H5",
+            "H7"
+          ],
+          "relationQuality": "COLOCATED",
+          "weaveLinkIds": [
+            "wl-mto1p96o-j4ai"
+          ],
+          "relationNotes": [
+            "【同场并列】同阶段共享角色 H7——可同场并列，不算真正交织"
+          ],
+          "needsDetail": false,
+          "contentConfirmed": false
+        }
+      ],
+      "playerVisibleSummary": "玩家可见：按伪装/未知状态行动，避免过早暴露 / 玩家可见：确认成员知情范围与联络方式（仅同场，不暗示因果）",
+      "hostTruthSummary": "主持真相：诺娃为了隐藏或维持当前身份表象，按伪装/未知状态行动，避免过早暴露（目标：身份表象） / 主持真相：米拉为了隐藏或维持当前身份表象，按伪装/未知状态行动，避免过早暴露（目标：身份表象） / 主持真相：托尔为了维持隐营互认且不被外人察觉，确认成员知情范围与联络方式（目标：阵营名单/暗号）",
+      "stageStartState": "开局：各线按积木 setup 状态进入（不新增前提）",
+      "stageEndState": "身份仍未公开；阵营结构已成形",
+      "clueEntries": [
+        {
+          "clueId": "smb-mto1p96n-iihg8-foreshadow-0",
+          "label": "早期伏笔",
+          "mechanismId": "smb-mto1p96n-iihg8",
+          "templateId": "M07-2",
+          "introducedAt": "act1",
+          "availableStages": [
+            "act1",
+            "act2"
+          ],
+          "persists": true,
+          "stageId": "act1",
+          "possibleFinders": [
+            "H1",
+            "H2",
+            "H3",
+            "H4",
+            "H5"
+          ],
+          "supportsFact": "早期伏笔",
+          "isMisleading": false,
+          "isDecisive": false,
+          "missingDetail": false
+        },
+        {
+          "clueId": "smb-mto1p96n-9gdrc-foreshadow-0",
+          "label": "早期伏笔",
+          "mechanismId": "smb-mto1p96n-9gdrc",
+          "templateId": "M07-5",
+          "introducedAt": "act1",
+          "availableStages": [
+            "act1",
+            "act2"
+          ],
+          "persists": true,
+          "stageId": "act1",
+          "possibleFinders": [
+            "H6",
+            "H7",
+            "H2",
+            "H3",
+            "H4"
+          ],
+          "supportsFact": "早期伏笔",
+          "isMisleading": false,
+          "isDecisive": false,
+          "missingDetail": false
+        },
+        {
+          "clueId": "smb-mto1p96o-a1e6d-faction_foreshadow-0",
+          "label": "阵营伏笔",
+          "mechanismId": "smb-mto1p96o-a1e6d",
+          "templateId": "M08-2",
+          "introducedAt": "act1",
+          "availableStages": [
+            "act1",
+            "act2"
+          ],
+          "persists": true,
+          "stageId": "act1",
+          "possibleFinders": [
+            "H5",
+            "H7",
+            "H1",
+            "H2",
+            "H3",
+            "H4",
+            "H6"
+          ],
+          "supportsFact": "阵营伏笔",
+          "isMisleading": false,
+          "isDecisive": false,
+          "missingDetail": false
+        }
+      ],
+      "characterEntries": [
+        {
+          "id": "H1",
+          "name": "诺娃"
+        },
+        {
+          "id": "H2",
+          "name": "凯"
+        },
+        {
+          "id": "H6",
+          "name": "米拉"
+        },
+        {
+          "id": "H7",
+          "name": "森"
+        },
+        {
+          "id": "H5",
+          "name": "托尔"
+        }
+      ],
+      "unresolvedDetails": [],
+      "warnings": []
+    },
+    {
+      "stageId": "act2",
+      "stageRole": "PRESSURE",
+      "title": "加压",
+      "order": 1,
+      "purpose": "诺娃：用正式动作换取被条件锁住的信息；米拉：寻找能确认身份的记录或信物；托尔：在隐秘状态下夺取或销毁会暴露阵营的物证；米拉：启用真实身份对应的权限；诺娃：确认真实身份并决定是否公开；米拉：承受身份公开后的关系后果",
+      "beats": [
+        {
+          "id": "pbeat-ob-mto1p96o-y2yr",
+          "sourceBeatId": "beat-develop",
+          "sourceOutlineBeatId": "ob-mto1p96o-y2yr",
+          "sourceBlockId": "smb-mto1p96n-iihg8",
+          "sourceMechanismId": "smb-mto1p96n-iihg8",
+          "templateId": "M07-2",
+          "familyId": "M07",
+          "actors": [
+            {
+              "id": "H1",
+              "name": "诺娃"
+            },
+            {
+              "id": "H2",
+              "name": "凯"
+            },
+            {
+              "id": "H3",
+              "name": "伊蕾"
+            },
+            {
+              "id": "H4",
+              "name": "芮安"
+            },
+            {
+              "id": "H5",
+              "name": "托尔"
+            }
+          ],
+          "ownerCharacterIds": [
+            "H1"
+          ],
+          "goal": "用正式动作换取被条件锁住的信息",
+          "action": "完成登记条件以触发内容开放",
+          "target": "身份记录",
+          "setupContext": "藏有记录的场所",
+          "eventSummary": "诺娃为了用正式动作换取被条件锁住的信息，完成登记条件以触发内容开放（目标：身份记录）",
+          "immediateConsequence": "条件开放的信息",
+          "requires": [
+            {
+              "id": "formal_trigger",
+              "kind": "trigger",
+              "summary": "正式触发条件"
+            }
+          ],
+          "produces": [
+            {
+              "id": "identity_clue",
+              "kind": "identity_clue",
+              "summary": "条件开放的信息"
+            }
+          ],
+          "playerKnowledge": "玩家可见：完成登记条件以触发内容开放",
+          "hostTruth": "主持真相：诺娃为了用正式动作换取被条件锁住的信息，完成登记条件以触发内容开放（目标：身份记录）",
+          "clueRefs": [
+            "smb-mto1p96n-iihg8-foreshadow-0"
+          ],
+          "relatedCharacterIds": [
+            "H1",
+            "H2",
+            "H3",
+            "H4",
+            "H5"
+          ],
+          "relationQuality": "INTERWOVEN",
+          "weaveLinkIds": [
+            "wl-mto1p96o-0b44",
+            "wl-mto1p96o-hfd3",
+            "wl-mto1p96o-5g4m",
+            "wl-mto1p96o-vsj8"
+          ],
+          "relationNotes": [
+            "【真正交织】两条剧情都需要在「藏有记录的场所」执行相近行动（SEARCH），可共享一次行动",
+            "【真正交织】条件触发开放｜结算码触发 的结果（identity_clue）满足 身份权限变化｜本人早知，主动伪装到点揭开 的前置条件",
+            "【真正交织】两条剧情都需要在「藏有记录的场所」执行相近行动（SEARCH/SECURE），可共享一次行动",
+            "【同场并列】共享角色 H1、H2、H3、H4、H5——仅角色重合，保持同场并列而非强制合并"
+          ],
+          "needsDetail": false,
+          "contentConfirmed": false
+        },
+        {
+          "id": "pbeat-ob-mto1p96o-d00b",
+          "sourceBeatId": "beat-develop",
+          "sourceOutlineBeatId": "ob-mto1p96o-d00b",
+          "sourceBlockId": "smb-mto1p96n-9gdrc",
+          "sourceMechanismId": "smb-mto1p96n-9gdrc",
+          "templateId": "M07-5",
+          "familyId": "M07",
+          "actors": [
+            {
+              "id": "H6",
+              "name": "米拉"
+            },
+            {
+              "id": "H7",
+              "name": "森"
+            },
+            {
+              "id": "H2",
+              "name": "凯"
+            },
+            {
+              "id": "H3",
+              "name": "伊蕾"
+            },
+            {
+              "id": "H4",
+              "name": "芮安"
+            }
+          ],
+          "ownerCharacterIds": [
+            "H6"
+          ],
+          "goal": "寻找能确认身份的记录或信物",
+          "action": "进入藏有记录的场所搜查身份相关物证",
+          "target": "身份记录",
+          "setupContext": "藏有记录的场所",
+          "eventSummary": "米拉为了寻找能确认身份的记录或信物，进入藏有记录的场所搜查身份相关物证（目标：身份记录）",
+          "immediateConsequence": "身份线索",
+          "requires": [
+            {
+              "id": "site_accessible",
+              "kind": "access",
+              "summary": "关键场所可进入"
+            }
+          ],
+          "produces": [
+            {
+              "id": "identity_clue",
+              "kind": "identity_clue",
+              "summary": "身份线索"
+            }
+          ],
+          "playerKnowledge": "玩家可见：进入藏有记录的场所搜查身份相关物证",
+          "hostTruth": "主持真相：米拉为了寻找能确认身份的记录或信物，进入藏有记录的场所搜查身份相关物证（目标：身份记录）",
+          "clueRefs": [
+            "smb-mto1p96n-9gdrc-foreshadow-0"
+          ],
+          "relatedCharacterIds": [
+            "H6",
+            "H7",
+            "H2",
+            "H3",
+            "H4"
+          ],
+          "relationQuality": "INTERWOVEN",
+          "weaveLinkIds": [
+            "wl-mto1p96o-0wmr",
+            "wl-mto1p96o-0b44",
+            "wl-mto1p96o-i8c1",
+            "wl-mto1p96o-u67l"
+          ],
+          "relationNotes": [
+            "【同场并列】共享角色 H2——仅角色重合，保持同场并列而非强制合并",
+            "【真正交织】两条剧情都需要在「藏有记录的场所」执行相近行动（SEARCH），可共享一次行动",
+            "【真正交织】两条剧情都需要在「藏有记录的场所」执行相近行动（SEARCH/SECURE），可共享一次行动",
+            "【同场并列】共享角色 H6、H7、H2、H3、H4——仅角色重合，保持同场并列而非强制合并"
+          ],
+          "needsDetail": false,
+          "contentConfirmed": false
+        },
+        {
+          "id": "pbeat-ob-mto1p96o-unxb",
+          "sourceBeatId": "beat-develop",
+          "sourceOutlineBeatId": "ob-mto1p96o-unxb",
+          "sourceBlockId": "smb-mto1p96o-a1e6d",
+          "sourceMechanismId": "smb-mto1p96o-a1e6d",
+          "templateId": "M08-2",
+          "familyId": "M08",
+          "actors": [
+            {
+              "id": "H5",
+              "name": "托尔"
+            },
+            {
+              "id": "H7",
+              "name": "森"
+            },
+            {
+              "id": "H1",
+              "name": "诺娃"
+            },
+            {
+              "id": "H2",
+              "name": "凯"
+            },
+            {
+              "id": "H3",
+              "name": "伊蕾"
+            },
+            {
+              "id": "H4",
+              "name": "芮安"
+            },
+            {
+              "id": "H6",
+              "name": "米拉"
+            }
+          ],
+          "ownerCharacterIds": [
+            "H5"
+          ],
+          "goal": "在隐秘状态下夺取或销毁会暴露阵营的物证",
+          "action": "派人潜入藏有记录的场所处理关键账册",
+          "target": "关键账册",
+          "setupContext": "藏有记录的场所",
+          "eventSummary": "托尔为了在隐秘状态下夺取或销毁会暴露阵营的物证，派人潜入藏有记录的场所处理关键账册（目标：关键账册）",
+          "immediateConsequence": "阵营压力升级",
+          "requires": [
+            {
+              "id": "site_accessible",
+              "kind": "access",
+              "summary": "关键场所可进入"
+            },
+            {
+              "id": "faction_latent",
+              "kind": "faction",
+              "summary": "阵营已成形"
+            }
+          ],
+          "produces": [
+            {
+              "id": "faction_pressure",
+              "kind": "faction",
+              "summary": "阵营压力升级"
+            }
+          ],
+          "playerKnowledge": "玩家可见：派人潜入藏有记录的场所处理关键账册",
+          "hostTruth": "主持真相：托尔为了在隐秘状态下夺取或销毁会暴露阵营的物证，派人潜入藏有记录的场所处理关键账册（目标：关键账册）",
+          "clueRefs": [
+            "smb-mto1p96o-a1e6d-faction_foreshadow-0"
+          ],
+          "relatedCharacterIds": [
+            "H5",
+            "H7",
+            "H1",
+            "H2",
+            "H3",
+            "H4",
+            "H6"
+          ],
+          "relationQuality": "INTERWOVEN",
+          "weaveLinkIds": [
+            "wl-mto1p96o-0vzf",
+            "wl-mto1p96o-5g4m",
+            "wl-mto1p96o-ique",
+            "wl-mto1p96o-i8c1"
+          ],
+          "relationNotes": [
+            "【同场并列】共享角色 H1、H2——仅角色重合，保持同场并列而非强制合并",
+            "【真正交织】两条剧情都需要在「藏有记录的场所」执行相近行动（SEARCH/SECURE），可共享一次行动",
+            "【同场并列】共享角色 H6、H7——仅角色重合，保持同场并列而非强制合并",
+            "【真正交织】两条剧情都需要在「藏有记录的场所」执行相近行动（SEARCH/SECURE），可共享一次行动"
+          ],
+          "needsDetail": false,
+          "contentConfirmed": false
+        },
+        {
+          "id": "pbeat-ob-mto1p96o-x0kp",
+          "sourceBeatId": "beat-climax",
+          "sourceOutlineBeatId": "ob-mto1p96o-x0kp",
+          "sourceBlockId": "smb-mto1p96n-9gdrc",
+          "sourceMechanismId": "smb-mto1p96n-9gdrc",
+          "templateId": "M07-5",
+          "familyId": "M07",
+          "actors": [
+            {
+              "id": "H6",
+              "name": "米拉"
+            },
+            {
+              "id": "H7",
+              "name": "森"
+            },
+            {
+              "id": "H2",
+              "name": "凯"
+            },
+            {
+              "id": "H3",
+              "name": "伊蕾"
+            },
+            {
+              "id": "H4",
+              "name": "芮安"
+            }
+          ],
+          "ownerCharacterIds": [
+            "H6"
+          ],
+          "goal": "启用真实身份对应的权限",
+          "action": "在揭示后启用权限表并验证资格",
+          "target": "真实身份",
+          "setupContext": "藏有记录的场所",
+          "eventSummary": "米拉为了启用真实身份对应的权限，在揭示后启用权限表并验证资格（目标：真实身份）",
+          "immediateConsequence": "身份已确认；资格/权限状态；场所权限可能开放",
+          "requires": [
+            {
+              "id": "identity_clue",
+              "kind": "identity_clue",
+              "summary": "身份线索"
+            }
+          ],
+          "produces": [
+            {
+              "id": "identity_confirmed",
+              "kind": "identity",
+              "summary": "身份已确认"
+            },
+            {
+              "id": "family_status",
+              "kind": "status",
+              "summary": "资格/权限状态"
+            },
+            {
+              "id": "site_accessible",
+              "kind": "access",
+              "summary": "场所权限可能开放"
+            }
+          ],
+          "playerKnowledge": "玩家可见：在揭示后启用权限表并验证资格",
+          "hostTruth": "主持真相：米拉为了启用真实身份对应的权限，在揭示后启用权限表并验证资格（目标：真实身份）",
+          "clueRefs": [
+            "smb-mto1p96n-9gdrc-memory_fragment-1",
+            "smb-mto1p96n-9gdrc-identity_hint-2",
+            "smb-mto1p96n-9gdrc-misdirection-3",
+            "smb-mto1p96n-9gdrc-confirmation-4",
+            "smb-mto1p96n-9gdrc-decisive_reveal-5"
+          ],
+          "relatedCharacterIds": [
+            "H6",
+            "H7",
+            "H2",
+            "H3",
+            "H4"
+          ],
+          "relationQuality": "INTERWOVEN",
+          "weaveLinkIds": [
+            "wl-mto1p96o-hfd3",
+            "wl-mto1p96o-cjr1",
+            "wl-mto1p96o-1biw",
+            "wl-mto1p96o-nltt"
+          ],
+          "relationNotes": [
+            "【真正交织】条件触发开放｜结算码触发 的结果（identity_clue）满足 身份权限变化｜本人早知，主动伪装到点揭开 的前置条件",
+            "【真正交织】两条剧情都需要在「藏有记录的场所」执行相近行动（CONFIRM），可共享一次行动",
+            "【同场并列】同阶段共享角色 H6、H7、H2、H3、H4——可同场并列，不算真正交织",
+            "【同场并列】共享角色 H6、H7、H2、H3、H4——仅角色重合，保持同场并列而非强制合并"
+          ],
+          "needsDetail": false,
+          "contentConfirmed": false
+        },
+        {
+          "id": "pbeat-ob-mto1p96o-p5py",
+          "sourceBeatId": "beat-climax",
+          "sourceOutlineBeatId": "ob-mto1p96o-p5py",
+          "sourceBlockId": "smb-mto1p96n-iihg8",
+          "sourceMechanismId": "smb-mto1p96n-iihg8",
+          "templateId": "M07-2",
+          "familyId": "M07",
+          "actors": [
+            {
+              "id": "H1",
+              "name": "诺娃"
+            },
+            {
+              "id": "H2",
+              "name": "凯"
+            },
+            {
+              "id": "H3",
+              "name": "伊蕾"
+            },
+            {
+              "id": "H4",
+              "name": "芮安"
+            },
+            {
+              "id": "H5",
+              "name": "托尔"
+            }
+          ],
+          "ownerCharacterIds": [
+            "H1"
+          ],
+          "goal": "确认真实身份并决定是否公开",
+          "action": "核对身份线索并作出公开或隐瞒选择",
+          "target": "真实身份",
+          "setupContext": "藏有记录的场所",
+          "eventSummary": "诺娃为了确认真实身份并决定是否公开，核对身份线索并作出公开或隐瞒选择（目标：真实身份）",
+          "immediateConsequence": "身份已确认；家族/资格状态",
+          "requires": [
+            {
+              "id": "identity_clue",
+              "kind": "identity_clue",
+              "summary": "身份线索"
+            }
+          ],
+          "produces": [
+            {
+              "id": "identity_confirmed",
+              "kind": "identity",
+              "summary": "身份已确认"
+            },
+            {
+              "id": "family_status",
+              "kind": "status",
+              "summary": "家族/资格状态"
+            }
+          ],
+          "playerKnowledge": "玩家可见：核对身份线索并作出公开或隐瞒选择",
+          "hostTruth": "主持真相：诺娃为了确认真实身份并决定是否公开，核对身份线索并作出公开或隐瞒选择（目标：真实身份）",
+          "clueRefs": [
+            "smb-mto1p96n-iihg8-memory_fragment-1",
+            "smb-mto1p96n-iihg8-identity_hint-2",
+            "smb-mto1p96n-iihg8-misdirection-3",
+            "smb-mto1p96n-iihg8-confirmation-4",
+            "smb-mto1p96n-iihg8-decisive_reveal-5"
+          ],
+          "relatedCharacterIds": [
+            "H1",
+            "H2",
+            "H3",
+            "H4",
+            "H5"
+          ],
+          "relationQuality": "INTERWOVEN",
+          "weaveLinkIds": [
+            "wl-mto1p96o-cjr1",
+            "wl-mto1p96o-d7ff",
+            "wl-mto1p96o-vaf4",
+            "wl-mto1p96o-u97t"
+          ],
+          "relationNotes": [
+            "【真正交织】两条剧情都需要在「藏有记录的场所」执行相近行动（CONFIRM），可共享一次行动",
+            "【真正交织】条件触发开放｜结算码触发 的结果（identity_confirmed）满足 身份权限变化｜本人早知，主动伪装到点揭开 的前置条件",
+            "【同场并列】同阶段共享角色 H1、H2、H3、H4、H5——可同场并列，不算真正交织",
+            "【同场并列】共享角色 H1、H2、H3、H4、H5——仅角色重合，保持同场并列而非强制合并"
+          ],
+          "needsDetail": false,
+          "contentConfirmed": false
+        },
+        {
+          "id": "pbeat-ob-mto1p96o-hk3y",
+          "sourceBeatId": "beat-res",
+          "sourceOutlineBeatId": "ob-mto1p96o-hk3y",
+          "sourceBlockId": "smb-mto1p96n-9gdrc",
+          "sourceMechanismId": "smb-mto1p96n-9gdrc",
+          "templateId": "M07-5",
+          "familyId": "M07",
+          "actors": [
+            {
+              "id": "H6",
+              "name": "米拉"
+            },
+            {
+              "id": "H7",
+              "name": "森"
+            },
+            {
+              "id": "H2",
+              "name": "凯"
+            },
+            {
+              "id": "H3",
+              "name": "伊蕾"
+            },
+            {
+              "id": "H4",
+              "name": "芮安"
+            }
+          ],
+          "ownerCharacterIds": [
+            "H6"
+          ],
+          "goal": "承受身份公开后的关系后果",
+          "action": "面对知情者与阵营/调查方的反应",
+          "target": "关系重组",
+          "setupContext": "藏有记录的场所",
+          "eventSummary": "米拉为了承受身份公开后的关系后果，面对知情者与阵营/调查方的反应（目标：关系重组）",
+          "immediateConsequence": "身份进入公开层",
+          "requires": [
+            {
+              "id": "identity_confirmed",
+              "kind": "identity",
+              "summary": "身份确认"
+            }
+          ],
+          "produces": [
+            {
+              "id": "identity_public",
+              "kind": "identity",
+              "summary": "身份进入公开层"
+            }
+          ],
+          "playerKnowledge": "玩家可见：面对知情者与阵营/调查方的反应",
+          "hostTruth": "主持真相：米拉为了承受身份公开后的关系后果，面对知情者与阵营/调查方的反应（目标：关系重组）",
+          "clueRefs": [],
+          "relatedCharacterIds": [
+            "H6",
+            "H7",
+            "H2",
+            "H3",
+            "H4"
+          ],
+          "relationQuality": "INTERWOVEN",
+          "weaveLinkIds": [
+            "wl-mto1p96o-d7ff",
+            "wl-mto1p96o-1j42",
+            "wl-mto1p96o-8k5u"
+          ],
+          "relationNotes": [
+            "【真正交织】条件触发开放｜结算码触发 的结果（identity_confirmed）满足 身份权限变化｜本人早知，主动伪装到点揭开 的前置条件",
+            "【真正交织】两条剧情都需要在「藏有记录的场所」执行相近行动（CONSEQUENCE），可共享一次行动",
+            "【同场并列】同阶段共享角色 H6、H7、H2、H3、H4——可同场并列，不算真正交织"
+          ],
+          "needsDetail": false,
+          "contentConfirmed": false
+        },
+        {
+          "id": "pbeat-ob-mto1p96o-1z27",
+          "sourceBeatId": "beat-res",
+          "sourceOutlineBeatId": "ob-mto1p96o-1z27",
+          "sourceBlockId": "smb-mto1p96n-iihg8",
+          "sourceMechanismId": "smb-mto1p96n-iihg8",
+          "templateId": "M07-2",
+          "familyId": "M07",
+          "actors": [
+            {
+              "id": "H1",
+              "name": "诺娃"
+            },
+            {
+              "id": "H2",
+              "name": "凯"
+            },
+            {
+              "id": "H3",
+              "name": "伊蕾"
+            },
+            {
+              "id": "H4",
+              "name": "芮安"
+            },
+            {
+              "id": "H5",
+              "name": "托尔"
+            }
+          ],
+          "ownerCharacterIds": [
+            "H1"
+          ],
+          "goal": "承受身份公开后的关系后果",
+          "action": "面对知情者与阵营/调查方的反应",
+          "target": "关系重组",
+          "setupContext": "藏有记录的场所",
+          "eventSummary": "诺娃为了承受身份公开后的关系后果，面对知情者与阵营/调查方的反应（目标：关系重组）",
+          "immediateConsequence": "身份进入公开层",
+          "requires": [
+            {
+              "id": "identity_confirmed",
+              "kind": "identity",
+              "summary": "身份确认"
+            }
+          ],
+          "produces": [
+            {
+              "id": "identity_public",
+              "kind": "identity",
+              "summary": "身份进入公开层"
+            }
+          ],
+          "playerKnowledge": "玩家可见：面对知情者与阵营/调查方的反应",
+          "hostTruth": "主持真相：诺娃为了承受身份公开后的关系后果，面对知情者与阵营/调查方的反应（目标：关系重组）",
+          "clueRefs": [],
+          "relatedCharacterIds": [
+            "H1",
+            "H2",
+            "H3",
+            "H4",
+            "H5"
+          ],
+          "relationQuality": "INTERWOVEN",
+          "weaveLinkIds": [
+            "wl-mto1p96o-1j42",
+            "wl-mto1p96o-5jds"
+          ],
+          "relationNotes": [
+            "【真正交织】两条剧情都需要在「藏有记录的场所」执行相近行动（CONSEQUENCE），可共享一次行动",
+            "【同场并列】同阶段共享角色 H1、H2、H3、H4、H5——可同场并列，不算真正交织"
+          ],
+          "needsDetail": false,
+          "contentConfirmed": false
+        }
+      ],
+      "playerVisibleSummary": "玩家可见：完成登记条件以触发内容开放 / 玩家可见：进入藏有记录的场所搜查身份相关物证 / 玩家可见：派人潜入藏有记录的场所处理关键账册 / 玩家可见：在揭示后启用权限表并验证资格 / 玩家可见：核对身份线索并作出公开或隐瞒选择 / 玩家可见：面对知情者与阵营/调查方的反应",
+      "hostTruthSummary": "主持真相：诺娃为了用正式动作换取被条件锁住的信息，完成登记条件以触发内容开放（目标：身份记录） / 主持真相：米拉为了寻找能确认身份的记录或信物，进入藏有记录的场所搜查身份相关物证（目标：身份记录） / 主持真相：托尔为了在隐秘状态下夺取或销毁会暴露阵营的物证，派人潜入藏有记录的场所处理关键账册（目标：关键账册） / 主持真相：米拉为了启用真实身份对应的权限，在揭示后启用权限表并验证资格（目标：真实身份） / 主持真相：诺娃为了确认真实身份并决定是否公开，核对身份线索并作出公开或隐瞒选择（目标：真实身份） / 主持真相：米拉为了承受身份公开后的关系后果，面对知情者与阵营/调查方的反应（目标：关系重组） / 主持真相：诺娃为了承受身份公开后的关系后果，面对知情者与阵营/调查方的反应（目标：关系重组）",
+      "stageStartState": "承接上一阶段已声明后果；未声明者标 UNKNOWN",
+      "stageEndState": "条件开放的信息；身份线索；阵营压力升级；身份已确认；资格/权限状态；场所权限可能开放；身份已确认；家族/资格状态；身份进入公开层",
+      "clueEntries": [
+        {
+          "clueId": "smb-mto1p96n-iihg8-foreshadow-0",
+          "label": "早期伏笔",
+          "mechanismId": "smb-mto1p96n-iihg8",
+          "templateId": "M07-2",
+          "introducedAt": "act1",
+          "availableStages": [
+            "act1",
+            "act2"
+          ],
+          "persists": true,
+          "stageId": "act1",
+          "possibleFinders": [
+            "H1",
+            "H2",
+            "H3",
+            "H4",
+            "H5"
+          ],
+          "supportsFact": "早期伏笔",
+          "isMisleading": false,
+          "isDecisive": false,
+          "missingDetail": false
+        },
+        {
+          "clueId": "smb-mto1p96n-9gdrc-foreshadow-0",
+          "label": "早期伏笔",
+          "mechanismId": "smb-mto1p96n-9gdrc",
+          "templateId": "M07-5",
+          "introducedAt": "act1",
+          "availableStages": [
+            "act1",
+            "act2"
+          ],
+          "persists": true,
+          "stageId": "act1",
+          "possibleFinders": [
+            "H6",
+            "H7",
+            "H2",
+            "H3",
+            "H4"
+          ],
+          "supportsFact": "早期伏笔",
+          "isMisleading": false,
+          "isDecisive": false,
+          "missingDetail": false
+        },
+        {
+          "clueId": "smb-mto1p96o-a1e6d-faction_foreshadow-0",
+          "label": "阵营伏笔",
+          "mechanismId": "smb-mto1p96o-a1e6d",
+          "templateId": "M08-2",
+          "introducedAt": "act1",
+          "availableStages": [
+            "act1",
+            "act2"
+          ],
+          "persists": true,
+          "stageId": "act1",
+          "possibleFinders": [
+            "H5",
+            "H7",
+            "H1",
+            "H2",
+            "H3",
+            "H4",
+            "H6"
+          ],
+          "supportsFact": "阵营伏笔",
+          "isMisleading": false,
+          "isDecisive": false,
+          "missingDetail": false
+        },
+        {
+          "clueId": "smb-mto1p96n-9gdrc-memory_fragment-1",
+          "label": "记忆碎片",
+          "mechanismId": "smb-mto1p96n-9gdrc",
+          "templateId": "M07-5",
+          "introducedAt": "act2",
+          "availableStages": [
+            "act2"
+          ],
+          "persists": false,
+          "stageId": "act2",
+          "possibleFinders": [
+            "H6",
+            "H7",
+            "H2",
+            "H3",
+            "H4"
+          ],
+          "supportsFact": "记忆碎片",
+          "isMisleading": false,
+          "isDecisive": false,
+          "missingDetail": false
+        },
+        {
+          "clueId": "smb-mto1p96n-9gdrc-identity_hint-2",
+          "label": "身份暗示",
+          "mechanismId": "smb-mto1p96n-9gdrc",
+          "templateId": "M07-5",
+          "introducedAt": "act2",
+          "availableStages": [
+            "act2"
+          ],
+          "persists": false,
+          "stageId": "act2",
+          "possibleFinders": [
+            "H6",
+            "H7",
+            "H2",
+            "H3",
+            "H4"
+          ],
+          "supportsFact": "身份暗示",
+          "isMisleading": false,
+          "isDecisive": false,
+          "missingDetail": false
+        },
+        {
+          "clueId": "smb-mto1p96n-9gdrc-misdirection-3",
+          "label": "误导",
+          "mechanismId": "smb-mto1p96n-9gdrc",
+          "templateId": "M07-5",
+          "introducedAt": "act2",
+          "availableStages": [
+            "act2"
+          ],
+          "persists": false,
+          "stageId": "act2",
+          "possibleFinders": [
+            "H6",
+            "H7",
+            "H2",
+            "H3",
+            "H4"
+          ],
+          "supportsFact": "误导",
+          "isMisleading": true,
+          "isDecisive": false,
+          "missingDetail": false
+        },
+        {
+          "clueId": "smb-mto1p96n-9gdrc-confirmation-4",
+          "label": "确认",
+          "mechanismId": "smb-mto1p96n-9gdrc",
+          "templateId": "M07-5",
+          "introducedAt": "act2",
+          "availableStages": [
+            "act2"
+          ],
+          "persists": false,
+          "stageId": "act2",
+          "possibleFinders": [
+            "H6",
+            "H7",
+            "H2",
+            "H3",
+            "H4"
+          ],
+          "supportsFact": "确认",
+          "isMisleading": false,
+          "isDecisive": false,
+          "missingDetail": false
+        },
+        {
+          "clueId": "smb-mto1p96n-9gdrc-decisive_reveal-5",
+          "label": "决定性揭示",
+          "mechanismId": "smb-mto1p96n-9gdrc",
+          "templateId": "M07-5",
+          "introducedAt": "act2",
+          "availableStages": [
+            "act2"
+          ],
+          "persists": false,
+          "stageId": "act2",
+          "possibleFinders": [
+            "H6",
+            "H7",
+            "H2",
+            "H3",
+            "H4"
+          ],
+          "supportsFact": "决定性揭示",
+          "isMisleading": false,
+          "isDecisive": true,
+          "missingDetail": false
+        },
+        {
+          "clueId": "smb-mto1p96n-iihg8-memory_fragment-1",
+          "label": "记忆碎片",
+          "mechanismId": "smb-mto1p96n-iihg8",
+          "templateId": "M07-2",
+          "introducedAt": "act2",
+          "availableStages": [
+            "act2"
+          ],
+          "persists": false,
+          "stageId": "act2",
+          "possibleFinders": [
+            "H1",
+            "H2",
+            "H3",
+            "H4",
+            "H5"
+          ],
+          "supportsFact": "记忆碎片",
+          "isMisleading": false,
+          "isDecisive": false,
+          "missingDetail": false
+        },
+        {
+          "clueId": "smb-mto1p96n-iihg8-identity_hint-2",
+          "label": "身份暗示",
+          "mechanismId": "smb-mto1p96n-iihg8",
+          "templateId": "M07-2",
+          "introducedAt": "act2",
+          "availableStages": [
+            "act2"
+          ],
+          "persists": false,
+          "stageId": "act2",
+          "possibleFinders": [
+            "H1",
+            "H2",
+            "H3",
+            "H4",
+            "H5"
+          ],
+          "supportsFact": "身份暗示",
+          "isMisleading": false,
+          "isDecisive": false,
+          "missingDetail": false
+        },
+        {
+          "clueId": "smb-mto1p96n-iihg8-misdirection-3",
+          "label": "误导",
+          "mechanismId": "smb-mto1p96n-iihg8",
+          "templateId": "M07-2",
+          "introducedAt": "act2",
+          "availableStages": [
+            "act2"
+          ],
+          "persists": false,
+          "stageId": "act2",
+          "possibleFinders": [
+            "H1",
+            "H2",
+            "H3",
+            "H4",
+            "H5"
+          ],
+          "supportsFact": "误导",
+          "isMisleading": true,
+          "isDecisive": false,
+          "missingDetail": false
+        },
+        {
+          "clueId": "smb-mto1p96n-iihg8-confirmation-4",
+          "label": "确认",
+          "mechanismId": "smb-mto1p96n-iihg8",
+          "templateId": "M07-2",
+          "introducedAt": "act2",
+          "availableStages": [
+            "act2"
+          ],
+          "persists": false,
+          "stageId": "act2",
+          "possibleFinders": [
+            "H1",
+            "H2",
+            "H3",
+            "H4",
+            "H5"
+          ],
+          "supportsFact": "确认",
+          "isMisleading": false,
+          "isDecisive": false,
+          "missingDetail": false
+        },
+        {
+          "clueId": "smb-mto1p96n-iihg8-decisive_reveal-5",
+          "label": "决定性揭示",
+          "mechanismId": "smb-mto1p96n-iihg8",
+          "templateId": "M07-2",
+          "introducedAt": "act2",
+          "availableStages": [
+            "act2"
+          ],
+          "persists": false,
+          "stageId": "act2",
+          "possibleFinders": [
+            "H1",
+            "H2",
+            "H3",
+            "H4",
+            "H5"
+          ],
+          "supportsFact": "决定性揭示",
+          "isMisleading": false,
+          "isDecisive": true,
+          "missingDetail": false
+        },
+        {
+          "clueId": "fact-interface:ob-mto1p96o-hk3y",
+          "label": "事实接口（尚无线索实体）",
+          "mechanismId": "smb-mto1p96n-9gdrc",
+          "templateId": "M07-5",
+          "introducedAt": "act2",
+          "availableStages": [
+            "act2"
+          ],
+          "persists": false,
+          "stageId": "act2",
+          "possibleFinders": [
+            "H6",
+            "H7",
+            "H2",
+            "H3",
+            "H4"
+          ],
+          "supportsFact": "身份确认；身份进入公开层",
+          "isMisleading": false,
+          "isDecisive": false,
+          "missingDetail": true,
+          "detailNote": "这个剧情 beat 需要关键线索，但模板尚未提供具体线索内容。"
+        },
+        {
+          "clueId": "fact-interface:ob-mto1p96o-1z27",
+          "label": "事实接口（尚无线索实体）",
+          "mechanismId": "smb-mto1p96n-iihg8",
+          "templateId": "M07-2",
+          "introducedAt": "act2",
+          "availableStages": [
+            "act2"
+          ],
+          "persists": false,
+          "stageId": "act2",
+          "possibleFinders": [
+            "H1",
+            "H2",
+            "H3",
+            "H4",
+            "H5"
+          ],
+          "supportsFact": "身份确认；身份进入公开层",
+          "isMisleading": false,
+          "isDecisive": false,
+          "missingDetail": true,
+          "detailNote": "这个剧情 beat 需要关键线索，但模板尚未提供具体线索内容。"
+        }
+      ],
+      "characterEntries": [
+        {
+          "id": "H1",
+          "name": "诺娃"
+        },
+        {
+          "id": "H2",
+          "name": "凯"
+        },
+        {
+          "id": "H3",
+          "name": "伊蕾"
+        },
+        {
+          "id": "H4",
+          "name": "芮安"
+        },
+        {
+          "id": "H5",
+          "name": "托尔"
+        },
+        {
+          "id": "H6",
+          "name": "米拉"
+        },
+        {
+          "id": "H7",
+          "name": "森"
+        }
+      ],
+      "unresolvedDetails": [],
+      "warnings": [
+        {
+          "id": "warn-crowd-act2",
+          "type": "STAGE_CROWDING",
+          "severity": "warn",
+          "message": "「加压」包含 7 个剧情 beat，当前阶段密度偏高。P6 未自动迁移 beat，请返回交织骨架调整。",
+          "stageIds": [
+            "act2"
+          ],
+          "beatIds": [
+            "ob-mto1p96o-y2yr",
+            "ob-mto1p96o-d00b",
+            "ob-mto1p96o-unxb",
+            "ob-mto1p96o-x0kp",
+            "ob-mto1p96o-p5py",
+            "ob-mto1p96o-hk3y",
+            "ob-mto1p96o-1z27"
+          ]
+        },
+        {
+          "id": "warn-clue-ob-mto1p96o-hk3y",
+          "type": "MISSING_CLUE_DETAIL",
+          "severity": "info",
+          "message": "该剧情 beat 需要/产生事实接口，但模板尚未绑定具体线索内容。",
+          "stageIds": [
+            "act2"
+          ],
+          "beatIds": [
+            "ob-mto1p96o-hk3y"
+          ]
+        },
+        {
+          "id": "warn-clue-ob-mto1p96o-1z27",
+          "type": "MISSING_CLUE_DETAIL",
+          "severity": "info",
+          "message": "该剧情 beat 需要/产生事实接口，但模板尚未绑定具体线索内容。",
+          "stageIds": [
+            "act2"
+          ],
+          "beatIds": [
+            "ob-mto1p96o-1z27"
+          ]
+        }
+      ]
+    },
+    {
+      "stageId": "act3",
+      "stageRole": "ESCALATION",
+      "title": "升级",
+      "order": 2,
+      "purpose": "米拉：在暴露风险下改归属或保住秘密",
+      "beats": [
+        {
+          "id": "pbeat-ob-mto1p96o-ppcb",
+          "sourceBeatId": "beat-climax",
+          "sourceOutlineBeatId": "ob-mto1p96o-ppcb",
+          "sourceBlockId": "smb-mto1p96o-a1e6d",
+          "sourceMechanismId": "smb-mto1p96o-a1e6d",
+          "templateId": "M08-2",
+          "familyId": "M08",
+          "actors": [
+            {
+              "id": "H6",
+              "name": "米拉"
+            },
+            {
+              "id": "H5",
+              "name": "托尔"
+            },
+            {
+              "id": "H7",
+              "name": "森"
+            },
+            {
+              "id": "H1",
+              "name": "诺娃"
+            },
+            {
+              "id": "H2",
+              "name": "凯"
+            },
+            {
+              "id": "H3",
+              "name": "伊蕾"
+            },
+            {
+              "id": "H4",
+              "name": "芮安"
+            }
+          ],
+          "ownerCharacterIds": [
+            "H6"
+          ],
+          "goal": "在暴露风险下改归属或保住秘密",
+          "action": "在关键选择点背叛、退出或清洗异己",
+          "target": "归属状态",
+          "setupContext": "阵营关键据点",
+          "eventSummary": "米拉为了在暴露风险下改归属或保住秘密，在关键选择点背叛、退出或清洗异己（目标：归属状态）",
+          "immediateConsequence": "归属已改变；暴露风险上升",
+          "requires": [
+            {
+              "id": "faction_pressure",
+              "kind": "faction",
+              "summary": "阵营压力"
+            }
+          ],
+          "produces": [
+            {
+              "id": "allegiance_changed",
+              "kind": "faction",
+              "summary": "归属已改变"
+            },
+            {
+              "id": "faction_exposure_risk",
+              "kind": "exposure",
+              "summary": "暴露风险上升"
+            }
+          ],
+          "playerKnowledge": "玩家可见：在关键选择点背叛、退出或清洗异己（仅同场，不暗示因果）",
+          "hostTruth": "主持真相：米拉为了在暴露风险下改归属或保住秘密，在关键选择点背叛、退出或清洗异己（目标：归属状态）",
+          "clueRefs": [
+            "smb-mto1p96o-a1e6d-membership_hint-1",
+            "smb-mto1p96o-a1e6d-secret_signal-2",
+            "smb-mto1p96o-a1e6d-recruitment_evidence-3",
+            "smb-mto1p96o-a1e6d-loyalty_test-4",
+            "smb-mto1p96o-a1e6d-betrayal_hint-5",
+            "smb-mto1p96o-a1e6d-internal_conflict-6",
+            "smb-mto1p96o-a1e6d-hidden_goal_hint-7",
+            "smb-mto1p96o-a1e6d-membership_confirmation-8",
+            "smb-mto1p96o-a1e6d-faction_exposure-9"
+          ],
+          "relatedCharacterIds": [
+            "H6",
+            "H5",
+            "H7",
+            "H1",
+            "H2",
+            "H3",
+            "H4"
+          ],
+          "relationQuality": "COLOCATED",
+          "weaveLinkIds": [
+            "wl-mto1p96o-vsj8",
+            "wl-mto1p96o-vaf4",
+            "wl-mto1p96o-u67l",
+            "wl-mto1p96o-1biw"
+          ],
+          "relationNotes": [
+            "【同场并列】共享角色 H1、H2、H3、H4、H5——仅角色重合，保持同场并列而非强制合并",
+            "【同场并列】同阶段共享角色 H1、H2、H3、H4、H5——可同场并列，不算真正交织",
+            "【同场并列】共享角色 H6、H7、H2、H3、H4——仅角色重合，保持同场并列而非强制合并",
+            "【同场并列】同阶段共享角色 H6、H7、H2、H3、H4——可同场并列，不算真正交织"
+          ],
+          "needsDetail": false,
+          "contentConfirmed": false
+        }
+      ],
+      "playerVisibleSummary": "玩家可见：在关键选择点背叛、退出或清洗异己（仅同场，不暗示因果）",
+      "hostTruthSummary": "主持真相：米拉为了在暴露风险下改归属或保住秘密，在关键选择点背叛、退出或清洗异己（目标：归属状态）",
+      "stageStartState": "承接上一阶段已声明后果；未声明者标 UNKNOWN",
+      "stageEndState": "归属已改变；暴露风险上升",
+      "clueEntries": [
+        {
+          "clueId": "smb-mto1p96o-a1e6d-membership_hint-1",
+          "label": "成员暗示",
+          "mechanismId": "smb-mto1p96o-a1e6d",
+          "templateId": "M08-2",
+          "introducedAt": "act3",
+          "availableStages": [
+            "act3"
+          ],
+          "persists": false,
+          "stageId": "act3",
+          "possibleFinders": [
+            "H6",
+            "H5",
+            "H7",
+            "H1",
+            "H2",
+            "H3",
+            "H4"
+          ],
+          "supportsFact": "成员暗示",
+          "isMisleading": false,
+          "isDecisive": false,
+          "missingDetail": false
+        },
+        {
+          "clueId": "smb-mto1p96o-a1e6d-secret_signal-2",
+          "label": "秘密信号",
+          "mechanismId": "smb-mto1p96o-a1e6d",
+          "templateId": "M08-2",
+          "introducedAt": "act3",
+          "availableStages": [
+            "act3"
+          ],
+          "persists": false,
+          "stageId": "act3",
+          "possibleFinders": [
+            "H6",
+            "H5",
+            "H7",
+            "H1",
+            "H2",
+            "H3",
+            "H4"
+          ],
+          "supportsFact": "秘密信号",
+          "isMisleading": false,
+          "isDecisive": false,
+          "missingDetail": false
+        },
+        {
+          "clueId": "smb-mto1p96o-a1e6d-recruitment_evidence-3",
+          "label": "招募证据",
+          "mechanismId": "smb-mto1p96o-a1e6d",
+          "templateId": "M08-2",
+          "introducedAt": "act3",
+          "availableStages": [
+            "act3"
+          ],
+          "persists": false,
+          "stageId": "act3",
+          "possibleFinders": [
+            "H6",
+            "H5",
+            "H7",
+            "H1",
+            "H2",
+            "H3",
+            "H4"
+          ],
+          "supportsFact": "招募证据",
+          "isMisleading": false,
+          "isDecisive": false,
+          "missingDetail": false
+        },
+        {
+          "clueId": "smb-mto1p96o-a1e6d-loyalty_test-4",
+          "label": "忠诚考验",
+          "mechanismId": "smb-mto1p96o-a1e6d",
+          "templateId": "M08-2",
+          "introducedAt": "act3",
+          "availableStages": [
+            "act3"
+          ],
+          "persists": false,
+          "stageId": "act3",
+          "possibleFinders": [
+            "H6",
+            "H5",
+            "H7",
+            "H1",
+            "H2",
+            "H3",
+            "H4"
+          ],
+          "supportsFact": "忠诚考验",
+          "isMisleading": false,
+          "isDecisive": false,
+          "missingDetail": false
+        },
+        {
+          "clueId": "smb-mto1p96o-a1e6d-betrayal_hint-5",
+          "label": "背叛暗示",
+          "mechanismId": "smb-mto1p96o-a1e6d",
+          "templateId": "M08-2",
+          "introducedAt": "act3",
+          "availableStages": [
+            "act3"
+          ],
+          "persists": false,
+          "stageId": "act3",
+          "possibleFinders": [
+            "H6",
+            "H5",
+            "H7",
+            "H1",
+            "H2",
+            "H3",
+            "H4"
+          ],
+          "supportsFact": "背叛暗示",
+          "isMisleading": false,
+          "isDecisive": false,
+          "missingDetail": false
+        },
+        {
+          "clueId": "smb-mto1p96o-a1e6d-internal_conflict-6",
+          "label": "内部冲突",
+          "mechanismId": "smb-mto1p96o-a1e6d",
+          "templateId": "M08-2",
+          "introducedAt": "act3",
+          "availableStages": [
+            "act3"
+          ],
+          "persists": false,
+          "stageId": "act3",
+          "possibleFinders": [
+            "H6",
+            "H5",
+            "H7",
+            "H1",
+            "H2",
+            "H3",
+            "H4"
+          ],
+          "supportsFact": "内部冲突",
+          "isMisleading": false,
+          "isDecisive": false,
+          "missingDetail": false
+        },
+        {
+          "clueId": "smb-mto1p96o-a1e6d-hidden_goal_hint-7",
+          "label": "隐藏目标暗示",
+          "mechanismId": "smb-mto1p96o-a1e6d",
+          "templateId": "M08-2",
+          "introducedAt": "act3",
+          "availableStages": [
+            "act3"
+          ],
+          "persists": false,
+          "stageId": "act3",
+          "possibleFinders": [
+            "H6",
+            "H5",
+            "H7",
+            "H1",
+            "H2",
+            "H3",
+            "H4"
+          ],
+          "supportsFact": "隐藏目标暗示",
+          "isMisleading": false,
+          "isDecisive": false,
+          "missingDetail": false
+        },
+        {
+          "clueId": "smb-mto1p96o-a1e6d-membership_confirmation-8",
+          "label": "归属确认",
+          "mechanismId": "smb-mto1p96o-a1e6d",
+          "templateId": "M08-2",
+          "introducedAt": "act3",
+          "availableStages": [
+            "act3"
+          ],
+          "persists": false,
+          "stageId": "act3",
+          "possibleFinders": [
+            "H6",
+            "H5",
+            "H7",
+            "H1",
+            "H2",
+            "H3",
+            "H4"
+          ],
+          "supportsFact": "归属确认",
+          "isMisleading": false,
+          "isDecisive": false,
+          "missingDetail": false
+        },
+        {
+          "clueId": "smb-mto1p96o-a1e6d-faction_exposure-9",
+          "label": "阵营暴露",
+          "mechanismId": "smb-mto1p96o-a1e6d",
+          "templateId": "M08-2",
+          "introducedAt": "act3",
+          "availableStages": [
+            "act3"
+          ],
+          "persists": false,
+          "stageId": "act3",
+          "possibleFinders": [
+            "H6",
+            "H5",
+            "H7",
+            "H1",
+            "H2",
+            "H3",
+            "H4"
+          ],
+          "supportsFact": "阵营暴露",
+          "isMisleading": false,
+          "isDecisive": false,
+          "missingDetail": false
+        }
+      ],
+      "characterEntries": [
+        {
+          "id": "H6",
+          "name": "米拉"
+        },
+        {
+          "id": "H5",
+          "name": "托尔"
+        },
+        {
+          "id": "H7",
+          "name": "森"
+        },
+        {
+          "id": "H1",
+          "name": "诺娃"
+        },
+        {
+          "id": "H2",
+          "name": "凯"
+        },
+        {
+          "id": "H3",
+          "name": "伊蕾"
+        },
+        {
+          "id": "H4",
+          "name": "芮安"
+        }
+      ],
+      "unresolvedDetails": [],
+      "warnings": []
+    },
+    {
+      "stageId": "act4",
+      "stageRole": "PAYOFF",
+      "title": "收束",
+      "order": 3,
+      "purpose": "托尔：结算阵营目标并承受公开后果",
+      "beats": [
+        {
+          "id": "pbeat-ob-mto1p96o-fgj9",
+          "sourceBeatId": "beat-res",
+          "sourceOutlineBeatId": "ob-mto1p96o-fgj9",
+          "sourceBlockId": "smb-mto1p96o-a1e6d",
+          "sourceMechanismId": "smb-mto1p96o-a1e6d",
+          "templateId": "M08-2",
+          "familyId": "M08",
+          "actors": [
+            {
+              "id": "H5",
+              "name": "托尔"
+            },
+            {
+              "id": "H7",
+              "name": "森"
+            },
+            {
+              "id": "H1",
+              "name": "诺娃"
+            },
+            {
+              "id": "H2",
+              "name": "凯"
+            },
+            {
+              "id": "H3",
+              "name": "伊蕾"
+            },
+            {
+              "id": "H4",
+              "name": "芮安"
+            },
+            {
+              "id": "H6",
+              "name": "米拉"
+            }
+          ],
+          "ownerCharacterIds": [
+            "H5"
+          ],
+          "goal": "结算阵营目标并承受公开后果",
+          "action": "公开站队或接受阵营败露后的关系重排",
+          "target": "阵营胜负条件",
+          "setupContext": "阵营关键据点",
+          "eventSummary": "托尔为了结算阵营目标并承受公开后果，公开站队或接受阵营败露后的关系重排（目标：阵营胜负条件）",
+          "immediateConsequence": "阵营线结算",
+          "requires": [
+            {
+              "id": "allegiance_changed",
+              "kind": "faction",
+              "summary": "归属变化"
+            }
+          ],
+          "produces": [
+            {
+              "id": "faction_settled",
+              "kind": "faction",
+              "summary": "阵营线结算"
+            }
+          ],
+          "playerKnowledge": "玩家可见：公开站队或接受阵营败露后的关系重排（仅同场，不暗示因果）",
+          "hostTruth": "主持真相：托尔为了结算阵营目标并承受公开后果，公开站队或接受阵营败露后的关系重排（目标：阵营胜负条件）",
+          "clueRefs": [],
+          "relatedCharacterIds": [
+            "H5",
+            "H7",
+            "H1",
+            "H2",
+            "H3",
+            "H4",
+            "H6"
+          ],
+          "relationQuality": "COLOCATED",
+          "weaveLinkIds": [
+            "wl-mto1p96o-u97t",
+            "wl-mto1p96o-5jds",
+            "wl-mto1p96o-nltt",
+            "wl-mto1p96o-8k5u"
+          ],
+          "relationNotes": [
+            "【同场并列】共享角色 H1、H2、H3、H4、H5——仅角色重合，保持同场并列而非强制合并",
+            "【同场并列】同阶段共享角色 H1、H2、H3、H4、H5——可同场并列，不算真正交织",
+            "【同场并列】共享角色 H6、H7、H2、H3、H4——仅角色重合，保持同场并列而非强制合并",
+            "【同场并列】同阶段共享角色 H6、H7、H2、H3、H4——可同场并列，不算真正交织"
+          ],
+          "needsDetail": false,
+          "contentConfirmed": false
+        }
+      ],
+      "playerVisibleSummary": "玩家可见：公开站队或接受阵营败露后的关系重排（仅同场，不暗示因果）",
+      "hostTruthSummary": "主持真相：托尔为了结算阵营目标并承受公开后果，公开站队或接受阵营败露后的关系重排（目标：阵营胜负条件）",
+      "stageStartState": "承接上一阶段已声明后果；未声明者标 UNKNOWN",
+      "stageEndState": "阵营线结算",
+      "clueEntries": [
+        {
+          "clueId": "fact-interface:ob-mto1p96o-fgj9",
+          "label": "事实接口（尚无线索实体）",
+          "mechanismId": "smb-mto1p96o-a1e6d",
+          "templateId": "M08-2",
+          "introducedAt": "act4",
+          "availableStages": [
+            "act4"
+          ],
+          "persists": false,
+          "stageId": "act4",
+          "possibleFinders": [
+            "H5",
+            "H7",
+            "H1",
+            "H2",
+            "H3",
+            "H4",
+            "H6"
+          ],
+          "supportsFact": "归属变化；阵营线结算",
+          "isMisleading": false,
+          "isDecisive": false,
+          "missingDetail": true,
+          "detailNote": "这个剧情 beat 需要关键线索，但模板尚未提供具体线索内容。"
+        }
+      ],
+      "characterEntries": [
+        {
+          "id": "H5",
+          "name": "托尔"
+        },
+        {
+          "id": "H7",
+          "name": "森"
+        },
+        {
+          "id": "H1",
+          "name": "诺娃"
+        },
+        {
+          "id": "H2",
+          "name": "凯"
+        },
+        {
+          "id": "H3",
+          "name": "伊蕾"
+        },
+        {
+          "id": "H4",
+          "name": "芮安"
+        },
+        {
+          "id": "H6",
+          "name": "米拉"
+        }
+      ],
+      "unresolvedDetails": [],
+      "warnings": [
+        {
+          "id": "warn-clue-ob-mto1p96o-fgj9",
+          "type": "MISSING_CLUE_DETAIL",
+          "severity": "info",
+          "message": "该剧情 beat 需要/产生事实接口，但模板尚未绑定具体线索内容。",
+          "stageIds": [
+            "act4"
+          ],
+          "beatIds": [
+            "ob-mto1p96o-fgj9"
+          ]
+        }
+      ]
+    }
+  ],
+  "truthView": {
+    "events": [
+      {
+        "beatId": "ob-mto1p96o-zq21",
+        "stageId": "act1",
+        "whatHappened": "诺娃为了隐藏或维持当前身份表象，按伪装/未知状态行动，避免过早暴露（目标：身份表象）",
+        "who": [
+          "H1",
+          "H2"
+        ],
+        "why": "隐藏或维持当前身份表象",
+        "consequence": "身份仍未公开",
+        "eventOccurred": true,
+        "evidenceEffect": "NEUTRAL",
+        "claimTruth": "UNKNOWN",
+        "isMisleading": false,
+        "isTruth": true,
+        "needsDetail": false
+      },
+      {
+        "beatId": "ob-mto1p96o-8mdu",
+        "stageId": "act1",
+        "whatHappened": "米拉为了隐藏或维持当前身份表象，按伪装/未知状态行动，避免过早暴露（目标：身份表象）",
+        "who": [
+          "H6",
+          "H7"
+        ],
+        "why": "隐藏或维持当前身份表象",
+        "consequence": "身份仍未公开",
+        "eventOccurred": true,
+        "evidenceEffect": "NEUTRAL",
+        "claimTruth": "UNKNOWN",
+        "isMisleading": false,
+        "isTruth": true,
+        "needsDetail": false
+      },
+      {
+        "beatId": "ob-mto1p96o-0awh",
+        "stageId": "act1",
+        "whatHappened": "托尔为了维持隐营互认且不被外人察觉，确认成员知情范围与联络方式（目标：阵营名单/暗号）",
+        "who": [
+          "H5",
+          "H7"
+        ],
+        "why": "维持隐营互认且不被外人察觉",
+        "consequence": "阵营结构已成形",
+        "eventOccurred": true,
+        "evidenceEffect": "NEUTRAL",
+        "claimTruth": "UNKNOWN",
+        "isMisleading": false,
+        "isTruth": true,
+        "needsDetail": false
+      },
+      {
+        "beatId": "ob-mto1p96o-y2yr",
+        "stageId": "act2",
+        "whatHappened": "诺娃为了用正式动作换取被条件锁住的信息，完成登记条件以触发内容开放（目标：身份记录）",
+        "who": [
+          "H1",
+          "H2",
+          "H3",
+          "H4",
+          "H5"
+        ],
+        "why": "用正式动作换取被条件锁住的信息",
+        "consequence": "条件开放的信息",
+        "eventOccurred": true,
+        "evidenceEffect": "NEUTRAL",
+        "claimTruth": "UNKNOWN",
+        "isMisleading": false,
+        "isTruth": true,
+        "needsDetail": false
+      },
+      {
+        "beatId": "ob-mto1p96o-d00b",
+        "stageId": "act2",
+        "whatHappened": "米拉为了寻找能确认身份的记录或信物，进入藏有记录的场所搜查身份相关物证（目标：身份记录）",
+        "who": [
+          "H6",
+          "H7",
+          "H2",
+          "H3",
+          "H4"
+        ],
+        "why": "寻找能确认身份的记录或信物",
+        "consequence": "身份线索",
+        "eventOccurred": true,
+        "evidenceEffect": "NEUTRAL",
+        "claimTruth": "UNKNOWN",
+        "isMisleading": false,
+        "isTruth": true,
+        "needsDetail": false
+      },
+      {
+        "beatId": "ob-mto1p96o-unxb",
+        "stageId": "act2",
+        "whatHappened": "托尔为了在隐秘状态下夺取或销毁会暴露阵营的物证，派人潜入藏有记录的场所处理关键账册（目标：关键账册）",
+        "who": [
+          "H5",
+          "H7",
+          "H1",
+          "H2",
+          "H3",
+          "H4",
+          "H6"
+        ],
+        "why": "在隐秘状态下夺取或销毁会暴露阵营的物证",
+        "consequence": "阵营压力升级",
+        "eventOccurred": true,
+        "evidenceEffect": "NEUTRAL",
+        "claimTruth": "UNKNOWN",
+        "isMisleading": false,
+        "isTruth": true,
+        "needsDetail": false
+      },
+      {
+        "beatId": "ob-mto1p96o-x0kp",
+        "stageId": "act2",
+        "whatHappened": "米拉为了启用真实身份对应的权限，在揭示后启用权限表并验证资格（目标：真实身份）",
+        "who": [
+          "H6",
+          "H7",
+          "H2",
+          "H3",
+          "H4"
+        ],
+        "why": "启用真实身份对应的权限",
+        "consequence": "身份已确认；资格/权限状态；场所权限可能开放",
+        "eventOccurred": true,
+        "evidenceEffect": "SUPPORTING",
+        "claimTruth": "TRUE",
+        "isMisleading": false,
+        "isTruth": true,
+        "needsDetail": false
+      },
+      {
+        "beatId": "ob-mto1p96o-p5py",
+        "stageId": "act2",
+        "whatHappened": "诺娃为了确认真实身份并决定是否公开，核对身份线索并作出公开或隐瞒选择（目标：真实身份）",
+        "who": [
+          "H1",
+          "H2",
+          "H3",
+          "H4",
+          "H5"
+        ],
+        "why": "确认真实身份并决定是否公开",
+        "consequence": "身份已确认；家族/资格状态",
+        "eventOccurred": true,
+        "evidenceEffect": "SUPPORTING",
+        "claimTruth": "TRUE",
+        "isMisleading": false,
+        "isTruth": true,
+        "needsDetail": false
+      },
+      {
+        "beatId": "ob-mto1p96o-hk3y",
+        "stageId": "act2",
+        "whatHappened": "米拉为了承受身份公开后的关系后果，面对知情者与阵营/调查方的反应（目标：关系重组）",
+        "who": [
+          "H6",
+          "H7",
+          "H2",
+          "H3",
+          "H4"
+        ],
+        "why": "承受身份公开后的关系后果",
+        "consequence": "身份进入公开层",
+        "eventOccurred": true,
+        "evidenceEffect": "NEUTRAL",
+        "claimTruth": "UNKNOWN",
+        "isMisleading": false,
+        "isTruth": true,
+        "needsDetail": false
+      },
+      {
+        "beatId": "ob-mto1p96o-1z27",
+        "stageId": "act2",
+        "whatHappened": "诺娃为了承受身份公开后的关系后果，面对知情者与阵营/调查方的反应（目标：关系重组）",
+        "who": [
+          "H1",
+          "H2",
+          "H3",
+          "H4",
+          "H5"
+        ],
+        "why": "承受身份公开后的关系后果",
+        "consequence": "身份进入公开层",
+        "eventOccurred": true,
+        "evidenceEffect": "NEUTRAL",
+        "claimTruth": "UNKNOWN",
+        "isMisleading": false,
+        "isTruth": true,
+        "needsDetail": false
+      },
+      {
+        "beatId": "ob-mto1p96o-ppcb",
+        "stageId": "act3",
+        "whatHappened": "米拉为了在暴露风险下改归属或保住秘密，在关键选择点背叛、退出或清洗异己（目标：归属状态）",
+        "who": [
+          "H6",
+          "H5",
+          "H7",
+          "H1",
+          "H2",
+          "H3",
+          "H4"
+        ],
+        "why": "在暴露风险下改归属或保住秘密",
+        "consequence": "归属已改变；暴露风险上升",
+        "eventOccurred": true,
+        "evidenceEffect": "NEUTRAL",
+        "claimTruth": "UNKNOWN",
+        "isMisleading": false,
+        "isTruth": true,
+        "needsDetail": false
+      },
+      {
+        "beatId": "ob-mto1p96o-fgj9",
+        "stageId": "act4",
+        "whatHappened": "托尔为了结算阵营目标并承受公开后果，公开站队或接受阵营败露后的关系重排（目标：阵营胜负条件）",
+        "who": [
+          "H5",
+          "H7",
+          "H1",
+          "H2",
+          "H3",
+          "H4",
+          "H6"
+        ],
+        "why": "结算阵营目标并承受公开后果",
+        "consequence": "阵营线结算",
+        "eventOccurred": true,
+        "evidenceEffect": "NEUTRAL",
+        "claimTruth": "UNKNOWN",
+        "isMisleading": false,
+        "isTruth": true,
+        "needsDetail": false
+      }
+    ]
+  },
+  "characterViews": {
+    "characters": [
+      {
+        "characterId": "H1",
+        "name": "诺娃",
+        "stages": [
+          {
+            "stageId": "act1",
+            "contributions": [
+              {
+                "sourceBeatId": "beat-setup",
+                "sourceOutlineBeatId": "ob-mto1p96o-zq21",
+                "sourceBlockId": "smb-mto1p96n-iihg8",
+                "familyId": "M07",
+                "templateId": "M07-2",
+                "roleInBeat": "OWNER",
+                "goal": "隐藏或维持当前身份表象",
+                "action": "按伪装/未知状态行动，避免过早暴露",
+                "gainedInfo": "身份仍未公开",
+                "relationQuality": "INTERWOVEN",
+                "needsDetail": false
+              }
+            ],
+            "stageSummary": "隐藏或维持当前身份表象",
+            "knows": "本阶段主导行动：按伪装/未知状态行动，避免过早暴露",
+            "goal": "隐藏或维持当前身份表象",
+            "action": "按伪装/未知状态行动，避免过早暴露",
+            "relationChanges": [
+              "参与真正交织行动"
+            ],
+            "gainedInfo": "身份仍未公开",
+            "misunderstanding": "NEEDS_DETAIL",
+            "endChange": "身份仍未公开",
+            "needsDetail": false
+          },
+          {
+            "stageId": "act2",
+            "contributions": [
+              {
+                "sourceBeatId": "beat-develop",
+                "sourceOutlineBeatId": "ob-mto1p96o-y2yr",
+                "sourceBlockId": "smb-mto1p96n-iihg8",
+                "familyId": "M07",
+                "templateId": "M07-2",
+                "roleInBeat": "OWNER",
+                "goal": "用正式动作换取被条件锁住的信息",
+                "action": "完成登记条件以触发内容开放",
+                "gainedInfo": "条件开放的信息",
+                "relationQuality": "INTERWOVEN",
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-develop",
+                "sourceOutlineBeatId": "ob-mto1p96o-unxb",
+                "sourceBlockId": "smb-mto1p96o-a1e6d",
+                "familyId": "M08",
+                "templateId": "M08-2",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：托尔为了在隐秘状态下夺取或销毁会暴露阵营的物证，派人潜入藏有记录的场所处理关键账册（目标：关键账册）",
+                "gainedInfo": null,
+                "relationQuality": "INTERWOVEN",
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-climax",
+                "sourceOutlineBeatId": "ob-mto1p96o-p5py",
+                "sourceBlockId": "smb-mto1p96n-iihg8",
+                "familyId": "M07",
+                "templateId": "M07-2",
+                "roleInBeat": "OWNER",
+                "goal": "确认真实身份并决定是否公开",
+                "action": "核对身份线索并作出公开或隐瞒选择",
+                "gainedInfo": "身份已确认；家族/资格状态",
+                "relationQuality": "INTERWOVEN",
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-res",
+                "sourceOutlineBeatId": "ob-mto1p96o-1z27",
+                "sourceBlockId": "smb-mto1p96n-iihg8",
+                "familyId": "M07",
+                "templateId": "M07-2",
+                "roleInBeat": "OWNER",
+                "goal": "承受身份公开后的关系后果",
+                "action": "面对知情者与阵营/调查方的反应",
+                "gainedInfo": "身份进入公开层",
+                "relationQuality": "INTERWOVEN",
+                "needsDetail": false
+              }
+            ],
+            "stageSummary": "用正式动作换取被条件锁住的信息；确认真实身份并决定是否公开；承受身份公开后的关系后果",
+            "knows": "本阶段主导行动：完成登记条件以触发内容开放；核对身份线索并作出公开或隐瞒选择；面对知情者与阵营/调查方的反应",
+            "goal": "用正式动作换取被条件锁住的信息；确认真实身份并决定是否公开；承受身份公开后的关系后果",
+            "action": "完成登记条件以触发内容开放；核对身份线索并作出公开或隐瞒选择；面对知情者与阵营/调查方的反应",
+            "relationChanges": [
+              "参与真正交织行动"
+            ],
+            "gainedInfo": "条件开放的信息；身份已确认；家族/资格状态；身份进入公开层",
+            "misunderstanding": "NEEDS_DETAIL",
+            "endChange": "条件开放的信息；身份已确认；家族/资格状态；身份进入公开层",
+            "needsDetail": false
+          },
+          {
+            "stageId": "act3",
+            "contributions": [
+              {
+                "sourceBeatId": "beat-climax",
+                "sourceOutlineBeatId": "ob-mto1p96o-ppcb",
+                "sourceBlockId": "smb-mto1p96o-a1e6d",
+                "familyId": "M08",
+                "templateId": "M08-2",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：米拉为了在暴露风险下改归属或保住秘密，在关键选择点背叛、退出或清洗异己（目标：归属状态）",
+                "gainedInfo": null,
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              }
+            ],
+            "stageSummary": "本阶段无独立主目标（仅参与/对象）",
+            "knows": "本阶段主要为参与/对象，无主导公开行动摘要",
+            "goal": "本阶段无独立主目标（仅参与/对象）",
+            "action": "见 contributions（参与/对象）",
+            "relationChanges": [
+              "同场出现（非因果）"
+            ],
+            "gainedInfo": "NEEDS_DETAIL",
+            "misunderstanding": "NEEDS_DETAIL",
+            "endChange": "NEEDS_DETAIL",
+            "needsDetail": false
+          },
+          {
+            "stageId": "act4",
+            "contributions": [
+              {
+                "sourceBeatId": "beat-res",
+                "sourceOutlineBeatId": "ob-mto1p96o-fgj9",
+                "sourceBlockId": "smb-mto1p96o-a1e6d",
+                "familyId": "M08",
+                "templateId": "M08-2",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：托尔为了结算阵营目标并承受公开后果，公开站队或接受阵营败露后的关系重排（目标：阵营胜负条件）",
+                "gainedInfo": null,
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              }
+            ],
+            "stageSummary": "本阶段无独立主目标（仅参与/对象）",
+            "knows": "本阶段主要为参与/对象，无主导公开行动摘要",
+            "goal": "本阶段无独立主目标（仅参与/对象）",
+            "action": "见 contributions（参与/对象）",
+            "relationChanges": [
+              "同场出现（非因果）"
+            ],
+            "gainedInfo": "NEEDS_DETAIL",
+            "misunderstanding": "NEEDS_DETAIL",
+            "endChange": "NEEDS_DETAIL",
+            "needsDetail": false
+          }
+        ]
+      },
+      {
+        "characterId": "H2",
+        "name": "凯",
+        "stages": [
+          {
+            "stageId": "act1",
+            "contributions": [
+              {
+                "sourceBeatId": "beat-setup",
+                "sourceOutlineBeatId": "ob-mto1p96o-zq21",
+                "sourceBlockId": "smb-mto1p96n-iihg8",
+                "familyId": "M07",
+                "templateId": "M07-2",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：诺娃为了隐藏或维持当前身份表象，按伪装/未知状态行动，避免过早暴露（目标：身份表象）",
+                "gainedInfo": null,
+                "relationQuality": "INTERWOVEN",
+                "needsDetail": false
+              }
+            ],
+            "stageSummary": "本阶段无独立主目标（仅参与/对象）",
+            "knows": "本阶段主要为参与/对象，无主导公开行动摘要",
+            "goal": "本阶段无独立主目标（仅参与/对象）",
+            "action": "见 contributions（参与/对象）",
+            "relationChanges": [],
+            "gainedInfo": "NEEDS_DETAIL",
+            "misunderstanding": "NEEDS_DETAIL",
+            "endChange": "NEEDS_DETAIL",
+            "needsDetail": false
+          },
+          {
+            "stageId": "act2",
+            "contributions": [
+              {
+                "sourceBeatId": "beat-develop",
+                "sourceOutlineBeatId": "ob-mto1p96o-y2yr",
+                "sourceBlockId": "smb-mto1p96n-iihg8",
+                "familyId": "M07",
+                "templateId": "M07-2",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：诺娃为了用正式动作换取被条件锁住的信息，完成登记条件以触发内容开放（目标：身份记录）",
+                "gainedInfo": null,
+                "relationQuality": "INTERWOVEN",
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-develop",
+                "sourceOutlineBeatId": "ob-mto1p96o-d00b",
+                "sourceBlockId": "smb-mto1p96n-9gdrc",
+                "familyId": "M07",
+                "templateId": "M07-5",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：米拉为了寻找能确认身份的记录或信物，进入藏有记录的场所搜查身份相关物证（目标：身份记录）",
+                "gainedInfo": null,
+                "relationQuality": "INTERWOVEN",
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-develop",
+                "sourceOutlineBeatId": "ob-mto1p96o-unxb",
+                "sourceBlockId": "smb-mto1p96o-a1e6d",
+                "familyId": "M08",
+                "templateId": "M08-2",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：托尔为了在隐秘状态下夺取或销毁会暴露阵营的物证，派人潜入藏有记录的场所处理关键账册（目标：关键账册）",
+                "gainedInfo": null,
+                "relationQuality": "INTERWOVEN",
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-climax",
+                "sourceOutlineBeatId": "ob-mto1p96o-x0kp",
+                "sourceBlockId": "smb-mto1p96n-9gdrc",
+                "familyId": "M07",
+                "templateId": "M07-5",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：米拉为了启用真实身份对应的权限，在揭示后启用权限表并验证资格（目标：真实身份）",
+                "gainedInfo": null,
+                "relationQuality": "INTERWOVEN",
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-climax",
+                "sourceOutlineBeatId": "ob-mto1p96o-p5py",
+                "sourceBlockId": "smb-mto1p96n-iihg8",
+                "familyId": "M07",
+                "templateId": "M07-2",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：诺娃为了确认真实身份并决定是否公开，核对身份线索并作出公开或隐瞒选择（目标：真实身份）",
+                "gainedInfo": null,
+                "relationQuality": "INTERWOVEN",
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-res",
+                "sourceOutlineBeatId": "ob-mto1p96o-hk3y",
+                "sourceBlockId": "smb-mto1p96n-9gdrc",
+                "familyId": "M07",
+                "templateId": "M07-5",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：米拉为了承受身份公开后的关系后果，面对知情者与阵营/调查方的反应（目标：关系重组）",
+                "gainedInfo": null,
+                "relationQuality": "INTERWOVEN",
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-res",
+                "sourceOutlineBeatId": "ob-mto1p96o-1z27",
+                "sourceBlockId": "smb-mto1p96n-iihg8",
+                "familyId": "M07",
+                "templateId": "M07-2",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：诺娃为了承受身份公开后的关系后果，面对知情者与阵营/调查方的反应（目标：关系重组）",
+                "gainedInfo": null,
+                "relationQuality": "INTERWOVEN",
+                "needsDetail": false
+              }
+            ],
+            "stageSummary": "本阶段无独立主目标（仅参与/对象）",
+            "knows": "本阶段主要为参与/对象，无主导公开行动摘要",
+            "goal": "本阶段无独立主目标（仅参与/对象）",
+            "action": "见 contributions（参与/对象）",
+            "relationChanges": [],
+            "gainedInfo": "NEEDS_DETAIL",
+            "misunderstanding": "NEEDS_DETAIL",
+            "endChange": "NEEDS_DETAIL",
+            "needsDetail": false
+          },
+          {
+            "stageId": "act3",
+            "contributions": [
+              {
+                "sourceBeatId": "beat-climax",
+                "sourceOutlineBeatId": "ob-mto1p96o-ppcb",
+                "sourceBlockId": "smb-mto1p96o-a1e6d",
+                "familyId": "M08",
+                "templateId": "M08-2",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：米拉为了在暴露风险下改归属或保住秘密，在关键选择点背叛、退出或清洗异己（目标：归属状态）",
+                "gainedInfo": null,
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              }
+            ],
+            "stageSummary": "本阶段无独立主目标（仅参与/对象）",
+            "knows": "本阶段主要为参与/对象，无主导公开行动摘要",
+            "goal": "本阶段无独立主目标（仅参与/对象）",
+            "action": "见 contributions（参与/对象）",
+            "relationChanges": [
+              "同场出现（非因果）"
+            ],
+            "gainedInfo": "NEEDS_DETAIL",
+            "misunderstanding": "NEEDS_DETAIL",
+            "endChange": "NEEDS_DETAIL",
+            "needsDetail": false
+          },
+          {
+            "stageId": "act4",
+            "contributions": [
+              {
+                "sourceBeatId": "beat-res",
+                "sourceOutlineBeatId": "ob-mto1p96o-fgj9",
+                "sourceBlockId": "smb-mto1p96o-a1e6d",
+                "familyId": "M08",
+                "templateId": "M08-2",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：托尔为了结算阵营目标并承受公开后果，公开站队或接受阵营败露后的关系重排（目标：阵营胜负条件）",
+                "gainedInfo": null,
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              }
+            ],
+            "stageSummary": "本阶段无独立主目标（仅参与/对象）",
+            "knows": "本阶段主要为参与/对象，无主导公开行动摘要",
+            "goal": "本阶段无独立主目标（仅参与/对象）",
+            "action": "见 contributions（参与/对象）",
+            "relationChanges": [
+              "同场出现（非因果）"
+            ],
+            "gainedInfo": "NEEDS_DETAIL",
+            "misunderstanding": "NEEDS_DETAIL",
+            "endChange": "NEEDS_DETAIL",
+            "needsDetail": false
+          }
+        ]
+      },
+      {
+        "characterId": "H6",
+        "name": "米拉",
+        "stages": [
+          {
+            "stageId": "act1",
+            "contributions": [
+              {
+                "sourceBeatId": "beat-setup",
+                "sourceOutlineBeatId": "ob-mto1p96o-8mdu",
+                "sourceBlockId": "smb-mto1p96n-9gdrc",
+                "familyId": "M07",
+                "templateId": "M07-5",
+                "roleInBeat": "OWNER",
+                "goal": "隐藏或维持当前身份表象",
+                "action": "按伪装/未知状态行动，避免过早暴露",
+                "gainedInfo": "身份仍未公开",
+                "relationQuality": "INTERWOVEN",
+                "needsDetail": false
+              }
+            ],
+            "stageSummary": "隐藏或维持当前身份表象",
+            "knows": "本阶段主导行动：按伪装/未知状态行动，避免过早暴露",
+            "goal": "隐藏或维持当前身份表象",
+            "action": "按伪装/未知状态行动，避免过早暴露",
+            "relationChanges": [
+              "参与真正交织行动"
+            ],
+            "gainedInfo": "身份仍未公开",
+            "misunderstanding": "NEEDS_DETAIL",
+            "endChange": "身份仍未公开",
+            "needsDetail": false
+          },
+          {
+            "stageId": "act2",
+            "contributions": [
+              {
+                "sourceBeatId": "beat-develop",
+                "sourceOutlineBeatId": "ob-mto1p96o-d00b",
+                "sourceBlockId": "smb-mto1p96n-9gdrc",
+                "familyId": "M07",
+                "templateId": "M07-5",
+                "roleInBeat": "OWNER",
+                "goal": "寻找能确认身份的记录或信物",
+                "action": "进入藏有记录的场所搜查身份相关物证",
+                "gainedInfo": "身份线索",
+                "relationQuality": "INTERWOVEN",
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-develop",
+                "sourceOutlineBeatId": "ob-mto1p96o-unxb",
+                "sourceBlockId": "smb-mto1p96o-a1e6d",
+                "familyId": "M08",
+                "templateId": "M08-2",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：托尔为了在隐秘状态下夺取或销毁会暴露阵营的物证，派人潜入藏有记录的场所处理关键账册（目标：关键账册）",
+                "gainedInfo": null,
+                "relationQuality": "INTERWOVEN",
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-climax",
+                "sourceOutlineBeatId": "ob-mto1p96o-x0kp",
+                "sourceBlockId": "smb-mto1p96n-9gdrc",
+                "familyId": "M07",
+                "templateId": "M07-5",
+                "roleInBeat": "OWNER",
+                "goal": "启用真实身份对应的权限",
+                "action": "在揭示后启用权限表并验证资格",
+                "gainedInfo": "身份已确认；资格/权限状态；场所权限可能开放",
+                "relationQuality": "INTERWOVEN",
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-res",
+                "sourceOutlineBeatId": "ob-mto1p96o-hk3y",
+                "sourceBlockId": "smb-mto1p96n-9gdrc",
+                "familyId": "M07",
+                "templateId": "M07-5",
+                "roleInBeat": "OWNER",
+                "goal": "承受身份公开后的关系后果",
+                "action": "面对知情者与阵营/调查方的反应",
+                "gainedInfo": "身份进入公开层",
+                "relationQuality": "INTERWOVEN",
+                "needsDetail": false
+              }
+            ],
+            "stageSummary": "寻找能确认身份的记录或信物；启用真实身份对应的权限；承受身份公开后的关系后果",
+            "knows": "本阶段主导行动：进入藏有记录的场所搜查身份相关物证；在揭示后启用权限表并验证资格；面对知情者与阵营/调查方的反应",
+            "goal": "寻找能确认身份的记录或信物；启用真实身份对应的权限；承受身份公开后的关系后果",
+            "action": "进入藏有记录的场所搜查身份相关物证；在揭示后启用权限表并验证资格；面对知情者与阵营/调查方的反应",
+            "relationChanges": [
+              "参与真正交织行动"
+            ],
+            "gainedInfo": "身份线索；身份已确认；资格/权限状态；场所权限可能开放；身份进入公开层",
+            "misunderstanding": "NEEDS_DETAIL",
+            "endChange": "身份线索；身份已确认；资格/权限状态；场所权限可能开放；身份进入公开层",
+            "needsDetail": false
+          },
+          {
+            "stageId": "act3",
+            "contributions": [
+              {
+                "sourceBeatId": "beat-climax",
+                "sourceOutlineBeatId": "ob-mto1p96o-ppcb",
+                "sourceBlockId": "smb-mto1p96o-a1e6d",
+                "familyId": "M08",
+                "templateId": "M08-2",
+                "roleInBeat": "OWNER",
+                "goal": "在暴露风险下改归属或保住秘密",
+                "action": "在关键选择点背叛、退出或清洗异己",
+                "gainedInfo": "归属已改变；暴露风险上升",
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              }
+            ],
+            "stageSummary": "在暴露风险下改归属或保住秘密",
+            "knows": "本阶段主导行动：在关键选择点背叛、退出或清洗异己",
+            "goal": "在暴露风险下改归属或保住秘密",
+            "action": "在关键选择点背叛、退出或清洗异己",
+            "relationChanges": [
+              "同场出现（非因果）"
+            ],
+            "gainedInfo": "归属已改变；暴露风险上升",
+            "misunderstanding": "NEEDS_DETAIL",
+            "endChange": "归属已改变；暴露风险上升",
+            "needsDetail": false
+          },
+          {
+            "stageId": "act4",
+            "contributions": [
+              {
+                "sourceBeatId": "beat-res",
+                "sourceOutlineBeatId": "ob-mto1p96o-fgj9",
+                "sourceBlockId": "smb-mto1p96o-a1e6d",
+                "familyId": "M08",
+                "templateId": "M08-2",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：托尔为了结算阵营目标并承受公开后果，公开站队或接受阵营败露后的关系重排（目标：阵营胜负条件）",
+                "gainedInfo": null,
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              }
+            ],
+            "stageSummary": "本阶段无独立主目标（仅参与/对象）",
+            "knows": "本阶段主要为参与/对象，无主导公开行动摘要",
+            "goal": "本阶段无独立主目标（仅参与/对象）",
+            "action": "见 contributions（参与/对象）",
+            "relationChanges": [
+              "同场出现（非因果）"
+            ],
+            "gainedInfo": "NEEDS_DETAIL",
+            "misunderstanding": "NEEDS_DETAIL",
+            "endChange": "NEEDS_DETAIL",
+            "needsDetail": false
+          }
+        ]
+      },
+      {
+        "characterId": "H7",
+        "name": "森",
+        "stages": [
+          {
+            "stageId": "act1",
+            "contributions": [
+              {
+                "sourceBeatId": "beat-setup",
+                "sourceOutlineBeatId": "ob-mto1p96o-8mdu",
+                "sourceBlockId": "smb-mto1p96n-9gdrc",
+                "familyId": "M07",
+                "templateId": "M07-5",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：米拉为了隐藏或维持当前身份表象，按伪装/未知状态行动，避免过早暴露（目标：身份表象）",
+                "gainedInfo": null,
+                "relationQuality": "INTERWOVEN",
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-setup",
+                "sourceOutlineBeatId": "ob-mto1p96o-0awh",
+                "sourceBlockId": "smb-mto1p96o-a1e6d",
+                "familyId": "M08",
+                "templateId": "M08-2",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：托尔为了维持隐营互认且不被外人察觉，确认成员知情范围与联络方式（目标：阵营名单/暗号）",
+                "gainedInfo": null,
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              }
+            ],
+            "stageSummary": "本阶段无独立主目标（仅参与/对象）",
+            "knows": "本阶段主要为参与/对象，无主导公开行动摘要",
+            "goal": "本阶段无独立主目标（仅参与/对象）",
+            "action": "见 contributions（参与/对象）",
+            "relationChanges": [
+              "同场出现（非因果）"
+            ],
+            "gainedInfo": "NEEDS_DETAIL",
+            "misunderstanding": "NEEDS_DETAIL",
+            "endChange": "NEEDS_DETAIL",
+            "needsDetail": false
+          },
+          {
+            "stageId": "act2",
+            "contributions": [
+              {
+                "sourceBeatId": "beat-develop",
+                "sourceOutlineBeatId": "ob-mto1p96o-d00b",
+                "sourceBlockId": "smb-mto1p96n-9gdrc",
+                "familyId": "M07",
+                "templateId": "M07-5",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：米拉为了寻找能确认身份的记录或信物，进入藏有记录的场所搜查身份相关物证（目标：身份记录）",
+                "gainedInfo": null,
+                "relationQuality": "INTERWOVEN",
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-develop",
+                "sourceOutlineBeatId": "ob-mto1p96o-unxb",
+                "sourceBlockId": "smb-mto1p96o-a1e6d",
+                "familyId": "M08",
+                "templateId": "M08-2",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：托尔为了在隐秘状态下夺取或销毁会暴露阵营的物证，派人潜入藏有记录的场所处理关键账册（目标：关键账册）",
+                "gainedInfo": null,
+                "relationQuality": "INTERWOVEN",
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-climax",
+                "sourceOutlineBeatId": "ob-mto1p96o-x0kp",
+                "sourceBlockId": "smb-mto1p96n-9gdrc",
+                "familyId": "M07",
+                "templateId": "M07-5",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：米拉为了启用真实身份对应的权限，在揭示后启用权限表并验证资格（目标：真实身份）",
+                "gainedInfo": null,
+                "relationQuality": "INTERWOVEN",
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-res",
+                "sourceOutlineBeatId": "ob-mto1p96o-hk3y",
+                "sourceBlockId": "smb-mto1p96n-9gdrc",
+                "familyId": "M07",
+                "templateId": "M07-5",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：米拉为了承受身份公开后的关系后果，面对知情者与阵营/调查方的反应（目标：关系重组）",
+                "gainedInfo": null,
+                "relationQuality": "INTERWOVEN",
+                "needsDetail": false
+              }
+            ],
+            "stageSummary": "本阶段无独立主目标（仅参与/对象）",
+            "knows": "本阶段主要为参与/对象，无主导公开行动摘要",
+            "goal": "本阶段无独立主目标（仅参与/对象）",
+            "action": "见 contributions（参与/对象）",
+            "relationChanges": [],
+            "gainedInfo": "NEEDS_DETAIL",
+            "misunderstanding": "NEEDS_DETAIL",
+            "endChange": "NEEDS_DETAIL",
+            "needsDetail": false
+          },
+          {
+            "stageId": "act3",
+            "contributions": [
+              {
+                "sourceBeatId": "beat-climax",
+                "sourceOutlineBeatId": "ob-mto1p96o-ppcb",
+                "sourceBlockId": "smb-mto1p96o-a1e6d",
+                "familyId": "M08",
+                "templateId": "M08-2",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：米拉为了在暴露风险下改归属或保住秘密，在关键选择点背叛、退出或清洗异己（目标：归属状态）",
+                "gainedInfo": null,
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              }
+            ],
+            "stageSummary": "本阶段无独立主目标（仅参与/对象）",
+            "knows": "本阶段主要为参与/对象，无主导公开行动摘要",
+            "goal": "本阶段无独立主目标（仅参与/对象）",
+            "action": "见 contributions（参与/对象）",
+            "relationChanges": [
+              "同场出现（非因果）"
+            ],
+            "gainedInfo": "NEEDS_DETAIL",
+            "misunderstanding": "NEEDS_DETAIL",
+            "endChange": "NEEDS_DETAIL",
+            "needsDetail": false
+          },
+          {
+            "stageId": "act4",
+            "contributions": [
+              {
+                "sourceBeatId": "beat-res",
+                "sourceOutlineBeatId": "ob-mto1p96o-fgj9",
+                "sourceBlockId": "smb-mto1p96o-a1e6d",
+                "familyId": "M08",
+                "templateId": "M08-2",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：托尔为了结算阵营目标并承受公开后果，公开站队或接受阵营败露后的关系重排（目标：阵营胜负条件）",
+                "gainedInfo": null,
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              }
+            ],
+            "stageSummary": "本阶段无独立主目标（仅参与/对象）",
+            "knows": "本阶段主要为参与/对象，无主导公开行动摘要",
+            "goal": "本阶段无独立主目标（仅参与/对象）",
+            "action": "见 contributions（参与/对象）",
+            "relationChanges": [
+              "同场出现（非因果）"
+            ],
+            "gainedInfo": "NEEDS_DETAIL",
+            "misunderstanding": "NEEDS_DETAIL",
+            "endChange": "NEEDS_DETAIL",
+            "needsDetail": false
+          }
+        ]
+      },
+      {
+        "characterId": "H5",
+        "name": "托尔",
+        "stages": [
+          {
+            "stageId": "act1",
+            "contributions": [
+              {
+                "sourceBeatId": "beat-setup",
+                "sourceOutlineBeatId": "ob-mto1p96o-0awh",
+                "sourceBlockId": "smb-mto1p96o-a1e6d",
+                "familyId": "M08",
+                "templateId": "M08-2",
+                "roleInBeat": "OWNER",
+                "goal": "维持隐营互认且不被外人察觉",
+                "action": "确认成员知情范围与联络方式",
+                "gainedInfo": "阵营结构已成形",
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              }
+            ],
+            "stageSummary": "维持隐营互认且不被外人察觉",
+            "knows": "本阶段主导行动：确认成员知情范围与联络方式",
+            "goal": "维持隐营互认且不被外人察觉",
+            "action": "确认成员知情范围与联络方式",
+            "relationChanges": [
+              "同场出现（非因果）"
+            ],
+            "gainedInfo": "阵营结构已成形",
+            "misunderstanding": "NEEDS_DETAIL",
+            "endChange": "阵营结构已成形",
+            "needsDetail": false
+          },
+          {
+            "stageId": "act2",
+            "contributions": [
+              {
+                "sourceBeatId": "beat-develop",
+                "sourceOutlineBeatId": "ob-mto1p96o-y2yr",
+                "sourceBlockId": "smb-mto1p96n-iihg8",
+                "familyId": "M07",
+                "templateId": "M07-2",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：诺娃为了用正式动作换取被条件锁住的信息，完成登记条件以触发内容开放（目标：身份记录）",
+                "gainedInfo": null,
+                "relationQuality": "INTERWOVEN",
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-develop",
+                "sourceOutlineBeatId": "ob-mto1p96o-unxb",
+                "sourceBlockId": "smb-mto1p96o-a1e6d",
+                "familyId": "M08",
+                "templateId": "M08-2",
+                "roleInBeat": "OWNER",
+                "goal": "在隐秘状态下夺取或销毁会暴露阵营的物证",
+                "action": "派人潜入藏有记录的场所处理关键账册",
+                "gainedInfo": "阵营压力升级",
+                "relationQuality": "INTERWOVEN",
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-climax",
+                "sourceOutlineBeatId": "ob-mto1p96o-p5py",
+                "sourceBlockId": "smb-mto1p96n-iihg8",
+                "familyId": "M07",
+                "templateId": "M07-2",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：诺娃为了确认真实身份并决定是否公开，核对身份线索并作出公开或隐瞒选择（目标：真实身份）",
+                "gainedInfo": null,
+                "relationQuality": "INTERWOVEN",
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-res",
+                "sourceOutlineBeatId": "ob-mto1p96o-1z27",
+                "sourceBlockId": "smb-mto1p96n-iihg8",
+                "familyId": "M07",
+                "templateId": "M07-2",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：诺娃为了承受身份公开后的关系后果，面对知情者与阵营/调查方的反应（目标：关系重组）",
+                "gainedInfo": null,
+                "relationQuality": "INTERWOVEN",
+                "needsDetail": false
+              }
+            ],
+            "stageSummary": "在隐秘状态下夺取或销毁会暴露阵营的物证",
+            "knows": "本阶段主导行动：派人潜入藏有记录的场所处理关键账册",
+            "goal": "在隐秘状态下夺取或销毁会暴露阵营的物证",
+            "action": "派人潜入藏有记录的场所处理关键账册",
+            "relationChanges": [
+              "参与真正交织行动"
+            ],
+            "gainedInfo": "阵营压力升级",
+            "misunderstanding": "NEEDS_DETAIL",
+            "endChange": "阵营压力升级",
+            "needsDetail": false
+          },
+          {
+            "stageId": "act3",
+            "contributions": [
+              {
+                "sourceBeatId": "beat-climax",
+                "sourceOutlineBeatId": "ob-mto1p96o-ppcb",
+                "sourceBlockId": "smb-mto1p96o-a1e6d",
+                "familyId": "M08",
+                "templateId": "M08-2",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：米拉为了在暴露风险下改归属或保住秘密，在关键选择点背叛、退出或清洗异己（目标：归属状态）",
+                "gainedInfo": null,
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              }
+            ],
+            "stageSummary": "本阶段无独立主目标（仅参与/对象）",
+            "knows": "本阶段主要为参与/对象，无主导公开行动摘要",
+            "goal": "本阶段无独立主目标（仅参与/对象）",
+            "action": "见 contributions（参与/对象）",
+            "relationChanges": [
+              "同场出现（非因果）"
+            ],
+            "gainedInfo": "NEEDS_DETAIL",
+            "misunderstanding": "NEEDS_DETAIL",
+            "endChange": "NEEDS_DETAIL",
+            "needsDetail": false
+          },
+          {
+            "stageId": "act4",
+            "contributions": [
+              {
+                "sourceBeatId": "beat-res",
+                "sourceOutlineBeatId": "ob-mto1p96o-fgj9",
+                "sourceBlockId": "smb-mto1p96o-a1e6d",
+                "familyId": "M08",
+                "templateId": "M08-2",
+                "roleInBeat": "OWNER",
+                "goal": "结算阵营目标并承受公开后果",
+                "action": "公开站队或接受阵营败露后的关系重排",
+                "gainedInfo": "阵营线结算",
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              }
+            ],
+            "stageSummary": "结算阵营目标并承受公开后果",
+            "knows": "本阶段主导行动：公开站队或接受阵营败露后的关系重排",
+            "goal": "结算阵营目标并承受公开后果",
+            "action": "公开站队或接受阵营败露后的关系重排",
+            "relationChanges": [
+              "同场出现（非因果）"
+            ],
+            "gainedInfo": "阵营线结算",
+            "misunderstanding": "NEEDS_DETAIL",
+            "endChange": "阵营线结算",
+            "needsDetail": false
+          }
+        ]
+      },
+      {
+        "characterId": "H3",
+        "name": "伊蕾",
+        "stages": [
+          {
+            "stageId": "act2",
+            "contributions": [
+              {
+                "sourceBeatId": "beat-develop",
+                "sourceOutlineBeatId": "ob-mto1p96o-y2yr",
+                "sourceBlockId": "smb-mto1p96n-iihg8",
+                "familyId": "M07",
+                "templateId": "M07-2",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：诺娃为了用正式动作换取被条件锁住的信息，完成登记条件以触发内容开放（目标：身份记录）",
+                "gainedInfo": null,
+                "relationQuality": "INTERWOVEN",
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-develop",
+                "sourceOutlineBeatId": "ob-mto1p96o-d00b",
+                "sourceBlockId": "smb-mto1p96n-9gdrc",
+                "familyId": "M07",
+                "templateId": "M07-5",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：米拉为了寻找能确认身份的记录或信物，进入藏有记录的场所搜查身份相关物证（目标：身份记录）",
+                "gainedInfo": null,
+                "relationQuality": "INTERWOVEN",
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-develop",
+                "sourceOutlineBeatId": "ob-mto1p96o-unxb",
+                "sourceBlockId": "smb-mto1p96o-a1e6d",
+                "familyId": "M08",
+                "templateId": "M08-2",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：托尔为了在隐秘状态下夺取或销毁会暴露阵营的物证，派人潜入藏有记录的场所处理关键账册（目标：关键账册）",
+                "gainedInfo": null,
+                "relationQuality": "INTERWOVEN",
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-climax",
+                "sourceOutlineBeatId": "ob-mto1p96o-x0kp",
+                "sourceBlockId": "smb-mto1p96n-9gdrc",
+                "familyId": "M07",
+                "templateId": "M07-5",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：米拉为了启用真实身份对应的权限，在揭示后启用权限表并验证资格（目标：真实身份）",
+                "gainedInfo": null,
+                "relationQuality": "INTERWOVEN",
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-climax",
+                "sourceOutlineBeatId": "ob-mto1p96o-p5py",
+                "sourceBlockId": "smb-mto1p96n-iihg8",
+                "familyId": "M07",
+                "templateId": "M07-2",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：诺娃为了确认真实身份并决定是否公开，核对身份线索并作出公开或隐瞒选择（目标：真实身份）",
+                "gainedInfo": null,
+                "relationQuality": "INTERWOVEN",
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-res",
+                "sourceOutlineBeatId": "ob-mto1p96o-hk3y",
+                "sourceBlockId": "smb-mto1p96n-9gdrc",
+                "familyId": "M07",
+                "templateId": "M07-5",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：米拉为了承受身份公开后的关系后果，面对知情者与阵营/调查方的反应（目标：关系重组）",
+                "gainedInfo": null,
+                "relationQuality": "INTERWOVEN",
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-res",
+                "sourceOutlineBeatId": "ob-mto1p96o-1z27",
+                "sourceBlockId": "smb-mto1p96n-iihg8",
+                "familyId": "M07",
+                "templateId": "M07-2",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：诺娃为了承受身份公开后的关系后果，面对知情者与阵营/调查方的反应（目标：关系重组）",
+                "gainedInfo": null,
+                "relationQuality": "INTERWOVEN",
+                "needsDetail": false
+              }
+            ],
+            "stageSummary": "本阶段无独立主目标（仅参与/对象）",
+            "knows": "本阶段主要为参与/对象，无主导公开行动摘要",
+            "goal": "本阶段无独立主目标（仅参与/对象）",
+            "action": "见 contributions（参与/对象）",
+            "relationChanges": [],
+            "gainedInfo": "NEEDS_DETAIL",
+            "misunderstanding": "NEEDS_DETAIL",
+            "endChange": "NEEDS_DETAIL",
+            "needsDetail": false
+          },
+          {
+            "stageId": "act3",
+            "contributions": [
+              {
+                "sourceBeatId": "beat-climax",
+                "sourceOutlineBeatId": "ob-mto1p96o-ppcb",
+                "sourceBlockId": "smb-mto1p96o-a1e6d",
+                "familyId": "M08",
+                "templateId": "M08-2",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：米拉为了在暴露风险下改归属或保住秘密，在关键选择点背叛、退出或清洗异己（目标：归属状态）",
+                "gainedInfo": null,
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              }
+            ],
+            "stageSummary": "本阶段无独立主目标（仅参与/对象）",
+            "knows": "本阶段主要为参与/对象，无主导公开行动摘要",
+            "goal": "本阶段无独立主目标（仅参与/对象）",
+            "action": "见 contributions（参与/对象）",
+            "relationChanges": [
+              "同场出现（非因果）"
+            ],
+            "gainedInfo": "NEEDS_DETAIL",
+            "misunderstanding": "NEEDS_DETAIL",
+            "endChange": "NEEDS_DETAIL",
+            "needsDetail": false
+          },
+          {
+            "stageId": "act4",
+            "contributions": [
+              {
+                "sourceBeatId": "beat-res",
+                "sourceOutlineBeatId": "ob-mto1p96o-fgj9",
+                "sourceBlockId": "smb-mto1p96o-a1e6d",
+                "familyId": "M08",
+                "templateId": "M08-2",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：托尔为了结算阵营目标并承受公开后果，公开站队或接受阵营败露后的关系重排（目标：阵营胜负条件）",
+                "gainedInfo": null,
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              }
+            ],
+            "stageSummary": "本阶段无独立主目标（仅参与/对象）",
+            "knows": "本阶段主要为参与/对象，无主导公开行动摘要",
+            "goal": "本阶段无独立主目标（仅参与/对象）",
+            "action": "见 contributions（参与/对象）",
+            "relationChanges": [
+              "同场出现（非因果）"
+            ],
+            "gainedInfo": "NEEDS_DETAIL",
+            "misunderstanding": "NEEDS_DETAIL",
+            "endChange": "NEEDS_DETAIL",
+            "needsDetail": false
+          }
+        ]
+      },
+      {
+        "characterId": "H4",
+        "name": "芮安",
+        "stages": [
+          {
+            "stageId": "act2",
+            "contributions": [
+              {
+                "sourceBeatId": "beat-develop",
+                "sourceOutlineBeatId": "ob-mto1p96o-y2yr",
+                "sourceBlockId": "smb-mto1p96n-iihg8",
+                "familyId": "M07",
+                "templateId": "M07-2",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：诺娃为了用正式动作换取被条件锁住的信息，完成登记条件以触发内容开放（目标：身份记录）",
+                "gainedInfo": null,
+                "relationQuality": "INTERWOVEN",
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-develop",
+                "sourceOutlineBeatId": "ob-mto1p96o-d00b",
+                "sourceBlockId": "smb-mto1p96n-9gdrc",
+                "familyId": "M07",
+                "templateId": "M07-5",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：米拉为了寻找能确认身份的记录或信物，进入藏有记录的场所搜查身份相关物证（目标：身份记录）",
+                "gainedInfo": null,
+                "relationQuality": "INTERWOVEN",
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-develop",
+                "sourceOutlineBeatId": "ob-mto1p96o-unxb",
+                "sourceBlockId": "smb-mto1p96o-a1e6d",
+                "familyId": "M08",
+                "templateId": "M08-2",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：托尔为了在隐秘状态下夺取或销毁会暴露阵营的物证，派人潜入藏有记录的场所处理关键账册（目标：关键账册）",
+                "gainedInfo": null,
+                "relationQuality": "INTERWOVEN",
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-climax",
+                "sourceOutlineBeatId": "ob-mto1p96o-x0kp",
+                "sourceBlockId": "smb-mto1p96n-9gdrc",
+                "familyId": "M07",
+                "templateId": "M07-5",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：米拉为了启用真实身份对应的权限，在揭示后启用权限表并验证资格（目标：真实身份）",
+                "gainedInfo": null,
+                "relationQuality": "INTERWOVEN",
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-climax",
+                "sourceOutlineBeatId": "ob-mto1p96o-p5py",
+                "sourceBlockId": "smb-mto1p96n-iihg8",
+                "familyId": "M07",
+                "templateId": "M07-2",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：诺娃为了确认真实身份并决定是否公开，核对身份线索并作出公开或隐瞒选择（目标：真实身份）",
+                "gainedInfo": null,
+                "relationQuality": "INTERWOVEN",
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-res",
+                "sourceOutlineBeatId": "ob-mto1p96o-hk3y",
+                "sourceBlockId": "smb-mto1p96n-9gdrc",
+                "familyId": "M07",
+                "templateId": "M07-5",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：米拉为了承受身份公开后的关系后果，面对知情者与阵营/调查方的反应（目标：关系重组）",
+                "gainedInfo": null,
+                "relationQuality": "INTERWOVEN",
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-res",
+                "sourceOutlineBeatId": "ob-mto1p96o-1z27",
+                "sourceBlockId": "smb-mto1p96n-iihg8",
+                "familyId": "M07",
+                "templateId": "M07-2",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：诺娃为了承受身份公开后的关系后果，面对知情者与阵营/调查方的反应（目标：关系重组）",
+                "gainedInfo": null,
+                "relationQuality": "INTERWOVEN",
+                "needsDetail": false
+              }
+            ],
+            "stageSummary": "本阶段无独立主目标（仅参与/对象）",
+            "knows": "本阶段主要为参与/对象，无主导公开行动摘要",
+            "goal": "本阶段无独立主目标（仅参与/对象）",
+            "action": "见 contributions（参与/对象）",
+            "relationChanges": [],
+            "gainedInfo": "NEEDS_DETAIL",
+            "misunderstanding": "NEEDS_DETAIL",
+            "endChange": "NEEDS_DETAIL",
+            "needsDetail": false
+          },
+          {
+            "stageId": "act3",
+            "contributions": [
+              {
+                "sourceBeatId": "beat-climax",
+                "sourceOutlineBeatId": "ob-mto1p96o-ppcb",
+                "sourceBlockId": "smb-mto1p96o-a1e6d",
+                "familyId": "M08",
+                "templateId": "M08-2",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：米拉为了在暴露风险下改归属或保住秘密，在关键选择点背叛、退出或清洗异己（目标：归属状态）",
+                "gainedInfo": null,
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              }
+            ],
+            "stageSummary": "本阶段无独立主目标（仅参与/对象）",
+            "knows": "本阶段主要为参与/对象，无主导公开行动摘要",
+            "goal": "本阶段无独立主目标（仅参与/对象）",
+            "action": "见 contributions（参与/对象）",
+            "relationChanges": [
+              "同场出现（非因果）"
+            ],
+            "gainedInfo": "NEEDS_DETAIL",
+            "misunderstanding": "NEEDS_DETAIL",
+            "endChange": "NEEDS_DETAIL",
+            "needsDetail": false
+          },
+          {
+            "stageId": "act4",
+            "contributions": [
+              {
+                "sourceBeatId": "beat-res",
+                "sourceOutlineBeatId": "ob-mto1p96o-fgj9",
+                "sourceBlockId": "smb-mto1p96o-a1e6d",
+                "familyId": "M08",
+                "templateId": "M08-2",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：托尔为了结算阵营目标并承受公开后果，公开站队或接受阵营败露后的关系重排（目标：阵营胜负条件）",
+                "gainedInfo": null,
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              }
+            ],
+            "stageSummary": "本阶段无独立主目标（仅参与/对象）",
+            "knows": "本阶段主要为参与/对象，无主导公开行动摘要",
+            "goal": "本阶段无独立主目标（仅参与/对象）",
+            "action": "见 contributions（参与/对象）",
+            "relationChanges": [
+              "同场出现（非因果）"
+            ],
+            "gainedInfo": "NEEDS_DETAIL",
+            "misunderstanding": "NEEDS_DETAIL",
+            "endChange": "NEEDS_DETAIL",
+            "needsDetail": false
+          }
+        ]
+      }
+    ]
+  },
+  "clueView": {
+    "clues": [
+      {
+        "clueId": "smb-mto1p96n-iihg8-foreshadow-0",
+        "label": "早期伏笔",
+        "mechanismId": "smb-mto1p96n-iihg8",
+        "templateId": "M07-2",
+        "introducedAt": "act1",
+        "availableStages": [
+          "act1",
+          "act2"
+        ],
+        "persists": true,
+        "stageId": "act1",
+        "possibleFinders": [
+          "H1",
+          "H2",
+          "H3",
+          "H4",
+          "H5"
+        ],
+        "supportsFact": "早期伏笔",
+        "isMisleading": false,
+        "isDecisive": false,
+        "missingDetail": false
+      },
+      {
+        "clueId": "smb-mto1p96n-9gdrc-foreshadow-0",
+        "label": "早期伏笔",
+        "mechanismId": "smb-mto1p96n-9gdrc",
+        "templateId": "M07-5",
+        "introducedAt": "act1",
+        "availableStages": [
+          "act1",
+          "act2"
+        ],
+        "persists": true,
+        "stageId": "act1",
+        "possibleFinders": [
+          "H6",
+          "H7",
+          "H2",
+          "H3",
+          "H4"
+        ],
+        "supportsFact": "早期伏笔",
+        "isMisleading": false,
+        "isDecisive": false,
+        "missingDetail": false
+      },
+      {
+        "clueId": "smb-mto1p96o-a1e6d-faction_foreshadow-0",
+        "label": "阵营伏笔",
+        "mechanismId": "smb-mto1p96o-a1e6d",
+        "templateId": "M08-2",
+        "introducedAt": "act1",
+        "availableStages": [
+          "act1",
+          "act2"
+        ],
+        "persists": true,
+        "stageId": "act1",
+        "possibleFinders": [
+          "H5",
+          "H7",
+          "H1",
+          "H2",
+          "H3",
+          "H4",
+          "H6"
+        ],
+        "supportsFact": "阵营伏笔",
+        "isMisleading": false,
+        "isDecisive": false,
+        "missingDetail": false
+      },
+      {
+        "clueId": "smb-mto1p96n-9gdrc-memory_fragment-1",
+        "label": "记忆碎片",
+        "mechanismId": "smb-mto1p96n-9gdrc",
+        "templateId": "M07-5",
+        "introducedAt": "act2",
+        "availableStages": [
+          "act2"
+        ],
+        "persists": false,
+        "stageId": "act2",
+        "possibleFinders": [
+          "H6",
+          "H7",
+          "H2",
+          "H3",
+          "H4"
+        ],
+        "supportsFact": "记忆碎片",
+        "isMisleading": false,
+        "isDecisive": false,
+        "missingDetail": false
+      },
+      {
+        "clueId": "smb-mto1p96n-9gdrc-identity_hint-2",
+        "label": "身份暗示",
+        "mechanismId": "smb-mto1p96n-9gdrc",
+        "templateId": "M07-5",
+        "introducedAt": "act2",
+        "availableStages": [
+          "act2"
+        ],
+        "persists": false,
+        "stageId": "act2",
+        "possibleFinders": [
+          "H6",
+          "H7",
+          "H2",
+          "H3",
+          "H4"
+        ],
+        "supportsFact": "身份暗示",
+        "isMisleading": false,
+        "isDecisive": false,
+        "missingDetail": false
+      },
+      {
+        "clueId": "smb-mto1p96n-9gdrc-misdirection-3",
+        "label": "误导",
+        "mechanismId": "smb-mto1p96n-9gdrc",
+        "templateId": "M07-5",
+        "introducedAt": "act2",
+        "availableStages": [
+          "act2"
+        ],
+        "persists": false,
+        "stageId": "act2",
+        "possibleFinders": [
+          "H6",
+          "H7",
+          "H2",
+          "H3",
+          "H4"
+        ],
+        "supportsFact": "误导",
+        "isMisleading": true,
+        "isDecisive": false,
+        "missingDetail": false
+      },
+      {
+        "clueId": "smb-mto1p96n-9gdrc-confirmation-4",
+        "label": "确认",
+        "mechanismId": "smb-mto1p96n-9gdrc",
+        "templateId": "M07-5",
+        "introducedAt": "act2",
+        "availableStages": [
+          "act2"
+        ],
+        "persists": false,
+        "stageId": "act2",
+        "possibleFinders": [
+          "H6",
+          "H7",
+          "H2",
+          "H3",
+          "H4"
+        ],
+        "supportsFact": "确认",
+        "isMisleading": false,
+        "isDecisive": false,
+        "missingDetail": false
+      },
+      {
+        "clueId": "smb-mto1p96n-9gdrc-decisive_reveal-5",
+        "label": "决定性揭示",
+        "mechanismId": "smb-mto1p96n-9gdrc",
+        "templateId": "M07-5",
+        "introducedAt": "act2",
+        "availableStages": [
+          "act2"
+        ],
+        "persists": false,
+        "stageId": "act2",
+        "possibleFinders": [
+          "H6",
+          "H7",
+          "H2",
+          "H3",
+          "H4"
+        ],
+        "supportsFact": "决定性揭示",
+        "isMisleading": false,
+        "isDecisive": true,
+        "missingDetail": false
+      },
+      {
+        "clueId": "smb-mto1p96n-iihg8-memory_fragment-1",
+        "label": "记忆碎片",
+        "mechanismId": "smb-mto1p96n-iihg8",
+        "templateId": "M07-2",
+        "introducedAt": "act2",
+        "availableStages": [
+          "act2"
+        ],
+        "persists": false,
+        "stageId": "act2",
+        "possibleFinders": [
+          "H1",
+          "H2",
+          "H3",
+          "H4",
+          "H5"
+        ],
+        "supportsFact": "记忆碎片",
+        "isMisleading": false,
+        "isDecisive": false,
+        "missingDetail": false
+      },
+      {
+        "clueId": "smb-mto1p96n-iihg8-identity_hint-2",
+        "label": "身份暗示",
+        "mechanismId": "smb-mto1p96n-iihg8",
+        "templateId": "M07-2",
+        "introducedAt": "act2",
+        "availableStages": [
+          "act2"
+        ],
+        "persists": false,
+        "stageId": "act2",
+        "possibleFinders": [
+          "H1",
+          "H2",
+          "H3",
+          "H4",
+          "H5"
+        ],
+        "supportsFact": "身份暗示",
+        "isMisleading": false,
+        "isDecisive": false,
+        "missingDetail": false
+      },
+      {
+        "clueId": "smb-mto1p96n-iihg8-misdirection-3",
+        "label": "误导",
+        "mechanismId": "smb-mto1p96n-iihg8",
+        "templateId": "M07-2",
+        "introducedAt": "act2",
+        "availableStages": [
+          "act2"
+        ],
+        "persists": false,
+        "stageId": "act2",
+        "possibleFinders": [
+          "H1",
+          "H2",
+          "H3",
+          "H4",
+          "H5"
+        ],
+        "supportsFact": "误导",
+        "isMisleading": true,
+        "isDecisive": false,
+        "missingDetail": false
+      },
+      {
+        "clueId": "smb-mto1p96n-iihg8-confirmation-4",
+        "label": "确认",
+        "mechanismId": "smb-mto1p96n-iihg8",
+        "templateId": "M07-2",
+        "introducedAt": "act2",
+        "availableStages": [
+          "act2"
+        ],
+        "persists": false,
+        "stageId": "act2",
+        "possibleFinders": [
+          "H1",
+          "H2",
+          "H3",
+          "H4",
+          "H5"
+        ],
+        "supportsFact": "确认",
+        "isMisleading": false,
+        "isDecisive": false,
+        "missingDetail": false
+      },
+      {
+        "clueId": "smb-mto1p96n-iihg8-decisive_reveal-5",
+        "label": "决定性揭示",
+        "mechanismId": "smb-mto1p96n-iihg8",
+        "templateId": "M07-2",
+        "introducedAt": "act2",
+        "availableStages": [
+          "act2"
+        ],
+        "persists": false,
+        "stageId": "act2",
+        "possibleFinders": [
+          "H1",
+          "H2",
+          "H3",
+          "H4",
+          "H5"
+        ],
+        "supportsFact": "决定性揭示",
+        "isMisleading": false,
+        "isDecisive": true,
+        "missingDetail": false
+      },
+      {
+        "clueId": "fact-interface:ob-mto1p96o-hk3y",
+        "label": "事实接口（尚无线索实体）",
+        "mechanismId": "smb-mto1p96n-9gdrc",
+        "templateId": "M07-5",
+        "introducedAt": "act2",
+        "availableStages": [
+          "act2"
+        ],
+        "persists": false,
+        "stageId": "act2",
+        "possibleFinders": [
+          "H6",
+          "H7",
+          "H2",
+          "H3",
+          "H4"
+        ],
+        "supportsFact": "身份确认；身份进入公开层",
+        "isMisleading": false,
+        "isDecisive": false,
+        "missingDetail": true,
+        "detailNote": "这个剧情 beat 需要关键线索，但模板尚未提供具体线索内容。"
+      },
+      {
+        "clueId": "fact-interface:ob-mto1p96o-1z27",
+        "label": "事实接口（尚无线索实体）",
+        "mechanismId": "smb-mto1p96n-iihg8",
+        "templateId": "M07-2",
+        "introducedAt": "act2",
+        "availableStages": [
+          "act2"
+        ],
+        "persists": false,
+        "stageId": "act2",
+        "possibleFinders": [
+          "H1",
+          "H2",
+          "H3",
+          "H4",
+          "H5"
+        ],
+        "supportsFact": "身份确认；身份进入公开层",
+        "isMisleading": false,
+        "isDecisive": false,
+        "missingDetail": true,
+        "detailNote": "这个剧情 beat 需要关键线索，但模板尚未提供具体线索内容。"
+      },
+      {
+        "clueId": "smb-mto1p96o-a1e6d-membership_hint-1",
+        "label": "成员暗示",
+        "mechanismId": "smb-mto1p96o-a1e6d",
+        "templateId": "M08-2",
+        "introducedAt": "act3",
+        "availableStages": [
+          "act3"
+        ],
+        "persists": false,
+        "stageId": "act3",
+        "possibleFinders": [
+          "H6",
+          "H5",
+          "H7",
+          "H1",
+          "H2",
+          "H3",
+          "H4"
+        ],
+        "supportsFact": "成员暗示",
+        "isMisleading": false,
+        "isDecisive": false,
+        "missingDetail": false
+      },
+      {
+        "clueId": "smb-mto1p96o-a1e6d-secret_signal-2",
+        "label": "秘密信号",
+        "mechanismId": "smb-mto1p96o-a1e6d",
+        "templateId": "M08-2",
+        "introducedAt": "act3",
+        "availableStages": [
+          "act3"
+        ],
+        "persists": false,
+        "stageId": "act3",
+        "possibleFinders": [
+          "H6",
+          "H5",
+          "H7",
+          "H1",
+          "H2",
+          "H3",
+          "H4"
+        ],
+        "supportsFact": "秘密信号",
+        "isMisleading": false,
+        "isDecisive": false,
+        "missingDetail": false
+      },
+      {
+        "clueId": "smb-mto1p96o-a1e6d-recruitment_evidence-3",
+        "label": "招募证据",
+        "mechanismId": "smb-mto1p96o-a1e6d",
+        "templateId": "M08-2",
+        "introducedAt": "act3",
+        "availableStages": [
+          "act3"
+        ],
+        "persists": false,
+        "stageId": "act3",
+        "possibleFinders": [
+          "H6",
+          "H5",
+          "H7",
+          "H1",
+          "H2",
+          "H3",
+          "H4"
+        ],
+        "supportsFact": "招募证据",
+        "isMisleading": false,
+        "isDecisive": false,
+        "missingDetail": false
+      },
+      {
+        "clueId": "smb-mto1p96o-a1e6d-loyalty_test-4",
+        "label": "忠诚考验",
+        "mechanismId": "smb-mto1p96o-a1e6d",
+        "templateId": "M08-2",
+        "introducedAt": "act3",
+        "availableStages": [
+          "act3"
+        ],
+        "persists": false,
+        "stageId": "act3",
+        "possibleFinders": [
+          "H6",
+          "H5",
+          "H7",
+          "H1",
+          "H2",
+          "H3",
+          "H4"
+        ],
+        "supportsFact": "忠诚考验",
+        "isMisleading": false,
+        "isDecisive": false,
+        "missingDetail": false
+      },
+      {
+        "clueId": "smb-mto1p96o-a1e6d-betrayal_hint-5",
+        "label": "背叛暗示",
+        "mechanismId": "smb-mto1p96o-a1e6d",
+        "templateId": "M08-2",
+        "introducedAt": "act3",
+        "availableStages": [
+          "act3"
+        ],
+        "persists": false,
+        "stageId": "act3",
+        "possibleFinders": [
+          "H6",
+          "H5",
+          "H7",
+          "H1",
+          "H2",
+          "H3",
+          "H4"
+        ],
+        "supportsFact": "背叛暗示",
+        "isMisleading": false,
+        "isDecisive": false,
+        "missingDetail": false
+      },
+      {
+        "clueId": "smb-mto1p96o-a1e6d-internal_conflict-6",
+        "label": "内部冲突",
+        "mechanismId": "smb-mto1p96o-a1e6d",
+        "templateId": "M08-2",
+        "introducedAt": "act3",
+        "availableStages": [
+          "act3"
+        ],
+        "persists": false,
+        "stageId": "act3",
+        "possibleFinders": [
+          "H6",
+          "H5",
+          "H7",
+          "H1",
+          "H2",
+          "H3",
+          "H4"
+        ],
+        "supportsFact": "内部冲突",
+        "isMisleading": false,
+        "isDecisive": false,
+        "missingDetail": false
+      },
+      {
+        "clueId": "smb-mto1p96o-a1e6d-hidden_goal_hint-7",
+        "label": "隐藏目标暗示",
+        "mechanismId": "smb-mto1p96o-a1e6d",
+        "templateId": "M08-2",
+        "introducedAt": "act3",
+        "availableStages": [
+          "act3"
+        ],
+        "persists": false,
+        "stageId": "act3",
+        "possibleFinders": [
+          "H6",
+          "H5",
+          "H7",
+          "H1",
+          "H2",
+          "H3",
+          "H4"
+        ],
+        "supportsFact": "隐藏目标暗示",
+        "isMisleading": false,
+        "isDecisive": false,
+        "missingDetail": false
+      },
+      {
+        "clueId": "smb-mto1p96o-a1e6d-membership_confirmation-8",
+        "label": "归属确认",
+        "mechanismId": "smb-mto1p96o-a1e6d",
+        "templateId": "M08-2",
+        "introducedAt": "act3",
+        "availableStages": [
+          "act3"
+        ],
+        "persists": false,
+        "stageId": "act3",
+        "possibleFinders": [
+          "H6",
+          "H5",
+          "H7",
+          "H1",
+          "H2",
+          "H3",
+          "H4"
+        ],
+        "supportsFact": "归属确认",
+        "isMisleading": false,
+        "isDecisive": false,
+        "missingDetail": false
+      },
+      {
+        "clueId": "smb-mto1p96o-a1e6d-faction_exposure-9",
+        "label": "阵营暴露",
+        "mechanismId": "smb-mto1p96o-a1e6d",
+        "templateId": "M08-2",
+        "introducedAt": "act3",
+        "availableStages": [
+          "act3"
+        ],
+        "persists": false,
+        "stageId": "act3",
+        "possibleFinders": [
+          "H6",
+          "H5",
+          "H7",
+          "H1",
+          "H2",
+          "H3",
+          "H4"
+        ],
+        "supportsFact": "阵营暴露",
+        "isMisleading": false,
+        "isDecisive": false,
+        "missingDetail": false
+      },
+      {
+        "clueId": "fact-interface:ob-mto1p96o-fgj9",
+        "label": "事实接口（尚无线索实体）",
+        "mechanismId": "smb-mto1p96o-a1e6d",
+        "templateId": "M08-2",
+        "introducedAt": "act4",
+        "availableStages": [
+          "act4"
+        ],
+        "persists": false,
+        "stageId": "act4",
+        "possibleFinders": [
+          "H5",
+          "H7",
+          "H1",
+          "H2",
+          "H3",
+          "H4",
+          "H6"
+        ],
+        "supportsFact": "归属变化；阵营线结算",
+        "isMisleading": false,
+        "isDecisive": false,
+        "missingDetail": true,
+        "detailNote": "这个剧情 beat 需要关键线索，但模板尚未提供具体线索内容。"
+      }
+    ]
+  },
+  "executionView": {
+    "stages": [
+      {
+        "stageId": "act1",
+        "openingState": "开局：各线按积木 setup 状态进入（不新增前提）",
+        "stageGoal": "诺娃：隐藏或维持当前身份表象；米拉：隐藏或维持当前身份表象；托尔：维持隐营互认且不被外人察觉",
+        "beatsToAdvance": [
+          "ob-mto1p96o-zq21",
+          "ob-mto1p96o-8mdu",
+          "ob-mto1p96o-0awh"
+        ],
+        "cluesAvailable": [
+          "smb-mto1p96n-iihg8-foreshadow-0",
+          "smb-mto1p96n-9gdrc-foreshadow-0",
+          "smb-mto1p96o-a1e6d-faction_foreshadow-0"
+        ],
+        "charactersInPlay": [
+          "H1",
+          "H2",
+          "H6",
+          "H7",
+          "H5"
+        ],
+        "candidateGameInsertionPoints": [
+          {
+            "placementId": "game-candidate-ob-mto1p96o-zq21",
+            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+            "afterBeatId": "ob-mto1p96o-zq21"
+          },
+          {
+            "placementId": "game-candidate-ob-mto1p96o-8mdu",
+            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+            "afterBeatId": "ob-mto1p96o-8mdu"
+          },
+          {
+            "placementId": "game-candidate-ob-mto1p96o-0awh",
+            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+            "afterBeatId": "ob-mto1p96o-0awh"
+          }
+        ],
+        "gameMechanismSlots": [
+          {
+            "placementId": "game-candidate-ob-mto1p96o-zq21",
+            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+            "afterBeatId": "ob-mto1p96o-zq21"
+          },
+          {
+            "placementId": "game-candidate-ob-mto1p96o-8mdu",
+            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+            "afterBeatId": "ob-mto1p96o-8mdu"
+          },
+          {
+            "placementId": "game-candidate-ob-mto1p96o-0awh",
+            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+            "afterBeatId": "ob-mto1p96o-0awh"
+          }
+        ],
+        "requiredStateBeforeNext": "身份仍未公开；阵营结构已成形"
+      },
+      {
+        "stageId": "act2",
+        "openingState": "承接上一阶段已声明后果；未声明者标 UNKNOWN",
+        "stageGoal": "诺娃：用正式动作换取被条件锁住的信息；米拉：寻找能确认身份的记录或信物；托尔：在隐秘状态下夺取或销毁会暴露阵营的物证；米拉：启用真实身份对应的权限；诺娃：确认真实身份并决定是否公开；米拉：承受身份公开后的关系后果",
+        "beatsToAdvance": [
+          "ob-mto1p96o-y2yr",
+          "ob-mto1p96o-d00b",
+          "ob-mto1p96o-unxb",
+          "ob-mto1p96o-x0kp",
+          "ob-mto1p96o-p5py",
+          "ob-mto1p96o-hk3y",
+          "ob-mto1p96o-1z27"
+        ],
+        "cluesAvailable": [
+          "smb-mto1p96n-iihg8-foreshadow-0",
+          "smb-mto1p96n-9gdrc-foreshadow-0",
+          "smb-mto1p96o-a1e6d-faction_foreshadow-0",
+          "smb-mto1p96n-9gdrc-memory_fragment-1",
+          "smb-mto1p96n-9gdrc-identity_hint-2",
+          "smb-mto1p96n-9gdrc-misdirection-3",
+          "smb-mto1p96n-9gdrc-confirmation-4",
+          "smb-mto1p96n-9gdrc-decisive_reveal-5",
+          "smb-mto1p96n-iihg8-memory_fragment-1",
+          "smb-mto1p96n-iihg8-identity_hint-2",
+          "smb-mto1p96n-iihg8-misdirection-3",
+          "smb-mto1p96n-iihg8-confirmation-4",
+          "smb-mto1p96n-iihg8-decisive_reveal-5",
+          "fact-interface:ob-mto1p96o-hk3y",
+          "fact-interface:ob-mto1p96o-1z27"
+        ],
+        "charactersInPlay": [
+          "H1",
+          "H2",
+          "H3",
+          "H4",
+          "H5",
+          "H6",
+          "H7"
+        ],
+        "candidateGameInsertionPoints": [
+          {
+            "placementId": "game-candidate-ob-mto1p96o-y2yr",
+            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+            "afterBeatId": "ob-mto1p96o-y2yr"
+          },
+          {
+            "placementId": "game-candidate-ob-mto1p96o-d00b",
+            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+            "afterBeatId": "ob-mto1p96o-d00b"
+          },
+          {
+            "placementId": "game-candidate-ob-mto1p96o-unxb",
+            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+            "afterBeatId": "ob-mto1p96o-unxb"
+          },
+          {
+            "placementId": "game-candidate-ob-mto1p96o-x0kp",
+            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+            "afterBeatId": "ob-mto1p96o-x0kp"
+          },
+          {
+            "placementId": "game-candidate-ob-mto1p96o-p5py",
+            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+            "afterBeatId": "ob-mto1p96o-p5py"
+          },
+          {
+            "placementId": "game-candidate-ob-mto1p96o-hk3y",
+            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+            "afterBeatId": "ob-mto1p96o-hk3y"
+          },
+          {
+            "placementId": "game-candidate-ob-mto1p96o-1z27",
+            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+            "afterBeatId": "ob-mto1p96o-1z27"
+          }
+        ],
+        "gameMechanismSlots": [
+          {
+            "placementId": "game-candidate-ob-mto1p96o-y2yr",
+            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+            "afterBeatId": "ob-mto1p96o-y2yr"
+          },
+          {
+            "placementId": "game-candidate-ob-mto1p96o-d00b",
+            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+            "afterBeatId": "ob-mto1p96o-d00b"
+          },
+          {
+            "placementId": "game-candidate-ob-mto1p96o-unxb",
+            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+            "afterBeatId": "ob-mto1p96o-unxb"
+          },
+          {
+            "placementId": "game-candidate-ob-mto1p96o-x0kp",
+            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+            "afterBeatId": "ob-mto1p96o-x0kp"
+          },
+          {
+            "placementId": "game-candidate-ob-mto1p96o-p5py",
+            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+            "afterBeatId": "ob-mto1p96o-p5py"
+          },
+          {
+            "placementId": "game-candidate-ob-mto1p96o-hk3y",
+            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+            "afterBeatId": "ob-mto1p96o-hk3y"
+          },
+          {
+            "placementId": "game-candidate-ob-mto1p96o-1z27",
+            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+            "afterBeatId": "ob-mto1p96o-1z27"
+          }
+        ],
+        "requiredStateBeforeNext": "条件开放的信息；身份线索；阵营压力升级；身份已确认；资格/权限状态；场所权限可能开放；身份已确认；家族/资格状态；身份进入公开层"
+      },
+      {
+        "stageId": "act3",
+        "openingState": "承接上一阶段已声明后果；未声明者标 UNKNOWN",
+        "stageGoal": "米拉：在暴露风险下改归属或保住秘密",
+        "beatsToAdvance": [
+          "ob-mto1p96o-ppcb"
+        ],
+        "cluesAvailable": [
+          "smb-mto1p96o-a1e6d-membership_hint-1",
+          "smb-mto1p96o-a1e6d-secret_signal-2",
+          "smb-mto1p96o-a1e6d-recruitment_evidence-3",
+          "smb-mto1p96o-a1e6d-loyalty_test-4",
+          "smb-mto1p96o-a1e6d-betrayal_hint-5",
+          "smb-mto1p96o-a1e6d-internal_conflict-6",
+          "smb-mto1p96o-a1e6d-hidden_goal_hint-7",
+          "smb-mto1p96o-a1e6d-membership_confirmation-8",
+          "smb-mto1p96o-a1e6d-faction_exposure-9"
+        ],
+        "charactersInPlay": [
+          "H6",
+          "H5",
+          "H7",
+          "H1",
+          "H2",
+          "H3",
+          "H4"
+        ],
+        "candidateGameInsertionPoints": [
+          {
+            "placementId": "game-candidate-ob-mto1p96o-ppcb",
+            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+            "afterBeatId": "ob-mto1p96o-ppcb"
+          }
+        ],
+        "gameMechanismSlots": [
+          {
+            "placementId": "game-candidate-ob-mto1p96o-ppcb",
+            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+            "afterBeatId": "ob-mto1p96o-ppcb"
+          }
+        ],
+        "requiredStateBeforeNext": "归属已改变；暴露风险上升"
+      },
+      {
+        "stageId": "act4",
+        "openingState": "承接上一阶段已声明后果；未声明者标 UNKNOWN",
+        "stageGoal": "托尔：结算阵营目标并承受公开后果",
+        "beatsToAdvance": [
+          "ob-mto1p96o-fgj9"
+        ],
+        "cluesAvailable": [
+          "fact-interface:ob-mto1p96o-fgj9"
+        ],
+        "charactersInPlay": [
+          "H5",
+          "H7",
+          "H1",
+          "H2",
+          "H3",
+          "H4",
+          "H6"
+        ],
+        "candidateGameInsertionPoints": [
+          {
+            "placementId": "game-candidate-ob-mto1p96o-fgj9",
+            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+            "afterBeatId": "ob-mto1p96o-fgj9"
+          }
+        ],
+        "gameMechanismSlots": [
+          {
+            "placementId": "game-candidate-ob-mto1p96o-fgj9",
+            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+            "afterBeatId": "ob-mto1p96o-fgj9"
+          }
+        ],
+        "requiredStateBeforeNext": "终幕：无强制下一阶段"
+      }
+    ]
+  },
+  "warnings": [
+    {
+      "id": "warn-crowd-act2",
+      "type": "STAGE_CROWDING",
+      "severity": "warn",
+      "message": "「加压」包含 7 个剧情 beat，当前阶段密度偏高。P6 未自动迁移 beat，请返回交织骨架调整。",
+      "stageIds": [
+        "act2"
+      ],
+      "beatIds": [
+        "ob-mto1p96o-y2yr",
+        "ob-mto1p96o-d00b",
+        "ob-mto1p96o-unxb",
+        "ob-mto1p96o-x0kp",
+        "ob-mto1p96o-p5py",
+        "ob-mto1p96o-hk3y",
+        "ob-mto1p96o-1z27"
+      ]
+    },
+    {
+      "id": "warn-clue-ob-mto1p96o-hk3y",
+      "type": "MISSING_CLUE_DETAIL",
+      "severity": "info",
+      "message": "该剧情 beat 需要/产生事实接口，但模板尚未绑定具体线索内容。",
+      "stageIds": [
+        "act2"
+      ],
+      "beatIds": [
+        "ob-mto1p96o-hk3y"
+      ]
+    },
+    {
+      "id": "warn-clue-ob-mto1p96o-1z27",
+      "type": "MISSING_CLUE_DETAIL",
+      "severity": "info",
+      "message": "该剧情 beat 需要/产生事实接口，但模板尚未绑定具体线索内容。",
+      "stageIds": [
+        "act2"
+      ],
+      "beatIds": [
+        "ob-mto1p96o-1z27"
+      ]
+    },
+    {
+      "id": "warn-clue-ob-mto1p96o-fgj9",
+      "type": "MISSING_CLUE_DETAIL",
+      "severity": "info",
+      "message": "该剧情 beat 需要/产生事实接口，但模板尚未绑定具体线索内容。",
+      "stageIds": [
+        "act4"
+      ],
+      "beatIds": [
+        "ob-mto1p96o-fgj9"
+      ]
+    },
+    {
+      "id": "warn-conflict-cf-mto1p96p-ni51",
+      "type": "ROLE_OVERLOAD",
+      "severity": "info",
+      "message": "诺娃 当前承担：identity_bearer HIGH、member（负载 3）",
+      "stageIds": [],
+      "beatIds": []
+    },
+    {
+      "id": "warn-conflict-cf-mto1p96p-eo92",
+      "type": "ROLE_OVERLOAD",
+      "severity": "warn",
+      "message": "凯 当前承担：witness、misled、hidden_member HIGH（负载 4）",
+      "stageIds": [],
+      "beatIds": []
+    },
+    {
+      "id": "warn-conflict-cf-mto1p96p-r8mc",
+      "type": "ROLE_OVERLOAD",
+      "severity": "info",
+      "message": "伊蕾 当前承担：misled、discoverer、outsider（负载 3）",
+      "stageIds": [],
+      "beatIds": []
+    },
+    {
+      "id": "warn-conflict-cf-mto1p96p-rjdq",
+      "type": "ROLE_OVERLOAD",
+      "severity": "warn",
+      "message": "芮安 当前承担：discoverer、support、rival_lead HIGH（负载 4）",
+      "stageIds": [],
+      "beatIds": []
+    },
+    {
+      "id": "warn-conflict-cf-mto1p96p-axp4",
+      "type": "ROLE_OVERLOAD",
+      "severity": "info",
+      "message": "托尔 当前承担：support、faction_lead HIGH（负载 3）",
+      "stageIds": [],
+      "beatIds": []
+    },
+    {
+      "id": "warn-conflict-cf-mto1p96p-sepq",
+      "type": "ROLE_OVERLOAD",
+      "severity": "warn",
+      "message": "米拉 当前承担：identity_bearer HIGH、defector HIGH（负载 4）",
+      "stageIds": [],
+      "beatIds": []
+    }
+  ],
+  "structureChangeRequests": [
+    {
+      "id": "scr-split-act2",
+      "type": "SPLIT_STAGE",
+      "sourceStageIds": [
+        "act2"
+      ],
+      "sourceBeatIds": [
+        "ob-mto1p96o-x0kp",
+        "ob-mto1p96o-p5py",
+        "ob-mto1p96o-hk3y",
+        "ob-mto1p96o-1z27"
+      ],
+      "sourceBlockIds": [
+        "smb-mto1p96n-9gdrc",
+        "smb-mto1p96n-iihg8"
+      ],
+      "reason": "「加压」包含 7 个剧情 beat，当前阶段密度偏高。P6 未自动迁移 beat，请返回交织骨架调整。",
+      "severity": "warn",
+      "proposal": "建议将「加压」后半 4 个 beat 拆到后续阶段；P6 仅提议，不自动应用。",
+      "status": "PROPOSED"
+    }
+  ],
+  "status": "DRAFT",
+  "revision": 0,
+  "updatedAt": "2026-09-05T00:00:00.000Z"
+}

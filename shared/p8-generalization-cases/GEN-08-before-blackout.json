@@ -1,0 +1,115 @@
+{
+  "schemaVersion": 1,
+  "caseId": "GEN-08",
+  "title": "停电之前",
+  "slug": "before-blackout",
+  "projectConfig": {
+    "playerCount": 6,
+    "stageCount": 3,
+    "genreTags": [
+      "现实",
+      "公共任务",
+      "条件开放"
+    ]
+  },
+  "premise": {
+    "genre": "现实公共任务",
+    "era": "当代大型场馆",
+    "tone": [
+      "停电",
+      "协作",
+      "条件解锁"
+    ],
+    "playerCount": 6,
+    "targetDuration": 130
+  },
+  "characters": [
+    {
+      "id": "B1",
+      "name": "安然"
+    },
+    {
+      "id": "B2",
+      "name": "柯屿"
+    },
+    {
+      "id": "B3",
+      "name": "潘声"
+    },
+    {
+      "id": "B4",
+      "name": "叶知"
+    },
+    {
+      "id": "B5",
+      "name": "阮可"
+    },
+    {
+      "id": "B6",
+      "name": "章衡"
+    }
+  ],
+  "stages": [
+    {
+      "id": "act1",
+      "label": "第1幕",
+      "order": 0
+    },
+    {
+      "id": "act2",
+      "label": "第2幕",
+      "order": 1
+    },
+    {
+      "id": "act3",
+      "label": "第3幕",
+      "order": 2
+    }
+  ],
+  "storyPlan": [
+    {
+      "templateId": "M07-2",
+      "preferredVariantId": "V01",
+      "intentionalOverlap": false
+    },
+    {
+      "templateId": "M08-7",
+      "preferredVariantId": "V01",
+      "intentionalOverlap": true
+    },
+    {
+      "templateId": "M01-FRAMING",
+      "preferredVariantId": "V03",
+      "intentionalOverlap": true
+    }
+  ],
+  "gamePlan": [
+    {
+      "familyId": "M03",
+      "templateId": "M03",
+      "stageId": "act2",
+      "instanceKey": "power-access"
+    }
+  ],
+  "expectedStructuralProperties": {
+    "playerCount": 6,
+    "stageCount": 3,
+    "forbidAutoPadSixthPlayer": true
+  },
+  "playableExpectation": {
+    "requireCulprit": true,
+    "gamePlacements": [
+      {
+        "familyId": "M03",
+        "stageId": "act2"
+      }
+    ],
+    "allowMissingCompleteScripts": true
+  },
+  "editorialFocus": [
+    "公共任务不因同场乱造因果",
+    "M08-7+M07+M03",
+    "短结构非凶案主轴亦可"
+  ],
+  "notes": "H 的跨题材验证版；B5 名修正为中文。"
+}

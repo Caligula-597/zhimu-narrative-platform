@@ -1,0 +1,4038 @@
+{
+  "id": "pmd-mod-mto1p97g-uq51",
+  "version": 2,
+  "projectId": "p8-gen-08",
+  "sourceStoryStateRevision": 0,
+  "sourceMasterOutlineId": "mod-mto1p97g-uq51",
+  "sourceMasterOutlineRevision": "v1:mod-mto1p97g-uq51:act1@0:{ob-mto1p97g-pkt4|smb-mto1p97f-90o7h|beat-setup,ob-mto1p97g-w9bu|smb-mto1p97f-mh97j|beat-setup,ob-mto1p97g-ziq0|smb-mto1p97g-3viya|beat-setup};act2@1:{ob-mto1p97g-h20u|smb-mto1p97f-90o7h|beat-develop,ob-mto1p97g-jfh8|smb-mto1p97f-90o7h|beat-climax,ob-mto1p97g-yu0b|smb-mto1p97f-mh97j|beat-develop,ob-mto1p97g-o10r|smb-mto1p97f-mh97j|beat-climax,ob-mto1p97g-2uyl|smb-mto1p97g-3viya|beat-crime,ob-mto1p97g-o0oa|smb-mto1p97g-3viya|beat-false,ob-mto1p97g-3xyc|smb-mto1p97g-3viya|beat-contra,ob-mto1p97g-ex8s|smb-mto1p97g-3viya|beat-climax};act3@2:{ob-mto1p97g-h6ti|smb-mto1p97f-90o7h|beat-res,ob-mto1p97g-9n62|smb-mto1p97f-mh97j|beat-res,ob-mto1p97g-uotd|smb-mto1p97g-3viya|beat-res}#wl-mto1p97g-2g8g:WEAVE_SHARED_SCENE:ob-mto1p97g-h20u,ob-mto1p97g-2uyl|wl-mto1p97g-3ck4:WEAVE_SHARED_CHARACTER:ob-mto1p97g-w9bu,ob-mto1p97g-2uyl|wl-mto1p97g-5q52:KEEP_PARALLEL:ob-mto1p97g-h20u,ob-mto1p97g-2uyl|wl-mto1p97g-8lyu:WEAVE_SHARED_SCENE:ob-mto1p97g-w9bu,ob-mto1p97g-ziq0|wl-mto1p97g-9b0u:WEAVE_SHARED_SCENE:ob-mto1p97g-yu0b,ob-mto1p97g-2uyl|wl-mto1p97g-9lbe:WEAVE_SHARED_SCENE:ob-mto1p97g-h20u,ob-mto1p97g-yu0b|wl-mto1p97g-a3dr:WEAVE_SHARED_CHARACTER:ob-mto1p97g-pkt4,ob-mto1p97g-yu0b|wl-mto1p97g-ax8m:WEAVE_SHARED_SCENE:ob-mto1p97g-pkt4,ob-mto1p97g-w9bu|wl-mto1p97g-d30e:WEAVE_SHARED_SCENE:ob-mto1p97g-h6ti,ob-mto1p97g-9n62|wl-mto1p97g-ehmt:WEAVE_SHARED_SCENE:ob-mto1p97g-o10r,ob-mto1p97g-ex8s|wl-mto1p97g-eq5l:WEAVE_SHARED_SCENE:ob-mto1p97g-jfh8,ob-mto1p97g-o10r|wl-mto1p97g-fgsi:KEEP_PARALLEL:ob-mto1p97g-yu0b,ob-mto1p97g-2uyl|wl-mto1p97g-h65y:WEAVE_SHARED_CHARACTER:ob-mto1p97g-yu0b,ob-mto1p97g-ex8s|wl-mto1p97g-ind9:WEAVE_SHARED_SCENE:ob-mto1p97g-h6ti,ob-mto1p97g-uotd|wl-mto1p97g-j3q8:WEAVE_SHARED_CHARACTER:ob-mto1p97g-h20u,ob-mto1p97g-o10r|wl-mto1p97g-k0au:WEAVE_SHARED_CHARACTER:ob-mto1p97g-o10r,ob-mto1p97g-uotd|wl-mto1p97g-lfdl:KEEP_PARALLEL:ob-mto1p97g-h20u,ob-mto1p97g-yu0b|wl-mto1p97g-pf8r:WEAVE_SHARED_SCENE:ob-mto1p97g-jfh8,ob-mto1p97g-ex8s|wl-mto1p97g-poy3:WEAVE_SHARED_SCENE:ob-mto1p97g-9n62,ob-mto1p97g-uotd|wl-mto1p97g-q6lq:WEAVE_SHARED_CHARACTER:ob-mto1p97g-jfh8,ob-mto1p97g-uotd|wl-mto1p97g-tps7:WEAVE_SHARED_CHARACTER:ob-mto1p97g-jfh8,ob-mto1p97g-9n62|wl-mto1p97g-u68n:WEAVE_SHARED_CHARACTER:ob-mto1p97g-pkt4,ob-mto1p97g-2uyl|wl-mto1p97g-zo1h:WEAVE_SHARED_CHARACTER:ob-mto1p97g-h20u,ob-mto1p97g-ex8s",
+  "title": "GEN-08 停电之前",
+  "premiseSummary": "现实公共任务 · 当代大型场馆 · 停电 · 协作 · 条件解锁",
+  "stages": [
+    {
+      "stageId": "act1",
+      "stageRole": "SETUP",
+      "title": "铺垫",
+      "order": 0,
+      "purpose": "安然：隐藏或维持当前身份表象；章衡：巩固或潜伏阵营结构；潘声：准备可嫁祸的假象",
+      "beats": [
+        {
+          "id": "pbeat-ob-mto1p97g-pkt4",
+          "sourceBeatId": "beat-setup",
+          "sourceOutlineBeatId": "ob-mto1p97g-pkt4",
+          "sourceBlockId": "smb-mto1p97f-90o7h",
+          "sourceMechanismId": "smb-mto1p97f-90o7h",
+          "templateId": "M07-2",
+          "familyId": "M07",
+          "actors": [
+            {
+              "id": "B1",
+              "name": "安然"
+            },
+            {
+              "id": "B2",
+              "name": "柯屿"
+            }
+          ],
+          "ownerCharacterIds": [
+            "B1"
+          ],
+          "goal": "隐藏或维持当前身份表象",
+          "action": "按伪装/未知状态行动，避免过早暴露",
+          "target": "身份表象",
+          "setupContext": "日常活动场所",
+          "eventSummary": "安然为了隐藏或维持当前身份表象，按伪装/未知状态行动，避免过早暴露（目标：身份表象）",
+          "immediateConsequence": "身份仍未公开",
+          "requires": [],
+          "produces": [
+            {
+              "id": "identity_latent",
+              "kind": "identity",
+              "summary": "身份仍未公开"
+            }
+          ],
+          "playerKnowledge": "玩家可见：按伪装/未知状态行动，避免过早暴露（仅同场，不暗示因果）",
+          "hostTruth": "主持真相：安然为了隐藏或维持当前身份表象，按伪装/未知状态行动，避免过早暴露（目标：身份表象）",
+          "clueRefs": [
+            "smb-mto1p97f-90o7h-foreshadow-0"
+          ],
+          "relatedCharacterIds": [
+            "B1",
+            "B2"
+          ],
+          "relationQuality": "COLOCATED",
+          "weaveLinkIds": [
+            "wl-mto1p97g-ax8m",
+            "wl-mto1p97g-a3dr",
+            "wl-mto1p97g-u68n"
+          ],
+          "relationNotes": [
+            "【同场并列】同阶段共享角色 B2——可同场并列，不算真正交织",
+            "【同场并列】共享角色 B1、B2——仅角色重合，保持同场并列而非强制合并",
+            "【同场并列】共享角色 B1、B2——仅角色重合，保持同场并列而非强制合并"
+          ],
+          "needsDetail": false,
+          "contentConfirmed": false
+        },
+        {
+          "id": "pbeat-ob-mto1p97g-w9bu",
+          "sourceBeatId": "beat-setup",
+          "sourceOutlineBeatId": "ob-mto1p97g-w9bu",
+          "sourceBlockId": "smb-mto1p97f-mh97j",
+          "sourceMechanismId": "smb-mto1p97f-mh97j",
+          "templateId": "M08-7",
+          "familyId": "M08",
+          "actors": [
+            {
+              "id": "B6",
+              "name": "章衡"
+            },
+            {
+              "id": "B2",
+              "name": "柯屿"
+            }
+          ],
+          "ownerCharacterIds": [
+            "B6"
+          ],
+          "goal": "巩固或潜伏阵营结构",
+          "action": "确认成员知情范围与联络方式",
+          "target": "阵营名单/暗号",
+          "setupContext": "私下会合点",
+          "eventSummary": "章衡为了巩固或潜伏阵营结构，确认成员知情范围与联络方式（目标：阵营名单/暗号）",
+          "immediateConsequence": "阵营结构已成形",
+          "requires": [],
+          "produces": [
+            {
+              "id": "faction_latent",
+              "kind": "faction",
+              "summary": "阵营结构已成形"
+            }
+          ],
+          "playerKnowledge": "玩家可见：确认成员知情范围与联络方式（仅同场，不暗示因果）",
+          "hostTruth": "主持真相：章衡为了巩固或潜伏阵营结构，确认成员知情范围与联络方式（目标：阵营名单/暗号）",
+          "clueRefs": [
+            "smb-mto1p97f-mh97j-faction_foreshadow-0"
+          ],
+          "relatedCharacterIds": [
+            "B6",
+            "B2"
+          ],
+          "relationQuality": "COLOCATED",
+          "weaveLinkIds": [
+            "wl-mto1p97g-ax8m",
+            "wl-mto1p97g-8lyu",
+            "wl-mto1p97g-3ck4"
+          ],
+          "relationNotes": [
+            "【同场并列】同阶段共享角色 B2——可同场并列，不算真正交织",
+            "【同场并列】同阶段共享角色 B6——可同场并列，不算真正交织",
+            "【同场并列】共享角色 B2——仅角色重合，保持同场并列而非强制合并"
+          ],
+          "needsDetail": false,
+          "contentConfirmed": false
+        },
+        {
+          "id": "pbeat-ob-mto1p97g-ziq0",
+          "sourceBeatId": "beat-setup",
+          "sourceOutlineBeatId": "ob-mto1p97g-ziq0",
+          "sourceBlockId": "smb-mto1p97g-3viya",
+          "sourceMechanismId": "smb-mto1p97g-3viya",
+          "templateId": "M01-FRAMING",
+          "familyId": "M01",
+          "actors": [
+            {
+              "id": "B3",
+              "name": "潘声"
+            },
+            {
+              "id": "B6",
+              "name": "章衡"
+            }
+          ],
+          "ownerCharacterIds": [
+            "B3"
+          ],
+          "goal": "准备可嫁祸的假象",
+          "action": "布置与章衡相关的误导物",
+          "target": "被拨慢的座钟记录",
+          "setupContext": "作案准备地",
+          "eventSummary": "潘声为了准备可嫁祸的假象，布置与章衡相关的误导物（目标：被拨慢的座钟记录）",
+          "immediateConsequence": "误导物已就绪",
+          "requires": [],
+          "produces": [
+            {
+              "id": "false_lead_ready",
+              "kind": "false_lead",
+              "summary": "误导物已就绪"
+            }
+          ],
+          "playerKnowledge": "玩家可见：布置与章衡相关的误导物（仅同场，不暗示因果）",
+          "hostTruth": "主持真相：潘声为了准备可嫁祸的假象，布置与章衡相关的误导物（目标：被拨慢的座钟记录）",
+          "clueRefs": [],
+          "relatedCharacterIds": [
+            "B3",
+            "B6"
+          ],
+          "relationQuality": "COLOCATED",
+          "weaveLinkIds": [
+            "wl-mto1p97g-8lyu"
+          ],
+          "relationNotes": [
+            "【同场并列】同阶段共享角色 B6——可同场并列，不算真正交织"
+          ],
+          "needsDetail": false,
+          "contentConfirmed": false
+        }
+      ],
+      "playerVisibleSummary": "玩家可见：按伪装/未知状态行动，避免过早暴露（仅同场，不暗示因果） / 玩家可见：确认成员知情范围与联络方式（仅同场，不暗示因果） / 玩家可见：布置与章衡相关的误导物（仅同场，不暗示因果）",
+      "hostTruthSummary": "主持真相：安然为了隐藏或维持当前身份表象，按伪装/未知状态行动，避免过早暴露（目标：身份表象） / 主持真相：章衡为了巩固或潜伏阵营结构，确认成员知情范围与联络方式（目标：阵营名单/暗号） / 主持真相：潘声为了准备可嫁祸的假象，布置与章衡相关的误导物（目标：被拨慢的座钟记录）",
+      "stageStartState": "开局：各线按积木 setup 状态进入（不新增前提）",
+      "stageEndState": "身份仍未公开；阵营结构已成形；误导物已就绪",
+      "clueEntries": [
+        {
+          "clueId": "smb-mto1p97f-90o7h-foreshadow-0",
+          "label": "早期伏笔",
+          "mechanismId": "smb-mto1p97f-90o7h",
+          "templateId": "M07-2",
+          "introducedAt": "act1",
+          "availableStages": [
+            "act1",
+            "act2"
+          ],
+          "persists": true,
+          "stageId": "act1",
+          "possibleFinders": [
+            "B1",
+            "B2",
+            "B3",
+            "B4",
+            "B5"
+          ],
+          "supportsFact": "早期伏笔",
+          "isMisleading": false,
+          "isDecisive": false,
+          "missingDetail": false
+        },
+        {
+          "clueId": "smb-mto1p97f-mh97j-faction_foreshadow-0",
+          "label": "阵营伏笔",
+          "mechanismId": "smb-mto1p97f-mh97j",
+          "templateId": "M08-7",
+          "introducedAt": "act1",
+          "availableStages": [
+            "act1",
+            "act2"
+          ],
+          "persists": true,
+          "stageId": "act1",
+          "possibleFinders": [
+            "B6",
+            "B2",
+            "B3",
+            "B4",
+            "B5",
+            "B1"
+          ],
+          "supportsFact": "阵营伏笔",
+          "isMisleading": false,
+          "isDecisive": false,
+          "missingDetail": false
+        },
+        {
+          "clueId": "fact-interface:ob-mto1p97g-ziq0",
+          "label": "事实接口（尚无线索实体）",
+          "mechanismId": "smb-mto1p97g-3viya",
+          "templateId": "M01-FRAMING",
+          "introducedAt": "act1",
+          "availableStages": [
+            "act1"
+          ],
+          "persists": false,
+          "stageId": "act1",
+          "possibleFinders": [
+            "B3",
+            "B6"
+          ],
+          "supportsFact": "误导物已就绪",
+          "isMisleading": true,
+          "isDecisive": false,
+          "missingDetail": true,
+          "detailNote": "这个剧情 beat 需要关键线索，但模板尚未提供具体线索内容。"
+        }
+      ],
+      "characterEntries": [
+        {
+          "id": "B1",
+          "name": "安然"
+        },
+        {
+          "id": "B2",
+          "name": "柯屿"
+        },
+        {
+          "id": "B6",
+          "name": "章衡"
+        },
+        {
+          "id": "B3",
+          "name": "潘声"
+        }
+      ],
+      "unresolvedDetails": [],
+      "warnings": [
+        {
+          "id": "warn-low-weave",
+          "type": "LOW_WEAVE_DENSITY",
+          "severity": "info",
+          "message": "整本存在较少真正交织关系；当前母稿主要由平行剧情 + 同场并列构成。P6 未伪造额外因果。",
+          "stageIds": [
+            "act1",
+            "act2",
+            "act3"
+          ],
+          "beatIds": []
+        },
+        {
+          "id": "warn-clue-ob-mto1p97g-ziq0",
+          "type": "MISSING_CLUE_DETAIL",
+          "severity": "info",
+          "message": "该剧情 beat 需要/产生事实接口，但模板尚未绑定具体线索内容。",
+          "stageIds": [
+            "act1"
+          ],
+          "beatIds": [
+            "ob-mto1p97g-ziq0"
+          ]
+        }
+      ]
+    },
+    {
+      "stageId": "act2",
+      "stageRole": "PRESSURE",
+      "title": "加压",
+      "order": 1,
+      "purpose": "安然：用正式动作换取被条件锁住的信息；安然：确认真实身份并决定是否公开；章衡：让公共任务按本阵营偏好成功、失败或延迟；阮可：在暴露风险下改归属或保住秘密；潘声：完成犯行并指向章衡；安然：推翻对章衡的错误判断",
+      "beats": [
+        {
+          "id": "pbeat-ob-mto1p97g-h20u",
+          "sourceBeatId": "beat-develop",
+          "sourceOutlineBeatId": "ob-mto1p97g-h20u",
+          "sourceBlockId": "smb-mto1p97f-90o7h",
+          "sourceMechanismId": "smb-mto1p97f-90o7h",
+          "templateId": "M07-2",
+          "familyId": "M07",
+          "actors": [
+            {
+              "id": "B1",
+              "name": "安然"
+            },
+            {
+              "id": "B2",
+              "name": "柯屿"
+            },
+            {
+              "id": "B3",
+              "name": "潘声"
+            },
+            {
+              "id": "B4",
+              "name": "叶知"
+            },
+            {
+              "id": "B5",
+              "name": "阮可"
+            }
+          ],
+          "ownerCharacterIds": [
+            "B1"
+          ],
+          "goal": "用正式动作换取被条件锁住的信息",
+          "action": "完成登记条件以触发内容开放",
+          "target": "身份记录",
+          "setupContext": "藏有记录的场所",
+          "eventSummary": "安然为了用正式动作换取被条件锁住的信息，完成登记条件以触发内容开放（目标：身份记录）",
+          "immediateConsequence": "条件开放的信息",
+          "requires": [
+            {
+              "id": "formal_trigger",
+              "kind": "trigger",
+              "summary": "正式触发条件"
+            }
+          ],
+          "produces": [
+            {
+              "id": "identity_clue",
+              "kind": "identity_clue",
+              "summary": "条件开放的信息"
+            }
+          ],
+          "playerKnowledge": "玩家可见：完成登记条件以触发内容开放（仅同场，不暗示因果）",
+          "hostTruth": "主持真相：安然为了用正式动作换取被条件锁住的信息，完成登记条件以触发内容开放（目标：身份记录）",
+          "clueRefs": [
+            "smb-mto1p97f-90o7h-foreshadow-0"
+          ],
+          "relatedCharacterIds": [
+            "B1",
+            "B2",
+            "B3",
+            "B4",
+            "B5"
+          ],
+          "relationQuality": "COLOCATED",
+          "weaveLinkIds": [
+            "wl-mto1p97g-9lbe",
+            "wl-mto1p97g-j3q8",
+            "wl-mto1p97g-2g8g",
+            "wl-mto1p97g-zo1h",
+            "wl-mto1p97g-lfdl",
+            "wl-mto1p97g-5q52"
+          ],
+          "relationNotes": [
+            "【同场并列】同阶段共享角色 B1、B2、B3、B4、B5——可同场并列，不算真正交织",
+            "【同场并列】共享角色 B1、B2、B3、B4、B5——仅角色重合，保持同场并列而非强制合并",
+            "【同场并列】同阶段共享角色 B1、B2、B3——可同场并列，不算真正交织",
+            "【同场并列】共享角色 B1、B3——仅角色重合，保持同场并列而非强制合并",
+            "【保持平行】条件触发开放｜结算码触发 与 阵营影响公共任务｜希望任务成功 无线索级交织证据，叙事线保持平行（同场/同角不算交织）",
+            "【保持平行】条件触发开放｜结算码触发 与 嫁祸型追凶｜伪造时间线 无线索级交织证据，叙事线保持平行（同场/同角不算交织）"
+          ],
+          "needsDetail": false,
+          "contentConfirmed": false
+        },
+        {
+          "id": "pbeat-ob-mto1p97g-jfh8",
+          "sourceBeatId": "beat-climax",
+          "sourceOutlineBeatId": "ob-mto1p97g-jfh8",
+          "sourceBlockId": "smb-mto1p97f-90o7h",
+          "sourceMechanismId": "smb-mto1p97f-90o7h",
+          "templateId": "M07-2",
+          "familyId": "M07",
+          "actors": [
+            {
+              "id": "B1",
+              "name": "安然"
+            },
+            {
+              "id": "B2",
+              "name": "柯屿"
+            },
+            {
+              "id": "B3",
+              "name": "潘声"
+            },
+            {
+              "id": "B4",
+              "name": "叶知"
+            },
+            {
+              "id": "B5",
+              "name": "阮可"
+            }
+          ],
+          "ownerCharacterIds": [
+            "B1"
+          ],
+          "goal": "确认真实身份并决定是否公开",
+          "action": "核对身份线索并作出公开或隐瞒选择",
+          "target": "真实身份",
+          "setupContext": "藏有记录的场所",
+          "eventSummary": "安然为了确认真实身份并决定是否公开，核对身份线索并作出公开或隐瞒选择（目标：真实身份）",
+          "immediateConsequence": "身份已确认；家族/资格状态",
+          "requires": [
+            {
+              "id": "identity_clue",
+              "kind": "identity_clue",
+              "summary": "身份线索"
+            }
+          ],
+          "produces": [
+            {
+              "id": "identity_confirmed",
+              "kind": "identity",
+              "summary": "身份已确认"
+            },
+            {
+              "id": "family_status",
+              "kind": "status",
+              "summary": "家族/资格状态"
+            }
+          ],
+          "playerKnowledge": "玩家可见：核对身份线索并作出公开或隐瞒选择（仅同场，不暗示因果）",
+          "hostTruth": "主持真相：安然为了确认真实身份并决定是否公开，核对身份线索并作出公开或隐瞒选择（目标：真实身份）",
+          "clueRefs": [
+            "smb-mto1p97f-90o7h-memory_fragment-1",
+            "smb-mto1p97f-90o7h-identity_hint-2",
+            "smb-mto1p97f-90o7h-misdirection-3",
+            "smb-mto1p97f-90o7h-confirmation-4",
+            "smb-mto1p97f-90o7h-decisive_reveal-5"
+          ],
+          "relatedCharacterIds": [
+            "B1",
+            "B2",
+            "B3",
+            "B4",
+            "B5"
+          ],
+          "relationQuality": "COLOCATED",
+          "weaveLinkIds": [
+            "wl-mto1p97g-eq5l",
+            "wl-mto1p97g-tps7",
+            "wl-mto1p97g-pf8r",
+            "wl-mto1p97g-q6lq"
+          ],
+          "relationNotes": [
+            "【同场并列】同阶段共享角色 B1、B2、B3、B4、B5——可同场并列，不算真正交织",
+            "【同场并列】共享角色 B1、B2、B3、B4、B5——仅角色重合，保持同场并列而非强制合并",
+            "【同场并列】同阶段共享角色 B1、B3——可同场并列，不算真正交织",
+            "【同场并列】共享角色 B1、B2、B3——仅角色重合，保持同场并列而非强制合并"
+          ],
+          "needsDetail": false,
+          "contentConfirmed": false
+        },
+        {
+          "id": "pbeat-ob-mto1p97g-yu0b",
+          "sourceBeatId": "beat-develop",
+          "sourceOutlineBeatId": "ob-mto1p97g-yu0b",
+          "sourceBlockId": "smb-mto1p97f-mh97j",
+          "sourceMechanismId": "smb-mto1p97f-mh97j",
+          "templateId": "M08-7",
+          "familyId": "M08",
+          "actors": [
+            {
+              "id": "B6",
+              "name": "章衡"
+            },
+            {
+              "id": "B2",
+              "name": "柯屿"
+            },
+            {
+              "id": "B3",
+              "name": "潘声"
+            },
+            {
+              "id": "B4",
+              "name": "叶知"
+            },
+            {
+              "id": "B5",
+              "name": "阮可"
+            },
+            {
+              "id": "B1",
+              "name": "安然"
+            }
+          ],
+          "ownerCharacterIds": [
+            "B6"
+          ],
+          "goal": "让公共任务按本阵营偏好成功、失败或延迟",
+          "action": "对公共任务施加正式破坏或支援",
+          "target": "公共任务状态",
+          "setupContext": "关键场所",
+          "eventSummary": "章衡为了让公共任务按本阵营偏好成功、失败或延迟，对公共任务施加正式破坏或支援（目标：公共任务状态）",
+          "immediateConsequence": "阵营压力升级",
+          "requires": [
+            {
+              "id": "site_accessible",
+              "kind": "access",
+              "summary": "关键场所可进入"
+            },
+            {
+              "id": "faction_latent",
+              "kind": "faction",
+              "summary": "阵营已成形"
+            }
+          ],
+          "produces": [
+            {
+              "id": "faction_pressure",
+              "kind": "faction",
+              "summary": "阵营压力升级"
+            }
+          ],
+          "playerKnowledge": "玩家可见：对公共任务施加正式破坏或支援（仅同场，不暗示因果）",
+          "hostTruth": "主持真相：章衡为了让公共任务按本阵营偏好成功、失败或延迟，对公共任务施加正式破坏或支援（目标：公共任务状态）",
+          "clueRefs": [
+            "smb-mto1p97f-mh97j-faction_foreshadow-0"
+          ],
+          "relatedCharacterIds": [
+            "B6",
+            "B2",
+            "B3",
+            "B4",
+            "B5",
+            "B1"
+          ],
+          "relationQuality": "COLOCATED",
+          "weaveLinkIds": [
+            "wl-mto1p97g-a3dr",
+            "wl-mto1p97g-9lbe",
+            "wl-mto1p97g-9b0u",
+            "wl-mto1p97g-h65y",
+            "wl-mto1p97g-lfdl",
+            "wl-mto1p97g-fgsi"
+          ],
+          "relationNotes": [
+            "【同场并列】共享角色 B1、B2——仅角色重合，保持同场并列而非强制合并",
+            "【同场并列】同阶段共享角色 B1、B2、B3、B4、B5——可同场并列，不算真正交织",
+            "【同场并列】同阶段共享角色 B2、B3、B1——可同场并列，不算真正交织",
+            "【同场并列】共享角色 B6、B3、B1——仅角色重合，保持同场并列而非强制合并",
+            "【保持平行】条件触发开放｜结算码触发 与 阵营影响公共任务｜希望任务成功 无线索级交织证据，叙事线保持平行（同场/同角不算交织）",
+            "【保持平行】阵营影响公共任务｜希望任务成功 与 嫁祸型追凶｜伪造时间线 无线索级交织证据，叙事线保持平行（同场/同角不算交织）"
+          ],
+          "needsDetail": false,
+          "contentConfirmed": false
+        },
+        {
+          "id": "pbeat-ob-mto1p97g-o10r",
+          "sourceBeatId": "beat-climax",
+          "sourceOutlineBeatId": "ob-mto1p97g-o10r",
+          "sourceBlockId": "smb-mto1p97f-mh97j",
+          "sourceMechanismId": "smb-mto1p97f-mh97j",
+          "templateId": "M08-7",
+          "familyId": "M08",
+          "actors": [
+            {
+              "id": "B5",
+              "name": "阮可"
+            },
+            {
+              "id": "B6",
+              "name": "章衡"
+            },
+            {
+              "id": "B2",
+              "name": "柯屿"
+            },
+            {
+              "id": "B3",
+              "name": "潘声"
+            },
+            {
+              "id": "B4",
+              "name": "叶知"
+            },
+            {
+              "id": "B1",
+              "name": "安然"
+            }
+          ],
+          "ownerCharacterIds": [
+            "B5"
+          ],
+          "goal": "在暴露风险下改归属或保住秘密",
+          "action": "在关键选择点背叛、退出或清洗异己",
+          "target": "归属状态",
+          "setupContext": "阵营关键据点",
+          "eventSummary": "阮可为了在暴露风险下改归属或保住秘密，在关键选择点背叛、退出或清洗异己（目标：归属状态）",
+          "immediateConsequence": "归属已改变；暴露风险上升",
+          "requires": [
+            {
+              "id": "faction_pressure",
+              "kind": "faction",
+              "summary": "阵营压力"
+            }
+          ],
+          "produces": [
+            {
+              "id": "allegiance_changed",
+              "kind": "faction",
+              "summary": "归属已改变"
+            },
+            {
+              "id": "faction_exposure_risk",
+              "kind": "exposure",
+              "summary": "暴露风险上升"
+            }
+          ],
+          "playerKnowledge": "玩家可见：在关键选择点背叛、退出或清洗异己（仅同场，不暗示因果）",
+          "hostTruth": "主持真相：阮可为了在暴露风险下改归属或保住秘密，在关键选择点背叛、退出或清洗异己（目标：归属状态）",
+          "clueRefs": [
+            "smb-mto1p97f-mh97j-membership_hint-1",
+            "smb-mto1p97f-mh97j-secret_signal-2",
+            "smb-mto1p97f-mh97j-recruitment_evidence-3",
+            "smb-mto1p97f-mh97j-loyalty_test-4",
+            "smb-mto1p97f-mh97j-betrayal_hint-5",
+            "smb-mto1p97f-mh97j-internal_conflict-6",
+            "smb-mto1p97f-mh97j-hidden_goal_hint-7",
+            "smb-mto1p97f-mh97j-membership_confirmation-8",
+            "smb-mto1p97f-mh97j-faction_exposure-9"
+          ],
+          "relatedCharacterIds": [
+            "B5",
+            "B6",
+            "B2",
+            "B3",
+            "B4",
+            "B1"
+          ],
+          "relationQuality": "COLOCATED",
+          "weaveLinkIds": [
+            "wl-mto1p97g-j3q8",
+            "wl-mto1p97g-eq5l",
+            "wl-mto1p97g-ehmt",
+            "wl-mto1p97g-k0au"
+          ],
+          "relationNotes": [
+            "【同场并列】共享角色 B1、B2、B3、B4、B5——仅角色重合，保持同场并列而非强制合并",
+            "【同场并列】同阶段共享角色 B1、B2、B3、B4、B5——可同场并列，不算真正交织",
+            "【同场并列】同阶段共享角色 B6、B3、B1——可同场并列，不算真正交织",
+            "【同场并列】共享角色 B6、B2、B3、B1——仅角色重合，保持同场并列而非强制合并"
+          ],
+          "needsDetail": false,
+          "contentConfirmed": false
+        },
+        {
+          "id": "pbeat-ob-mto1p97g-2uyl",
+          "sourceBeatId": "beat-crime",
+          "sourceOutlineBeatId": "ob-mto1p97g-2uyl",
+          "sourceBlockId": "smb-mto1p97g-3viya",
+          "sourceMechanismId": "smb-mto1p97g-3viya",
+          "templateId": "M01-FRAMING",
+          "familyId": "M01",
+          "actors": [
+            {
+              "id": "B3",
+              "name": "潘声"
+            },
+            {
+              "id": "B2",
+              "name": "柯屿"
+            },
+            {
+              "id": "B1",
+              "name": "安然"
+            }
+          ],
+          "ownerCharacterIds": [
+            "B3"
+          ],
+          "goal": "完成犯行并指向章衡",
+          "action": "实施犯行并留下指向章衡的痕迹",
+          "target": "被拨慢的座钟记录",
+          "setupContext": "案发现场",
+          "eventSummary": "潘声为了完成犯行并指向章衡，实施犯行并留下指向章衡的痕迹（目标：被拨慢的座钟记录）",
+          "immediateConsequence": "犯行已发生；错误嫌疑成立",
+          "requires": [
+            {
+              "id": "false_lead_ready",
+              "kind": "false_lead",
+              "summary": "误导物"
+            }
+          ],
+          "produces": [
+            {
+              "id": "crime_done",
+              "kind": "crime",
+              "summary": "犯行已发生"
+            },
+            {
+              "id": "false_suspicion",
+              "kind": "suspicion",
+              "summary": "错误嫌疑成立"
+            }
+          ],
+          "playerKnowledge": "玩家可见：实施犯行并留下指向章衡的痕迹（仅同场，不暗示因果）",
+          "hostTruth": "主持真相：潘声为了完成犯行并指向章衡，实施犯行并留下指向章衡的痕迹（目标：被拨慢的座钟记录）",
+          "clueRefs": [
+            "smb-mto1p97g-3viya-false_lead-0"
+          ],
+          "relatedCharacterIds": [
+            "B3",
+            "B2",
+            "B1"
+          ],
+          "relationQuality": "COLOCATED",
+          "weaveLinkIds": [
+            "wl-mto1p97g-u68n",
+            "wl-mto1p97g-2g8g",
+            "wl-mto1p97g-3ck4",
+            "wl-mto1p97g-9b0u",
+            "wl-mto1p97g-5q52",
+            "wl-mto1p97g-fgsi"
+          ],
+          "relationNotes": [
+            "【同场并列】共享角色 B1、B2——仅角色重合，保持同场并列而非强制合并",
+            "【同场并列】同阶段共享角色 B1、B2、B3——可同场并列，不算真正交织",
+            "【同场并列】共享角色 B2——仅角色重合，保持同场并列而非强制合并",
+            "【同场并列】同阶段共享角色 B2、B3、B1——可同场并列，不算真正交织",
+            "【保持平行】条件触发开放｜结算码触发 与 嫁祸型追凶｜伪造时间线 无线索级交织证据，叙事线保持平行（同场/同角不算交织）",
+            "【保持平行】阵营影响公共任务｜希望任务成功 与 嫁祸型追凶｜伪造时间线 无线索级交织证据，叙事线保持平行（同场/同角不算交织）"
+          ],
+          "needsDetail": false,
+          "contentConfirmed": false
+        },
+        {
+          "id": "pbeat-ob-mto1p97g-o0oa",
+          "sourceBeatId": "beat-false",
+          "sourceOutlineBeatId": "ob-mto1p97g-o0oa",
+          "sourceBlockId": "smb-mto1p97g-3viya",
+          "sourceMechanismId": "smb-mto1p97g-3viya",
+          "templateId": "M01-FRAMING",
+          "familyId": "M01",
+          "actors": [
+            {
+              "id": "B3",
+              "name": "潘声"
+            },
+            {
+              "id": "B6",
+              "name": "章衡"
+            }
+          ],
+          "ownerCharacterIds": [
+            "B3"
+          ],
+          "goal": "完成犯行并指向章衡",
+          "action": "实施犯行并留下指向章衡的痕迹",
+          "target": "被拨慢的座钟记录",
+          "setupContext": "案发现场",
+          "eventSummary": "潘声为了完成犯行并指向章衡，实施犯行并留下指向章衡的痕迹（目标：被拨慢的座钟记录）",
+          "immediateConsequence": "犯行已发生；错误嫌疑成立",
+          "requires": [
+            {
+              "id": "false_lead_ready",
+              "kind": "false_lead",
+              "summary": "误导物"
+            }
+          ],
+          "produces": [
+            {
+              "id": "crime_done",
+              "kind": "crime",
+              "summary": "犯行已发生"
+            },
+            {
+              "id": "false_suspicion",
+              "kind": "suspicion",
+              "summary": "错误嫌疑成立"
+            }
+          ],
+          "playerKnowledge": "玩家可见：实施犯行并留下指向章衡的痕迹",
+          "hostTruth": "主持真相：潘声为了完成犯行并指向章衡，实施犯行并留下指向章衡的痕迹（目标：被拨慢的座钟记录）",
+          "clueRefs": [
+            "smb-mto1p97g-3viya-false_lead-0"
+          ],
+          "relatedCharacterIds": [
+            "B3",
+            "B6"
+          ],
+          "weaveLinkIds": [],
+          "relationNotes": [],
+          "needsDetail": false,
+          "contentConfirmed": false
+        },
+        {
+          "id": "pbeat-ob-mto1p97g-3xyc",
+          "sourceBeatId": "beat-contra",
+          "sourceOutlineBeatId": "ob-mto1p97g-3xyc",
+          "sourceBlockId": "smb-mto1p97g-3viya",
+          "sourceMechanismId": "smb-mto1p97g-3viya",
+          "templateId": "M01-FRAMING",
+          "familyId": "M01",
+          "actors": [
+            {
+              "id": "B1",
+              "name": "安然"
+            }
+          ],
+          "ownerCharacterIds": [
+            "B1"
+          ],
+          "goal": "推翻对章衡的错误判断",
+          "action": "对照现场与证物寻找矛盾",
+          "target": "被拨慢的座钟记录",
+          "setupContext": "案发现场",
+          "eventSummary": "安然为了推翻对章衡的错误判断，对照现场与证物寻找矛盾（目标：被拨慢的座钟记录）",
+          "immediateConsequence": "反证出现",
+          "requires": [
+            {
+              "id": "false_suspicion",
+              "kind": "suspicion",
+              "summary": "错误嫌疑"
+            }
+          ],
+          "produces": [
+            {
+              "id": "contradiction",
+              "kind": "contradiction",
+              "summary": "反证出现"
+            }
+          ],
+          "playerKnowledge": "玩家可见：对照现场与证物寻找矛盾",
+          "hostTruth": "主持真相：安然为了推翻对章衡的错误判断，对照现场与证物寻找矛盾（目标：被拨慢的座钟记录）",
+          "clueRefs": [
+            "smb-mto1p97g-3viya-contradiction-1"
+          ],
+          "relatedCharacterIds": [
+            "B1"
+          ],
+          "weaveLinkIds": [],
+          "relationNotes": [],
+          "needsDetail": false,
+          "contentConfirmed": false
+        },
+        {
+          "id": "pbeat-ob-mto1p97g-ex8s",
+          "sourceBeatId": "beat-climax",
+          "sourceOutlineBeatId": "ob-mto1p97g-ex8s",
+          "sourceBlockId": "smb-mto1p97g-3viya",
+          "sourceMechanismId": "smb-mto1p97g-3viya",
+          "templateId": "M01-FRAMING",
+          "familyId": "M01",
+          "actors": [
+            {
+              "id": "B1",
+              "name": "安然"
+            },
+            {
+              "id": "B3",
+              "name": "潘声"
+            },
+            {
+              "id": "B6",
+              "name": "章衡"
+            }
+          ],
+          "ownerCharacterIds": [
+            "B1"
+          ],
+          "goal": "推翻对章衡的错误判断",
+          "action": "对照现场与证物寻找矛盾",
+          "target": "被拨慢的座钟记录",
+          "setupContext": "案发现场",
+          "eventSummary": "安然为了推翻对章衡的错误判断，对照现场与证物寻找矛盾（目标：被拨慢的座钟记录）",
+          "immediateConsequence": "反证出现",
+          "requires": [
+            {
+              "id": "false_suspicion",
+              "kind": "suspicion",
+              "summary": "错误嫌疑"
+            }
+          ],
+          "produces": [
+            {
+              "id": "contradiction",
+              "kind": "contradiction",
+              "summary": "反证出现"
+            }
+          ],
+          "playerKnowledge": "玩家可见：对照现场与证物寻找矛盾（仅同场，不暗示因果）",
+          "hostTruth": "主持真相：安然为了推翻对章衡的错误判断，对照现场与证物寻找矛盾（目标：被拨慢的座钟记录）",
+          "clueRefs": [
+            "smb-mto1p97g-3viya-true_evidence-2",
+            "smb-mto1p97g-3viya-decisive_evidence-3"
+          ],
+          "relatedCharacterIds": [
+            "B1",
+            "B3",
+            "B6"
+          ],
+          "relationQuality": "COLOCATED",
+          "weaveLinkIds": [
+            "wl-mto1p97g-zo1h",
+            "wl-mto1p97g-pf8r",
+            "wl-mto1p97g-h65y",
+            "wl-mto1p97g-ehmt"
+          ],
+          "relationNotes": [
+            "【同场并列】共享角色 B1、B3——仅角色重合，保持同场并列而非强制合并",
+            "【同场并列】同阶段共享角色 B1、B3——可同场并列，不算真正交织",
+            "【同场并列】共享角色 B6、B3、B1——仅角色重合，保持同场并列而非强制合并",
+            "【同场并列】同阶段共享角色 B6、B3、B1——可同场并列，不算真正交织"
+          ],
+          "needsDetail": false,
+          "contentConfirmed": false
+        }
+      ],
+      "playerVisibleSummary": "玩家可见：完成登记条件以触发内容开放（仅同场，不暗示因果） / 玩家可见：核对身份线索并作出公开或隐瞒选择（仅同场，不暗示因果） / 玩家可见：对公共任务施加正式破坏或支援（仅同场，不暗示因果） / 玩家可见：在关键选择点背叛、退出或清洗异己（仅同场，不暗示因果） / 玩家可见：实施犯行并留下指向章衡的痕迹（仅同场，不暗示因果） / 玩家可见：实施犯行并留下指向章衡的痕迹 / 玩家可见：对照现场与证物寻找矛盾 / 玩家可见：对照现场与证物寻找矛盾（仅同场，不暗示因果）",
+      "hostTruthSummary": "主持真相：安然为了用正式动作换取被条件锁住的信息，完成登记条件以触发内容开放（目标：身份记录） / 主持真相：安然为了确认真实身份并决定是否公开，核对身份线索并作出公开或隐瞒选择（目标：真实身份） / 主持真相：章衡为了让公共任务按本阵营偏好成功、失败或延迟，对公共任务施加正式破坏或支援（目标：公共任务状态） / 主持真相：阮可为了在暴露风险下改归属或保住秘密，在关键选择点背叛、退出或清洗异己（目标：归属状态） / 主持真相：潘声为了完成犯行并指向章衡，实施犯行并留下指向章衡的痕迹（目标：被拨慢的座钟记录） / 主持真相：安然为了推翻对章衡的错误判断，对照现场与证物寻找矛盾（目标：被拨慢的座钟记录）",
+      "stageStartState": "承接上一阶段已声明后果；未声明者标 UNKNOWN",
+      "stageEndState": "条件开放的信息；身份已确认；家族/资格状态；阵营压力升级；归属已改变；暴露风险上升；犯行已发生；错误嫌疑成立；反证出现",
+      "clueEntries": [
+        {
+          "clueId": "smb-mto1p97f-90o7h-foreshadow-0",
+          "label": "早期伏笔",
+          "mechanismId": "smb-mto1p97f-90o7h",
+          "templateId": "M07-2",
+          "introducedAt": "act1",
+          "availableStages": [
+            "act1",
+            "act2"
+          ],
+          "persists": true,
+          "stageId": "act1",
+          "possibleFinders": [
+            "B1",
+            "B2",
+            "B3",
+            "B4",
+            "B5"
+          ],
+          "supportsFact": "早期伏笔",
+          "isMisleading": false,
+          "isDecisive": false,
+          "missingDetail": false
+        },
+        {
+          "clueId": "smb-mto1p97f-mh97j-faction_foreshadow-0",
+          "label": "阵营伏笔",
+          "mechanismId": "smb-mto1p97f-mh97j",
+          "templateId": "M08-7",
+          "introducedAt": "act1",
+          "availableStages": [
+            "act1",
+            "act2"
+          ],
+          "persists": true,
+          "stageId": "act1",
+          "possibleFinders": [
+            "B6",
+            "B2",
+            "B3",
+            "B4",
+            "B5",
+            "B1"
+          ],
+          "supportsFact": "阵营伏笔",
+          "isMisleading": false,
+          "isDecisive": false,
+          "missingDetail": false
+        },
+        {
+          "clueId": "smb-mto1p97f-90o7h-memory_fragment-1",
+          "label": "记忆碎片",
+          "mechanismId": "smb-mto1p97f-90o7h",
+          "templateId": "M07-2",
+          "introducedAt": "act2",
+          "availableStages": [
+            "act2"
+          ],
+          "persists": false,
+          "stageId": "act2",
+          "possibleFinders": [
+            "B1",
+            "B2",
+            "B3",
+            "B4",
+            "B5"
+          ],
+          "supportsFact": "记忆碎片",
+          "isMisleading": false,
+          "isDecisive": false,
+          "missingDetail": false
+        },
+        {
+          "clueId": "smb-mto1p97f-90o7h-identity_hint-2",
+          "label": "身份暗示",
+          "mechanismId": "smb-mto1p97f-90o7h",
+          "templateId": "M07-2",
+          "introducedAt": "act2",
+          "availableStages": [
+            "act2"
+          ],
+          "persists": false,
+          "stageId": "act2",
+          "possibleFinders": [
+            "B1",
+            "B2",
+            "B3",
+            "B4",
+            "B5"
+          ],
+          "supportsFact": "身份暗示",
+          "isMisleading": false,
+          "isDecisive": false,
+          "missingDetail": false
+        },
+        {
+          "clueId": "smb-mto1p97f-90o7h-misdirection-3",
+          "label": "误导",
+          "mechanismId": "smb-mto1p97f-90o7h",
+          "templateId": "M07-2",
+          "introducedAt": "act2",
+          "availableStages": [
+            "act2"
+          ],
+          "persists": false,
+          "stageId": "act2",
+          "possibleFinders": [
+            "B1",
+            "B2",
+            "B3",
+            "B4",
+            "B5"
+          ],
+          "supportsFact": "误导",
+          "isMisleading": true,
+          "isDecisive": false,
+          "missingDetail": false
+        },
+        {
+          "clueId": "smb-mto1p97f-90o7h-confirmation-4",
+          "label": "确认",
+          "mechanismId": "smb-mto1p97f-90o7h",
+          "templateId": "M07-2",
+          "introducedAt": "act2",
+          "availableStages": [
+            "act2"
+          ],
+          "persists": false,
+          "stageId": "act2",
+          "possibleFinders": [
+            "B1",
+            "B2",
+            "B3",
+            "B4",
+            "B5"
+          ],
+          "supportsFact": "确认",
+          "isMisleading": false,
+          "isDecisive": false,
+          "missingDetail": false
+        },
+        {
+          "clueId": "smb-mto1p97f-90o7h-decisive_reveal-5",
+          "label": "决定性揭示",
+          "mechanismId": "smb-mto1p97f-90o7h",
+          "templateId": "M07-2",
+          "introducedAt": "act2",
+          "availableStages": [
+            "act2"
+          ],
+          "persists": false,
+          "stageId": "act2",
+          "possibleFinders": [
+            "B1",
+            "B2",
+            "B3",
+            "B4",
+            "B5"
+          ],
+          "supportsFact": "决定性揭示",
+          "isMisleading": false,
+          "isDecisive": true,
+          "missingDetail": false
+        },
+        {
+          "clueId": "smb-mto1p97f-mh97j-membership_hint-1",
+          "label": "成员暗示",
+          "mechanismId": "smb-mto1p97f-mh97j",
+          "templateId": "M08-7",
+          "introducedAt": "act2",
+          "availableStages": [
+            "act2"
+          ],
+          "persists": false,
+          "stageId": "act2",
+          "possibleFinders": [
+            "B5",
+            "B6",
+            "B2",
+            "B3",
+            "B4",
+            "B1"
+          ],
+          "supportsFact": "成员暗示",
+          "isMisleading": false,
+          "isDecisive": false,
+          "missingDetail": false
+        },
+        {
+          "clueId": "smb-mto1p97f-mh97j-secret_signal-2",
+          "label": "秘密信号",
+          "mechanismId": "smb-mto1p97f-mh97j",
+          "templateId": "M08-7",
+          "introducedAt": "act2",
+          "availableStages": [
+            "act2"
+          ],
+          "persists": false,
+          "stageId": "act2",
+          "possibleFinders": [
+            "B5",
+            "B6",
+            "B2",
+            "B3",
+            "B4",
+            "B1"
+          ],
+          "supportsFact": "秘密信号",
+          "isMisleading": false,
+          "isDecisive": false,
+          "missingDetail": false
+        },
+        {
+          "clueId": "smb-mto1p97f-mh97j-recruitment_evidence-3",
+          "label": "招募证据",
+          "mechanismId": "smb-mto1p97f-mh97j",
+          "templateId": "M08-7",
+          "introducedAt": "act2",
+          "availableStages": [
+            "act2"
+          ],
+          "persists": false,
+          "stageId": "act2",
+          "possibleFinders": [
+            "B5",
+            "B6",
+            "B2",
+            "B3",
+            "B4",
+            "B1"
+          ],
+          "supportsFact": "招募证据",
+          "isMisleading": false,
+          "isDecisive": false,
+          "missingDetail": false
+        },
+        {
+          "clueId": "smb-mto1p97f-mh97j-loyalty_test-4",
+          "label": "忠诚考验",
+          "mechanismId": "smb-mto1p97f-mh97j",
+          "templateId": "M08-7",
+          "introducedAt": "act2",
+          "availableStages": [
+            "act2"
+          ],
+          "persists": false,
+          "stageId": "act2",
+          "possibleFinders": [
+            "B5",
+            "B6",
+            "B2",
+            "B3",
+            "B4",
+            "B1"
+          ],
+          "supportsFact": "忠诚考验",
+          "isMisleading": false,
+          "isDecisive": false,
+          "missingDetail": false
+        },
+        {
+          "clueId": "smb-mto1p97f-mh97j-betrayal_hint-5",
+          "label": "背叛暗示",
+          "mechanismId": "smb-mto1p97f-mh97j",
+          "templateId": "M08-7",
+          "introducedAt": "act2",
+          "availableStages": [
+            "act2"
+          ],
+          "persists": false,
+          "stageId": "act2",
+          "possibleFinders": [
+            "B5",
+            "B6",
+            "B2",
+            "B3",
+            "B4",
+            "B1"
+          ],
+          "supportsFact": "背叛暗示",
+          "isMisleading": false,
+          "isDecisive": false,
+          "missingDetail": false
+        },
+        {
+          "clueId": "smb-mto1p97f-mh97j-internal_conflict-6",
+          "label": "内部冲突",
+          "mechanismId": "smb-mto1p97f-mh97j",
+          "templateId": "M08-7",
+          "introducedAt": "act2",
+          "availableStages": [
+            "act2"
+          ],
+          "persists": false,
+          "stageId": "act2",
+          "possibleFinders": [
+            "B5",
+            "B6",
+            "B2",
+            "B3",
+            "B4",
+            "B1"
+          ],
+          "supportsFact": "内部冲突",
+          "isMisleading": false,
+          "isDecisive": false,
+          "missingDetail": false
+        },
+        {
+          "clueId": "smb-mto1p97f-mh97j-hidden_goal_hint-7",
+          "label": "隐藏目标暗示",
+          "mechanismId": "smb-mto1p97f-mh97j",
+          "templateId": "M08-7",
+          "introducedAt": "act2",
+          "availableStages": [
+            "act2"
+          ],
+          "persists": false,
+          "stageId": "act2",
+          "possibleFinders": [
+            "B5",
+            "B6",
+            "B2",
+            "B3",
+            "B4",
+            "B1"
+          ],
+          "supportsFact": "隐藏目标暗示",
+          "isMisleading": false,
+          "isDecisive": false,
+          "missingDetail": false
+        },
+        {
+          "clueId": "smb-mto1p97f-mh97j-membership_confirmation-8",
+          "label": "归属确认",
+          "mechanismId": "smb-mto1p97f-mh97j",
+          "templateId": "M08-7",
+          "introducedAt": "act2",
+          "availableStages": [
+            "act2"
+          ],
+          "persists": false,
+          "stageId": "act2",
+          "possibleFinders": [
+            "B5",
+            "B6",
+            "B2",
+            "B3",
+            "B4",
+            "B1"
+          ],
+          "supportsFact": "归属确认",
+          "isMisleading": false,
+          "isDecisive": false,
+          "missingDetail": false
+        },
+        {
+          "clueId": "smb-mto1p97f-mh97j-faction_exposure-9",
+          "label": "阵营暴露",
+          "mechanismId": "smb-mto1p97f-mh97j",
+          "templateId": "M08-7",
+          "introducedAt": "act2",
+          "availableStages": [
+            "act2"
+          ],
+          "persists": false,
+          "stageId": "act2",
+          "possibleFinders": [
+            "B5",
+            "B6",
+            "B2",
+            "B3",
+            "B4",
+            "B1"
+          ],
+          "supportsFact": "阵营暴露",
+          "isMisleading": false,
+          "isDecisive": false,
+          "missingDetail": false
+        },
+        {
+          "clueId": "smb-mto1p97g-3viya-false_lead-0",
+          "label": "误导",
+          "mechanismId": "smb-mto1p97g-3viya",
+          "templateId": "M01-FRAMING",
+          "introducedAt": "act2",
+          "availableStages": [
+            "act2"
+          ],
+          "persists": false,
+          "stageId": "act2",
+          "possibleFinders": [
+            "B3",
+            "B2",
+            "B1",
+            "B6"
+          ],
+          "supportsFact": "被拨慢的座钟记录",
+          "isMisleading": true,
+          "isDecisive": false,
+          "missingDetail": false
+        },
+        {
+          "clueId": "smb-mto1p97g-3viya-contradiction-1",
+          "label": "反证",
+          "mechanismId": "smb-mto1p97g-3viya",
+          "templateId": "M01-FRAMING",
+          "introducedAt": "act2",
+          "availableStages": [
+            "act2"
+          ],
+          "persists": false,
+          "stageId": "act2",
+          "possibleFinders": [
+            "B1"
+          ],
+          "supportsFact": "邻室更鼓时间与座钟不一致",
+          "isMisleading": false,
+          "isDecisive": false,
+          "missingDetail": false
+        },
+        {
+          "clueId": "smb-mto1p97g-3viya-true_evidence-2",
+          "label": "真手法",
+          "mechanismId": "smb-mto1p97g-3viya",
+          "templateId": "M01-FRAMING",
+          "introducedAt": "act2",
+          "availableStages": [
+            "act2"
+          ],
+          "persists": false,
+          "stageId": "act2",
+          "possibleFinders": [
+            "B1",
+            "B3",
+            "B6"
+          ],
+          "supportsFact": "投毒后离开",
+          "isMisleading": false,
+          "isDecisive": false,
+          "missingDetail": false
+        },
+        {
+          "clueId": "smb-mto1p97g-3viya-decisive_evidence-3",
+          "label": "突破",
+          "mechanismId": "smb-mto1p97g-3viya",
+          "templateId": "M01-FRAMING",
+          "introducedAt": "act2",
+          "availableStages": [
+            "act2",
+            "act3"
+          ],
+          "persists": true,
+          "stageId": "act2",
+          "possibleFinders": [
+            "B1",
+            "B3",
+            "B6",
+            "B2"
+          ],
+          "supportsFact": "真凶当晚校准过座钟的证词交叉",
+          "isMisleading": false,
+          "isDecisive": false,
+          "missingDetail": false
+        }
+      ],
+      "characterEntries": [
+        {
+          "id": "B1",
+          "name": "安然"
+        },
+        {
+          "id": "B2",
+          "name": "柯屿"
+        },
+        {
+          "id": "B3",
+          "name": "潘声"
+        },
+        {
+          "id": "B4",
+          "name": "叶知"
+        },
+        {
+          "id": "B5",
+          "name": "阮可"
+        },
+        {
+          "id": "B6",
+          "name": "章衡"
+        }
+      ],
+      "unresolvedDetails": [],
+      "warnings": [
+        {
+          "id": "warn-crowd-act2",
+          "type": "STAGE_CROWDING",
+          "severity": "warn",
+          "message": "「加压」包含 8 个剧情 beat，当前阶段密度偏高。P6 未自动迁移 beat，请返回交织骨架调整。",
+          "stageIds": [
+            "act2"
+          ],
+          "beatIds": [
+            "ob-mto1p97g-h20u",
+            "ob-mto1p97g-jfh8",
+            "ob-mto1p97g-yu0b",
+            "ob-mto1p97g-o10r",
+            "ob-mto1p97g-2uyl",
+            "ob-mto1p97g-o0oa",
+            "ob-mto1p97g-3xyc",
+            "ob-mto1p97g-ex8s"
+          ]
+        },
+        {
+          "id": "warn-low-weave",
+          "type": "LOW_WEAVE_DENSITY",
+          "severity": "info",
+          "message": "整本存在较少真正交织关系；当前母稿主要由平行剧情 + 同场并列构成。P6 未伪造额外因果。",
+          "stageIds": [
+            "act1",
+            "act2",
+            "act3"
+          ],
+          "beatIds": []
+        }
+      ]
+    },
+    {
+      "stageId": "act3",
+      "stageRole": "ESCALATION",
+      "title": "升级",
+      "order": 2,
+      "purpose": "安然：承受身份公开后的关系后果；章衡：结算阵营目标并承受公开后果；安然：锁定真凶潘声",
+      "beats": [
+        {
+          "id": "pbeat-ob-mto1p97g-h6ti",
+          "sourceBeatId": "beat-res",
+          "sourceOutlineBeatId": "ob-mto1p97g-h6ti",
+          "sourceBlockId": "smb-mto1p97f-90o7h",
+          "sourceMechanismId": "smb-mto1p97f-90o7h",
+          "templateId": "M07-2",
+          "familyId": "M07",
+          "actors": [
+            {
+              "id": "B1",
+              "name": "安然"
+            },
+            {
+              "id": "B2",
+              "name": "柯屿"
+            },
+            {
+              "id": "B3",
+              "name": "潘声"
+            },
+            {
+              "id": "B4",
+              "name": "叶知"
+            },
+            {
+              "id": "B5",
+              "name": "阮可"
+            }
+          ],
+          "ownerCharacterIds": [
+            "B1"
+          ],
+          "goal": "承受身份公开后的关系后果",
+          "action": "面对知情者与阵营/调查方的反应",
+          "target": "关系重组",
+          "setupContext": "藏有记录的场所",
+          "eventSummary": "安然为了承受身份公开后的关系后果，面对知情者与阵营/调查方的反应（目标：关系重组）",
+          "immediateConsequence": "身份进入公开层",
+          "requires": [
+            {
+              "id": "identity_confirmed",
+              "kind": "identity",
+              "summary": "身份确认"
+            }
+          ],
+          "produces": [
+            {
+              "id": "identity_public",
+              "kind": "identity",
+              "summary": "身份进入公开层"
+            }
+          ],
+          "playerKnowledge": "玩家可见：面对知情者与阵营/调查方的反应（仅同场，不暗示因果）",
+          "hostTruth": "主持真相：安然为了承受身份公开后的关系后果，面对知情者与阵营/调查方的反应（目标：关系重组）",
+          "clueRefs": [],
+          "relatedCharacterIds": [
+            "B1",
+            "B2",
+            "B3",
+            "B4",
+            "B5"
+          ],
+          "relationQuality": "COLOCATED",
+          "weaveLinkIds": [
+            "wl-mto1p97g-d30e",
+            "wl-mto1p97g-ind9"
+          ],
+          "relationNotes": [
+            "【同场并列】同阶段共享角色 B1、B2、B3、B4、B5——可同场并列，不算真正交织",
+            "【同场并列】同阶段共享角色 B1、B2、B3——可同场并列，不算真正交织"
+          ],
+          "needsDetail": false,
+          "contentConfirmed": false
+        },
+        {
+          "id": "pbeat-ob-mto1p97g-9n62",
+          "sourceBeatId": "beat-res",
+          "sourceOutlineBeatId": "ob-mto1p97g-9n62",
+          "sourceBlockId": "smb-mto1p97f-mh97j",
+          "sourceMechanismId": "smb-mto1p97f-mh97j",
+          "templateId": "M08-7",
+          "familyId": "M08",
+          "actors": [
+            {
+              "id": "B6",
+              "name": "章衡"
+            },
+            {
+              "id": "B2",
+              "name": "柯屿"
+            },
+            {
+              "id": "B3",
+              "name": "潘声"
+            },
+            {
+              "id": "B4",
+              "name": "叶知"
+            },
+            {
+              "id": "B5",
+              "name": "阮可"
+            },
+            {
+              "id": "B1",
+              "name": "安然"
+            }
+          ],
+          "ownerCharacterIds": [
+            "B6"
+          ],
+          "goal": "结算阵营目标并承受公开后果",
+          "action": "公开站队或接受阵营败露后的关系重排",
+          "target": "阵营胜负条件",
+          "setupContext": "阵营关键据点",
+          "eventSummary": "章衡为了结算阵营目标并承受公开后果，公开站队或接受阵营败露后的关系重排（目标：阵营胜负条件）",
+          "immediateConsequence": "阵营线结算",
+          "requires": [
+            {
+              "id": "allegiance_changed",
+              "kind": "faction",
+              "summary": "归属变化"
+            }
+          ],
+          "produces": [
+            {
+              "id": "faction_settled",
+              "kind": "faction",
+              "summary": "阵营线结算"
+            }
+          ],
+          "playerKnowledge": "玩家可见：公开站队或接受阵营败露后的关系重排（仅同场，不暗示因果）",
+          "hostTruth": "主持真相：章衡为了结算阵营目标并承受公开后果，公开站队或接受阵营败露后的关系重排（目标：阵营胜负条件）",
+          "clueRefs": [],
+          "relatedCharacterIds": [
+            "B6",
+            "B2",
+            "B3",
+            "B4",
+            "B5",
+            "B1"
+          ],
+          "relationQuality": "COLOCATED",
+          "weaveLinkIds": [
+            "wl-mto1p97g-tps7",
+            "wl-mto1p97g-d30e",
+            "wl-mto1p97g-poy3"
+          ],
+          "relationNotes": [
+            "【同场并列】共享角色 B1、B2、B3、B4、B5——仅角色重合，保持同场并列而非强制合并",
+            "【同场并列】同阶段共享角色 B1、B2、B3、B4、B5——可同场并列，不算真正交织",
+            "【同场并列】同阶段共享角色 B6、B2、B3、B1——可同场并列，不算真正交织"
+          ],
+          "needsDetail": false,
+          "contentConfirmed": false
+        },
+        {
+          "id": "pbeat-ob-mto1p97g-uotd",
+          "sourceBeatId": "beat-res",
+          "sourceOutlineBeatId": "ob-mto1p97g-uotd",
+          "sourceBlockId": "smb-mto1p97g-3viya",
+          "sourceMechanismId": "smb-mto1p97g-3viya",
+          "templateId": "M01-FRAMING",
+          "familyId": "M01",
+          "actors": [
+            {
+              "id": "B1",
+              "name": "安然"
+            },
+            {
+              "id": "B2",
+              "name": "柯屿"
+            },
+            {
+              "id": "B3",
+              "name": "潘声"
+            },
+            {
+              "id": "B6",
+              "name": "章衡"
+            }
+          ],
+          "ownerCharacterIds": [
+            "B1"
+          ],
+          "goal": "锁定真凶潘声",
+          "action": "用决定性证据揭穿嫁祸",
+          "target": "决定性证据",
+          "setupContext": "案发现场周边",
+          "eventSummary": "安然为了锁定真凶潘声，用决定性证据揭穿嫁祸（目标：决定性证据）",
+          "immediateConsequence": "真凶锁定",
+          "requires": [
+            {
+              "id": "contradiction",
+              "kind": "contradiction",
+              "summary": "反证"
+            }
+          ],
+          "produces": [
+            {
+              "id": "truth_locked",
+              "kind": "truth",
+              "summary": "真凶锁定"
+            }
+          ],
+          "playerKnowledge": "玩家可见：用决定性证据揭穿嫁祸（仅同场，不暗示因果）",
+          "hostTruth": "主持真相：安然为了锁定真凶潘声，用决定性证据揭穿嫁祸（目标：决定性证据）",
+          "clueRefs": [
+            "smb-mto1p97g-3viya-decisive_evidence-3"
+          ],
+          "relatedCharacterIds": [
+            "B1",
+            "B2",
+            "B3",
+            "B6"
+          ],
+          "relationQuality": "COLOCATED",
+          "weaveLinkIds": [
+            "wl-mto1p97g-q6lq",
+            "wl-mto1p97g-ind9",
+            "wl-mto1p97g-k0au",
+            "wl-mto1p97g-poy3"
+          ],
+          "relationNotes": [
+            "【同场并列】共享角色 B1、B2、B3——仅角色重合，保持同场并列而非强制合并",
+            "【同场并列】同阶段共享角色 B1、B2、B3——可同场并列，不算真正交织",
+            "【同场并列】共享角色 B6、B2、B3、B1——仅角色重合，保持同场并列而非强制合并",
+            "【同场并列】同阶段共享角色 B6、B2、B3、B1——可同场并列，不算真正交织"
+          ],
+          "needsDetail": false,
+          "contentConfirmed": false
+        }
+      ],
+      "playerVisibleSummary": "玩家可见：面对知情者与阵营/调查方的反应（仅同场，不暗示因果） / 玩家可见：公开站队或接受阵营败露后的关系重排（仅同场，不暗示因果） / 玩家可见：用决定性证据揭穿嫁祸（仅同场，不暗示因果）",
+      "hostTruthSummary": "主持真相：安然为了承受身份公开后的关系后果，面对知情者与阵营/调查方的反应（目标：关系重组） / 主持真相：章衡为了结算阵营目标并承受公开后果，公开站队或接受阵营败露后的关系重排（目标：阵营胜负条件） / 主持真相：安然为了锁定真凶潘声，用决定性证据揭穿嫁祸（目标：决定性证据）",
+      "stageStartState": "承接上一阶段已声明后果；未声明者标 UNKNOWN",
+      "stageEndState": "身份进入公开层；阵营线结算；真凶锁定",
+      "clueEntries": [
+        {
+          "clueId": "smb-mto1p97g-3viya-decisive_evidence-3",
+          "label": "突破",
+          "mechanismId": "smb-mto1p97g-3viya",
+          "templateId": "M01-FRAMING",
+          "introducedAt": "act2",
+          "availableStages": [
+            "act2",
+            "act3"
+          ],
+          "persists": true,
+          "stageId": "act2",
+          "possibleFinders": [
+            "B1",
+            "B3",
+            "B6",
+            "B2"
+          ],
+          "supportsFact": "真凶当晚校准过座钟的证词交叉",
+          "isMisleading": false,
+          "isDecisive": false,
+          "missingDetail": false
+        },
+        {
+          "clueId": "fact-interface:ob-mto1p97g-h6ti",
+          "label": "事实接口（尚无线索实体）",
+          "mechanismId": "smb-mto1p97f-90o7h",
+          "templateId": "M07-2",
+          "introducedAt": "act3",
+          "availableStages": [
+            "act3"
+          ],
+          "persists": false,
+          "stageId": "act3",
+          "possibleFinders": [
+            "B1",
+            "B2",
+            "B3",
+            "B4",
+            "B5"
+          ],
+          "supportsFact": "身份确认；身份进入公开层",
+          "isMisleading": false,
+          "isDecisive": false,
+          "missingDetail": true,
+          "detailNote": "这个剧情 beat 需要关键线索，但模板尚未提供具体线索内容。"
+        },
+        {
+          "clueId": "fact-interface:ob-mto1p97g-9n62",
+          "label": "事实接口（尚无线索实体）",
+          "mechanismId": "smb-mto1p97f-mh97j",
+          "templateId": "M08-7",
+          "introducedAt": "act3",
+          "availableStages": [
+            "act3"
+          ],
+          "persists": false,
+          "stageId": "act3",
+          "possibleFinders": [
+            "B6",
+            "B2",
+            "B3",
+            "B4",
+            "B5",
+            "B1"
+          ],
+          "supportsFact": "归属变化；阵营线结算",
+          "isMisleading": false,
+          "isDecisive": false,
+          "missingDetail": true,
+          "detailNote": "这个剧情 beat 需要关键线索，但模板尚未提供具体线索内容。"
+        }
+      ],
+      "characterEntries": [
+        {
+          "id": "B1",
+          "name": "安然"
+        },
+        {
+          "id": "B2",
+          "name": "柯屿"
+        },
+        {
+          "id": "B3",
+          "name": "潘声"
+        },
+        {
+          "id": "B4",
+          "name": "叶知"
+        },
+        {
+          "id": "B5",
+          "name": "阮可"
+        },
+        {
+          "id": "B6",
+          "name": "章衡"
+        }
+      ],
+      "unresolvedDetails": [],
+      "warnings": [
+        {
+          "id": "warn-low-weave",
+          "type": "LOW_WEAVE_DENSITY",
+          "severity": "info",
+          "message": "整本存在较少真正交织关系；当前母稿主要由平行剧情 + 同场并列构成。P6 未伪造额外因果。",
+          "stageIds": [
+            "act1",
+            "act2",
+            "act3"
+          ],
+          "beatIds": []
+        },
+        {
+          "id": "warn-clue-ob-mto1p97g-h6ti",
+          "type": "MISSING_CLUE_DETAIL",
+          "severity": "info",
+          "message": "该剧情 beat 需要/产生事实接口，但模板尚未绑定具体线索内容。",
+          "stageIds": [
+            "act3"
+          ],
+          "beatIds": [
+            "ob-mto1p97g-h6ti"
+          ]
+        },
+        {
+          "id": "warn-clue-ob-mto1p97g-9n62",
+          "type": "MISSING_CLUE_DETAIL",
+          "severity": "info",
+          "message": "该剧情 beat 需要/产生事实接口，但模板尚未绑定具体线索内容。",
+          "stageIds": [
+            "act3"
+          ],
+          "beatIds": [
+            "ob-mto1p97g-9n62"
+          ]
+        }
+      ]
+    }
+  ],
+  "truthView": {
+    "events": [
+      {
+        "beatId": "ob-mto1p97g-pkt4",
+        "stageId": "act1",
+        "whatHappened": "安然为了隐藏或维持当前身份表象，按伪装/未知状态行动，避免过早暴露（目标：身份表象）",
+        "who": [
+          "B1",
+          "B2"
+        ],
+        "why": "隐藏或维持当前身份表象",
+        "consequence": "身份仍未公开",
+        "eventOccurred": true,
+        "evidenceEffect": "NEUTRAL",
+        "claimTruth": "UNKNOWN",
+        "isMisleading": false,
+        "isTruth": true,
+        "needsDetail": false
+      },
+      {
+        "beatId": "ob-mto1p97g-w9bu",
+        "stageId": "act1",
+        "whatHappened": "章衡为了巩固或潜伏阵营结构，确认成员知情范围与联络方式（目标：阵营名单/暗号）",
+        "who": [
+          "B6",
+          "B2"
+        ],
+        "why": "巩固或潜伏阵营结构",
+        "consequence": "阵营结构已成形",
+        "eventOccurred": true,
+        "evidenceEffect": "NEUTRAL",
+        "claimTruth": "UNKNOWN",
+        "isMisleading": false,
+        "isTruth": true,
+        "needsDetail": false
+      },
+      {
+        "beatId": "ob-mto1p97g-ziq0",
+        "stageId": "act1",
+        "whatHappened": "潘声为了准备可嫁祸的假象，布置与章衡相关的误导物（目标：被拨慢的座钟记录）",
+        "who": [
+          "B3",
+          "B6"
+        ],
+        "why": "准备可嫁祸的假象",
+        "consequence": "误导物已就绪",
+        "eventOccurred": true,
+        "evidenceEffect": "MISLEADING",
+        "claimTruth": "FALSE",
+        "isMisleading": true,
+        "isTruth": true,
+        "needsDetail": false
+      },
+      {
+        "beatId": "ob-mto1p97g-h20u",
+        "stageId": "act2",
+        "whatHappened": "安然为了用正式动作换取被条件锁住的信息，完成登记条件以触发内容开放（目标：身份记录）",
+        "who": [
+          "B1",
+          "B2",
+          "B3",
+          "B4",
+          "B5"
+        ],
+        "why": "用正式动作换取被条件锁住的信息",
+        "consequence": "条件开放的信息",
+        "eventOccurred": true,
+        "evidenceEffect": "NEUTRAL",
+        "claimTruth": "UNKNOWN",
+        "isMisleading": false,
+        "isTruth": true,
+        "needsDetail": false
+      },
+      {
+        "beatId": "ob-mto1p97g-jfh8",
+        "stageId": "act2",
+        "whatHappened": "安然为了确认真实身份并决定是否公开，核对身份线索并作出公开或隐瞒选择（目标：真实身份）",
+        "who": [
+          "B1",
+          "B2",
+          "B3",
+          "B4",
+          "B5"
+        ],
+        "why": "确认真实身份并决定是否公开",
+        "consequence": "身份已确认；家族/资格状态",
+        "eventOccurred": true,
+        "evidenceEffect": "SUPPORTING",
+        "claimTruth": "TRUE",
+        "isMisleading": false,
+        "isTruth": true,
+        "needsDetail": false
+      },
+      {
+        "beatId": "ob-mto1p97g-yu0b",
+        "stageId": "act2",
+        "whatHappened": "章衡为了让公共任务按本阵营偏好成功、失败或延迟，对公共任务施加正式破坏或支援（目标：公共任务状态）",
+        "who": [
+          "B6",
+          "B2",
+          "B3",
+          "B4",
+          "B5",
+          "B1"
+        ],
+        "why": "让公共任务按本阵营偏好成功、失败或延迟",
+        "consequence": "阵营压力升级",
+        "eventOccurred": true,
+        "evidenceEffect": "NEUTRAL",
+        "claimTruth": "UNKNOWN",
+        "isMisleading": false,
+        "isTruth": true,
+        "needsDetail": false
+      },
+      {
+        "beatId": "ob-mto1p97g-o10r",
+        "stageId": "act2",
+        "whatHappened": "阮可为了在暴露风险下改归属或保住秘密，在关键选择点背叛、退出或清洗异己（目标：归属状态）",
+        "who": [
+          "B5",
+          "B6",
+          "B2",
+          "B3",
+          "B4",
+          "B1"
+        ],
+        "why": "在暴露风险下改归属或保住秘密",
+        "consequence": "归属已改变；暴露风险上升",
+        "eventOccurred": true,
+        "evidenceEffect": "NEUTRAL",
+        "claimTruth": "UNKNOWN",
+        "isMisleading": false,
+        "isTruth": true,
+        "needsDetail": false
+      },
+      {
+        "beatId": "ob-mto1p97g-2uyl",
+        "stageId": "act2",
+        "whatHappened": "潘声为了完成犯行并指向章衡，实施犯行并留下指向章衡的痕迹（目标：被拨慢的座钟记录）",
+        "who": [
+          "B3",
+          "B2",
+          "B1"
+        ],
+        "why": "完成犯行并指向章衡",
+        "consequence": "犯行已发生；错误嫌疑成立",
+        "eventOccurred": true,
+        "evidenceEffect": "MISLEADING",
+        "claimTruth": "FALSE",
+        "isMisleading": true,
+        "isTruth": true,
+        "needsDetail": false
+      },
+      {
+        "beatId": "ob-mto1p97g-o0oa",
+        "stageId": "act2",
+        "whatHappened": "潘声为了完成犯行并指向章衡，实施犯行并留下指向章衡的痕迹（目标：被拨慢的座钟记录）",
+        "who": [
+          "B3",
+          "B6"
+        ],
+        "why": "完成犯行并指向章衡",
+        "consequence": "犯行已发生；错误嫌疑成立",
+        "eventOccurred": true,
+        "evidenceEffect": "MISLEADING",
+        "claimTruth": "FALSE",
+        "isMisleading": true,
+        "isTruth": true,
+        "needsDetail": false
+      },
+      {
+        "beatId": "ob-mto1p97g-3xyc",
+        "stageId": "act2",
+        "whatHappened": "安然为了推翻对章衡的错误判断，对照现场与证物寻找矛盾（目标：被拨慢的座钟记录）",
+        "who": [
+          "B1"
+        ],
+        "why": "推翻对章衡的错误判断",
+        "consequence": "反证出现",
+        "eventOccurred": true,
+        "evidenceEffect": "SUPPORTING",
+        "claimTruth": "TRUE",
+        "isMisleading": false,
+        "isTruth": true,
+        "needsDetail": false
+      },
+      {
+        "beatId": "ob-mto1p97g-ex8s",
+        "stageId": "act2",
+        "whatHappened": "安然为了推翻对章衡的错误判断，对照现场与证物寻找矛盾（目标：被拨慢的座钟记录）",
+        "who": [
+          "B1",
+          "B3",
+          "B6"
+        ],
+        "why": "推翻对章衡的错误判断",
+        "consequence": "反证出现",
+        "eventOccurred": true,
+        "evidenceEffect": "SUPPORTING",
+        "claimTruth": "TRUE",
+        "isMisleading": false,
+        "isTruth": true,
+        "needsDetail": false
+      },
+      {
+        "beatId": "ob-mto1p97g-h6ti",
+        "stageId": "act3",
+        "whatHappened": "安然为了承受身份公开后的关系后果，面对知情者与阵营/调查方的反应（目标：关系重组）",
+        "who": [
+          "B1",
+          "B2",
+          "B3",
+          "B4",
+          "B5"
+        ],
+        "why": "承受身份公开后的关系后果",
+        "consequence": "身份进入公开层",
+        "eventOccurred": true,
+        "evidenceEffect": "NEUTRAL",
+        "claimTruth": "UNKNOWN",
+        "isMisleading": false,
+        "isTruth": true,
+        "needsDetail": false
+      },
+      {
+        "beatId": "ob-mto1p97g-9n62",
+        "stageId": "act3",
+        "whatHappened": "章衡为了结算阵营目标并承受公开后果，公开站队或接受阵营败露后的关系重排（目标：阵营胜负条件）",
+        "who": [
+          "B6",
+          "B2",
+          "B3",
+          "B4",
+          "B5",
+          "B1"
+        ],
+        "why": "结算阵营目标并承受公开后果",
+        "consequence": "阵营线结算",
+        "eventOccurred": true,
+        "evidenceEffect": "NEUTRAL",
+        "claimTruth": "UNKNOWN",
+        "isMisleading": false,
+        "isTruth": true,
+        "needsDetail": false
+      },
+      {
+        "beatId": "ob-mto1p97g-uotd",
+        "stageId": "act3",
+        "whatHappened": "安然为了锁定真凶潘声，用决定性证据揭穿嫁祸（目标：决定性证据）",
+        "who": [
+          "B1",
+          "B2",
+          "B3",
+          "B6"
+        ],
+        "why": "锁定真凶潘声",
+        "consequence": "真凶锁定",
+        "eventOccurred": true,
+        "evidenceEffect": "NEUTRAL",
+        "claimTruth": "UNKNOWN",
+        "isMisleading": false,
+        "isTruth": true,
+        "needsDetail": false
+      }
+    ]
+  },
+  "characterViews": {
+    "characters": [
+      {
+        "characterId": "B1",
+        "name": "安然",
+        "stages": [
+          {
+            "stageId": "act1",
+            "contributions": [
+              {
+                "sourceBeatId": "beat-setup",
+                "sourceOutlineBeatId": "ob-mto1p97g-pkt4",
+                "sourceBlockId": "smb-mto1p97f-90o7h",
+                "familyId": "M07",
+                "templateId": "M07-2",
+                "roleInBeat": "OWNER",
+                "goal": "隐藏或维持当前身份表象",
+                "action": "按伪装/未知状态行动，避免过早暴露",
+                "gainedInfo": "身份仍未公开",
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              }
+            ],
+            "stageSummary": "隐藏或维持当前身份表象",
+            "knows": "本阶段主导行动：按伪装/未知状态行动，避免过早暴露",
+            "goal": "隐藏或维持当前身份表象",
+            "action": "按伪装/未知状态行动，避免过早暴露",
+            "relationChanges": [
+              "同场出现（非因果）"
+            ],
+            "gainedInfo": "身份仍未公开",
+            "misunderstanding": "NEEDS_DETAIL",
+            "endChange": "身份仍未公开",
+            "needsDetail": false
+          },
+          {
+            "stageId": "act2",
+            "contributions": [
+              {
+                "sourceBeatId": "beat-develop",
+                "sourceOutlineBeatId": "ob-mto1p97g-h20u",
+                "sourceBlockId": "smb-mto1p97f-90o7h",
+                "familyId": "M07",
+                "templateId": "M07-2",
+                "roleInBeat": "OWNER",
+                "goal": "用正式动作换取被条件锁住的信息",
+                "action": "完成登记条件以触发内容开放",
+                "gainedInfo": "条件开放的信息",
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-climax",
+                "sourceOutlineBeatId": "ob-mto1p97g-jfh8",
+                "sourceBlockId": "smb-mto1p97f-90o7h",
+                "familyId": "M07",
+                "templateId": "M07-2",
+                "roleInBeat": "OWNER",
+                "goal": "确认真实身份并决定是否公开",
+                "action": "核对身份线索并作出公开或隐瞒选择",
+                "gainedInfo": "身份已确认；家族/资格状态",
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-develop",
+                "sourceOutlineBeatId": "ob-mto1p97g-yu0b",
+                "sourceBlockId": "smb-mto1p97f-mh97j",
+                "familyId": "M08",
+                "templateId": "M08-7",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：章衡为了让公共任务按本阵营偏好成功、失败或延迟，对公共任务施加正式破坏或支援（目标：公共任务状态）",
+                "gainedInfo": null,
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-climax",
+                "sourceOutlineBeatId": "ob-mto1p97g-o10r",
+                "sourceBlockId": "smb-mto1p97f-mh97j",
+                "familyId": "M08",
+                "templateId": "M08-7",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：阮可为了在暴露风险下改归属或保住秘密，在关键选择点背叛、退出或清洗异己（目标：归属状态）",
+                "gainedInfo": null,
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-crime",
+                "sourceOutlineBeatId": "ob-mto1p97g-2uyl",
+                "sourceBlockId": "smb-mto1p97g-3viya",
+                "familyId": "M01",
+                "templateId": "M01-FRAMING",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：潘声为了完成犯行并指向章衡，实施犯行并留下指向章衡的痕迹（目标：被拨慢的座钟记录）",
+                "gainedInfo": null,
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-contra",
+                "sourceOutlineBeatId": "ob-mto1p97g-3xyc",
+                "sourceBlockId": "smb-mto1p97g-3viya",
+                "familyId": "M01",
+                "templateId": "M01-FRAMING",
+                "roleInBeat": "OWNER",
+                "goal": "推翻对章衡的错误判断",
+                "action": "对照现场与证物寻找矛盾",
+                "gainedInfo": "反证出现",
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-climax",
+                "sourceOutlineBeatId": "ob-mto1p97g-ex8s",
+                "sourceBlockId": "smb-mto1p97g-3viya",
+                "familyId": "M01",
+                "templateId": "M01-FRAMING",
+                "roleInBeat": "OWNER",
+                "goal": "推翻对章衡的错误判断",
+                "action": "对照现场与证物寻找矛盾",
+                "gainedInfo": "反证出现",
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              }
+            ],
+            "stageSummary": "用正式动作换取被条件锁住的信息；确认真实身份并决定是否公开；推翻对章衡的错误判断",
+            "knows": "本阶段主导行动：完成登记条件以触发内容开放；核对身份线索并作出公开或隐瞒选择；对照现场与证物寻找矛盾",
+            "goal": "用正式动作换取被条件锁住的信息；确认真实身份并决定是否公开；推翻对章衡的错误判断",
+            "action": "完成登记条件以触发内容开放；核对身份线索并作出公开或隐瞒选择；对照现场与证物寻找矛盾",
+            "relationChanges": [
+              "同场出现（非因果）"
+            ],
+            "gainedInfo": "条件开放的信息；身份已确认；家族/资格状态；反证出现",
+            "misunderstanding": "NEEDS_DETAIL",
+            "endChange": "条件开放的信息；身份已确认；家族/资格状态；反证出现",
+            "needsDetail": false
+          },
+          {
+            "stageId": "act3",
+            "contributions": [
+              {
+                "sourceBeatId": "beat-res",
+                "sourceOutlineBeatId": "ob-mto1p97g-h6ti",
+                "sourceBlockId": "smb-mto1p97f-90o7h",
+                "familyId": "M07",
+                "templateId": "M07-2",
+                "roleInBeat": "OWNER",
+                "goal": "承受身份公开后的关系后果",
+                "action": "面对知情者与阵营/调查方的反应",
+                "gainedInfo": "身份进入公开层",
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-res",
+                "sourceOutlineBeatId": "ob-mto1p97g-9n62",
+                "sourceBlockId": "smb-mto1p97f-mh97j",
+                "familyId": "M08",
+                "templateId": "M08-7",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：章衡为了结算阵营目标并承受公开后果，公开站队或接受阵营败露后的关系重排（目标：阵营胜负条件）",
+                "gainedInfo": null,
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-res",
+                "sourceOutlineBeatId": "ob-mto1p97g-uotd",
+                "sourceBlockId": "smb-mto1p97g-3viya",
+                "familyId": "M01",
+                "templateId": "M01-FRAMING",
+                "roleInBeat": "OWNER",
+                "goal": "锁定真凶潘声",
+                "action": "用决定性证据揭穿嫁祸",
+                "gainedInfo": "真凶锁定",
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              }
+            ],
+            "stageSummary": "承受身份公开后的关系后果；锁定真凶潘声",
+            "knows": "本阶段主导行动：面对知情者与阵营/调查方的反应；用决定性证据揭穿嫁祸",
+            "goal": "承受身份公开后的关系后果；锁定真凶潘声",
+            "action": "面对知情者与阵营/调查方的反应；用决定性证据揭穿嫁祸",
+            "relationChanges": [
+              "同场出现（非因果）"
+            ],
+            "gainedInfo": "身份进入公开层；真凶锁定",
+            "misunderstanding": "NEEDS_DETAIL",
+            "endChange": "身份进入公开层；真凶锁定",
+            "needsDetail": false
+          }
+        ]
+      },
+      {
+        "characterId": "B2",
+        "name": "柯屿",
+        "stages": [
+          {
+            "stageId": "act1",
+            "contributions": [
+              {
+                "sourceBeatId": "beat-setup",
+                "sourceOutlineBeatId": "ob-mto1p97g-pkt4",
+                "sourceBlockId": "smb-mto1p97f-90o7h",
+                "familyId": "M07",
+                "templateId": "M07-2",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：安然为了隐藏或维持当前身份表象，按伪装/未知状态行动，避免过早暴露（目标：身份表象）",
+                "gainedInfo": null,
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-setup",
+                "sourceOutlineBeatId": "ob-mto1p97g-w9bu",
+                "sourceBlockId": "smb-mto1p97f-mh97j",
+                "familyId": "M08",
+                "templateId": "M08-7",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：章衡为了巩固或潜伏阵营结构，确认成员知情范围与联络方式（目标：阵营名单/暗号）",
+                "gainedInfo": null,
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              }
+            ],
+            "stageSummary": "本阶段无独立主目标（仅参与/对象）",
+            "knows": "本阶段主要为参与/对象，无主导公开行动摘要",
+            "goal": "本阶段无独立主目标（仅参与/对象）",
+            "action": "见 contributions（参与/对象）",
+            "relationChanges": [
+              "同场出现（非因果）"
+            ],
+            "gainedInfo": "NEEDS_DETAIL",
+            "misunderstanding": "NEEDS_DETAIL",
+            "endChange": "NEEDS_DETAIL",
+            "needsDetail": false
+          },
+          {
+            "stageId": "act2",
+            "contributions": [
+              {
+                "sourceBeatId": "beat-develop",
+                "sourceOutlineBeatId": "ob-mto1p97g-h20u",
+                "sourceBlockId": "smb-mto1p97f-90o7h",
+                "familyId": "M07",
+                "templateId": "M07-2",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：安然为了用正式动作换取被条件锁住的信息，完成登记条件以触发内容开放（目标：身份记录）",
+                "gainedInfo": null,
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-climax",
+                "sourceOutlineBeatId": "ob-mto1p97g-jfh8",
+                "sourceBlockId": "smb-mto1p97f-90o7h",
+                "familyId": "M07",
+                "templateId": "M07-2",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：安然为了确认真实身份并决定是否公开，核对身份线索并作出公开或隐瞒选择（目标：真实身份）",
+                "gainedInfo": null,
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-develop",
+                "sourceOutlineBeatId": "ob-mto1p97g-yu0b",
+                "sourceBlockId": "smb-mto1p97f-mh97j",
+                "familyId": "M08",
+                "templateId": "M08-7",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：章衡为了让公共任务按本阵营偏好成功、失败或延迟，对公共任务施加正式破坏或支援（目标：公共任务状态）",
+                "gainedInfo": null,
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-climax",
+                "sourceOutlineBeatId": "ob-mto1p97g-o10r",
+                "sourceBlockId": "smb-mto1p97f-mh97j",
+                "familyId": "M08",
+                "templateId": "M08-7",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：阮可为了在暴露风险下改归属或保住秘密，在关键选择点背叛、退出或清洗异己（目标：归属状态）",
+                "gainedInfo": null,
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-crime",
+                "sourceOutlineBeatId": "ob-mto1p97g-2uyl",
+                "sourceBlockId": "smb-mto1p97g-3viya",
+                "familyId": "M01",
+                "templateId": "M01-FRAMING",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：潘声为了完成犯行并指向章衡，实施犯行并留下指向章衡的痕迹（目标：被拨慢的座钟记录）",
+                "gainedInfo": null,
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              }
+            ],
+            "stageSummary": "本阶段无独立主目标（仅参与/对象）",
+            "knows": "本阶段主要为参与/对象，无主导公开行动摘要",
+            "goal": "本阶段无独立主目标（仅参与/对象）",
+            "action": "见 contributions（参与/对象）",
+            "relationChanges": [
+              "同场出现（非因果）"
+            ],
+            "gainedInfo": "NEEDS_DETAIL",
+            "misunderstanding": "NEEDS_DETAIL",
+            "endChange": "NEEDS_DETAIL",
+            "needsDetail": false
+          },
+          {
+            "stageId": "act3",
+            "contributions": [
+              {
+                "sourceBeatId": "beat-res",
+                "sourceOutlineBeatId": "ob-mto1p97g-h6ti",
+                "sourceBlockId": "smb-mto1p97f-90o7h",
+                "familyId": "M07",
+                "templateId": "M07-2",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：安然为了承受身份公开后的关系后果，面对知情者与阵营/调查方的反应（目标：关系重组）",
+                "gainedInfo": null,
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-res",
+                "sourceOutlineBeatId": "ob-mto1p97g-9n62",
+                "sourceBlockId": "smb-mto1p97f-mh97j",
+                "familyId": "M08",
+                "templateId": "M08-7",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：章衡为了结算阵营目标并承受公开后果，公开站队或接受阵营败露后的关系重排（目标：阵营胜负条件）",
+                "gainedInfo": null,
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-res",
+                "sourceOutlineBeatId": "ob-mto1p97g-uotd",
+                "sourceBlockId": "smb-mto1p97g-3viya",
+                "familyId": "M01",
+                "templateId": "M01-FRAMING",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：安然为了锁定真凶潘声，用决定性证据揭穿嫁祸（目标：决定性证据）",
+                "gainedInfo": null,
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              }
+            ],
+            "stageSummary": "本阶段无独立主目标（仅参与/对象）",
+            "knows": "本阶段主要为参与/对象，无主导公开行动摘要",
+            "goal": "本阶段无独立主目标（仅参与/对象）",
+            "action": "见 contributions（参与/对象）",
+            "relationChanges": [
+              "同场出现（非因果）"
+            ],
+            "gainedInfo": "NEEDS_DETAIL",
+            "misunderstanding": "NEEDS_DETAIL",
+            "endChange": "NEEDS_DETAIL",
+            "needsDetail": false
+          }
+        ]
+      },
+      {
+        "characterId": "B6",
+        "name": "章衡",
+        "stages": [
+          {
+            "stageId": "act1",
+            "contributions": [
+              {
+                "sourceBeatId": "beat-setup",
+                "sourceOutlineBeatId": "ob-mto1p97g-w9bu",
+                "sourceBlockId": "smb-mto1p97f-mh97j",
+                "familyId": "M08",
+                "templateId": "M08-7",
+                "roleInBeat": "OWNER",
+                "goal": "巩固或潜伏阵营结构",
+                "action": "确认成员知情范围与联络方式",
+                "gainedInfo": "阵营结构已成形",
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-setup",
+                "sourceOutlineBeatId": "ob-mto1p97g-ziq0",
+                "sourceBlockId": "smb-mto1p97g-3viya",
+                "familyId": "M01",
+                "templateId": "M01-FRAMING",
+                "roleInBeat": "TARGET",
+                "goal": null,
+                "action": "作为对象卷入：布置与章衡相关的误导物",
+                "gainedInfo": null,
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              }
+            ],
+            "stageSummary": "巩固或潜伏阵营结构",
+            "knows": "本阶段主导行动：确认成员知情范围与联络方式",
+            "goal": "巩固或潜伏阵营结构",
+            "action": "确认成员知情范围与联络方式",
+            "relationChanges": [
+              "同场出现（非因果）"
+            ],
+            "gainedInfo": "阵营结构已成形",
+            "misunderstanding": "NEEDS_DETAIL",
+            "endChange": "阵营结构已成形",
+            "needsDetail": false
+          },
+          {
+            "stageId": "act2",
+            "contributions": [
+              {
+                "sourceBeatId": "beat-develop",
+                "sourceOutlineBeatId": "ob-mto1p97g-yu0b",
+                "sourceBlockId": "smb-mto1p97f-mh97j",
+                "familyId": "M08",
+                "templateId": "M08-7",
+                "roleInBeat": "OWNER",
+                "goal": "让公共任务按本阵营偏好成功、失败或延迟",
+                "action": "对公共任务施加正式破坏或支援",
+                "gainedInfo": "阵营压力升级",
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-climax",
+                "sourceOutlineBeatId": "ob-mto1p97g-o10r",
+                "sourceBlockId": "smb-mto1p97f-mh97j",
+                "familyId": "M08",
+                "templateId": "M08-7",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：阮可为了在暴露风险下改归属或保住秘密，在关键选择点背叛、退出或清洗异己（目标：归属状态）",
+                "gainedInfo": null,
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-false",
+                "sourceOutlineBeatId": "ob-mto1p97g-o0oa",
+                "sourceBlockId": "smb-mto1p97g-3viya",
+                "familyId": "M01",
+                "templateId": "M01-FRAMING",
+                "roleInBeat": "TARGET",
+                "goal": null,
+                "action": "作为对象卷入：实施犯行并留下指向章衡的痕迹",
+                "gainedInfo": null,
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-climax",
+                "sourceOutlineBeatId": "ob-mto1p97g-ex8s",
+                "sourceBlockId": "smb-mto1p97g-3viya",
+                "familyId": "M01",
+                "templateId": "M01-FRAMING",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：安然为了推翻对章衡的错误判断，对照现场与证物寻找矛盾（目标：被拨慢的座钟记录）",
+                "gainedInfo": null,
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              }
+            ],
+            "stageSummary": "让公共任务按本阵营偏好成功、失败或延迟",
+            "knows": "本阶段主导行动：对公共任务施加正式破坏或支援",
+            "goal": "让公共任务按本阵营偏好成功、失败或延迟",
+            "action": "对公共任务施加正式破坏或支援",
+            "relationChanges": [
+              "同场出现（非因果）"
+            ],
+            "gainedInfo": "阵营压力升级",
+            "misunderstanding": "NEEDS_DETAIL",
+            "endChange": "阵营压力升级",
+            "needsDetail": false
+          },
+          {
+            "stageId": "act3",
+            "contributions": [
+              {
+                "sourceBeatId": "beat-res",
+                "sourceOutlineBeatId": "ob-mto1p97g-9n62",
+                "sourceBlockId": "smb-mto1p97f-mh97j",
+                "familyId": "M08",
+                "templateId": "M08-7",
+                "roleInBeat": "OWNER",
+                "goal": "结算阵营目标并承受公开后果",
+                "action": "公开站队或接受阵营败露后的关系重排",
+                "gainedInfo": "阵营线结算",
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-res",
+                "sourceOutlineBeatId": "ob-mto1p97g-uotd",
+                "sourceBlockId": "smb-mto1p97g-3viya",
+                "familyId": "M01",
+                "templateId": "M01-FRAMING",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：安然为了锁定真凶潘声，用决定性证据揭穿嫁祸（目标：决定性证据）",
+                "gainedInfo": null,
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              }
+            ],
+            "stageSummary": "结算阵营目标并承受公开后果",
+            "knows": "本阶段主导行动：公开站队或接受阵营败露后的关系重排",
+            "goal": "结算阵营目标并承受公开后果",
+            "action": "公开站队或接受阵营败露后的关系重排",
+            "relationChanges": [
+              "同场出现（非因果）"
+            ],
+            "gainedInfo": "阵营线结算",
+            "misunderstanding": "NEEDS_DETAIL",
+            "endChange": "阵营线结算",
+            "needsDetail": false
+          }
+        ]
+      },
+      {
+        "characterId": "B3",
+        "name": "潘声",
+        "stages": [
+          {
+            "stageId": "act1",
+            "contributions": [
+              {
+                "sourceBeatId": "beat-setup",
+                "sourceOutlineBeatId": "ob-mto1p97g-ziq0",
+                "sourceBlockId": "smb-mto1p97g-3viya",
+                "familyId": "M01",
+                "templateId": "M01-FRAMING",
+                "roleInBeat": "OWNER",
+                "goal": "准备可嫁祸的假象",
+                "action": "布置与章衡相关的误导物",
+                "gainedInfo": "误导物已就绪",
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              }
+            ],
+            "stageSummary": "准备可嫁祸的假象",
+            "knows": "本阶段主导行动：布置与章衡相关的误导物",
+            "goal": "准备可嫁祸的假象",
+            "action": "布置与章衡相关的误导物",
+            "relationChanges": [
+              "同场出现（非因果）"
+            ],
+            "gainedInfo": "误导物已就绪",
+            "misunderstanding": "NEEDS_DETAIL",
+            "endChange": "误导物已就绪",
+            "needsDetail": false
+          },
+          {
+            "stageId": "act2",
+            "contributions": [
+              {
+                "sourceBeatId": "beat-develop",
+                "sourceOutlineBeatId": "ob-mto1p97g-h20u",
+                "sourceBlockId": "smb-mto1p97f-90o7h",
+                "familyId": "M07",
+                "templateId": "M07-2",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：安然为了用正式动作换取被条件锁住的信息，完成登记条件以触发内容开放（目标：身份记录）",
+                "gainedInfo": null,
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-climax",
+                "sourceOutlineBeatId": "ob-mto1p97g-jfh8",
+                "sourceBlockId": "smb-mto1p97f-90o7h",
+                "familyId": "M07",
+                "templateId": "M07-2",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：安然为了确认真实身份并决定是否公开，核对身份线索并作出公开或隐瞒选择（目标：真实身份）",
+                "gainedInfo": null,
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-develop",
+                "sourceOutlineBeatId": "ob-mto1p97g-yu0b",
+                "sourceBlockId": "smb-mto1p97f-mh97j",
+                "familyId": "M08",
+                "templateId": "M08-7",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：章衡为了让公共任务按本阵营偏好成功、失败或延迟，对公共任务施加正式破坏或支援（目标：公共任务状态）",
+                "gainedInfo": null,
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-climax",
+                "sourceOutlineBeatId": "ob-mto1p97g-o10r",
+                "sourceBlockId": "smb-mto1p97f-mh97j",
+                "familyId": "M08",
+                "templateId": "M08-7",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：阮可为了在暴露风险下改归属或保住秘密，在关键选择点背叛、退出或清洗异己（目标：归属状态）",
+                "gainedInfo": null,
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-crime",
+                "sourceOutlineBeatId": "ob-mto1p97g-2uyl",
+                "sourceBlockId": "smb-mto1p97g-3viya",
+                "familyId": "M01",
+                "templateId": "M01-FRAMING",
+                "roleInBeat": "OWNER",
+                "goal": "完成犯行并指向章衡",
+                "action": "实施犯行并留下指向章衡的痕迹",
+                "gainedInfo": "犯行已发生；错误嫌疑成立",
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-false",
+                "sourceOutlineBeatId": "ob-mto1p97g-o0oa",
+                "sourceBlockId": "smb-mto1p97g-3viya",
+                "familyId": "M01",
+                "templateId": "M01-FRAMING",
+                "roleInBeat": "OWNER",
+                "goal": "完成犯行并指向章衡",
+                "action": "实施犯行并留下指向章衡的痕迹",
+                "gainedInfo": "犯行已发生；错误嫌疑成立",
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-climax",
+                "sourceOutlineBeatId": "ob-mto1p97g-ex8s",
+                "sourceBlockId": "smb-mto1p97g-3viya",
+                "familyId": "M01",
+                "templateId": "M01-FRAMING",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：安然为了推翻对章衡的错误判断，对照现场与证物寻找矛盾（目标：被拨慢的座钟记录）",
+                "gainedInfo": null,
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              }
+            ],
+            "stageSummary": "完成犯行并指向章衡",
+            "knows": "本阶段主导行动：实施犯行并留下指向章衡的痕迹",
+            "goal": "完成犯行并指向章衡",
+            "action": "实施犯行并留下指向章衡的痕迹",
+            "relationChanges": [
+              "同场出现（非因果）"
+            ],
+            "gainedInfo": "犯行已发生；错误嫌疑成立",
+            "misunderstanding": "NEEDS_DETAIL",
+            "endChange": "犯行已发生；错误嫌疑成立",
+            "needsDetail": false
+          },
+          {
+            "stageId": "act3",
+            "contributions": [
+              {
+                "sourceBeatId": "beat-res",
+                "sourceOutlineBeatId": "ob-mto1p97g-h6ti",
+                "sourceBlockId": "smb-mto1p97f-90o7h",
+                "familyId": "M07",
+                "templateId": "M07-2",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：安然为了承受身份公开后的关系后果，面对知情者与阵营/调查方的反应（目标：关系重组）",
+                "gainedInfo": null,
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-res",
+                "sourceOutlineBeatId": "ob-mto1p97g-9n62",
+                "sourceBlockId": "smb-mto1p97f-mh97j",
+                "familyId": "M08",
+                "templateId": "M08-7",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：章衡为了结算阵营目标并承受公开后果，公开站队或接受阵营败露后的关系重排（目标：阵营胜负条件）",
+                "gainedInfo": null,
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-res",
+                "sourceOutlineBeatId": "ob-mto1p97g-uotd",
+                "sourceBlockId": "smb-mto1p97g-3viya",
+                "familyId": "M01",
+                "templateId": "M01-FRAMING",
+                "roleInBeat": "TARGET",
+                "goal": null,
+                "action": "作为对象卷入：用决定性证据揭穿嫁祸",
+                "gainedInfo": null,
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              }
+            ],
+            "stageSummary": "本阶段无独立主目标（仅参与/对象）",
+            "knows": "本阶段主要为参与/对象，无主导公开行动摘要",
+            "goal": "本阶段无独立主目标（仅参与/对象）",
+            "action": "见 contributions（参与/对象）",
+            "relationChanges": [
+              "同场出现（非因果）"
+            ],
+            "gainedInfo": "NEEDS_DETAIL",
+            "misunderstanding": "NEEDS_DETAIL",
+            "endChange": "NEEDS_DETAIL",
+            "needsDetail": false
+          }
+        ]
+      },
+      {
+        "characterId": "B4",
+        "name": "叶知",
+        "stages": [
+          {
+            "stageId": "act2",
+            "contributions": [
+              {
+                "sourceBeatId": "beat-develop",
+                "sourceOutlineBeatId": "ob-mto1p97g-h20u",
+                "sourceBlockId": "smb-mto1p97f-90o7h",
+                "familyId": "M07",
+                "templateId": "M07-2",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：安然为了用正式动作换取被条件锁住的信息，完成登记条件以触发内容开放（目标：身份记录）",
+                "gainedInfo": null,
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-climax",
+                "sourceOutlineBeatId": "ob-mto1p97g-jfh8",
+                "sourceBlockId": "smb-mto1p97f-90o7h",
+                "familyId": "M07",
+                "templateId": "M07-2",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：安然为了确认真实身份并决定是否公开，核对身份线索并作出公开或隐瞒选择（目标：真实身份）",
+                "gainedInfo": null,
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-develop",
+                "sourceOutlineBeatId": "ob-mto1p97g-yu0b",
+                "sourceBlockId": "smb-mto1p97f-mh97j",
+                "familyId": "M08",
+                "templateId": "M08-7",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：章衡为了让公共任务按本阵营偏好成功、失败或延迟，对公共任务施加正式破坏或支援（目标：公共任务状态）",
+                "gainedInfo": null,
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-climax",
+                "sourceOutlineBeatId": "ob-mto1p97g-o10r",
+                "sourceBlockId": "smb-mto1p97f-mh97j",
+                "familyId": "M08",
+                "templateId": "M08-7",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：阮可为了在暴露风险下改归属或保住秘密，在关键选择点背叛、退出或清洗异己（目标：归属状态）",
+                "gainedInfo": null,
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              }
+            ],
+            "stageSummary": "本阶段无独立主目标（仅参与/对象）",
+            "knows": "本阶段主要为参与/对象，无主导公开行动摘要",
+            "goal": "本阶段无独立主目标（仅参与/对象）",
+            "action": "见 contributions（参与/对象）",
+            "relationChanges": [
+              "同场出现（非因果）"
+            ],
+            "gainedInfo": "NEEDS_DETAIL",
+            "misunderstanding": "NEEDS_DETAIL",
+            "endChange": "NEEDS_DETAIL",
+            "needsDetail": false
+          },
+          {
+            "stageId": "act3",
+            "contributions": [
+              {
+                "sourceBeatId": "beat-res",
+                "sourceOutlineBeatId": "ob-mto1p97g-h6ti",
+                "sourceBlockId": "smb-mto1p97f-90o7h",
+                "familyId": "M07",
+                "templateId": "M07-2",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：安然为了承受身份公开后的关系后果，面对知情者与阵营/调查方的反应（目标：关系重组）",
+                "gainedInfo": null,
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-res",
+                "sourceOutlineBeatId": "ob-mto1p97g-9n62",
+                "sourceBlockId": "smb-mto1p97f-mh97j",
+                "familyId": "M08",
+                "templateId": "M08-7",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：章衡为了结算阵营目标并承受公开后果，公开站队或接受阵营败露后的关系重排（目标：阵营胜负条件）",
+                "gainedInfo": null,
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              }
+            ],
+            "stageSummary": "本阶段无独立主目标（仅参与/对象）",
+            "knows": "本阶段主要为参与/对象，无主导公开行动摘要",
+            "goal": "本阶段无独立主目标（仅参与/对象）",
+            "action": "见 contributions（参与/对象）",
+            "relationChanges": [
+              "同场出现（非因果）"
+            ],
+            "gainedInfo": "NEEDS_DETAIL",
+            "misunderstanding": "NEEDS_DETAIL",
+            "endChange": "NEEDS_DETAIL",
+            "needsDetail": false
+          }
+        ]
+      },
+      {
+        "characterId": "B5",
+        "name": "阮可",
+        "stages": [
+          {
+            "stageId": "act2",
+            "contributions": [
+              {
+                "sourceBeatId": "beat-develop",
+                "sourceOutlineBeatId": "ob-mto1p97g-h20u",
+                "sourceBlockId": "smb-mto1p97f-90o7h",
+                "familyId": "M07",
+                "templateId": "M07-2",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：安然为了用正式动作换取被条件锁住的信息，完成登记条件以触发内容开放（目标：身份记录）",
+                "gainedInfo": null,
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-climax",
+                "sourceOutlineBeatId": "ob-mto1p97g-jfh8",
+                "sourceBlockId": "smb-mto1p97f-90o7h",
+                "familyId": "M07",
+                "templateId": "M07-2",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：安然为了确认真实身份并决定是否公开，核对身份线索并作出公开或隐瞒选择（目标：真实身份）",
+                "gainedInfo": null,
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-develop",
+                "sourceOutlineBeatId": "ob-mto1p97g-yu0b",
+                "sourceBlockId": "smb-mto1p97f-mh97j",
+                "familyId": "M08",
+                "templateId": "M08-7",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：章衡为了让公共任务按本阵营偏好成功、失败或延迟，对公共任务施加正式破坏或支援（目标：公共任务状态）",
+                "gainedInfo": null,
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-climax",
+                "sourceOutlineBeatId": "ob-mto1p97g-o10r",
+                "sourceBlockId": "smb-mto1p97f-mh97j",
+                "familyId": "M08",
+                "templateId": "M08-7",
+                "roleInBeat": "OWNER",
+                "goal": "在暴露风险下改归属或保住秘密",
+                "action": "在关键选择点背叛、退出或清洗异己",
+                "gainedInfo": "归属已改变；暴露风险上升",
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              }
+            ],
+            "stageSummary": "在暴露风险下改归属或保住秘密",
+            "knows": "本阶段主导行动：在关键选择点背叛、退出或清洗异己",
+            "goal": "在暴露风险下改归属或保住秘密",
+            "action": "在关键选择点背叛、退出或清洗异己",
+            "relationChanges": [
+              "同场出现（非因果）"
+            ],
+            "gainedInfo": "归属已改变；暴露风险上升",
+            "misunderstanding": "NEEDS_DETAIL",
+            "endChange": "归属已改变；暴露风险上升",
+            "needsDetail": false
+          },
+          {
+            "stageId": "act3",
+            "contributions": [
+              {
+                "sourceBeatId": "beat-res",
+                "sourceOutlineBeatId": "ob-mto1p97g-h6ti",
+                "sourceBlockId": "smb-mto1p97f-90o7h",
+                "familyId": "M07",
+                "templateId": "M07-2",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：安然为了承受身份公开后的关系后果，面对知情者与阵营/调查方的反应（目标：关系重组）",
+                "gainedInfo": null,
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-res",
+                "sourceOutlineBeatId": "ob-mto1p97g-9n62",
+                "sourceBlockId": "smb-mto1p97f-mh97j",
+                "familyId": "M08",
+                "templateId": "M08-7",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：章衡为了结算阵营目标并承受公开后果，公开站队或接受阵营败露后的关系重排（目标：阵营胜负条件）",
+                "gainedInfo": null,
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              }
+            ],
+            "stageSummary": "本阶段无独立主目标（仅参与/对象）",
+            "knows": "本阶段主要为参与/对象，无主导公开行动摘要",
+            "goal": "本阶段无独立主目标（仅参与/对象）",
+            "action": "见 contributions（参与/对象）",
+            "relationChanges": [
+              "同场出现（非因果）"
+            ],
+            "gainedInfo": "NEEDS_DETAIL",
+            "misunderstanding": "NEEDS_DETAIL",
+            "endChange": "NEEDS_DETAIL",
+            "needsDetail": false
+          }
+        ]
+      }
+    ]
+  },
+  "clueView": {
+    "clues": [
+      {
+        "clueId": "smb-mto1p97f-90o7h-foreshadow-0",
+        "label": "早期伏笔",
+        "mechanismId": "smb-mto1p97f-90o7h",
+        "templateId": "M07-2",
+        "introducedAt": "act1",
+        "availableStages": [
+          "act1",
+          "act2"
+        ],
+        "persists": true,
+        "stageId": "act1",
+        "possibleFinders": [
+          "B1",
+          "B2",
+          "B3",
+          "B4",
+          "B5"
+        ],
+        "supportsFact": "早期伏笔",
+        "isMisleading": false,
+        "isDecisive": false,
+        "missingDetail": false
+      },
+      {
+        "clueId": "smb-mto1p97f-mh97j-faction_foreshadow-0",
+        "label": "阵营伏笔",
+        "mechanismId": "smb-mto1p97f-mh97j",
+        "templateId": "M08-7",
+        "introducedAt": "act1",
+        "availableStages": [
+          "act1",
+          "act2"
+        ],
+        "persists": true,
+        "stageId": "act1",
+        "possibleFinders": [
+          "B6",
+          "B2",
+          "B3",
+          "B4",
+          "B5",
+          "B1"
+        ],
+        "supportsFact": "阵营伏笔",
+        "isMisleading": false,
+        "isDecisive": false,
+        "missingDetail": false
+      },
+      {
+        "clueId": "fact-interface:ob-mto1p97g-ziq0",
+        "label": "事实接口（尚无线索实体）",
+        "mechanismId": "smb-mto1p97g-3viya",
+        "templateId": "M01-FRAMING",
+        "introducedAt": "act1",
+        "availableStages": [
+          "act1"
+        ],
+        "persists": false,
+        "stageId": "act1",
+        "possibleFinders": [
+          "B3",
+          "B6"
+        ],
+        "supportsFact": "误导物已就绪",
+        "isMisleading": true,
+        "isDecisive": false,
+        "missingDetail": true,
+        "detailNote": "这个剧情 beat 需要关键线索，但模板尚未提供具体线索内容。"
+      },
+      {
+        "clueId": "smb-mto1p97f-90o7h-memory_fragment-1",
+        "label": "记忆碎片",
+        "mechanismId": "smb-mto1p97f-90o7h",
+        "templateId": "M07-2",
+        "introducedAt": "act2",
+        "availableStages": [
+          "act2"
+        ],
+        "persists": false,
+        "stageId": "act2",
+        "possibleFinders": [
+          "B1",
+          "B2",
+          "B3",
+          "B4",
+          "B5"
+        ],
+        "supportsFact": "记忆碎片",
+        "isMisleading": false,
+        "isDecisive": false,
+        "missingDetail": false
+      },
+      {
+        "clueId": "smb-mto1p97f-90o7h-identity_hint-2",
+        "label": "身份暗示",
+        "mechanismId": "smb-mto1p97f-90o7h",
+        "templateId": "M07-2",
+        "introducedAt": "act2",
+        "availableStages": [
+          "act2"
+        ],
+        "persists": false,
+        "stageId": "act2",
+        "possibleFinders": [
+          "B1",
+          "B2",
+          "B3",
+          "B4",
+          "B5"
+        ],
+        "supportsFact": "身份暗示",
+        "isMisleading": false,
+        "isDecisive": false,
+        "missingDetail": false
+      },
+      {
+        "clueId": "smb-mto1p97f-90o7h-misdirection-3",
+        "label": "误导",
+        "mechanismId": "smb-mto1p97f-90o7h",
+        "templateId": "M07-2",
+        "introducedAt": "act2",
+        "availableStages": [
+          "act2"
+        ],
+        "persists": false,
+        "stageId": "act2",
+        "possibleFinders": [
+          "B1",
+          "B2",
+          "B3",
+          "B4",
+          "B5"
+        ],
+        "supportsFact": "误导",
+        "isMisleading": true,
+        "isDecisive": false,
+        "missingDetail": false
+      },
+      {
+        "clueId": "smb-mto1p97f-90o7h-confirmation-4",
+        "label": "确认",
+        "mechanismId": "smb-mto1p97f-90o7h",
+        "templateId": "M07-2",
+        "introducedAt": "act2",
+        "availableStages": [
+          "act2"
+        ],
+        "persists": false,
+        "stageId": "act2",
+        "possibleFinders": [
+          "B1",
+          "B2",
+          "B3",
+          "B4",
+          "B5"
+        ],
+        "supportsFact": "确认",
+        "isMisleading": false,
+        "isDecisive": false,
+        "missingDetail": false
+      },
+      {
+        "clueId": "smb-mto1p97f-90o7h-decisive_reveal-5",
+        "label": "决定性揭示",
+        "mechanismId": "smb-mto1p97f-90o7h",
+        "templateId": "M07-2",
+        "introducedAt": "act2",
+        "availableStages": [
+          "act2"
+        ],
+        "persists": false,
+        "stageId": "act2",
+        "possibleFinders": [
+          "B1",
+          "B2",
+          "B3",
+          "B4",
+          "B5"
+        ],
+        "supportsFact": "决定性揭示",
+        "isMisleading": false,
+        "isDecisive": true,
+        "missingDetail": false
+      },
+      {
+        "clueId": "smb-mto1p97f-mh97j-membership_hint-1",
+        "label": "成员暗示",
+        "mechanismId": "smb-mto1p97f-mh97j",
+        "templateId": "M08-7",
+        "introducedAt": "act2",
+        "availableStages": [
+          "act2"
+        ],
+        "persists": false,
+        "stageId": "act2",
+        "possibleFinders": [
+          "B5",
+          "B6",
+          "B2",
+          "B3",
+          "B4",
+          "B1"
+        ],
+        "supportsFact": "成员暗示",
+        "isMisleading": false,
+        "isDecisive": false,
+        "missingDetail": false
+      },
+      {
+        "clueId": "smb-mto1p97f-mh97j-secret_signal-2",
+        "label": "秘密信号",
+        "mechanismId": "smb-mto1p97f-mh97j",
+        "templateId": "M08-7",
+        "introducedAt": "act2",
+        "availableStages": [
+          "act2"
+        ],
+        "persists": false,
+        "stageId": "act2",
+        "possibleFinders": [
+          "B5",
+          "B6",
+          "B2",
+          "B3",
+          "B4",
+          "B1"
+        ],
+        "supportsFact": "秘密信号",
+        "isMisleading": false,
+        "isDecisive": false,
+        "missingDetail": false
+      },
+      {
+        "clueId": "smb-mto1p97f-mh97j-recruitment_evidence-3",
+        "label": "招募证据",
+        "mechanismId": "smb-mto1p97f-mh97j",
+        "templateId": "M08-7",
+        "introducedAt": "act2",
+        "availableStages": [
+          "act2"
+        ],
+        "persists": false,
+        "stageId": "act2",
+        "possibleFinders": [
+          "B5",
+          "B6",
+          "B2",
+          "B3",
+          "B4",
+          "B1"
+        ],
+        "supportsFact": "招募证据",
+        "isMisleading": false,
+        "isDecisive": false,
+        "missingDetail": false
+      },
+      {
+        "clueId": "smb-mto1p97f-mh97j-loyalty_test-4",
+        "label": "忠诚考验",
+        "mechanismId": "smb-mto1p97f-mh97j",
+        "templateId": "M08-7",
+        "introducedAt": "act2",
+        "availableStages": [
+          "act2"
+        ],
+        "persists": false,
+        "stageId": "act2",
+        "possibleFinders": [
+          "B5",
+          "B6",
+          "B2",
+          "B3",
+          "B4",
+          "B1"
+        ],
+        "supportsFact": "忠诚考验",
+        "isMisleading": false,
+        "isDecisive": false,
+        "missingDetail": false
+      },
+      {
+        "clueId": "smb-mto1p97f-mh97j-betrayal_hint-5",
+        "label": "背叛暗示",
+        "mechanismId": "smb-mto1p97f-mh97j",
+        "templateId": "M08-7",
+        "introducedAt": "act2",
+        "availableStages": [
+          "act2"
+        ],
+        "persists": false,
+        "stageId": "act2",
+        "possibleFinders": [
+          "B5",
+          "B6",
+          "B2",
+          "B3",
+          "B4",
+          "B1"
+        ],
+        "supportsFact": "背叛暗示",
+        "isMisleading": false,
+        "isDecisive": false,
+        "missingDetail": false
+      },
+      {
+        "clueId": "smb-mto1p97f-mh97j-internal_conflict-6",
+        "label": "内部冲突",
+        "mechanismId": "smb-mto1p97f-mh97j",
+        "templateId": "M08-7",
+        "introducedAt": "act2",
+        "availableStages": [
+          "act2"
+        ],
+        "persists": false,
+        "stageId": "act2",
+        "possibleFinders": [
+          "B5",
+          "B6",
+          "B2",
+          "B3",
+          "B4",
+          "B1"
+        ],
+        "supportsFact": "内部冲突",
+        "isMisleading": false,
+        "isDecisive": false,
+        "missingDetail": false
+      },
+      {
+        "clueId": "smb-mto1p97f-mh97j-hidden_goal_hint-7",
+        "label": "隐藏目标暗示",
+        "mechanismId": "smb-mto1p97f-mh97j",
+        "templateId": "M08-7",
+        "introducedAt": "act2",
+        "availableStages": [
+          "act2"
+        ],
+        "persists": false,
+        "stageId": "act2",
+        "possibleFinders": [
+          "B5",
+          "B6",
+          "B2",
+          "B3",
+          "B4",
+          "B1"
+        ],
+        "supportsFact": "隐藏目标暗示",
+        "isMisleading": false,
+        "isDecisive": false,
+        "missingDetail": false
+      },
+      {
+        "clueId": "smb-mto1p97f-mh97j-membership_confirmation-8",
+        "label": "归属确认",
+        "mechanismId": "smb-mto1p97f-mh97j",
+        "templateId": "M08-7",
+        "introducedAt": "act2",
+        "availableStages": [
+          "act2"
+        ],
+        "persists": false,
+        "stageId": "act2",
+        "possibleFinders": [
+          "B5",
+          "B6",
+          "B2",
+          "B3",
+          "B4",
+          "B1"
+        ],
+        "supportsFact": "归属确认",
+        "isMisleading": false,
+        "isDecisive": false,
+        "missingDetail": false
+      },
+      {
+        "clueId": "smb-mto1p97f-mh97j-faction_exposure-9",
+        "label": "阵营暴露",
+        "mechanismId": "smb-mto1p97f-mh97j",
+        "templateId": "M08-7",
+        "introducedAt": "act2",
+        "availableStages": [
+          "act2"
+        ],
+        "persists": false,
+        "stageId": "act2",
+        "possibleFinders": [
+          "B5",
+          "B6",
+          "B2",
+          "B3",
+          "B4",
+          "B1"
+        ],
+        "supportsFact": "阵营暴露",
+        "isMisleading": false,
+        "isDecisive": false,
+        "missingDetail": false
+      },
+      {
+        "clueId": "smb-mto1p97g-3viya-false_lead-0",
+        "label": "误导",
+        "mechanismId": "smb-mto1p97g-3viya",
+        "templateId": "M01-FRAMING",
+        "introducedAt": "act2",
+        "availableStages": [
+          "act2"
+        ],
+        "persists": false,
+        "stageId": "act2",
+        "possibleFinders": [
+          "B3",
+          "B2",
+          "B1",
+          "B6"
+        ],
+        "supportsFact": "被拨慢的座钟记录",
+        "isMisleading": true,
+        "isDecisive": false,
+        "missingDetail": false
+      },
+      {
+        "clueId": "smb-mto1p97g-3viya-contradiction-1",
+        "label": "反证",
+        "mechanismId": "smb-mto1p97g-3viya",
+        "templateId": "M01-FRAMING",
+        "introducedAt": "act2",
+        "availableStages": [
+          "act2"
+        ],
+        "persists": false,
+        "stageId": "act2",
+        "possibleFinders": [
+          "B1"
+        ],
+        "supportsFact": "邻室更鼓时间与座钟不一致",
+        "isMisleading": false,
+        "isDecisive": false,
+        "missingDetail": false
+      },
+      {
+        "clueId": "smb-mto1p97g-3viya-true_evidence-2",
+        "label": "真手法",
+        "mechanismId": "smb-mto1p97g-3viya",
+        "templateId": "M01-FRAMING",
+        "introducedAt": "act2",
+        "availableStages": [
+          "act2"
+        ],
+        "persists": false,
+        "stageId": "act2",
+        "possibleFinders": [
+          "B1",
+          "B3",
+          "B6"
+        ],
+        "supportsFact": "投毒后离开",
+        "isMisleading": false,
+        "isDecisive": false,
+        "missingDetail": false
+      },
+      {
+        "clueId": "smb-mto1p97g-3viya-decisive_evidence-3",
+        "label": "突破",
+        "mechanismId": "smb-mto1p97g-3viya",
+        "templateId": "M01-FRAMING",
+        "introducedAt": "act2",
+        "availableStages": [
+          "act2",
+          "act3"
+        ],
+        "persists": true,
+        "stageId": "act2",
+        "possibleFinders": [
+          "B1",
+          "B3",
+          "B6",
+          "B2"
+        ],
+        "supportsFact": "真凶当晚校准过座钟的证词交叉",
+        "isMisleading": false,
+        "isDecisive": false,
+        "missingDetail": false
+      },
+      {
+        "clueId": "fact-interface:ob-mto1p97g-h6ti",
+        "label": "事实接口（尚无线索实体）",
+        "mechanismId": "smb-mto1p97f-90o7h",
+        "templateId": "M07-2",
+        "introducedAt": "act3",
+        "availableStages": [
+          "act3"
+        ],
+        "persists": false,
+        "stageId": "act3",
+        "possibleFinders": [
+          "B1",
+          "B2",
+          "B3",
+          "B4",
+          "B5"
+        ],
+        "supportsFact": "身份确认；身份进入公开层",
+        "isMisleading": false,
+        "isDecisive": false,
+        "missingDetail": true,
+        "detailNote": "这个剧情 beat 需要关键线索，但模板尚未提供具体线索内容。"
+      },
+      {
+        "clueId": "fact-interface:ob-mto1p97g-9n62",
+        "label": "事实接口（尚无线索实体）",
+        "mechanismId": "smb-mto1p97f-mh97j",
+        "templateId": "M08-7",
+        "introducedAt": "act3",
+        "availableStages": [
+          "act3"
+        ],
+        "persists": false,
+        "stageId": "act3",
+        "possibleFinders": [
+          "B6",
+          "B2",
+          "B3",
+          "B4",
+          "B5",
+          "B1"
+        ],
+        "supportsFact": "归属变化；阵营线结算",
+        "isMisleading": false,
+        "isDecisive": false,
+        "missingDetail": true,
+        "detailNote": "这个剧情 beat 需要关键线索，但模板尚未提供具体线索内容。"
+      }
+    ]
+  },
+  "executionView": {
+    "stages": [
+      {
+        "stageId": "act1",
+        "openingState": "开局：各线按积木 setup 状态进入（不新增前提）",
+        "stageGoal": "安然：隐藏或维持当前身份表象；章衡：巩固或潜伏阵营结构；潘声：准备可嫁祸的假象",
+        "beatsToAdvance": [
+          "ob-mto1p97g-pkt4",
+          "ob-mto1p97g-w9bu",
+          "ob-mto1p97g-ziq0"
+        ],
+        "cluesAvailable": [
+          "smb-mto1p97f-90o7h-foreshadow-0",
+          "smb-mto1p97f-mh97j-faction_foreshadow-0",
+          "fact-interface:ob-mto1p97g-ziq0"
+        ],
+        "charactersInPlay": [
+          "B1",
+          "B2",
+          "B6",
+          "B3"
+        ],
+        "candidateGameInsertionPoints": [
+          {
+            "placementId": "game-candidate-ob-mto1p97g-pkt4",
+            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+            "afterBeatId": "ob-mto1p97g-pkt4"
+          },
+          {
+            "placementId": "game-candidate-ob-mto1p97g-w9bu",
+            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+            "afterBeatId": "ob-mto1p97g-w9bu"
+          },
+          {
+            "placementId": "game-candidate-ob-mto1p97g-ziq0",
+            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+            "afterBeatId": "ob-mto1p97g-ziq0"
+          }
+        ],
+        "gameMechanismSlots": [
+          {
+            "placementId": "game-candidate-ob-mto1p97g-pkt4",
+            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+            "afterBeatId": "ob-mto1p97g-pkt4"
+          },
+          {
+            "placementId": "game-candidate-ob-mto1p97g-w9bu",
+            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+            "afterBeatId": "ob-mto1p97g-w9bu"
+          },
+          {
+            "placementId": "game-candidate-ob-mto1p97g-ziq0",
+            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+            "afterBeatId": "ob-mto1p97g-ziq0"
+          }
+        ],
+        "requiredStateBeforeNext": "身份仍未公开；阵营结构已成形；误导物已就绪"
+      },
+      {
+        "stageId": "act2",
+        "openingState": "承接上一阶段已声明后果；未声明者标 UNKNOWN",
+        "stageGoal": "安然：用正式动作换取被条件锁住的信息；安然：确认真实身份并决定是否公开；章衡：让公共任务按本阵营偏好成功、失败或延迟；阮可：在暴露风险下改归属或保住秘密；潘声：完成犯行并指向章衡；安然：推翻对章衡的错误判断",
+        "beatsToAdvance": [
+          "ob-mto1p97g-h20u",
+          "ob-mto1p97g-jfh8",
+          "ob-mto1p97g-yu0b",
+          "ob-mto1p97g-o10r",
+          "ob-mto1p97g-2uyl",
+          "ob-mto1p97g-o0oa",
+          "ob-mto1p97g-3xyc",
+          "ob-mto1p97g-ex8s"
+        ],
+        "cluesAvailable": [
+          "smb-mto1p97f-90o7h-foreshadow-0",
+          "smb-mto1p97f-mh97j-faction_foreshadow-0",
+          "smb-mto1p97f-90o7h-memory_fragment-1",
+          "smb-mto1p97f-90o7h-identity_hint-2",
+          "smb-mto1p97f-90o7h-misdirection-3",
+          "smb-mto1p97f-90o7h-confirmation-4",
+          "smb-mto1p97f-90o7h-decisive_reveal-5",
+          "smb-mto1p97f-mh97j-membership_hint-1",
+          "smb-mto1p97f-mh97j-secret_signal-2",
+          "smb-mto1p97f-mh97j-recruitment_evidence-3",
+          "smb-mto1p97f-mh97j-loyalty_test-4",
+          "smb-mto1p97f-mh97j-betrayal_hint-5",
+          "smb-mto1p97f-mh97j-internal_conflict-6",
+          "smb-mto1p97f-mh97j-hidden_goal_hint-7",
+          "smb-mto1p97f-mh97j-membership_confirmation-8",
+          "smb-mto1p97f-mh97j-faction_exposure-9",
+          "smb-mto1p97g-3viya-false_lead-0",
+          "smb-mto1p97g-3viya-contradiction-1",
+          "smb-mto1p97g-3viya-true_evidence-2",
+          "smb-mto1p97g-3viya-decisive_evidence-3"
+        ],
+        "charactersInPlay": [
+          "B1",
+          "B2",
+          "B3",
+          "B4",
+          "B5",
+          "B6"
+        ],
+        "candidateGameInsertionPoints": [
+          {
+            "placementId": "game-candidate-ob-mto1p97g-h20u",
+            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+            "afterBeatId": "ob-mto1p97g-h20u"
+          },
+          {
+            "placementId": "game-candidate-ob-mto1p97g-jfh8",
+            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+            "afterBeatId": "ob-mto1p97g-jfh8"
+          },
+          {
+            "placementId": "game-candidate-ob-mto1p97g-yu0b",
+            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+            "afterBeatId": "ob-mto1p97g-yu0b"
+          },
+          {
+            "placementId": "game-candidate-ob-mto1p97g-o10r",
+            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+            "afterBeatId": "ob-mto1p97g-o10r"
+          },
+          {
+            "placementId": "game-candidate-ob-mto1p97g-2uyl",
+            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+            "afterBeatId": "ob-mto1p97g-2uyl"
+          },
+          {
+            "placementId": "game-candidate-ob-mto1p97g-o0oa",
+            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+            "afterBeatId": "ob-mto1p97g-o0oa"
+          },
+          {
+            "placementId": "game-candidate-ob-mto1p97g-3xyc",
+            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+            "afterBeatId": "ob-mto1p97g-3xyc"
+          },
+          {
+            "placementId": "game-candidate-ob-mto1p97g-ex8s",
+            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+            "afterBeatId": "ob-mto1p97g-ex8s"
+          }
+        ],
+        "gameMechanismSlots": [
+          {
+            "placementId": "game-candidate-ob-mto1p97g-h20u",
+            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+            "afterBeatId": "ob-mto1p97g-h20u"
+          },
+          {
+            "placementId": "game-candidate-ob-mto1p97g-jfh8",
+            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+            "afterBeatId": "ob-mto1p97g-jfh8"
+          },
+          {
+            "placementId": "game-candidate-ob-mto1p97g-yu0b",
+            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+            "afterBeatId": "ob-mto1p97g-yu0b"
+          },
+          {
+            "placementId": "game-candidate-ob-mto1p97g-o10r",
+            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+            "afterBeatId": "ob-mto1p97g-o10r"
+          },
+          {
+            "placementId": "game-candidate-ob-mto1p97g-2uyl",
+            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+            "afterBeatId": "ob-mto1p97g-2uyl"
+          },
+          {
+            "placementId": "game-candidate-ob-mto1p97g-o0oa",
+            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+            "afterBeatId": "ob-mto1p97g-o0oa"
+          },
+          {
+            "placementId": "game-candidate-ob-mto1p97g-3xyc",
+            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+            "afterBeatId": "ob-mto1p97g-3xyc"
+          },
+          {
+            "placementId": "game-candidate-ob-mto1p97g-ex8s",
+            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+            "afterBeatId": "ob-mto1p97g-ex8s"
+          }
+        ],
+        "requiredStateBeforeNext": "条件开放的信息；身份已确认；家族/资格状态；阵营压力升级；归属已改变；暴露风险上升；犯行已发生；错误嫌疑成立；反证出现"
+      },
+      {
+        "stageId": "act3",
+        "openingState": "承接上一阶段已声明后果；未声明者标 UNKNOWN",
+        "stageGoal": "安然：承受身份公开后的关系后果；章衡：结算阵营目标并承受公开后果；安然：锁定真凶潘声",
+        "beatsToAdvance": [
+          "ob-mto1p97g-h6ti",
+          "ob-mto1p97g-9n62",
+          "ob-mto1p97g-uotd"
+        ],
+        "cluesAvailable": [
+          "smb-mto1p97g-3viya-decisive_evidence-3",
+          "fact-interface:ob-mto1p97g-h6ti",
+          "fact-interface:ob-mto1p97g-9n62"
+        ],
+        "charactersInPlay": [
+          "B1",
+          "B2",
+          "B3",
+          "B4",
+          "B5",
+          "B6"
+        ],
+        "candidateGameInsertionPoints": [
+          {
+            "placementId": "game-candidate-ob-mto1p97g-h6ti",
+            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+            "afterBeatId": "ob-mto1p97g-h6ti"
+          },
+          {
+            "placementId": "game-candidate-ob-mto1p97g-9n62",
+            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+            "afterBeatId": "ob-mto1p97g-9n62"
+          },
+          {
+            "placementId": "game-candidate-ob-mto1p97g-uotd",
+            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+            "afterBeatId": "ob-mto1p97g-uotd"
+          }
+        ],
+        "gameMechanismSlots": [
+          {
+            "placementId": "game-candidate-ob-mto1p97g-h6ti",
+            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+            "afterBeatId": "ob-mto1p97g-h6ti"
+          },
+          {
+            "placementId": "game-candidate-ob-mto1p97g-9n62",
+            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+            "afterBeatId": "ob-mto1p97g-9n62"
+          },
+          {
+            "placementId": "game-candidate-ob-mto1p97g-uotd",
+            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+            "afterBeatId": "ob-mto1p97g-uotd"
+          }
+        ],
+        "requiredStateBeforeNext": "终幕：无强制下一阶段"
+      }
+    ]
+  },
+  "warnings": [
+    {
+      "id": "warn-crowd-act2",
+      "type": "STAGE_CROWDING",
+      "severity": "warn",
+      "message": "「加压」包含 8 个剧情 beat，当前阶段密度偏高。P6 未自动迁移 beat，请返回交织骨架调整。",
+      "stageIds": [
+        "act2"
+      ],
+      "beatIds": [
+        "ob-mto1p97g-h20u",
+        "ob-mto1p97g-jfh8",
+        "ob-mto1p97g-yu0b",
+        "ob-mto1p97g-o10r",
+        "ob-mto1p97g-2uyl",
+        "ob-mto1p97g-o0oa",
+        "ob-mto1p97g-3xyc",
+        "ob-mto1p97g-ex8s"
+      ]
+    },
+    {
+      "id": "warn-low-weave",
+      "type": "LOW_WEAVE_DENSITY",
+      "severity": "info",
+      "message": "整本存在较少真正交织关系；当前母稿主要由平行剧情 + 同场并列构成。P6 未伪造额外因果。",
+      "stageIds": [
+        "act1",
+        "act2",
+        "act3"
+      ],
+      "beatIds": []
+    },
+    {
+      "id": "warn-parallel-heavy",
+      "type": "PARALLEL_HEAVY",
+      "severity": "info",
+      "message": "当前结构以平行线为主；这是诚实输出，不是失败。若需交织请在交织骨架提出调整。",
+      "stageIds": [],
+      "beatIds": []
+    },
+    {
+      "id": "warn-clue-ob-mto1p97g-ziq0",
+      "type": "MISSING_CLUE_DETAIL",
+      "severity": "info",
+      "message": "该剧情 beat 需要/产生事实接口，但模板尚未绑定具体线索内容。",
+      "stageIds": [
+        "act1"
+      ],
+      "beatIds": [
+        "ob-mto1p97g-ziq0"
+      ]
+    },
+    {
+      "id": "warn-clue-ob-mto1p97g-h6ti",
+      "type": "MISSING_CLUE_DETAIL",
+      "severity": "info",
+      "message": "该剧情 beat 需要/产生事实接口，但模板尚未绑定具体线索内容。",
+      "stageIds": [
+        "act3"
+      ],
+      "beatIds": [
+        "ob-mto1p97g-h6ti"
+      ]
+    },
+    {
+      "id": "warn-clue-ob-mto1p97g-9n62",
+      "type": "MISSING_CLUE_DETAIL",
+      "severity": "info",
+      "message": "该剧情 beat 需要/产生事实接口，但模板尚未绑定具体线索内容。",
+      "stageIds": [
+        "act3"
+      ],
+      "beatIds": [
+        "ob-mto1p97g-9n62"
+      ]
+    },
+    {
+      "id": "warn-conflict-cf-mto1p97g-x8p8",
+      "type": "ROLE_OVERLOAD",
+      "severity": "warn",
+      "message": "安然 当前承担：identity_bearer HIGH、outsider、discoverer（负载 4）",
+      "stageIds": [],
+      "beatIds": []
+    },
+    {
+      "id": "warn-conflict-cf-mto1p97g-sv4n",
+      "type": "ROLE_OVERLOAD",
+      "severity": "warn",
+      "message": "柯屿 当前承担：witness、member、victim HIGH（负载 4）",
+      "stageIds": [],
+      "beatIds": []
+    },
+    {
+      "id": "warn-conflict-cf-mto1p97g-ngl6",
+      "type": "ROLE_OVERLOAD",
+      "severity": "warn",
+      "message": "潘声 当前承担：misled、member、killer HIGH（负载 5）",
+      "stageIds": [],
+      "beatIds": []
+    },
+    {
+      "id": "warn-conflict-cf-mto1p97g-350l",
+      "type": "ROLE_OVERLOAD",
+      "severity": "info",
+      "message": "叶知 当前承担：discoverer、rival_lead HIGH（负载 3）",
+      "stageIds": [],
+      "beatIds": []
+    },
+    {
+      "id": "warn-conflict-cf-mto1p97g-5u8f",
+      "type": "ROLE_OVERLOAD",
+      "severity": "info",
+      "message": "阮可 当前承担：support、defector HIGH（负载 3）",
+      "stageIds": [],
+      "beatIds": []
+    },
+    {
+      "id": "warn-conflict-cf-mto1p97g-dskp",
+      "type": "ROLE_OVERLOAD",
+      "severity": "warn",
+      "message": "章衡 当前承担：faction_lead HIGH、framed HIGH（负载 4）",
+      "stageIds": [],
+      "beatIds": []
+    }
+  ],
+  "structureChangeRequests": [
+    {
+      "id": "scr-split-act2",
+      "type": "SPLIT_STAGE",
+      "sourceStageIds": [
+        "act2"
+      ],
+      "sourceBeatIds": [
+        "ob-mto1p97g-2uyl",
+        "ob-mto1p97g-o0oa",
+        "ob-mto1p97g-3xyc",
+        "ob-mto1p97g-ex8s"
+      ],
+      "sourceBlockIds": [
+        "smb-mto1p97g-3viya"
+      ],
+      "reason": "「加压」包含 8 个剧情 beat，当前阶段密度偏高。P6 未自动迁移 beat，请返回交织骨架调整。",
+      "severity": "warn",
+      "proposal": "建议将「加压」后半 4 个 beat 拆到后续阶段；P6 仅提议，不自动应用。",
+      "status": "PROPOSED"
+    }
+  ],
+  "status": "DRAFT",
+  "revision": 0,
+  "updatedAt": "2026-09-05T00:00:00.000Z"
+}

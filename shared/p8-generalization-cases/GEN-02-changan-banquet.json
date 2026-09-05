@@ -1,0 +1,128 @@
+{
+  "schemaVersion": 1,
+  "caseId": "GEN-02",
+  "title": "长安夜宴",
+  "slug": "changan-banquet",
+  "projectConfig": {
+    "playerCount": 6,
+    "stageCount": 5,
+    "genreTags": [
+      "古风",
+      "双阵营",
+      "临时联盟"
+    ]
+  },
+  "premise": {
+    "genre": "古风阵营",
+    "era": "架空盛唐夜宴",
+    "tone": [
+      "联盟",
+      "背叛",
+      "结算"
+    ],
+    "playerCount": 6,
+    "targetDuration": 210
+  },
+  "characters": [
+    {
+      "id": "C1",
+      "name": "裴照"
+    },
+    {
+      "id": "C2",
+      "name": "沈蘅"
+    },
+    {
+      "id": "C3",
+      "name": "卫澜"
+    },
+    {
+      "id": "C4",
+      "name": "陆沉舟"
+    },
+    {
+      "id": "C5",
+      "name": "谢青"
+    },
+    {
+      "id": "C6",
+      "name": "姜叙"
+    }
+  ],
+  "stages": [
+    {
+      "id": "act1",
+      "label": "第1幕",
+      "order": 0
+    },
+    {
+      "id": "act2",
+      "label": "第2幕",
+      "order": 1
+    },
+    {
+      "id": "act3",
+      "label": "第3幕",
+      "order": 2
+    },
+    {
+      "id": "act4",
+      "label": "第4幕",
+      "order": 3
+    },
+    {
+      "id": "act5",
+      "label": "终局",
+      "order": 4
+    }
+  ],
+  "storyPlan": [
+    {
+      "templateId": "M08-1",
+      "preferredVariantId": "V07",
+      "intentionalOverlap": false
+    },
+    {
+      "templateId": "M08-6",
+      "preferredVariantId": "V01",
+      "intentionalOverlap": true
+    },
+    {
+      "templateId": "M07-5",
+      "preferredVariantId": "V01",
+      "intentionalOverlap": true
+    }
+  ],
+  "gamePlan": [
+    {
+      "familyId": "M09",
+      "templateId": "M09",
+      "stageId": "act5",
+      "instanceKey": "banquet-final-vote"
+    }
+  ],
+  "expectedStructuralProperties": {
+    "playerCount": 6,
+    "stageCount": 5,
+    "forbidAutoPadSixthPlayer": true,
+    "allowEmptyFinalStage": false
+  },
+  "playableExpectation": {
+    "requireCulprit": false,
+    "gamePlacements": [
+      {
+        "familyId": "M09",
+        "stageId": "act5"
+      }
+    ],
+    "allowMissingCompleteScripts": true,
+    "allowOptionalKillerAssignments": true
+  },
+  "editorialFocus": [
+    "五幕各有功能",
+    "非4幕+废幕",
+    "阵营节奏",
+    "单M09"
+  ],
+  "notes": "6人对照组；结构须证明第五幕有结算功能。"
+}

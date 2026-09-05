@@ -1,0 +1,162 @@
+{
+  "schemaVersion": 1,
+  "caseId": "GEN-07",
+  "title": "王座之下",
+  "slug": "beneath-the-throne",
+  "projectConfig": {
+    "playerCount": 7,
+    "stageCount": 5,
+    "genreTags": [
+      "古风",
+      "高交织",
+      "高负载"
+    ]
+  },
+  "premise": {
+    "genre": "古风高交织",
+    "era": "架空朝堂",
+    "tone": [
+      "身份",
+      "阵营",
+      "资源",
+      "责任"
+    ],
+    "playerCount": 7,
+    "targetDuration": 220
+  },
+  "characters": [
+    {
+      "id": "T1",
+      "name": "萧敛"
+    },
+    {
+      "id": "T2",
+      "name": "裴烬"
+    },
+    {
+      "id": "T3",
+      "name": "沈砚"
+    },
+    {
+      "id": "T4",
+      "name": "顾晚"
+    },
+    {
+      "id": "T5",
+      "name": "霍辞"
+    },
+    {
+      "id": "T6",
+      "name": "谢听雪"
+    },
+    {
+      "id": "T7",
+      "name": "莫川"
+    }
+  ],
+  "stages": [
+    {
+      "id": "act1",
+      "label": "第1幕",
+      "order": 0
+    },
+    {
+      "id": "act2",
+      "label": "第2幕",
+      "order": 1
+    },
+    {
+      "id": "act3",
+      "label": "第3幕",
+      "order": 2
+    },
+    {
+      "id": "act4",
+      "label": "第4幕",
+      "order": 3
+    },
+    {
+      "id": "act5",
+      "label": "终局",
+      "order": 4
+    }
+  ],
+  "storyPlan": [
+    {
+      "templateId": "M01-FRAMING",
+      "preferredVariantId": "V02",
+      "intentionalOverlap": true
+    },
+    {
+      "templateId": "M07-5",
+      "preferredVariantId": "V01",
+      "intentionalOverlap": true
+    },
+    {
+      "templateId": "M08-1",
+      "preferredVariantId": "V01",
+      "intentionalOverlap": true
+    }
+  ],
+  "overlapForce": {
+    "leaderCharacterFrom": {
+      "templateId": "M01-FRAMING",
+      "roleKey": "culprit"
+    },
+    "applyTo": [
+      {
+        "templateId": "M08-1",
+        "slotId": "factionLead"
+      },
+      {
+        "templateId": "M07-5",
+        "slotId": "bearer"
+      }
+    ]
+  },
+  "gamePlan": [
+    {
+      "familyId": "M03",
+      "templateId": "M03",
+      "stageId": "act3",
+      "instanceKey": "throne-resource"
+    },
+    {
+      "familyId": "M09",
+      "templateId": "M09",
+      "stageId": "act5",
+      "instanceKey": "throne-vote"
+    }
+  ],
+  "expectedStructuralProperties": {
+    "playerCount": 7,
+    "stageCount": 5,
+    "forbidAutoPadSixthPlayer": true,
+    "complexCharacterId": null,
+    "requireContributionRoles": [
+      "OWNER",
+      "PARTICIPANT",
+      "TARGET"
+    ]
+  },
+  "playableExpectation": {
+    "requireCulprit": true,
+    "gamePlacements": [
+      {
+        "familyId": "M03",
+        "stageId": "act3"
+      },
+      {
+        "familyId": "M09",
+        "stageId": "act5"
+      }
+    ],
+    "allowMissingCompleteScripts": true
+  },
+  "editorialFocus": [
+    "Projection V2 contributions",
+    "OWNER/PARTICIPANT/TARGET",
+    "高交织但不伪升"
+  ],
+  "notes": "complexCharacterId 在 runner 后处理：用 culprit 绑定角色填入报告期望；fixture 内用 overlapForce 制造高负载。requireContributionRoles 对 culprit 角色在审计时解析。"
+}

@@ -1,0 +1,36 @@
+{
+  "caseId": "GEN-07",
+  "note": "P8.0 structural compatibility only; no CompleteScriptPackage / role prose",
+  "playerRoleIds": [
+    "T1",
+    "T2",
+    "T3",
+    "T4",
+    "T5",
+    "T6",
+    "T7"
+  ],
+  "stageIds": [
+    "act1",
+    "act2",
+    "act3",
+    "act4"
+  ],
+  "requireCulprit": true,
+  "gamePlan": [
+    {
+      "familyId": "M03",
+      "templateId": "M03",
+      "stageId": "act3",
+      "instanceKey": "throne-resource"
+    },
+    {
+      "familyId": "M09",
+      "templateId": "M09",
+      "stageId": "act5",
+      "instanceKey": "throne-vote"
+    }
+  ],
+  "candidateGameInsertionPoints": [],
+  "compatible": true
+}

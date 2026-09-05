@@ -1,0 +1,4154 @@
+{
+  "id": "pmd-mod-mto1p979-xmlx",
+  "version": 2,
+  "projectId": "p8-gen-07",
+  "sourceStoryStateRevision": 0,
+  "sourceMasterOutlineId": "mod-mto1p979-xmlx",
+  "sourceMasterOutlineRevision": "v1:mod-mto1p979-xmlx:act1@0:{ob-mto1p979-76hc|smb-mto1p977-mltyl|beat-setup,ob-mto1p979-wuyh|smb-mto1p977-kv4qc|beat-setup,ob-mto1p979-k2pi|smb-mto1p977-jl6vc|beat-setup};act2@1:{ob-mto1p979-taqp|smb-mto1p977-mltyl|beat-crime,ob-mto1p979-dfub|smb-mto1p977-mltyl|beat-false,ob-mto1p979-25vb|smb-mto1p977-mltyl|beat-contra,ob-mto1p979-brxr|smb-mto1p977-kv4qc|beat-develop,ob-mto1p979-hmym|smb-mto1p977-jl6vc|beat-develop};act3@2:{ob-mto1p979-aqwq|smb-mto1p977-mltyl|beat-climax,ob-mto1p979-li8z|smb-mto1p977-kv4qc|beat-climax,ob-mto1p979-37o0|smb-mto1p977-jl6vc|beat-climax};act4@3:{ob-mto1p979-w22i|smb-mto1p977-mltyl|beat-res,ob-mto1p979-1fr0|smb-mto1p977-kv4qc|beat-res,ob-mto1p979-hkgh|smb-mto1p977-jl6vc|beat-res}#wl-mto1p979-1dm4:WEAVE_SHARED_CHARACTER:ob-mto1p979-brxr,ob-mto1p979-37o0|wl-mto1p979-3ol3:WEAVE_SHARED_SCENE:ob-mto1p979-76hc,ob-mto1p979-k2pi|wl-mto1p979-5feu:WEAVE_SHARED_SCENE:ob-mto1p979-76hc,ob-mto1p979-wuyh|wl-mto1p979-5t9e:WEAVE_SHARED_SCENE:ob-mto1p979-aqwq,ob-mto1p979-37o0|wl-mto1p979-626o:WEAVE_SHARED_SCENE:ob-mto1p979-w22i,ob-mto1p979-hkgh|wl-mto1p979-a3me:WEAVE_SHARED_SCENE:ob-mto1p979-taqp,ob-mto1p979-hmym|wl-mto1p979-d25j:WEAVE_SHARED_SCENE:ob-mto1p979-w22i,ob-mto1p979-1fr0|wl-mto1p979-hl44:KEEP_PARALLEL:ob-mto1p979-taqp,ob-mto1p979-hmym|wl-mto1p979-i271:WEAVE_SHARED_CHARACTER:ob-mto1p979-taqp,ob-mto1p979-li8z|wl-mto1p979-icgl:WEAVE_SHARED_SCENE:ob-mto1p979-li8z,ob-mto1p979-37o0|wl-mto1p979-iv6c:WEAVE_SHARED_SCENE:ob-mto1p979-aqwq,ob-mto1p979-li8z|wl-mto1p979-jb19:WEAVE_SHARED_SCENE:ob-mto1p979-taqp,ob-mto1p979-brxr|wl-mto1p979-k2or:WEAVE_SHARED_CHARACTER:ob-mto1p979-aqwq,ob-mto1p979-1fr0|wl-mto1p979-krwq:WEAVE_SHARED_CHARACTER:ob-mto1p979-wuyh,ob-mto1p979-hmym|wl-mto1p979-leye:WEAVE_SHARED_CHARACTER:ob-mto1p979-li8z,ob-mto1p979-hkgh|wl-mto1p979-ls6f:WEAVE_SHARED_CHARACTER:ob-mto1p979-76hc,ob-mto1p979-brxr|wl-mto1p979-lyik:WEAVE_SHARED_ACTION:ob-mto1p979-brxr,ob-mto1p979-hmym|wl-mto1p979-oqev:WEAVE_SHARED_CHARACTER:ob-mto1p979-76hc,ob-mto1p979-hmym|wl-mto1p979-qhv8:WEAVE_SHARED_CHARACTER:ob-mto1p979-taqp,ob-mto1p979-37o0|wl-mto1p979-tyq2:WEAVE_SHARED_CHARACTER:ob-mto1p979-aqwq,ob-mto1p979-hkgh|wl-mto1p979-u21a:WEAVE_SHARED_SCENE:ob-mto1p979-wuyh,ob-mto1p979-k2pi|wl-mto1p979-xfbb:KEEP_PARALLEL:ob-mto1p979-taqp,ob-mto1p979-brxr|wl-mto1p979-xl5d:WEAVE_SHARED_SCENE:ob-mto1p979-1fr0,ob-mto1p979-hkgh",
+  "title": "GEN-07 王座之下",
+  "premiseSummary": "古风高交织 · 架空朝堂 · 身份 · 阵营 · 资源 · 责任",
+  "stages": [
+    {
+      "stageId": "act1",
+      "stageRole": "SETUP",
+      "title": "铺垫",
+      "order": 0,
+      "purpose": "裴烬：准备可嫁祸的假象；裴烬：隐藏或维持当前身份表象；裴烬：公开亮明阵营归属与目标",
+      "beats": [
+        {
+          "id": "pbeat-ob-mto1p979-76hc",
+          "sourceBeatId": "beat-setup",
+          "sourceOutlineBeatId": "ob-mto1p979-76hc",
+          "sourceBlockId": "smb-mto1p977-mltyl",
+          "sourceMechanismId": "smb-mto1p977-mltyl",
+          "templateId": "M01-FRAMING",
+          "familyId": "M01",
+          "actors": [
+            {
+              "id": "T2",
+              "name": "裴烬"
+            },
+            {
+              "id": "T3",
+              "name": "沈砚"
+            }
+          ],
+          "ownerCharacterIds": [
+            "T2"
+          ],
+          "goal": "准备可嫁祸的假象",
+          "action": "布置与沈砚相关的误导物",
+          "target": "被嫁祸者遗失的玉佩",
+          "setupContext": "作案准备地",
+          "eventSummary": "裴烬为了准备可嫁祸的假象，布置与沈砚相关的误导物（目标：被嫁祸者遗失的玉佩）",
+          "immediateConsequence": "误导物已就绪",
+          "requires": [],
+          "produces": [
+            {
+              "id": "false_lead_ready",
+              "kind": "false_lead",
+              "summary": "误导物已就绪"
+            }
+          ],
+          "playerKnowledge": "玩家可见：布置与沈砚相关的误导物（仅同场，不暗示因果）",
+          "hostTruth": "主持真相：裴烬为了准备可嫁祸的假象，布置与沈砚相关的误导物（目标：被嫁祸者遗失的玉佩）",
+          "clueRefs": [],
+          "relatedCharacterIds": [
+            "T2",
+            "T3"
+          ],
+          "relationQuality": "COLOCATED",
+          "weaveLinkIds": [
+            "wl-mto1p979-5feu",
+            "wl-mto1p979-ls6f",
+            "wl-mto1p979-3ol3",
+            "wl-mto1p979-oqev"
+          ],
+          "relationNotes": [
+            "【同场并列】同阶段共享角色 T2——可同场并列，不算真正交织",
+            "【同场并列】共享角色 T2——仅角色重合，保持同场并列而非强制合并",
+            "【同场并列】同阶段共享角色 T2——可同场并列，不算真正交织",
+            "【同场并列】共享角色 T2、T3——仅角色重合，保持同场并列而非强制合并"
+          ],
+          "needsDetail": false,
+          "contentConfirmed": false
+        },
+        {
+          "id": "pbeat-ob-mto1p979-wuyh",
+          "sourceBeatId": "beat-setup",
+          "sourceOutlineBeatId": "ob-mto1p979-wuyh",
+          "sourceBlockId": "smb-mto1p977-kv4qc",
+          "sourceMechanismId": "smb-mto1p977-kv4qc",
+          "templateId": "M07-5",
+          "familyId": "M07",
+          "actors": [
+            {
+              "id": "T2",
+              "name": "裴烬"
+            },
+            {
+              "id": "T6",
+              "name": "谢听雪"
+            }
+          ],
+          "ownerCharacterIds": [
+            "T2"
+          ],
+          "goal": "隐藏或维持当前身份表象",
+          "action": "按伪装/未知状态行动，避免过早暴露",
+          "target": "身份表象",
+          "setupContext": "日常活动场所",
+          "eventSummary": "裴烬为了隐藏或维持当前身份表象，按伪装/未知状态行动，避免过早暴露（目标：身份表象）",
+          "immediateConsequence": "身份仍未公开",
+          "requires": [],
+          "produces": [
+            {
+              "id": "identity_latent",
+              "kind": "identity",
+              "summary": "身份仍未公开"
+            }
+          ],
+          "playerKnowledge": "玩家可见：按伪装/未知状态行动，避免过早暴露（仅同场，不暗示因果）",
+          "hostTruth": "主持真相：裴烬为了隐藏或维持当前身份表象，按伪装/未知状态行动，避免过早暴露（目标：身份表象）",
+          "clueRefs": [
+            "smb-mto1p977-kv4qc-foreshadow-0"
+          ],
+          "relatedCharacterIds": [
+            "T2",
+            "T6"
+          ],
+          "relationQuality": "COLOCATED",
+          "weaveLinkIds": [
+            "wl-mto1p979-5feu",
+            "wl-mto1p979-u21a",
+            "wl-mto1p979-krwq"
+          ],
+          "relationNotes": [
+            "【同场并列】同阶段共享角色 T2——可同场并列，不算真正交织",
+            "【同场并列】同阶段共享角色 T2——可同场并列，不算真正交织",
+            "【同场并列】共享角色 T2——仅角色重合，保持同场并列而非强制合并"
+          ],
+          "needsDetail": false,
+          "contentConfirmed": false
+        },
+        {
+          "id": "pbeat-ob-mto1p979-k2pi",
+          "sourceBeatId": "beat-setup",
+          "sourceOutlineBeatId": "ob-mto1p979-k2pi",
+          "sourceBlockId": "smb-mto1p977-jl6vc",
+          "sourceMechanismId": "smb-mto1p977-jl6vc",
+          "templateId": "M08-1",
+          "familyId": "M08",
+          "actors": [
+            {
+              "id": "T2",
+              "name": "裴烬"
+            },
+            {
+              "id": "T7",
+              "name": "莫川"
+            }
+          ],
+          "ownerCharacterIds": [
+            "T2"
+          ],
+          "goal": "公开亮明阵营归属与目标",
+          "action": "确认成员知情范围与联络方式",
+          "target": "阵营名单/暗号",
+          "setupContext": "私下会合点",
+          "eventSummary": "裴烬为了公开亮明阵营归属与目标，确认成员知情范围与联络方式（目标：阵营名单/暗号）",
+          "immediateConsequence": "阵营结构已成形",
+          "requires": [],
+          "produces": [
+            {
+              "id": "faction_latent",
+              "kind": "faction",
+              "summary": "阵营结构已成形"
+            }
+          ],
+          "playerKnowledge": "玩家可见：确认成员知情范围与联络方式（仅同场，不暗示因果）",
+          "hostTruth": "主持真相：裴烬为了公开亮明阵营归属与目标，确认成员知情范围与联络方式（目标：阵营名单/暗号）",
+          "clueRefs": [
+            "smb-mto1p977-jl6vc-faction_foreshadow-0"
+          ],
+          "relatedCharacterIds": [
+            "T2",
+            "T7"
+          ],
+          "relationQuality": "COLOCATED",
+          "weaveLinkIds": [
+            "wl-mto1p979-3ol3",
+            "wl-mto1p979-u21a"
+          ],
+          "relationNotes": [
+            "【同场并列】同阶段共享角色 T2——可同场并列，不算真正交织",
+            "【同场并列】同阶段共享角色 T2——可同场并列，不算真正交织"
+          ],
+          "needsDetail": false,
+          "contentConfirmed": false
+        }
+      ],
+      "playerVisibleSummary": "玩家可见：布置与沈砚相关的误导物（仅同场，不暗示因果） / 玩家可见：按伪装/未知状态行动，避免过早暴露（仅同场，不暗示因果） / 玩家可见：确认成员知情范围与联络方式（仅同场，不暗示因果）",
+      "hostTruthSummary": "主持真相：裴烬为了准备可嫁祸的假象，布置与沈砚相关的误导物（目标：被嫁祸者遗失的玉佩） / 主持真相：裴烬为了隐藏或维持当前身份表象，按伪装/未知状态行动，避免过早暴露（目标：身份表象） / 主持真相：裴烬为了公开亮明阵营归属与目标，确认成员知情范围与联络方式（目标：阵营名单/暗号）",
+      "stageStartState": "开局：各线按积木 setup 状态进入（不新增前提）",
+      "stageEndState": "误导物已就绪；身份仍未公开；阵营结构已成形",
+      "clueEntries": [
+        {
+          "clueId": "fact-interface:ob-mto1p979-76hc",
+          "label": "事实接口（尚无线索实体）",
+          "mechanismId": "smb-mto1p977-mltyl",
+          "templateId": "M01-FRAMING",
+          "introducedAt": "act1",
+          "availableStages": [
+            "act1"
+          ],
+          "persists": false,
+          "stageId": "act1",
+          "possibleFinders": [
+            "T2",
+            "T3"
+          ],
+          "supportsFact": "误导物已就绪",
+          "isMisleading": true,
+          "isDecisive": false,
+          "missingDetail": true,
+          "detailNote": "这个剧情 beat 需要关键线索，但模板尚未提供具体线索内容。"
+        },
+        {
+          "clueId": "smb-mto1p977-kv4qc-foreshadow-0",
+          "label": "早期伏笔",
+          "mechanismId": "smb-mto1p977-kv4qc",
+          "templateId": "M07-5",
+          "introducedAt": "act1",
+          "availableStages": [
+            "act1",
+            "act2"
+          ],
+          "persists": true,
+          "stageId": "act1",
+          "possibleFinders": [
+            "T2",
+            "T6",
+            "T7",
+            "T4",
+            "T1"
+          ],
+          "supportsFact": "早期伏笔",
+          "isMisleading": false,
+          "isDecisive": false,
+          "missingDetail": false
+        },
+        {
+          "clueId": "smb-mto1p977-jl6vc-faction_foreshadow-0",
+          "label": "阵营伏笔",
+          "mechanismId": "smb-mto1p977-jl6vc",
+          "templateId": "M08-1",
+          "introducedAt": "act1",
+          "availableStages": [
+            "act1",
+            "act2"
+          ],
+          "persists": true,
+          "stageId": "act1",
+          "possibleFinders": [
+            "T2",
+            "T7",
+            "T3",
+            "T4",
+            "T5"
+          ],
+          "supportsFact": "阵营伏笔",
+          "isMisleading": false,
+          "isDecisive": false,
+          "missingDetail": false
+        }
+      ],
+      "characterEntries": [
+        {
+          "id": "T2",
+          "name": "裴烬"
+        },
+        {
+          "id": "T3",
+          "name": "沈砚"
+        },
+        {
+          "id": "T6",
+          "name": "谢听雪"
+        },
+        {
+          "id": "T7",
+          "name": "莫川"
+        }
+      ],
+      "unresolvedDetails": [],
+      "warnings": [
+        {
+          "id": "warn-low-weave",
+          "type": "LOW_WEAVE_DENSITY",
+          "severity": "info",
+          "message": "整本存在较少真正交织关系；当前母稿主要由平行剧情 + 同场并列构成。P6 未伪造额外因果。",
+          "stageIds": [
+            "act1",
+            "act2",
+            "act3",
+            "act4"
+          ],
+          "beatIds": []
+        },
+        {
+          "id": "warn-clue-ob-mto1p979-76hc",
+          "type": "MISSING_CLUE_DETAIL",
+          "severity": "info",
+          "message": "该剧情 beat 需要/产生事实接口，但模板尚未绑定具体线索内容。",
+          "stageIds": [
+            "act1"
+          ],
+          "beatIds": [
+            "ob-mto1p979-76hc"
+          ]
+        }
+      ]
+    },
+    {
+      "stageId": "act2",
+      "stageRole": "PRESSURE",
+      "title": "加压",
+      "order": 1,
+      "purpose": "裴烬：完成犯行并指向沈砚；顾晚：推翻对沈砚的错误判断；裴烬：寻找能确认身份的记录或信物；裴烬：夺取关键资源",
+      "beats": [
+        {
+          "id": "pbeat-ob-mto1p979-taqp",
+          "sourceBeatId": "beat-crime",
+          "sourceOutlineBeatId": "ob-mto1p979-taqp",
+          "sourceBlockId": "smb-mto1p977-mltyl",
+          "sourceMechanismId": "smb-mto1p977-mltyl",
+          "templateId": "M01-FRAMING",
+          "familyId": "M01",
+          "actors": [
+            {
+              "id": "T2",
+              "name": "裴烬"
+            },
+            {
+              "id": "T1",
+              "name": "萧敛"
+            },
+            {
+              "id": "T4",
+              "name": "顾晚"
+            }
+          ],
+          "ownerCharacterIds": [
+            "T2"
+          ],
+          "goal": "完成犯行并指向沈砚",
+          "action": "实施犯行并留下指向沈砚的痕迹",
+          "target": "被嫁祸者遗失的玉佩",
+          "setupContext": "案发现场",
+          "eventSummary": "裴烬为了完成犯行并指向沈砚，实施犯行并留下指向沈砚的痕迹（目标：被嫁祸者遗失的玉佩）",
+          "immediateConsequence": "犯行已发生；错误嫌疑成立",
+          "requires": [
+            {
+              "id": "false_lead_ready",
+              "kind": "false_lead",
+              "summary": "误导物"
+            }
+          ],
+          "produces": [
+            {
+              "id": "crime_done",
+              "kind": "crime",
+              "summary": "犯行已发生"
+            },
+            {
+              "id": "false_suspicion",
+              "kind": "suspicion",
+              "summary": "错误嫌疑成立"
+            }
+          ],
+          "playerKnowledge": "玩家可见：实施犯行并留下指向沈砚的痕迹（仅同场，不暗示因果）",
+          "hostTruth": "主持真相：裴烬为了完成犯行并指向沈砚，实施犯行并留下指向沈砚的痕迹（目标：被嫁祸者遗失的玉佩）",
+          "clueRefs": [
+            "smb-mto1p977-mltyl-false_lead-0"
+          ],
+          "relatedCharacterIds": [
+            "T2",
+            "T1",
+            "T4"
+          ],
+          "relationQuality": "COLOCATED",
+          "weaveLinkIds": [
+            "wl-mto1p979-jb19",
+            "wl-mto1p979-i271",
+            "wl-mto1p979-a3me",
+            "wl-mto1p979-qhv8",
+            "wl-mto1p979-xfbb",
+            "wl-mto1p979-hl44"
+          ],
+          "relationNotes": [
+            "【同场并列】同阶段共享角色 T2、T1、T4——可同场并列，不算真正交织",
+            "【同场并列】共享角色 T2、T1、T4——仅角色重合，保持同场并列而非强制合并",
+            "【同场并列】同阶段共享角色 T2、T4——可同场并列，不算真正交织",
+            "【同场并列】共享角色 T2、T4——仅角色重合，保持同场并列而非强制合并",
+            "【保持平行】嫁祸型追凶｜栽赃物品 与 身份权限变化｜本人早知，主动伪装到点揭开 无线索级交织证据，叙事线保持平行（同场/同角不算交织）",
+            "【保持平行】嫁祸型追凶｜栽赃物品 与 固定公开阵营｜开局全员互认公开阵营 无线索级交织证据，叙事线保持平行（同场/同角不算交织）"
+          ],
+          "needsDetail": false,
+          "contentConfirmed": false
+        },
+        {
+          "id": "pbeat-ob-mto1p979-dfub",
+          "sourceBeatId": "beat-false",
+          "sourceOutlineBeatId": "ob-mto1p979-dfub",
+          "sourceBlockId": "smb-mto1p977-mltyl",
+          "sourceMechanismId": "smb-mto1p977-mltyl",
+          "templateId": "M01-FRAMING",
+          "familyId": "M01",
+          "actors": [
+            {
+              "id": "T2",
+              "name": "裴烬"
+            },
+            {
+              "id": "T3",
+              "name": "沈砚"
+            }
+          ],
+          "ownerCharacterIds": [
+            "T2"
+          ],
+          "goal": "完成犯行并指向沈砚",
+          "action": "实施犯行并留下指向沈砚的痕迹",
+          "target": "被嫁祸者遗失的玉佩",
+          "setupContext": "案发现场",
+          "eventSummary": "裴烬为了完成犯行并指向沈砚，实施犯行并留下指向沈砚的痕迹（目标：被嫁祸者遗失的玉佩）",
+          "immediateConsequence": "犯行已发生；错误嫌疑成立",
+          "requires": [
+            {
+              "id": "false_lead_ready",
+              "kind": "false_lead",
+              "summary": "误导物"
+            }
+          ],
+          "produces": [
+            {
+              "id": "crime_done",
+              "kind": "crime",
+              "summary": "犯行已发生"
+            },
+            {
+              "id": "false_suspicion",
+              "kind": "suspicion",
+              "summary": "错误嫌疑成立"
+            }
+          ],
+          "playerKnowledge": "玩家可见：实施犯行并留下指向沈砚的痕迹",
+          "hostTruth": "主持真相：裴烬为了完成犯行并指向沈砚，实施犯行并留下指向沈砚的痕迹（目标：被嫁祸者遗失的玉佩）",
+          "clueRefs": [
+            "smb-mto1p977-mltyl-false_lead-0"
+          ],
+          "relatedCharacterIds": [
+            "T2",
+            "T3"
+          ],
+          "weaveLinkIds": [],
+          "relationNotes": [],
+          "needsDetail": false,
+          "contentConfirmed": false
+        },
+        {
+          "id": "pbeat-ob-mto1p979-25vb",
+          "sourceBeatId": "beat-contra",
+          "sourceOutlineBeatId": "ob-mto1p979-25vb",
+          "sourceBlockId": "smb-mto1p977-mltyl",
+          "sourceMechanismId": "smb-mto1p977-mltyl",
+          "templateId": "M01-FRAMING",
+          "familyId": "M01",
+          "actors": [
+            {
+              "id": "T4",
+              "name": "顾晚"
+            }
+          ],
+          "ownerCharacterIds": [
+            "T4"
+          ],
+          "goal": "推翻对沈砚的错误判断",
+          "action": "对照现场与证物寻找矛盾",
+          "target": "被嫁祸者遗失的玉佩",
+          "setupContext": "案发现场",
+          "eventSummary": "顾晚为了推翻对沈砚的错误判断，对照现场与证物寻找矛盾（目标：被嫁祸者遗失的玉佩）",
+          "immediateConsequence": "反证出现",
+          "requires": [
+            {
+              "id": "false_suspicion",
+              "kind": "suspicion",
+              "summary": "错误嫌疑"
+            }
+          ],
+          "produces": [
+            {
+              "id": "contradiction",
+              "kind": "contradiction",
+              "summary": "反证出现"
+            }
+          ],
+          "playerKnowledge": "玩家可见：对照现场与证物寻找矛盾",
+          "hostTruth": "主持真相：顾晚为了推翻对沈砚的错误判断，对照现场与证物寻找矛盾（目标：被嫁祸者遗失的玉佩）",
+          "clueRefs": [
+            "smb-mto1p977-mltyl-contradiction-1"
+          ],
+          "relatedCharacterIds": [
+            "T4"
+          ],
+          "weaveLinkIds": [],
+          "relationNotes": [],
+          "needsDetail": false,
+          "contentConfirmed": false
+        },
+        {
+          "id": "pbeat-ob-mto1p979-brxr",
+          "sourceBeatId": "beat-develop",
+          "sourceOutlineBeatId": "ob-mto1p979-brxr",
+          "sourceBlockId": "smb-mto1p977-kv4qc",
+          "sourceMechanismId": "smb-mto1p977-kv4qc",
+          "templateId": "M07-5",
+          "familyId": "M07",
+          "actors": [
+            {
+              "id": "T2",
+              "name": "裴烬"
+            },
+            {
+              "id": "T6",
+              "name": "谢听雪"
+            },
+            {
+              "id": "T7",
+              "name": "莫川"
+            },
+            {
+              "id": "T4",
+              "name": "顾晚"
+            },
+            {
+              "id": "T1",
+              "name": "萧敛"
+            }
+          ],
+          "ownerCharacterIds": [
+            "T2"
+          ],
+          "goal": "寻找能确认身份的记录或信物",
+          "action": "进入藏有记录的场所搜查身份相关物证",
+          "target": "身份记录",
+          "setupContext": "藏有记录的场所",
+          "eventSummary": "裴烬为了寻找能确认身份的记录或信物，进入藏有记录的场所搜查身份相关物证（目标：身份记录）",
+          "immediateConsequence": "身份线索",
+          "requires": [
+            {
+              "id": "site_accessible",
+              "kind": "access",
+              "summary": "关键场所可进入"
+            }
+          ],
+          "produces": [
+            {
+              "id": "identity_clue",
+              "kind": "identity_clue",
+              "summary": "身份线索"
+            }
+          ],
+          "playerKnowledge": "玩家可见：进入藏有记录的场所搜查身份相关物证",
+          "hostTruth": "主持真相：裴烬为了寻找能确认身份的记录或信物，进入藏有记录的场所搜查身份相关物证（目标：身份记录）",
+          "clueRefs": [
+            "smb-mto1p977-kv4qc-foreshadow-0"
+          ],
+          "relatedCharacterIds": [
+            "T2",
+            "T6",
+            "T7",
+            "T4",
+            "T1"
+          ],
+          "relationQuality": "INTERWOVEN",
+          "weaveLinkIds": [
+            "wl-mto1p979-ls6f",
+            "wl-mto1p979-jb19",
+            "wl-mto1p979-lyik",
+            "wl-mto1p979-1dm4",
+            "wl-mto1p979-xfbb"
+          ],
+          "relationNotes": [
+            "【同场并列】共享角色 T2——仅角色重合，保持同场并列而非强制合并",
+            "【同场并列】同阶段共享角色 T2、T1、T4——可同场并列，不算真正交织",
+            "【真正交织】两条剧情都需要在「藏有记录的场所」执行相近行动（shared-site-search），可共享一次行动",
+            "【同场并列】共享角色 T2、T7、T4——仅角色重合，保持同场并列而非强制合并",
+            "【保持平行】嫁祸型追凶｜栽赃物品 与 身份权限变化｜本人早知，主动伪装到点揭开 无线索级交织证据，叙事线保持平行（同场/同角不算交织）"
+          ],
+          "needsDetail": false,
+          "contentConfirmed": false
+        },
+        {
+          "id": "pbeat-ob-mto1p979-hmym",
+          "sourceBeatId": "beat-develop",
+          "sourceOutlineBeatId": "ob-mto1p979-hmym",
+          "sourceBlockId": "smb-mto1p977-jl6vc",
+          "sourceMechanismId": "smb-mto1p977-jl6vc",
+          "templateId": "M08-1",
+          "familyId": "M08",
+          "actors": [
+            {
+              "id": "T2",
+              "name": "裴烬"
+            },
+            {
+              "id": "T7",
+              "name": "莫川"
+            },
+            {
+              "id": "T3",
+              "name": "沈砚"
+            },
+            {
+              "id": "T4",
+              "name": "顾晚"
+            },
+            {
+              "id": "T5",
+              "name": "霍辞"
+            }
+          ],
+          "ownerCharacterIds": [
+            "T2"
+          ],
+          "goal": "夺取关键资源",
+          "action": "组织成员夺取或销毁关键物证/资源",
+          "target": "关键账册或信物",
+          "setupContext": "关键场所",
+          "eventSummary": "裴烬为了夺取关键资源，组织成员夺取或销毁关键物证/资源（目标：关键账册或信物）",
+          "immediateConsequence": "阵营压力升级",
+          "requires": [
+            {
+              "id": "site_accessible",
+              "kind": "access",
+              "summary": "关键场所可进入"
+            },
+            {
+              "id": "faction_latent",
+              "kind": "faction",
+              "summary": "阵营已成形"
+            }
+          ],
+          "produces": [
+            {
+              "id": "faction_pressure",
+              "kind": "faction",
+              "summary": "阵营压力升级"
+            }
+          ],
+          "playerKnowledge": "玩家可见：组织成员夺取或销毁关键物证/资源",
+          "hostTruth": "主持真相：裴烬为了夺取关键资源，组织成员夺取或销毁关键物证/资源（目标：关键账册或信物）",
+          "clueRefs": [
+            "smb-mto1p977-jl6vc-faction_foreshadow-0"
+          ],
+          "relatedCharacterIds": [
+            "T2",
+            "T7",
+            "T3",
+            "T4",
+            "T5"
+          ],
+          "relationQuality": "INTERWOVEN",
+          "weaveLinkIds": [
+            "wl-mto1p979-oqev",
+            "wl-mto1p979-a3me",
+            "wl-mto1p979-krwq",
+            "wl-mto1p979-lyik",
+            "wl-mto1p979-hl44"
+          ],
+          "relationNotes": [
+            "【同场并列】共享角色 T2、T3——仅角色重合，保持同场并列而非强制合并",
+            "【同场并列】同阶段共享角色 T2、T4——可同场并列，不算真正交织",
+            "【同场并列】共享角色 T2——仅角色重合，保持同场并列而非强制合并",
+            "【真正交织】两条剧情都需要在「藏有记录的场所」执行相近行动（shared-site-search），可共享一次行动",
+            "【保持平行】嫁祸型追凶｜栽赃物品 与 固定公开阵营｜开局全员互认公开阵营 无线索级交织证据，叙事线保持平行（同场/同角不算交织）"
+          ],
+          "needsDetail": false,
+          "contentConfirmed": false
+        }
+      ],
+      "playerVisibleSummary": "玩家可见：实施犯行并留下指向沈砚的痕迹（仅同场，不暗示因果） / 玩家可见：实施犯行并留下指向沈砚的痕迹 / 玩家可见：对照现场与证物寻找矛盾 / 玩家可见：进入藏有记录的场所搜查身份相关物证 / 玩家可见：组织成员夺取或销毁关键物证/资源",
+      "hostTruthSummary": "主持真相：裴烬为了完成犯行并指向沈砚，实施犯行并留下指向沈砚的痕迹（目标：被嫁祸者遗失的玉佩） / 主持真相：顾晚为了推翻对沈砚的错误判断，对照现场与证物寻找矛盾（目标：被嫁祸者遗失的玉佩） / 主持真相：裴烬为了寻找能确认身份的记录或信物，进入藏有记录的场所搜查身份相关物证（目标：身份记录） / 主持真相：裴烬为了夺取关键资源，组织成员夺取或销毁关键物证/资源（目标：关键账册或信物）",
+      "stageStartState": "承接上一阶段已声明后果；未声明者标 UNKNOWN",
+      "stageEndState": "犯行已发生；错误嫌疑成立；反证出现；身份线索；阵营压力升级",
+      "clueEntries": [
+        {
+          "clueId": "smb-mto1p977-kv4qc-foreshadow-0",
+          "label": "早期伏笔",
+          "mechanismId": "smb-mto1p977-kv4qc",
+          "templateId": "M07-5",
+          "introducedAt": "act1",
+          "availableStages": [
+            "act1",
+            "act2"
+          ],
+          "persists": true,
+          "stageId": "act1",
+          "possibleFinders": [
+            "T2",
+            "T6",
+            "T7",
+            "T4",
+            "T1"
+          ],
+          "supportsFact": "早期伏笔",
+          "isMisleading": false,
+          "isDecisive": false,
+          "missingDetail": false
+        },
+        {
+          "clueId": "smb-mto1p977-jl6vc-faction_foreshadow-0",
+          "label": "阵营伏笔",
+          "mechanismId": "smb-mto1p977-jl6vc",
+          "templateId": "M08-1",
+          "introducedAt": "act1",
+          "availableStages": [
+            "act1",
+            "act2"
+          ],
+          "persists": true,
+          "stageId": "act1",
+          "possibleFinders": [
+            "T2",
+            "T7",
+            "T3",
+            "T4",
+            "T5"
+          ],
+          "supportsFact": "阵营伏笔",
+          "isMisleading": false,
+          "isDecisive": false,
+          "missingDetail": false
+        },
+        {
+          "clueId": "smb-mto1p977-mltyl-false_lead-0",
+          "label": "误导",
+          "mechanismId": "smb-mto1p977-mltyl",
+          "templateId": "M01-FRAMING",
+          "introducedAt": "act2",
+          "availableStages": [
+            "act2"
+          ],
+          "persists": false,
+          "stageId": "act2",
+          "possibleFinders": [
+            "T2",
+            "T1",
+            "T4",
+            "T3"
+          ],
+          "supportsFact": "被嫁祸者遗失的玉佩",
+          "isMisleading": true,
+          "isDecisive": false,
+          "missingDetail": false
+        },
+        {
+          "clueId": "smb-mto1p977-mltyl-contradiction-1",
+          "label": "反证",
+          "mechanismId": "smb-mto1p977-mltyl",
+          "templateId": "M01-FRAMING",
+          "introducedAt": "act2",
+          "availableStages": [
+            "act2"
+          ],
+          "persists": false,
+          "stageId": "act2",
+          "possibleFinders": [
+            "T4"
+          ],
+          "supportsFact": "玉佩沾有仅库房存在的红蜡",
+          "isMisleading": false,
+          "isDecisive": false,
+          "missingDetail": false
+        }
+      ],
+      "characterEntries": [
+        {
+          "id": "T2",
+          "name": "裴烬"
+        },
+        {
+          "id": "T1",
+          "name": "萧敛"
+        },
+        {
+          "id": "T4",
+          "name": "顾晚"
+        },
+        {
+          "id": "T3",
+          "name": "沈砚"
+        },
+        {
+          "id": "T6",
+          "name": "谢听雪"
+        },
+        {
+          "id": "T7",
+          "name": "莫川"
+        },
+        {
+          "id": "T5",
+          "name": "霍辞"
+        }
+      ],
+      "unresolvedDetails": [],
+      "warnings": [
+        {
+          "id": "warn-low-weave",
+          "type": "LOW_WEAVE_DENSITY",
+          "severity": "info",
+          "message": "整本存在较少真正交织关系；当前母稿主要由平行剧情 + 同场并列构成。P6 未伪造额外因果。",
+          "stageIds": [
+            "act1",
+            "act2",
+            "act3",
+            "act4"
+          ],
+          "beatIds": []
+        }
+      ]
+    },
+    {
+      "stageId": "act3",
+      "stageRole": "ESCALATION",
+      "title": "升级",
+      "order": 2,
+      "purpose": "顾晚：推翻对沈砚的错误判断；裴烬：启用真实身份对应的权限；裴烬：在暴露风险下改归属或保住秘密",
+      "beats": [
+        {
+          "id": "pbeat-ob-mto1p979-aqwq",
+          "sourceBeatId": "beat-climax",
+          "sourceOutlineBeatId": "ob-mto1p979-aqwq",
+          "sourceBlockId": "smb-mto1p977-mltyl",
+          "sourceMechanismId": "smb-mto1p977-mltyl",
+          "templateId": "M01-FRAMING",
+          "familyId": "M01",
+          "actors": [
+            {
+              "id": "T4",
+              "name": "顾晚"
+            },
+            {
+              "id": "T2",
+              "name": "裴烬"
+            },
+            {
+              "id": "T3",
+              "name": "沈砚"
+            }
+          ],
+          "ownerCharacterIds": [
+            "T4"
+          ],
+          "goal": "推翻对沈砚的错误判断",
+          "action": "对照现场与证物寻找矛盾",
+          "target": "被嫁祸者遗失的玉佩",
+          "setupContext": "案发现场",
+          "eventSummary": "顾晚为了推翻对沈砚的错误判断，对照现场与证物寻找矛盾（目标：被嫁祸者遗失的玉佩）",
+          "immediateConsequence": "反证出现",
+          "requires": [
+            {
+              "id": "false_suspicion",
+              "kind": "suspicion",
+              "summary": "错误嫌疑"
+            }
+          ],
+          "produces": [
+            {
+              "id": "contradiction",
+              "kind": "contradiction",
+              "summary": "反证出现"
+            }
+          ],
+          "playerKnowledge": "玩家可见：对照现场与证物寻找矛盾（仅同场，不暗示因果）",
+          "hostTruth": "主持真相：顾晚为了推翻对沈砚的错误判断，对照现场与证物寻找矛盾（目标：被嫁祸者遗失的玉佩）",
+          "clueRefs": [
+            "smb-mto1p977-mltyl-true_evidence-2",
+            "smb-mto1p977-mltyl-decisive_evidence-3"
+          ],
+          "relatedCharacterIds": [
+            "T4",
+            "T2",
+            "T3"
+          ],
+          "relationQuality": "COLOCATED",
+          "weaveLinkIds": [
+            "wl-mto1p979-iv6c",
+            "wl-mto1p979-k2or",
+            "wl-mto1p979-5t9e",
+            "wl-mto1p979-tyq2"
+          ],
+          "relationNotes": [
+            "【同场并列】同阶段共享角色 T4、T2——可同场并列，不算真正交织",
+            "【同场并列】共享角色 T4、T2——仅角色重合，保持同场并列而非强制合并",
+            "【同场并列】同阶段共享角色 T4、T2、T3——可同场并列，不算真正交织",
+            "【同场并列】共享角色 T4、T2、T3——仅角色重合，保持同场并列而非强制合并"
+          ],
+          "needsDetail": false,
+          "contentConfirmed": false
+        },
+        {
+          "id": "pbeat-ob-mto1p979-li8z",
+          "sourceBeatId": "beat-climax",
+          "sourceOutlineBeatId": "ob-mto1p979-li8z",
+          "sourceBlockId": "smb-mto1p977-kv4qc",
+          "sourceMechanismId": "smb-mto1p977-kv4qc",
+          "templateId": "M07-5",
+          "familyId": "M07",
+          "actors": [
+            {
+              "id": "T2",
+              "name": "裴烬"
+            },
+            {
+              "id": "T6",
+              "name": "谢听雪"
+            },
+            {
+              "id": "T7",
+              "name": "莫川"
+            },
+            {
+              "id": "T4",
+              "name": "顾晚"
+            },
+            {
+              "id": "T1",
+              "name": "萧敛"
+            }
+          ],
+          "ownerCharacterIds": [
+            "T2"
+          ],
+          "goal": "启用真实身份对应的权限",
+          "action": "在揭示后启用权限表并验证资格",
+          "target": "真实身份",
+          "setupContext": "藏有记录的场所",
+          "eventSummary": "裴烬为了启用真实身份对应的权限，在揭示后启用权限表并验证资格（目标：真实身份）",
+          "immediateConsequence": "身份已确认；资格/权限状态；场所权限可能开放",
+          "requires": [
+            {
+              "id": "identity_clue",
+              "kind": "identity_clue",
+              "summary": "身份线索"
+            }
+          ],
+          "produces": [
+            {
+              "id": "identity_confirmed",
+              "kind": "identity",
+              "summary": "身份已确认"
+            },
+            {
+              "id": "family_status",
+              "kind": "status",
+              "summary": "资格/权限状态"
+            },
+            {
+              "id": "site_accessible",
+              "kind": "access",
+              "summary": "场所权限可能开放"
+            }
+          ],
+          "playerKnowledge": "玩家可见：在揭示后启用权限表并验证资格（仅同场，不暗示因果）",
+          "hostTruth": "主持真相：裴烬为了启用真实身份对应的权限，在揭示后启用权限表并验证资格（目标：真实身份）",
+          "clueRefs": [
+            "smb-mto1p977-kv4qc-memory_fragment-1",
+            "smb-mto1p977-kv4qc-identity_hint-2",
+            "smb-mto1p977-kv4qc-misdirection-3",
+            "smb-mto1p977-kv4qc-confirmation-4",
+            "smb-mto1p977-kv4qc-decisive_reveal-5"
+          ],
+          "relatedCharacterIds": [
+            "T2",
+            "T6",
+            "T7",
+            "T4",
+            "T1"
+          ],
+          "relationQuality": "COLOCATED",
+          "weaveLinkIds": [
+            "wl-mto1p979-i271",
+            "wl-mto1p979-iv6c",
+            "wl-mto1p979-icgl",
+            "wl-mto1p979-leye"
+          ],
+          "relationNotes": [
+            "【同场并列】共享角色 T2、T1、T4——仅角色重合，保持同场并列而非强制合并",
+            "【同场并列】同阶段共享角色 T4、T2——可同场并列，不算真正交织",
+            "【同场并列】同阶段共享角色 T2、T7、T4——可同场并列，不算真正交织",
+            "【同场并列】共享角色 T2、T7、T4——仅角色重合，保持同场并列而非强制合并"
+          ],
+          "needsDetail": false,
+          "contentConfirmed": false
+        },
+        {
+          "id": "pbeat-ob-mto1p979-37o0",
+          "sourceBeatId": "beat-climax",
+          "sourceOutlineBeatId": "ob-mto1p979-37o0",
+          "sourceBlockId": "smb-mto1p977-jl6vc",
+          "sourceMechanismId": "smb-mto1p977-jl6vc",
+          "templateId": "M08-1",
+          "familyId": "M08",
+          "actors": [
+            {
+              "id": "T2",
+              "name": "裴烬"
+            },
+            {
+              "id": "T7",
+              "name": "莫川"
+            },
+            {
+              "id": "T3",
+              "name": "沈砚"
+            },
+            {
+              "id": "T4",
+              "name": "顾晚"
+            },
+            {
+              "id": "T5",
+              "name": "霍辞"
+            }
+          ],
+          "ownerCharacterIds": [],
+          "goal": "在暴露风险下改归属或保住秘密",
+          "action": "在关键选择点背叛、退出或清洗异己",
+          "target": "归属状态",
+          "setupContext": "阵营关键据点",
+          "eventSummary": "裴烬为了在暴露风险下改归属或保住秘密，在关键选择点背叛、退出或清洗异己（目标：归属状态）",
+          "immediateConsequence": "归属已改变；暴露风险上升",
+          "requires": [
+            {
+              "id": "faction_pressure",
+              "kind": "faction",
+              "summary": "阵营压力"
+            }
+          ],
+          "produces": [
+            {
+              "id": "allegiance_changed",
+              "kind": "faction",
+              "summary": "归属已改变"
+            },
+            {
+              "id": "faction_exposure_risk",
+              "kind": "exposure",
+              "summary": "暴露风险上升"
+            }
+          ],
+          "playerKnowledge": "玩家可见：在关键选择点背叛、退出或清洗异己（仅同场，不暗示因果）",
+          "hostTruth": "主持真相：裴烬为了在暴露风险下改归属或保住秘密，在关键选择点背叛、退出或清洗异己（目标：归属状态）",
+          "clueRefs": [
+            "smb-mto1p977-jl6vc-membership_hint-1",
+            "smb-mto1p977-jl6vc-secret_signal-2",
+            "smb-mto1p977-jl6vc-recruitment_evidence-3",
+            "smb-mto1p977-jl6vc-loyalty_test-4",
+            "smb-mto1p977-jl6vc-betrayal_hint-5",
+            "smb-mto1p977-jl6vc-internal_conflict-6",
+            "smb-mto1p977-jl6vc-hidden_goal_hint-7",
+            "smb-mto1p977-jl6vc-membership_confirmation-8",
+            "smb-mto1p977-jl6vc-faction_exposure-9"
+          ],
+          "relatedCharacterIds": [
+            "T2",
+            "T7",
+            "T3",
+            "T4",
+            "T5"
+          ],
+          "relationQuality": "COLOCATED",
+          "weaveLinkIds": [
+            "wl-mto1p979-qhv8",
+            "wl-mto1p979-5t9e",
+            "wl-mto1p979-1dm4",
+            "wl-mto1p979-icgl"
+          ],
+          "relationNotes": [
+            "【同场并列】共享角色 T2、T4——仅角色重合，保持同场并列而非强制合并",
+            "【同场并列】同阶段共享角色 T4、T2、T3——可同场并列，不算真正交织",
+            "【同场并列】共享角色 T2、T7、T4——仅角色重合，保持同场并列而非强制合并",
+            "【同场并列】同阶段共享角色 T2、T7、T4——可同场并列，不算真正交织"
+          ],
+          "needsDetail": true,
+          "detailReason": "缺完整 actor/goal/action，或源 beat 已标 NEEDS_DETAIL",
+          "contentConfirmed": false
+        }
+      ],
+      "playerVisibleSummary": "玩家可见：对照现场与证物寻找矛盾（仅同场，不暗示因果） / 玩家可见：在揭示后启用权限表并验证资格（仅同场，不暗示因果） / 玩家可见：在关键选择点背叛、退出或清洗异己（仅同场，不暗示因果）",
+      "hostTruthSummary": "主持真相：顾晚为了推翻对沈砚的错误判断，对照现场与证物寻找矛盾（目标：被嫁祸者遗失的玉佩） / 主持真相：裴烬为了启用真实身份对应的权限，在揭示后启用权限表并验证资格（目标：真实身份） / 主持真相：裴烬为了在暴露风险下改归属或保住秘密，在关键选择点背叛、退出或清洗异己（目标：归属状态）",
+      "stageStartState": "承接上一阶段已声明后果；未声明者标 UNKNOWN",
+      "stageEndState": "反证出现；身份已确认；资格/权限状态；场所权限可能开放；归属已改变；暴露风险上升",
+      "clueEntries": [
+        {
+          "clueId": "smb-mto1p977-mltyl-true_evidence-2",
+          "label": "真手法",
+          "mechanismId": "smb-mto1p977-mltyl",
+          "templateId": "M01-FRAMING",
+          "introducedAt": "act3",
+          "availableStages": [
+            "act3"
+          ],
+          "persists": false,
+          "stageId": "act3",
+          "possibleFinders": [
+            "T4",
+            "T2",
+            "T3"
+          ],
+          "supportsFact": "勒杀",
+          "isMisleading": false,
+          "isDecisive": false,
+          "missingDetail": false
+        },
+        {
+          "clueId": "smb-mto1p977-mltyl-decisive_evidence-3",
+          "label": "突破",
+          "mechanismId": "smb-mto1p977-mltyl",
+          "templateId": "M01-FRAMING",
+          "introducedAt": "act3",
+          "availableStages": [
+            "act3",
+            "act4"
+          ],
+          "persists": true,
+          "stageId": "act3",
+          "possibleFinders": [
+            "T4",
+            "T2",
+            "T3",
+            "T1"
+          ],
+          "supportsFact": "库房钥匙记录证明真凶曾移动该物",
+          "isMisleading": false,
+          "isDecisive": false,
+          "missingDetail": false
+        },
+        {
+          "clueId": "smb-mto1p977-kv4qc-memory_fragment-1",
+          "label": "记忆碎片",
+          "mechanismId": "smb-mto1p977-kv4qc",
+          "templateId": "M07-5",
+          "introducedAt": "act3",
+          "availableStages": [
+            "act3"
+          ],
+          "persists": false,
+          "stageId": "act3",
+          "possibleFinders": [
+            "T2",
+            "T6",
+            "T7",
+            "T4",
+            "T1"
+          ],
+          "supportsFact": "记忆碎片",
+          "isMisleading": false,
+          "isDecisive": false,
+          "missingDetail": false
+        },
+        {
+          "clueId": "smb-mto1p977-kv4qc-identity_hint-2",
+          "label": "身份暗示",
+          "mechanismId": "smb-mto1p977-kv4qc",
+          "templateId": "M07-5",
+          "introducedAt": "act3",
+          "availableStages": [
+            "act3"
+          ],
+          "persists": false,
+          "stageId": "act3",
+          "possibleFinders": [
+            "T2",
+            "T6",
+            "T7",
+            "T4",
+            "T1"
+          ],
+          "supportsFact": "身份暗示",
+          "isMisleading": false,
+          "isDecisive": false,
+          "missingDetail": false
+        },
+        {
+          "clueId": "smb-mto1p977-kv4qc-misdirection-3",
+          "label": "误导",
+          "mechanismId": "smb-mto1p977-kv4qc",
+          "templateId": "M07-5",
+          "introducedAt": "act3",
+          "availableStages": [
+            "act3"
+          ],
+          "persists": false,
+          "stageId": "act3",
+          "possibleFinders": [
+            "T2",
+            "T6",
+            "T7",
+            "T4",
+            "T1"
+          ],
+          "supportsFact": "误导",
+          "isMisleading": true,
+          "isDecisive": false,
+          "missingDetail": false
+        },
+        {
+          "clueId": "smb-mto1p977-kv4qc-confirmation-4",
+          "label": "确认",
+          "mechanismId": "smb-mto1p977-kv4qc",
+          "templateId": "M07-5",
+          "introducedAt": "act3",
+          "availableStages": [
+            "act3"
+          ],
+          "persists": false,
+          "stageId": "act3",
+          "possibleFinders": [
+            "T2",
+            "T6",
+            "T7",
+            "T4",
+            "T1"
+          ],
+          "supportsFact": "确认",
+          "isMisleading": false,
+          "isDecisive": false,
+          "missingDetail": false
+        },
+        {
+          "clueId": "smb-mto1p977-kv4qc-decisive_reveal-5",
+          "label": "决定性揭示",
+          "mechanismId": "smb-mto1p977-kv4qc",
+          "templateId": "M07-5",
+          "introducedAt": "act3",
+          "availableStages": [
+            "act3"
+          ],
+          "persists": false,
+          "stageId": "act3",
+          "possibleFinders": [
+            "T2",
+            "T6",
+            "T7",
+            "T4",
+            "T1"
+          ],
+          "supportsFact": "决定性揭示",
+          "isMisleading": false,
+          "isDecisive": true,
+          "missingDetail": false
+        },
+        {
+          "clueId": "smb-mto1p977-jl6vc-membership_hint-1",
+          "label": "成员暗示",
+          "mechanismId": "smb-mto1p977-jl6vc",
+          "templateId": "M08-1",
+          "introducedAt": "act3",
+          "availableStages": [
+            "act3"
+          ],
+          "persists": false,
+          "stageId": "act3",
+          "possibleFinders": [
+            "T2",
+            "T7",
+            "T3",
+            "T4",
+            "T5"
+          ],
+          "supportsFact": "成员暗示",
+          "isMisleading": false,
+          "isDecisive": false,
+          "missingDetail": false
+        },
+        {
+          "clueId": "smb-mto1p977-jl6vc-secret_signal-2",
+          "label": "秘密信号",
+          "mechanismId": "smb-mto1p977-jl6vc",
+          "templateId": "M08-1",
+          "introducedAt": "act3",
+          "availableStages": [
+            "act3"
+          ],
+          "persists": false,
+          "stageId": "act3",
+          "possibleFinders": [
+            "T2",
+            "T7",
+            "T3",
+            "T4",
+            "T5"
+          ],
+          "supportsFact": "秘密信号",
+          "isMisleading": false,
+          "isDecisive": false,
+          "missingDetail": false
+        },
+        {
+          "clueId": "smb-mto1p977-jl6vc-recruitment_evidence-3",
+          "label": "招募证据",
+          "mechanismId": "smb-mto1p977-jl6vc",
+          "templateId": "M08-1",
+          "introducedAt": "act3",
+          "availableStages": [
+            "act3"
+          ],
+          "persists": false,
+          "stageId": "act3",
+          "possibleFinders": [
+            "T2",
+            "T7",
+            "T3",
+            "T4",
+            "T5"
+          ],
+          "supportsFact": "招募证据",
+          "isMisleading": false,
+          "isDecisive": false,
+          "missingDetail": false
+        },
+        {
+          "clueId": "smb-mto1p977-jl6vc-loyalty_test-4",
+          "label": "忠诚考验",
+          "mechanismId": "smb-mto1p977-jl6vc",
+          "templateId": "M08-1",
+          "introducedAt": "act3",
+          "availableStages": [
+            "act3"
+          ],
+          "persists": false,
+          "stageId": "act3",
+          "possibleFinders": [
+            "T2",
+            "T7",
+            "T3",
+            "T4",
+            "T5"
+          ],
+          "supportsFact": "忠诚考验",
+          "isMisleading": false,
+          "isDecisive": false,
+          "missingDetail": false
+        },
+        {
+          "clueId": "smb-mto1p977-jl6vc-betrayal_hint-5",
+          "label": "背叛暗示",
+          "mechanismId": "smb-mto1p977-jl6vc",
+          "templateId": "M08-1",
+          "introducedAt": "act3",
+          "availableStages": [
+            "act3"
+          ],
+          "persists": false,
+          "stageId": "act3",
+          "possibleFinders": [
+            "T2",
+            "T7",
+            "T3",
+            "T4",
+            "T5"
+          ],
+          "supportsFact": "背叛暗示",
+          "isMisleading": false,
+          "isDecisive": false,
+          "missingDetail": false
+        },
+        {
+          "clueId": "smb-mto1p977-jl6vc-internal_conflict-6",
+          "label": "内部冲突",
+          "mechanismId": "smb-mto1p977-jl6vc",
+          "templateId": "M08-1",
+          "introducedAt": "act3",
+          "availableStages": [
+            "act3"
+          ],
+          "persists": false,
+          "stageId": "act3",
+          "possibleFinders": [
+            "T2",
+            "T7",
+            "T3",
+            "T4",
+            "T5"
+          ],
+          "supportsFact": "内部冲突",
+          "isMisleading": false,
+          "isDecisive": false,
+          "missingDetail": false
+        },
+        {
+          "clueId": "smb-mto1p977-jl6vc-hidden_goal_hint-7",
+          "label": "隐藏目标暗示",
+          "mechanismId": "smb-mto1p977-jl6vc",
+          "templateId": "M08-1",
+          "introducedAt": "act3",
+          "availableStages": [
+            "act3"
+          ],
+          "persists": false,
+          "stageId": "act3",
+          "possibleFinders": [
+            "T2",
+            "T7",
+            "T3",
+            "T4",
+            "T5"
+          ],
+          "supportsFact": "隐藏目标暗示",
+          "isMisleading": false,
+          "isDecisive": false,
+          "missingDetail": false
+        },
+        {
+          "clueId": "smb-mto1p977-jl6vc-membership_confirmation-8",
+          "label": "归属确认",
+          "mechanismId": "smb-mto1p977-jl6vc",
+          "templateId": "M08-1",
+          "introducedAt": "act3",
+          "availableStages": [
+            "act3"
+          ],
+          "persists": false,
+          "stageId": "act3",
+          "possibleFinders": [
+            "T2",
+            "T7",
+            "T3",
+            "T4",
+            "T5"
+          ],
+          "supportsFact": "归属确认",
+          "isMisleading": false,
+          "isDecisive": false,
+          "missingDetail": false
+        },
+        {
+          "clueId": "smb-mto1p977-jl6vc-faction_exposure-9",
+          "label": "阵营暴露",
+          "mechanismId": "smb-mto1p977-jl6vc",
+          "templateId": "M08-1",
+          "introducedAt": "act3",
+          "availableStages": [
+            "act3"
+          ],
+          "persists": false,
+          "stageId": "act3",
+          "possibleFinders": [
+            "T2",
+            "T7",
+            "T3",
+            "T4",
+            "T5"
+          ],
+          "supportsFact": "阵营暴露",
+          "isMisleading": false,
+          "isDecisive": false,
+          "missingDetail": false
+        }
+      ],
+      "characterEntries": [
+        {
+          "id": "T4",
+          "name": "顾晚"
+        },
+        {
+          "id": "T2",
+          "name": "裴烬"
+        },
+        {
+          "id": "T3",
+          "name": "沈砚"
+        },
+        {
+          "id": "T6",
+          "name": "谢听雪"
+        },
+        {
+          "id": "T7",
+          "name": "莫川"
+        },
+        {
+          "id": "T1",
+          "name": "萧敛"
+        },
+        {
+          "id": "T5",
+          "name": "霍辞"
+        }
+      ],
+      "unresolvedDetails": [
+        "缺完整 actor/goal/action，或源 beat 已标 NEEDS_DETAIL"
+      ],
+      "warnings": [
+        {
+          "id": "warn-low-weave",
+          "type": "LOW_WEAVE_DENSITY",
+          "severity": "info",
+          "message": "整本存在较少真正交织关系；当前母稿主要由平行剧情 + 同场并列构成。P6 未伪造额外因果。",
+          "stageIds": [
+            "act1",
+            "act2",
+            "act3",
+            "act4"
+          ],
+          "beatIds": []
+        },
+        {
+          "id": "warn-detail-ob-mto1p979-37o0",
+          "type": "NEEDS_DETAIL",
+          "severity": "info",
+          "message": "「裴烬为了在暴露风险下改归属或保住秘密，在关键选择点背叛、退出或清洗异己（目标：归属状态）」仍缺具体细节。",
+          "stageIds": [
+            "act3"
+          ],
+          "beatIds": [
+            "ob-mto1p979-37o0"
+          ]
+        }
+      ]
+    },
+    {
+      "stageId": "act4",
+      "stageRole": "PAYOFF",
+      "title": "收束",
+      "order": 3,
+      "purpose": "顾晚：锁定真凶裴烬；裴烬：承受身份公开后的关系后果；裴烬：结算阵营目标并承受公开后果",
+      "beats": [
+        {
+          "id": "pbeat-ob-mto1p979-w22i",
+          "sourceBeatId": "beat-res",
+          "sourceOutlineBeatId": "ob-mto1p979-w22i",
+          "sourceBlockId": "smb-mto1p977-mltyl",
+          "sourceMechanismId": "smb-mto1p977-mltyl",
+          "templateId": "M01-FRAMING",
+          "familyId": "M01",
+          "actors": [
+            {
+              "id": "T4",
+              "name": "顾晚"
+            },
+            {
+              "id": "T1",
+              "name": "萧敛"
+            },
+            {
+              "id": "T2",
+              "name": "裴烬"
+            },
+            {
+              "id": "T3",
+              "name": "沈砚"
+            }
+          ],
+          "ownerCharacterIds": [
+            "T4"
+          ],
+          "goal": "锁定真凶裴烬",
+          "action": "用决定性证据揭穿嫁祸",
+          "target": "决定性证据",
+          "setupContext": "案发现场周边",
+          "eventSummary": "顾晚为了锁定真凶裴烬，用决定性证据揭穿嫁祸（目标：决定性证据）",
+          "immediateConsequence": "真凶锁定",
+          "requires": [
+            {
+              "id": "contradiction",
+              "kind": "contradiction",
+              "summary": "反证"
+            }
+          ],
+          "produces": [
+            {
+              "id": "truth_locked",
+              "kind": "truth",
+              "summary": "真凶锁定"
+            }
+          ],
+          "playerKnowledge": "玩家可见：用决定性证据揭穿嫁祸（仅同场，不暗示因果）",
+          "hostTruth": "主持真相：顾晚为了锁定真凶裴烬，用决定性证据揭穿嫁祸（目标：决定性证据）",
+          "clueRefs": [
+            "smb-mto1p977-mltyl-decisive_evidence-3"
+          ],
+          "relatedCharacterIds": [
+            "T4",
+            "T1",
+            "T2",
+            "T3"
+          ],
+          "relationQuality": "COLOCATED",
+          "weaveLinkIds": [
+            "wl-mto1p979-d25j",
+            "wl-mto1p979-626o"
+          ],
+          "relationNotes": [
+            "【同场并列】同阶段共享角色 T4、T1、T2——可同场并列，不算真正交织",
+            "【同场并列】同阶段共享角色 T4、T2、T3——可同场并列，不算真正交织"
+          ],
+          "needsDetail": false,
+          "contentConfirmed": false
+        },
+        {
+          "id": "pbeat-ob-mto1p979-1fr0",
+          "sourceBeatId": "beat-res",
+          "sourceOutlineBeatId": "ob-mto1p979-1fr0",
+          "sourceBlockId": "smb-mto1p977-kv4qc",
+          "sourceMechanismId": "smb-mto1p977-kv4qc",
+          "templateId": "M07-5",
+          "familyId": "M07",
+          "actors": [
+            {
+              "id": "T2",
+              "name": "裴烬"
+            },
+            {
+              "id": "T6",
+              "name": "谢听雪"
+            },
+            {
+              "id": "T7",
+              "name": "莫川"
+            },
+            {
+              "id": "T4",
+              "name": "顾晚"
+            },
+            {
+              "id": "T1",
+              "name": "萧敛"
+            }
+          ],
+          "ownerCharacterIds": [
+            "T2"
+          ],
+          "goal": "承受身份公开后的关系后果",
+          "action": "面对知情者与阵营/调查方的反应",
+          "target": "关系重组",
+          "setupContext": "藏有记录的场所",
+          "eventSummary": "裴烬为了承受身份公开后的关系后果，面对知情者与阵营/调查方的反应（目标：关系重组）",
+          "immediateConsequence": "身份进入公开层",
+          "requires": [
+            {
+              "id": "identity_confirmed",
+              "kind": "identity",
+              "summary": "身份确认"
+            }
+          ],
+          "produces": [
+            {
+              "id": "identity_public",
+              "kind": "identity",
+              "summary": "身份进入公开层"
+            }
+          ],
+          "playerKnowledge": "玩家可见：面对知情者与阵营/调查方的反应（仅同场，不暗示因果）",
+          "hostTruth": "主持真相：裴烬为了承受身份公开后的关系后果，面对知情者与阵营/调查方的反应（目标：关系重组）",
+          "clueRefs": [],
+          "relatedCharacterIds": [
+            "T2",
+            "T6",
+            "T7",
+            "T4",
+            "T1"
+          ],
+          "relationQuality": "COLOCATED",
+          "weaveLinkIds": [
+            "wl-mto1p979-k2or",
+            "wl-mto1p979-d25j",
+            "wl-mto1p979-xl5d"
+          ],
+          "relationNotes": [
+            "【同场并列】共享角色 T4、T2——仅角色重合，保持同场并列而非强制合并",
+            "【同场并列】同阶段共享角色 T4、T1、T2——可同场并列，不算真正交织",
+            "【同场并列】同阶段共享角色 T2、T7、T4——可同场并列，不算真正交织"
+          ],
+          "needsDetail": false,
+          "contentConfirmed": false
+        },
+        {
+          "id": "pbeat-ob-mto1p979-hkgh",
+          "sourceBeatId": "beat-res",
+          "sourceOutlineBeatId": "ob-mto1p979-hkgh",
+          "sourceBlockId": "smb-mto1p977-jl6vc",
+          "sourceMechanismId": "smb-mto1p977-jl6vc",
+          "templateId": "M08-1",
+          "familyId": "M08",
+          "actors": [
+            {
+              "id": "T2",
+              "name": "裴烬"
+            },
+            {
+              "id": "T7",
+              "name": "莫川"
+            },
+            {
+              "id": "T3",
+              "name": "沈砚"
+            },
+            {
+              "id": "T4",
+              "name": "顾晚"
+            },
+            {
+              "id": "T5",
+              "name": "霍辞"
+            }
+          ],
+          "ownerCharacterIds": [
+            "T2"
+          ],
+          "goal": "结算阵营目标并承受公开后果",
+          "action": "公开站队或接受阵营败露后的关系重排",
+          "target": "阵营胜负条件",
+          "setupContext": "阵营关键据点",
+          "eventSummary": "裴烬为了结算阵营目标并承受公开后果，公开站队或接受阵营败露后的关系重排（目标：阵营胜负条件）",
+          "immediateConsequence": "阵营线结算",
+          "requires": [
+            {
+              "id": "allegiance_changed",
+              "kind": "faction",
+              "summary": "归属变化"
+            }
+          ],
+          "produces": [
+            {
+              "id": "faction_settled",
+              "kind": "faction",
+              "summary": "阵营线结算"
+            }
+          ],
+          "playerKnowledge": "玩家可见：公开站队或接受阵营败露后的关系重排（仅同场，不暗示因果）",
+          "hostTruth": "主持真相：裴烬为了结算阵营目标并承受公开后果，公开站队或接受阵营败露后的关系重排（目标：阵营胜负条件）",
+          "clueRefs": [],
+          "relatedCharacterIds": [
+            "T2",
+            "T7",
+            "T3",
+            "T4",
+            "T5"
+          ],
+          "relationQuality": "COLOCATED",
+          "weaveLinkIds": [
+            "wl-mto1p979-tyq2",
+            "wl-mto1p979-626o",
+            "wl-mto1p979-leye",
+            "wl-mto1p979-xl5d"
+          ],
+          "relationNotes": [
+            "【同场并列】共享角色 T4、T2、T3——仅角色重合，保持同场并列而非强制合并",
+            "【同场并列】同阶段共享角色 T4、T2、T3——可同场并列，不算真正交织",
+            "【同场并列】共享角色 T2、T7、T4——仅角色重合，保持同场并列而非强制合并",
+            "【同场并列】同阶段共享角色 T2、T7、T4——可同场并列，不算真正交织"
+          ],
+          "needsDetail": false,
+          "contentConfirmed": false
+        }
+      ],
+      "playerVisibleSummary": "玩家可见：用决定性证据揭穿嫁祸（仅同场，不暗示因果） / 玩家可见：面对知情者与阵营/调查方的反应（仅同场，不暗示因果） / 玩家可见：公开站队或接受阵营败露后的关系重排（仅同场，不暗示因果）",
+      "hostTruthSummary": "主持真相：顾晚为了锁定真凶裴烬，用决定性证据揭穿嫁祸（目标：决定性证据） / 主持真相：裴烬为了承受身份公开后的关系后果，面对知情者与阵营/调查方的反应（目标：关系重组） / 主持真相：裴烬为了结算阵营目标并承受公开后果，公开站队或接受阵营败露后的关系重排（目标：阵营胜负条件）",
+      "stageStartState": "承接上一阶段已声明后果；未声明者标 UNKNOWN",
+      "stageEndState": "真凶锁定；身份进入公开层；阵营线结算",
+      "clueEntries": [
+        {
+          "clueId": "smb-mto1p977-mltyl-decisive_evidence-3",
+          "label": "突破",
+          "mechanismId": "smb-mto1p977-mltyl",
+          "templateId": "M01-FRAMING",
+          "introducedAt": "act3",
+          "availableStages": [
+            "act3",
+            "act4"
+          ],
+          "persists": true,
+          "stageId": "act3",
+          "possibleFinders": [
+            "T4",
+            "T2",
+            "T3",
+            "T1"
+          ],
+          "supportsFact": "库房钥匙记录证明真凶曾移动该物",
+          "isMisleading": false,
+          "isDecisive": false,
+          "missingDetail": false
+        },
+        {
+          "clueId": "fact-interface:ob-mto1p979-1fr0",
+          "label": "事实接口（尚无线索实体）",
+          "mechanismId": "smb-mto1p977-kv4qc",
+          "templateId": "M07-5",
+          "introducedAt": "act4",
+          "availableStages": [
+            "act4"
+          ],
+          "persists": false,
+          "stageId": "act4",
+          "possibleFinders": [
+            "T2",
+            "T6",
+            "T7",
+            "T4",
+            "T1"
+          ],
+          "supportsFact": "身份确认；身份进入公开层",
+          "isMisleading": false,
+          "isDecisive": false,
+          "missingDetail": true,
+          "detailNote": "这个剧情 beat 需要关键线索，但模板尚未提供具体线索内容。"
+        },
+        {
+          "clueId": "fact-interface:ob-mto1p979-hkgh",
+          "label": "事实接口（尚无线索实体）",
+          "mechanismId": "smb-mto1p977-jl6vc",
+          "templateId": "M08-1",
+          "introducedAt": "act4",
+          "availableStages": [
+            "act4"
+          ],
+          "persists": false,
+          "stageId": "act4",
+          "possibleFinders": [
+            "T2",
+            "T7",
+            "T3",
+            "T4",
+            "T5"
+          ],
+          "supportsFact": "归属变化；阵营线结算",
+          "isMisleading": false,
+          "isDecisive": false,
+          "missingDetail": true,
+          "detailNote": "这个剧情 beat 需要关键线索，但模板尚未提供具体线索内容。"
+        }
+      ],
+      "characterEntries": [
+        {
+          "id": "T4",
+          "name": "顾晚"
+        },
+        {
+          "id": "T1",
+          "name": "萧敛"
+        },
+        {
+          "id": "T2",
+          "name": "裴烬"
+        },
+        {
+          "id": "T3",
+          "name": "沈砚"
+        },
+        {
+          "id": "T6",
+          "name": "谢听雪"
+        },
+        {
+          "id": "T7",
+          "name": "莫川"
+        },
+        {
+          "id": "T5",
+          "name": "霍辞"
+        }
+      ],
+      "unresolvedDetails": [],
+      "warnings": [
+        {
+          "id": "warn-low-weave",
+          "type": "LOW_WEAVE_DENSITY",
+          "severity": "info",
+          "message": "整本存在较少真正交织关系；当前母稿主要由平行剧情 + 同场并列构成。P6 未伪造额外因果。",
+          "stageIds": [
+            "act1",
+            "act2",
+            "act3",
+            "act4"
+          ],
+          "beatIds": []
+        },
+        {
+          "id": "warn-clue-ob-mto1p979-1fr0",
+          "type": "MISSING_CLUE_DETAIL",
+          "severity": "info",
+          "message": "该剧情 beat 需要/产生事实接口，但模板尚未绑定具体线索内容。",
+          "stageIds": [
+            "act4"
+          ],
+          "beatIds": [
+            "ob-mto1p979-1fr0"
+          ]
+        },
+        {
+          "id": "warn-clue-ob-mto1p979-hkgh",
+          "type": "MISSING_CLUE_DETAIL",
+          "severity": "info",
+          "message": "该剧情 beat 需要/产生事实接口，但模板尚未绑定具体线索内容。",
+          "stageIds": [
+            "act4"
+          ],
+          "beatIds": [
+            "ob-mto1p979-hkgh"
+          ]
+        }
+      ]
+    }
+  ],
+  "truthView": {
+    "events": [
+      {
+        "beatId": "ob-mto1p979-76hc",
+        "stageId": "act1",
+        "whatHappened": "裴烬为了准备可嫁祸的假象，布置与沈砚相关的误导物（目标：被嫁祸者遗失的玉佩）",
+        "who": [
+          "T2",
+          "T3"
+        ],
+        "why": "准备可嫁祸的假象",
+        "consequence": "误导物已就绪",
+        "eventOccurred": true,
+        "evidenceEffect": "MISLEADING",
+        "claimTruth": "FALSE",
+        "isMisleading": true,
+        "isTruth": true,
+        "needsDetail": false
+      },
+      {
+        "beatId": "ob-mto1p979-wuyh",
+        "stageId": "act1",
+        "whatHappened": "裴烬为了隐藏或维持当前身份表象，按伪装/未知状态行动，避免过早暴露（目标：身份表象）",
+        "who": [
+          "T2",
+          "T6"
+        ],
+        "why": "隐藏或维持当前身份表象",
+        "consequence": "身份仍未公开",
+        "eventOccurred": true,
+        "evidenceEffect": "NEUTRAL",
+        "claimTruth": "UNKNOWN",
+        "isMisleading": false,
+        "isTruth": true,
+        "needsDetail": false
+      },
+      {
+        "beatId": "ob-mto1p979-k2pi",
+        "stageId": "act1",
+        "whatHappened": "裴烬为了公开亮明阵营归属与目标，确认成员知情范围与联络方式（目标：阵营名单/暗号）",
+        "who": [
+          "T2",
+          "T7"
+        ],
+        "why": "公开亮明阵营归属与目标",
+        "consequence": "阵营结构已成形",
+        "eventOccurred": true,
+        "evidenceEffect": "NEUTRAL",
+        "claimTruth": "UNKNOWN",
+        "isMisleading": false,
+        "isTruth": true,
+        "needsDetail": false
+      },
+      {
+        "beatId": "ob-mto1p979-taqp",
+        "stageId": "act2",
+        "whatHappened": "裴烬为了完成犯行并指向沈砚，实施犯行并留下指向沈砚的痕迹（目标：被嫁祸者遗失的玉佩）",
+        "who": [
+          "T2",
+          "T1",
+          "T4"
+        ],
+        "why": "完成犯行并指向沈砚",
+        "consequence": "犯行已发生；错误嫌疑成立",
+        "eventOccurred": true,
+        "evidenceEffect": "MISLEADING",
+        "claimTruth": "FALSE",
+        "isMisleading": true,
+        "isTruth": true,
+        "needsDetail": false
+      },
+      {
+        "beatId": "ob-mto1p979-dfub",
+        "stageId": "act2",
+        "whatHappened": "裴烬为了完成犯行并指向沈砚，实施犯行并留下指向沈砚的痕迹（目标：被嫁祸者遗失的玉佩）",
+        "who": [
+          "T2",
+          "T3"
+        ],
+        "why": "完成犯行并指向沈砚",
+        "consequence": "犯行已发生；错误嫌疑成立",
+        "eventOccurred": true,
+        "evidenceEffect": "MISLEADING",
+        "claimTruth": "FALSE",
+        "isMisleading": true,
+        "isTruth": true,
+        "needsDetail": false
+      },
+      {
+        "beatId": "ob-mto1p979-25vb",
+        "stageId": "act2",
+        "whatHappened": "顾晚为了推翻对沈砚的错误判断，对照现场与证物寻找矛盾（目标：被嫁祸者遗失的玉佩）",
+        "who": [
+          "T4"
+        ],
+        "why": "推翻对沈砚的错误判断",
+        "consequence": "反证出现",
+        "eventOccurred": true,
+        "evidenceEffect": "SUPPORTING",
+        "claimTruth": "TRUE",
+        "isMisleading": false,
+        "isTruth": true,
+        "needsDetail": false
+      },
+      {
+        "beatId": "ob-mto1p979-brxr",
+        "stageId": "act2",
+        "whatHappened": "裴烬为了寻找能确认身份的记录或信物，进入藏有记录的场所搜查身份相关物证（目标：身份记录）",
+        "who": [
+          "T2",
+          "T6",
+          "T7",
+          "T4",
+          "T1"
+        ],
+        "why": "寻找能确认身份的记录或信物",
+        "consequence": "身份线索",
+        "eventOccurred": true,
+        "evidenceEffect": "NEUTRAL",
+        "claimTruth": "UNKNOWN",
+        "isMisleading": false,
+        "isTruth": true,
+        "needsDetail": false
+      },
+      {
+        "beatId": "ob-mto1p979-hmym",
+        "stageId": "act2",
+        "whatHappened": "裴烬为了夺取关键资源，组织成员夺取或销毁关键物证/资源（目标：关键账册或信物）",
+        "who": [
+          "T2",
+          "T7",
+          "T3",
+          "T4",
+          "T5"
+        ],
+        "why": "夺取关键资源",
+        "consequence": "阵营压力升级",
+        "eventOccurred": true,
+        "evidenceEffect": "NEUTRAL",
+        "claimTruth": "UNKNOWN",
+        "isMisleading": false,
+        "isTruth": true,
+        "needsDetail": false
+      },
+      {
+        "beatId": "ob-mto1p979-aqwq",
+        "stageId": "act3",
+        "whatHappened": "顾晚为了推翻对沈砚的错误判断，对照现场与证物寻找矛盾（目标：被嫁祸者遗失的玉佩）",
+        "who": [
+          "T4",
+          "T2",
+          "T3"
+        ],
+        "why": "推翻对沈砚的错误判断",
+        "consequence": "反证出现",
+        "eventOccurred": true,
+        "evidenceEffect": "SUPPORTING",
+        "claimTruth": "TRUE",
+        "isMisleading": false,
+        "isTruth": true,
+        "needsDetail": false
+      },
+      {
+        "beatId": "ob-mto1p979-li8z",
+        "stageId": "act3",
+        "whatHappened": "裴烬为了启用真实身份对应的权限，在揭示后启用权限表并验证资格（目标：真实身份）",
+        "who": [
+          "T2",
+          "T6",
+          "T7",
+          "T4",
+          "T1"
+        ],
+        "why": "启用真实身份对应的权限",
+        "consequence": "身份已确认；资格/权限状态；场所权限可能开放",
+        "eventOccurred": true,
+        "evidenceEffect": "SUPPORTING",
+        "claimTruth": "TRUE",
+        "isMisleading": false,
+        "isTruth": true,
+        "needsDetail": false
+      },
+      {
+        "beatId": "ob-mto1p979-37o0",
+        "stageId": "act3",
+        "whatHappened": "裴烬为了在暴露风险下改归属或保住秘密，在关键选择点背叛、退出或清洗异己（目标：归属状态）",
+        "who": [
+          "T2",
+          "T7",
+          "T3",
+          "T4",
+          "T5"
+        ],
+        "why": "在暴露风险下改归属或保住秘密",
+        "consequence": "归属已改变；暴露风险上升",
+        "eventOccurred": true,
+        "evidenceEffect": "NEUTRAL",
+        "claimTruth": "UNKNOWN",
+        "isMisleading": false,
+        "isTruth": true,
+        "needsDetail": true
+      },
+      {
+        "beatId": "ob-mto1p979-w22i",
+        "stageId": "act4",
+        "whatHappened": "顾晚为了锁定真凶裴烬，用决定性证据揭穿嫁祸（目标：决定性证据）",
+        "who": [
+          "T4",
+          "T1",
+          "T2",
+          "T3"
+        ],
+        "why": "锁定真凶裴烬",
+        "consequence": "真凶锁定",
+        "eventOccurred": true,
+        "evidenceEffect": "NEUTRAL",
+        "claimTruth": "UNKNOWN",
+        "isMisleading": false,
+        "isTruth": true,
+        "needsDetail": false
+      },
+      {
+        "beatId": "ob-mto1p979-1fr0",
+        "stageId": "act4",
+        "whatHappened": "裴烬为了承受身份公开后的关系后果，面对知情者与阵营/调查方的反应（目标：关系重组）",
+        "who": [
+          "T2",
+          "T6",
+          "T7",
+          "T4",
+          "T1"
+        ],
+        "why": "承受身份公开后的关系后果",
+        "consequence": "身份进入公开层",
+        "eventOccurred": true,
+        "evidenceEffect": "NEUTRAL",
+        "claimTruth": "UNKNOWN",
+        "isMisleading": false,
+        "isTruth": true,
+        "needsDetail": false
+      },
+      {
+        "beatId": "ob-mto1p979-hkgh",
+        "stageId": "act4",
+        "whatHappened": "裴烬为了结算阵营目标并承受公开后果，公开站队或接受阵营败露后的关系重排（目标：阵营胜负条件）",
+        "who": [
+          "T2",
+          "T7",
+          "T3",
+          "T4",
+          "T5"
+        ],
+        "why": "结算阵营目标并承受公开后果",
+        "consequence": "阵营线结算",
+        "eventOccurred": true,
+        "evidenceEffect": "NEUTRAL",
+        "claimTruth": "UNKNOWN",
+        "isMisleading": false,
+        "isTruth": true,
+        "needsDetail": false
+      }
+    ]
+  },
+  "characterViews": {
+    "characters": [
+      {
+        "characterId": "T2",
+        "name": "裴烬",
+        "stages": [
+          {
+            "stageId": "act1",
+            "contributions": [
+              {
+                "sourceBeatId": "beat-setup",
+                "sourceOutlineBeatId": "ob-mto1p979-76hc",
+                "sourceBlockId": "smb-mto1p977-mltyl",
+                "familyId": "M01",
+                "templateId": "M01-FRAMING",
+                "roleInBeat": "OWNER",
+                "goal": "准备可嫁祸的假象",
+                "action": "布置与沈砚相关的误导物",
+                "gainedInfo": "误导物已就绪",
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-setup",
+                "sourceOutlineBeatId": "ob-mto1p979-wuyh",
+                "sourceBlockId": "smb-mto1p977-kv4qc",
+                "familyId": "M07",
+                "templateId": "M07-5",
+                "roleInBeat": "OWNER",
+                "goal": "隐藏或维持当前身份表象",
+                "action": "按伪装/未知状态行动，避免过早暴露",
+                "gainedInfo": "身份仍未公开",
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-setup",
+                "sourceOutlineBeatId": "ob-mto1p979-k2pi",
+                "sourceBlockId": "smb-mto1p977-jl6vc",
+                "familyId": "M08",
+                "templateId": "M08-1",
+                "roleInBeat": "OWNER",
+                "goal": "公开亮明阵营归属与目标",
+                "action": "确认成员知情范围与联络方式",
+                "gainedInfo": "阵营结构已成形",
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              }
+            ],
+            "stageSummary": "准备可嫁祸的假象；隐藏或维持当前身份表象；公开亮明阵营归属与目标",
+            "knows": "本阶段主导行动：布置与沈砚相关的误导物；按伪装/未知状态行动，避免过早暴露；确认成员知情范围与联络方式",
+            "goal": "准备可嫁祸的假象；隐藏或维持当前身份表象；公开亮明阵营归属与目标",
+            "action": "布置与沈砚相关的误导物；按伪装/未知状态行动，避免过早暴露；确认成员知情范围与联络方式",
+            "relationChanges": [
+              "同场出现（非因果）"
+            ],
+            "gainedInfo": "误导物已就绪；身份仍未公开；阵营结构已成形",
+            "misunderstanding": "NEEDS_DETAIL",
+            "endChange": "误导物已就绪；身份仍未公开；阵营结构已成形",
+            "needsDetail": false
+          },
+          {
+            "stageId": "act2",
+            "contributions": [
+              {
+                "sourceBeatId": "beat-crime",
+                "sourceOutlineBeatId": "ob-mto1p979-taqp",
+                "sourceBlockId": "smb-mto1p977-mltyl",
+                "familyId": "M01",
+                "templateId": "M01-FRAMING",
+                "roleInBeat": "OWNER",
+                "goal": "完成犯行并指向沈砚",
+                "action": "实施犯行并留下指向沈砚的痕迹",
+                "gainedInfo": "犯行已发生；错误嫌疑成立",
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-false",
+                "sourceOutlineBeatId": "ob-mto1p979-dfub",
+                "sourceBlockId": "smb-mto1p977-mltyl",
+                "familyId": "M01",
+                "templateId": "M01-FRAMING",
+                "roleInBeat": "OWNER",
+                "goal": "完成犯行并指向沈砚",
+                "action": "实施犯行并留下指向沈砚的痕迹",
+                "gainedInfo": "犯行已发生；错误嫌疑成立",
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-develop",
+                "sourceOutlineBeatId": "ob-mto1p979-brxr",
+                "sourceBlockId": "smb-mto1p977-kv4qc",
+                "familyId": "M07",
+                "templateId": "M07-5",
+                "roleInBeat": "OWNER",
+                "goal": "寻找能确认身份的记录或信物",
+                "action": "进入藏有记录的场所搜查身份相关物证",
+                "gainedInfo": "身份线索",
+                "relationQuality": "INTERWOVEN",
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-develop",
+                "sourceOutlineBeatId": "ob-mto1p979-hmym",
+                "sourceBlockId": "smb-mto1p977-jl6vc",
+                "familyId": "M08",
+                "templateId": "M08-1",
+                "roleInBeat": "OWNER",
+                "goal": "夺取关键资源",
+                "action": "组织成员夺取或销毁关键物证/资源",
+                "gainedInfo": "阵营压力升级",
+                "relationQuality": "INTERWOVEN",
+                "needsDetail": false
+              }
+            ],
+            "stageSummary": "完成犯行并指向沈砚；寻找能确认身份的记录或信物；夺取关键资源",
+            "knows": "本阶段主导行动：实施犯行并留下指向沈砚的痕迹；进入藏有记录的场所搜查身份相关物证；组织成员夺取或销毁关键物证/资源",
+            "goal": "完成犯行并指向沈砚；寻找能确认身份的记录或信物；夺取关键资源",
+            "action": "实施犯行并留下指向沈砚的痕迹；进入藏有记录的场所搜查身份相关物证；组织成员夺取或销毁关键物证/资源",
+            "relationChanges": [
+              "同场出现（非因果）",
+              "参与真正交织行动"
+            ],
+            "gainedInfo": "犯行已发生；错误嫌疑成立；身份线索；阵营压力升级",
+            "misunderstanding": "NEEDS_DETAIL",
+            "endChange": "犯行已发生；错误嫌疑成立；身份线索；阵营压力升级",
+            "needsDetail": false
+          },
+          {
+            "stageId": "act3",
+            "contributions": [
+              {
+                "sourceBeatId": "beat-climax",
+                "sourceOutlineBeatId": "ob-mto1p979-aqwq",
+                "sourceBlockId": "smb-mto1p977-mltyl",
+                "familyId": "M01",
+                "templateId": "M01-FRAMING",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：顾晚为了推翻对沈砚的错误判断，对照现场与证物寻找矛盾（目标：被嫁祸者遗失的玉佩）",
+                "gainedInfo": null,
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-climax",
+                "sourceOutlineBeatId": "ob-mto1p979-li8z",
+                "sourceBlockId": "smb-mto1p977-kv4qc",
+                "familyId": "M07",
+                "templateId": "M07-5",
+                "roleInBeat": "OWNER",
+                "goal": "启用真实身份对应的权限",
+                "action": "在揭示后启用权限表并验证资格",
+                "gainedInfo": "身份已确认；资格/权限状态；场所权限可能开放",
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-climax",
+                "sourceOutlineBeatId": "ob-mto1p979-37o0",
+                "sourceBlockId": "smb-mto1p977-jl6vc",
+                "familyId": "M08",
+                "templateId": "M08-1",
+                "roleInBeat": "OWNER",
+                "goal": "在暴露风险下改归属或保住秘密",
+                "action": "在关键选择点背叛、退出或清洗异己",
+                "gainedInfo": "归属已改变；暴露风险上升",
+                "relationQuality": "COLOCATED",
+                "needsDetail": true
+              }
+            ],
+            "stageSummary": "启用真实身份对应的权限；在暴露风险下改归属或保住秘密",
+            "knows": "本阶段主导行动：在揭示后启用权限表并验证资格；在关键选择点背叛、退出或清洗异己",
+            "goal": "启用真实身份对应的权限；在暴露风险下改归属或保住秘密",
+            "action": "在揭示后启用权限表并验证资格；在关键选择点背叛、退出或清洗异己",
+            "relationChanges": [
+              "同场出现（非因果）"
+            ],
+            "gainedInfo": "身份已确认；资格/权限状态；场所权限可能开放；归属已改变；暴露风险上升",
+            "misunderstanding": "NEEDS_DETAIL",
+            "endChange": "身份已确认；资格/权限状态；场所权限可能开放；归属已改变；暴露风险上升",
+            "needsDetail": true
+          },
+          {
+            "stageId": "act4",
+            "contributions": [
+              {
+                "sourceBeatId": "beat-res",
+                "sourceOutlineBeatId": "ob-mto1p979-w22i",
+                "sourceBlockId": "smb-mto1p977-mltyl",
+                "familyId": "M01",
+                "templateId": "M01-FRAMING",
+                "roleInBeat": "TARGET",
+                "goal": null,
+                "action": "作为对象卷入：用决定性证据揭穿嫁祸",
+                "gainedInfo": null,
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-res",
+                "sourceOutlineBeatId": "ob-mto1p979-1fr0",
+                "sourceBlockId": "smb-mto1p977-kv4qc",
+                "familyId": "M07",
+                "templateId": "M07-5",
+                "roleInBeat": "OWNER",
+                "goal": "承受身份公开后的关系后果",
+                "action": "面对知情者与阵营/调查方的反应",
+                "gainedInfo": "身份进入公开层",
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-res",
+                "sourceOutlineBeatId": "ob-mto1p979-hkgh",
+                "sourceBlockId": "smb-mto1p977-jl6vc",
+                "familyId": "M08",
+                "templateId": "M08-1",
+                "roleInBeat": "OWNER",
+                "goal": "结算阵营目标并承受公开后果",
+                "action": "公开站队或接受阵营败露后的关系重排",
+                "gainedInfo": "阵营线结算",
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              }
+            ],
+            "stageSummary": "承受身份公开后的关系后果；结算阵营目标并承受公开后果",
+            "knows": "本阶段主导行动：面对知情者与阵营/调查方的反应；公开站队或接受阵营败露后的关系重排",
+            "goal": "承受身份公开后的关系后果；结算阵营目标并承受公开后果",
+            "action": "面对知情者与阵营/调查方的反应；公开站队或接受阵营败露后的关系重排",
+            "relationChanges": [
+              "同场出现（非因果）"
+            ],
+            "gainedInfo": "身份进入公开层；阵营线结算",
+            "misunderstanding": "NEEDS_DETAIL",
+            "endChange": "身份进入公开层；阵营线结算",
+            "needsDetail": false
+          }
+        ]
+      },
+      {
+        "characterId": "T3",
+        "name": "沈砚",
+        "stages": [
+          {
+            "stageId": "act1",
+            "contributions": [
+              {
+                "sourceBeatId": "beat-setup",
+                "sourceOutlineBeatId": "ob-mto1p979-76hc",
+                "sourceBlockId": "smb-mto1p977-mltyl",
+                "familyId": "M01",
+                "templateId": "M01-FRAMING",
+                "roleInBeat": "TARGET",
+                "goal": null,
+                "action": "作为对象卷入：布置与沈砚相关的误导物",
+                "gainedInfo": null,
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              }
+            ],
+            "stageSummary": "本阶段无独立主目标（仅参与/对象）",
+            "knows": "本阶段主要为参与/对象，无主导公开行动摘要",
+            "goal": "本阶段无独立主目标（仅参与/对象）",
+            "action": "见 contributions（参与/对象）",
+            "relationChanges": [
+              "同场出现（非因果）"
+            ],
+            "gainedInfo": "NEEDS_DETAIL",
+            "misunderstanding": "NEEDS_DETAIL",
+            "endChange": "NEEDS_DETAIL",
+            "needsDetail": false
+          },
+          {
+            "stageId": "act2",
+            "contributions": [
+              {
+                "sourceBeatId": "beat-false",
+                "sourceOutlineBeatId": "ob-mto1p979-dfub",
+                "sourceBlockId": "smb-mto1p977-mltyl",
+                "familyId": "M01",
+                "templateId": "M01-FRAMING",
+                "roleInBeat": "TARGET",
+                "goal": null,
+                "action": "作为对象卷入：实施犯行并留下指向沈砚的痕迹",
+                "gainedInfo": null,
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-develop",
+                "sourceOutlineBeatId": "ob-mto1p979-hmym",
+                "sourceBlockId": "smb-mto1p977-jl6vc",
+                "familyId": "M08",
+                "templateId": "M08-1",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：裴烬为了夺取关键资源，组织成员夺取或销毁关键物证/资源（目标：关键账册或信物）",
+                "gainedInfo": null,
+                "relationQuality": "INTERWOVEN",
+                "needsDetail": false
+              }
+            ],
+            "stageSummary": "本阶段无独立主目标（仅参与/对象）",
+            "knows": "本阶段主要为参与/对象，无主导公开行动摘要",
+            "goal": "本阶段无独立主目标（仅参与/对象）",
+            "action": "见 contributions（参与/对象）",
+            "relationChanges": [],
+            "gainedInfo": "NEEDS_DETAIL",
+            "misunderstanding": "NEEDS_DETAIL",
+            "endChange": "NEEDS_DETAIL",
+            "needsDetail": false
+          },
+          {
+            "stageId": "act3",
+            "contributions": [
+              {
+                "sourceBeatId": "beat-climax",
+                "sourceOutlineBeatId": "ob-mto1p979-aqwq",
+                "sourceBlockId": "smb-mto1p977-mltyl",
+                "familyId": "M01",
+                "templateId": "M01-FRAMING",
+                "roleInBeat": "TARGET",
+                "goal": null,
+                "action": "作为对象卷入：对照现场与证物寻找矛盾",
+                "gainedInfo": null,
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-climax",
+                "sourceOutlineBeatId": "ob-mto1p979-37o0",
+                "sourceBlockId": "smb-mto1p977-jl6vc",
+                "familyId": "M08",
+                "templateId": "M08-1",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：裴烬为了在暴露风险下改归属或保住秘密，在关键选择点背叛、退出或清洗异己（目标：归属状态）",
+                "gainedInfo": null,
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              }
+            ],
+            "stageSummary": "本阶段无独立主目标（仅参与/对象）",
+            "knows": "本阶段主要为参与/对象，无主导公开行动摘要",
+            "goal": "本阶段无独立主目标（仅参与/对象）",
+            "action": "见 contributions（参与/对象）",
+            "relationChanges": [
+              "同场出现（非因果）"
+            ],
+            "gainedInfo": "NEEDS_DETAIL",
+            "misunderstanding": "NEEDS_DETAIL",
+            "endChange": "NEEDS_DETAIL",
+            "needsDetail": false
+          },
+          {
+            "stageId": "act4",
+            "contributions": [
+              {
+                "sourceBeatId": "beat-res",
+                "sourceOutlineBeatId": "ob-mto1p979-w22i",
+                "sourceBlockId": "smb-mto1p977-mltyl",
+                "familyId": "M01",
+                "templateId": "M01-FRAMING",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：顾晚为了锁定真凶裴烬，用决定性证据揭穿嫁祸（目标：决定性证据）",
+                "gainedInfo": null,
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-res",
+                "sourceOutlineBeatId": "ob-mto1p979-hkgh",
+                "sourceBlockId": "smb-mto1p977-jl6vc",
+                "familyId": "M08",
+                "templateId": "M08-1",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：裴烬为了结算阵营目标并承受公开后果，公开站队或接受阵营败露后的关系重排（目标：阵营胜负条件）",
+                "gainedInfo": null,
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              }
+            ],
+            "stageSummary": "本阶段无独立主目标（仅参与/对象）",
+            "knows": "本阶段主要为参与/对象，无主导公开行动摘要",
+            "goal": "本阶段无独立主目标（仅参与/对象）",
+            "action": "见 contributions（参与/对象）",
+            "relationChanges": [
+              "同场出现（非因果）"
+            ],
+            "gainedInfo": "NEEDS_DETAIL",
+            "misunderstanding": "NEEDS_DETAIL",
+            "endChange": "NEEDS_DETAIL",
+            "needsDetail": false
+          }
+        ]
+      },
+      {
+        "characterId": "T6",
+        "name": "谢听雪",
+        "stages": [
+          {
+            "stageId": "act1",
+            "contributions": [
+              {
+                "sourceBeatId": "beat-setup",
+                "sourceOutlineBeatId": "ob-mto1p979-wuyh",
+                "sourceBlockId": "smb-mto1p977-kv4qc",
+                "familyId": "M07",
+                "templateId": "M07-5",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：裴烬为了隐藏或维持当前身份表象，按伪装/未知状态行动，避免过早暴露（目标：身份表象）",
+                "gainedInfo": null,
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              }
+            ],
+            "stageSummary": "本阶段无独立主目标（仅参与/对象）",
+            "knows": "本阶段主要为参与/对象，无主导公开行动摘要",
+            "goal": "本阶段无独立主目标（仅参与/对象）",
+            "action": "见 contributions（参与/对象）",
+            "relationChanges": [
+              "同场出现（非因果）"
+            ],
+            "gainedInfo": "NEEDS_DETAIL",
+            "misunderstanding": "NEEDS_DETAIL",
+            "endChange": "NEEDS_DETAIL",
+            "needsDetail": false
+          },
+          {
+            "stageId": "act2",
+            "contributions": [
+              {
+                "sourceBeatId": "beat-develop",
+                "sourceOutlineBeatId": "ob-mto1p979-brxr",
+                "sourceBlockId": "smb-mto1p977-kv4qc",
+                "familyId": "M07",
+                "templateId": "M07-5",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：裴烬为了寻找能确认身份的记录或信物，进入藏有记录的场所搜查身份相关物证（目标：身份记录）",
+                "gainedInfo": null,
+                "relationQuality": "INTERWOVEN",
+                "needsDetail": false
+              }
+            ],
+            "stageSummary": "本阶段无独立主目标（仅参与/对象）",
+            "knows": "本阶段主要为参与/对象，无主导公开行动摘要",
+            "goal": "本阶段无独立主目标（仅参与/对象）",
+            "action": "见 contributions（参与/对象）",
+            "relationChanges": [],
+            "gainedInfo": "NEEDS_DETAIL",
+            "misunderstanding": "NEEDS_DETAIL",
+            "endChange": "NEEDS_DETAIL",
+            "needsDetail": false
+          },
+          {
+            "stageId": "act3",
+            "contributions": [
+              {
+                "sourceBeatId": "beat-climax",
+                "sourceOutlineBeatId": "ob-mto1p979-li8z",
+                "sourceBlockId": "smb-mto1p977-kv4qc",
+                "familyId": "M07",
+                "templateId": "M07-5",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：裴烬为了启用真实身份对应的权限，在揭示后启用权限表并验证资格（目标：真实身份）",
+                "gainedInfo": null,
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              }
+            ],
+            "stageSummary": "本阶段无独立主目标（仅参与/对象）",
+            "knows": "本阶段主要为参与/对象，无主导公开行动摘要",
+            "goal": "本阶段无独立主目标（仅参与/对象）",
+            "action": "见 contributions（参与/对象）",
+            "relationChanges": [
+              "同场出现（非因果）"
+            ],
+            "gainedInfo": "NEEDS_DETAIL",
+            "misunderstanding": "NEEDS_DETAIL",
+            "endChange": "NEEDS_DETAIL",
+            "needsDetail": false
+          },
+          {
+            "stageId": "act4",
+            "contributions": [
+              {
+                "sourceBeatId": "beat-res",
+                "sourceOutlineBeatId": "ob-mto1p979-1fr0",
+                "sourceBlockId": "smb-mto1p977-kv4qc",
+                "familyId": "M07",
+                "templateId": "M07-5",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：裴烬为了承受身份公开后的关系后果，面对知情者与阵营/调查方的反应（目标：关系重组）",
+                "gainedInfo": null,
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              }
+            ],
+            "stageSummary": "本阶段无独立主目标（仅参与/对象）",
+            "knows": "本阶段主要为参与/对象，无主导公开行动摘要",
+            "goal": "本阶段无独立主目标（仅参与/对象）",
+            "action": "见 contributions（参与/对象）",
+            "relationChanges": [
+              "同场出现（非因果）"
+            ],
+            "gainedInfo": "NEEDS_DETAIL",
+            "misunderstanding": "NEEDS_DETAIL",
+            "endChange": "NEEDS_DETAIL",
+            "needsDetail": false
+          }
+        ]
+      },
+      {
+        "characterId": "T7",
+        "name": "莫川",
+        "stages": [
+          {
+            "stageId": "act1",
+            "contributions": [
+              {
+                "sourceBeatId": "beat-setup",
+                "sourceOutlineBeatId": "ob-mto1p979-k2pi",
+                "sourceBlockId": "smb-mto1p977-jl6vc",
+                "familyId": "M08",
+                "templateId": "M08-1",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：裴烬为了公开亮明阵营归属与目标，确认成员知情范围与联络方式（目标：阵营名单/暗号）",
+                "gainedInfo": null,
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              }
+            ],
+            "stageSummary": "本阶段无独立主目标（仅参与/对象）",
+            "knows": "本阶段主要为参与/对象，无主导公开行动摘要",
+            "goal": "本阶段无独立主目标（仅参与/对象）",
+            "action": "见 contributions（参与/对象）",
+            "relationChanges": [
+              "同场出现（非因果）"
+            ],
+            "gainedInfo": "NEEDS_DETAIL",
+            "misunderstanding": "NEEDS_DETAIL",
+            "endChange": "NEEDS_DETAIL",
+            "needsDetail": false
+          },
+          {
+            "stageId": "act2",
+            "contributions": [
+              {
+                "sourceBeatId": "beat-develop",
+                "sourceOutlineBeatId": "ob-mto1p979-brxr",
+                "sourceBlockId": "smb-mto1p977-kv4qc",
+                "familyId": "M07",
+                "templateId": "M07-5",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：裴烬为了寻找能确认身份的记录或信物，进入藏有记录的场所搜查身份相关物证（目标：身份记录）",
+                "gainedInfo": null,
+                "relationQuality": "INTERWOVEN",
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-develop",
+                "sourceOutlineBeatId": "ob-mto1p979-hmym",
+                "sourceBlockId": "smb-mto1p977-jl6vc",
+                "familyId": "M08",
+                "templateId": "M08-1",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：裴烬为了夺取关键资源，组织成员夺取或销毁关键物证/资源（目标：关键账册或信物）",
+                "gainedInfo": null,
+                "relationQuality": "INTERWOVEN",
+                "needsDetail": false
+              }
+            ],
+            "stageSummary": "本阶段无独立主目标（仅参与/对象）",
+            "knows": "本阶段主要为参与/对象，无主导公开行动摘要",
+            "goal": "本阶段无独立主目标（仅参与/对象）",
+            "action": "见 contributions（参与/对象）",
+            "relationChanges": [],
+            "gainedInfo": "NEEDS_DETAIL",
+            "misunderstanding": "NEEDS_DETAIL",
+            "endChange": "NEEDS_DETAIL",
+            "needsDetail": false
+          },
+          {
+            "stageId": "act3",
+            "contributions": [
+              {
+                "sourceBeatId": "beat-climax",
+                "sourceOutlineBeatId": "ob-mto1p979-li8z",
+                "sourceBlockId": "smb-mto1p977-kv4qc",
+                "familyId": "M07",
+                "templateId": "M07-5",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：裴烬为了启用真实身份对应的权限，在揭示后启用权限表并验证资格（目标：真实身份）",
+                "gainedInfo": null,
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-climax",
+                "sourceOutlineBeatId": "ob-mto1p979-37o0",
+                "sourceBlockId": "smb-mto1p977-jl6vc",
+                "familyId": "M08",
+                "templateId": "M08-1",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：裴烬为了在暴露风险下改归属或保住秘密，在关键选择点背叛、退出或清洗异己（目标：归属状态）",
+                "gainedInfo": null,
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              }
+            ],
+            "stageSummary": "本阶段无独立主目标（仅参与/对象）",
+            "knows": "本阶段主要为参与/对象，无主导公开行动摘要",
+            "goal": "本阶段无独立主目标（仅参与/对象）",
+            "action": "见 contributions（参与/对象）",
+            "relationChanges": [
+              "同场出现（非因果）"
+            ],
+            "gainedInfo": "NEEDS_DETAIL",
+            "misunderstanding": "NEEDS_DETAIL",
+            "endChange": "NEEDS_DETAIL",
+            "needsDetail": false
+          },
+          {
+            "stageId": "act4",
+            "contributions": [
+              {
+                "sourceBeatId": "beat-res",
+                "sourceOutlineBeatId": "ob-mto1p979-1fr0",
+                "sourceBlockId": "smb-mto1p977-kv4qc",
+                "familyId": "M07",
+                "templateId": "M07-5",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：裴烬为了承受身份公开后的关系后果，面对知情者与阵营/调查方的反应（目标：关系重组）",
+                "gainedInfo": null,
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-res",
+                "sourceOutlineBeatId": "ob-mto1p979-hkgh",
+                "sourceBlockId": "smb-mto1p977-jl6vc",
+                "familyId": "M08",
+                "templateId": "M08-1",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：裴烬为了结算阵营目标并承受公开后果，公开站队或接受阵营败露后的关系重排（目标：阵营胜负条件）",
+                "gainedInfo": null,
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              }
+            ],
+            "stageSummary": "本阶段无独立主目标（仅参与/对象）",
+            "knows": "本阶段主要为参与/对象，无主导公开行动摘要",
+            "goal": "本阶段无独立主目标（仅参与/对象）",
+            "action": "见 contributions（参与/对象）",
+            "relationChanges": [
+              "同场出现（非因果）"
+            ],
+            "gainedInfo": "NEEDS_DETAIL",
+            "misunderstanding": "NEEDS_DETAIL",
+            "endChange": "NEEDS_DETAIL",
+            "needsDetail": false
+          }
+        ]
+      },
+      {
+        "characterId": "T1",
+        "name": "萧敛",
+        "stages": [
+          {
+            "stageId": "act2",
+            "contributions": [
+              {
+                "sourceBeatId": "beat-crime",
+                "sourceOutlineBeatId": "ob-mto1p979-taqp",
+                "sourceBlockId": "smb-mto1p977-mltyl",
+                "familyId": "M01",
+                "templateId": "M01-FRAMING",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：裴烬为了完成犯行并指向沈砚，实施犯行并留下指向沈砚的痕迹（目标：被嫁祸者遗失的玉佩）",
+                "gainedInfo": null,
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-develop",
+                "sourceOutlineBeatId": "ob-mto1p979-brxr",
+                "sourceBlockId": "smb-mto1p977-kv4qc",
+                "familyId": "M07",
+                "templateId": "M07-5",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：裴烬为了寻找能确认身份的记录或信物，进入藏有记录的场所搜查身份相关物证（目标：身份记录）",
+                "gainedInfo": null,
+                "relationQuality": "INTERWOVEN",
+                "needsDetail": false
+              }
+            ],
+            "stageSummary": "本阶段无独立主目标（仅参与/对象）",
+            "knows": "本阶段主要为参与/对象，无主导公开行动摘要",
+            "goal": "本阶段无独立主目标（仅参与/对象）",
+            "action": "见 contributions（参与/对象）",
+            "relationChanges": [
+              "同场出现（非因果）"
+            ],
+            "gainedInfo": "NEEDS_DETAIL",
+            "misunderstanding": "NEEDS_DETAIL",
+            "endChange": "NEEDS_DETAIL",
+            "needsDetail": false
+          },
+          {
+            "stageId": "act3",
+            "contributions": [
+              {
+                "sourceBeatId": "beat-climax",
+                "sourceOutlineBeatId": "ob-mto1p979-li8z",
+                "sourceBlockId": "smb-mto1p977-kv4qc",
+                "familyId": "M07",
+                "templateId": "M07-5",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：裴烬为了启用真实身份对应的权限，在揭示后启用权限表并验证资格（目标：真实身份）",
+                "gainedInfo": null,
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              }
+            ],
+            "stageSummary": "本阶段无独立主目标（仅参与/对象）",
+            "knows": "本阶段主要为参与/对象，无主导公开行动摘要",
+            "goal": "本阶段无独立主目标（仅参与/对象）",
+            "action": "见 contributions（参与/对象）",
+            "relationChanges": [
+              "同场出现（非因果）"
+            ],
+            "gainedInfo": "NEEDS_DETAIL",
+            "misunderstanding": "NEEDS_DETAIL",
+            "endChange": "NEEDS_DETAIL",
+            "needsDetail": false
+          },
+          {
+            "stageId": "act4",
+            "contributions": [
+              {
+                "sourceBeatId": "beat-res",
+                "sourceOutlineBeatId": "ob-mto1p979-w22i",
+                "sourceBlockId": "smb-mto1p977-mltyl",
+                "familyId": "M01",
+                "templateId": "M01-FRAMING",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：顾晚为了锁定真凶裴烬，用决定性证据揭穿嫁祸（目标：决定性证据）",
+                "gainedInfo": null,
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-res",
+                "sourceOutlineBeatId": "ob-mto1p979-1fr0",
+                "sourceBlockId": "smb-mto1p977-kv4qc",
+                "familyId": "M07",
+                "templateId": "M07-5",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：裴烬为了承受身份公开后的关系后果，面对知情者与阵营/调查方的反应（目标：关系重组）",
+                "gainedInfo": null,
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              }
+            ],
+            "stageSummary": "本阶段无独立主目标（仅参与/对象）",
+            "knows": "本阶段主要为参与/对象，无主导公开行动摘要",
+            "goal": "本阶段无独立主目标（仅参与/对象）",
+            "action": "见 contributions（参与/对象）",
+            "relationChanges": [
+              "同场出现（非因果）"
+            ],
+            "gainedInfo": "NEEDS_DETAIL",
+            "misunderstanding": "NEEDS_DETAIL",
+            "endChange": "NEEDS_DETAIL",
+            "needsDetail": false
+          }
+        ]
+      },
+      {
+        "characterId": "T4",
+        "name": "顾晚",
+        "stages": [
+          {
+            "stageId": "act2",
+            "contributions": [
+              {
+                "sourceBeatId": "beat-crime",
+                "sourceOutlineBeatId": "ob-mto1p979-taqp",
+                "sourceBlockId": "smb-mto1p977-mltyl",
+                "familyId": "M01",
+                "templateId": "M01-FRAMING",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：裴烬为了完成犯行并指向沈砚，实施犯行并留下指向沈砚的痕迹（目标：被嫁祸者遗失的玉佩）",
+                "gainedInfo": null,
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-contra",
+                "sourceOutlineBeatId": "ob-mto1p979-25vb",
+                "sourceBlockId": "smb-mto1p977-mltyl",
+                "familyId": "M01",
+                "templateId": "M01-FRAMING",
+                "roleInBeat": "OWNER",
+                "goal": "推翻对沈砚的错误判断",
+                "action": "对照现场与证物寻找矛盾",
+                "gainedInfo": "反证出现",
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-develop",
+                "sourceOutlineBeatId": "ob-mto1p979-brxr",
+                "sourceBlockId": "smb-mto1p977-kv4qc",
+                "familyId": "M07",
+                "templateId": "M07-5",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：裴烬为了寻找能确认身份的记录或信物，进入藏有记录的场所搜查身份相关物证（目标：身份记录）",
+                "gainedInfo": null,
+                "relationQuality": "INTERWOVEN",
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-develop",
+                "sourceOutlineBeatId": "ob-mto1p979-hmym",
+                "sourceBlockId": "smb-mto1p977-jl6vc",
+                "familyId": "M08",
+                "templateId": "M08-1",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：裴烬为了夺取关键资源，组织成员夺取或销毁关键物证/资源（目标：关键账册或信物）",
+                "gainedInfo": null,
+                "relationQuality": "INTERWOVEN",
+                "needsDetail": false
+              }
+            ],
+            "stageSummary": "推翻对沈砚的错误判断",
+            "knows": "本阶段主导行动：对照现场与证物寻找矛盾",
+            "goal": "推翻对沈砚的错误判断",
+            "action": "对照现场与证物寻找矛盾",
+            "relationChanges": [
+              "同场出现（非因果）"
+            ],
+            "gainedInfo": "反证出现",
+            "misunderstanding": "NEEDS_DETAIL",
+            "endChange": "反证出现",
+            "needsDetail": false
+          },
+          {
+            "stageId": "act3",
+            "contributions": [
+              {
+                "sourceBeatId": "beat-climax",
+                "sourceOutlineBeatId": "ob-mto1p979-aqwq",
+                "sourceBlockId": "smb-mto1p977-mltyl",
+                "familyId": "M01",
+                "templateId": "M01-FRAMING",
+                "roleInBeat": "OWNER",
+                "goal": "推翻对沈砚的错误判断",
+                "action": "对照现场与证物寻找矛盾",
+                "gainedInfo": "反证出现",
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-climax",
+                "sourceOutlineBeatId": "ob-mto1p979-li8z",
+                "sourceBlockId": "smb-mto1p977-kv4qc",
+                "familyId": "M07",
+                "templateId": "M07-5",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：裴烬为了启用真实身份对应的权限，在揭示后启用权限表并验证资格（目标：真实身份）",
+                "gainedInfo": null,
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-climax",
+                "sourceOutlineBeatId": "ob-mto1p979-37o0",
+                "sourceBlockId": "smb-mto1p977-jl6vc",
+                "familyId": "M08",
+                "templateId": "M08-1",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：裴烬为了在暴露风险下改归属或保住秘密，在关键选择点背叛、退出或清洗异己（目标：归属状态）",
+                "gainedInfo": null,
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              }
+            ],
+            "stageSummary": "推翻对沈砚的错误判断",
+            "knows": "本阶段主导行动：对照现场与证物寻找矛盾",
+            "goal": "推翻对沈砚的错误判断",
+            "action": "对照现场与证物寻找矛盾",
+            "relationChanges": [
+              "同场出现（非因果）"
+            ],
+            "gainedInfo": "反证出现",
+            "misunderstanding": "NEEDS_DETAIL",
+            "endChange": "反证出现",
+            "needsDetail": false
+          },
+          {
+            "stageId": "act4",
+            "contributions": [
+              {
+                "sourceBeatId": "beat-res",
+                "sourceOutlineBeatId": "ob-mto1p979-w22i",
+                "sourceBlockId": "smb-mto1p977-mltyl",
+                "familyId": "M01",
+                "templateId": "M01-FRAMING",
+                "roleInBeat": "OWNER",
+                "goal": "锁定真凶裴烬",
+                "action": "用决定性证据揭穿嫁祸",
+                "gainedInfo": "真凶锁定",
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-res",
+                "sourceOutlineBeatId": "ob-mto1p979-1fr0",
+                "sourceBlockId": "smb-mto1p977-kv4qc",
+                "familyId": "M07",
+                "templateId": "M07-5",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：裴烬为了承受身份公开后的关系后果，面对知情者与阵营/调查方的反应（目标：关系重组）",
+                "gainedInfo": null,
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-res",
+                "sourceOutlineBeatId": "ob-mto1p979-hkgh",
+                "sourceBlockId": "smb-mto1p977-jl6vc",
+                "familyId": "M08",
+                "templateId": "M08-1",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：裴烬为了结算阵营目标并承受公开后果，公开站队或接受阵营败露后的关系重排（目标：阵营胜负条件）",
+                "gainedInfo": null,
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              }
+            ],
+            "stageSummary": "锁定真凶裴烬",
+            "knows": "本阶段主导行动：用决定性证据揭穿嫁祸",
+            "goal": "锁定真凶裴烬",
+            "action": "用决定性证据揭穿嫁祸",
+            "relationChanges": [
+              "同场出现（非因果）"
+            ],
+            "gainedInfo": "真凶锁定",
+            "misunderstanding": "NEEDS_DETAIL",
+            "endChange": "真凶锁定",
+            "needsDetail": false
+          }
+        ]
+      },
+      {
+        "characterId": "T5",
+        "name": "霍辞",
+        "stages": [
+          {
+            "stageId": "act2",
+            "contributions": [
+              {
+                "sourceBeatId": "beat-develop",
+                "sourceOutlineBeatId": "ob-mto1p979-hmym",
+                "sourceBlockId": "smb-mto1p977-jl6vc",
+                "familyId": "M08",
+                "templateId": "M08-1",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：裴烬为了夺取关键资源，组织成员夺取或销毁关键物证/资源（目标：关键账册或信物）",
+                "gainedInfo": null,
+                "relationQuality": "INTERWOVEN",
+                "needsDetail": false
+              }
+            ],
+            "stageSummary": "本阶段无独立主目标（仅参与/对象）",
+            "knows": "本阶段主要为参与/对象，无主导公开行动摘要",
+            "goal": "本阶段无独立主目标（仅参与/对象）",
+            "action": "见 contributions（参与/对象）",
+            "relationChanges": [],
+            "gainedInfo": "NEEDS_DETAIL",
+            "misunderstanding": "NEEDS_DETAIL",
+            "endChange": "NEEDS_DETAIL",
+            "needsDetail": false
+          },
+          {
+            "stageId": "act3",
+            "contributions": [
+              {
+                "sourceBeatId": "beat-climax",
+                "sourceOutlineBeatId": "ob-mto1p979-37o0",
+                "sourceBlockId": "smb-mto1p977-jl6vc",
+                "familyId": "M08",
+                "templateId": "M08-1",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：裴烬为了在暴露风险下改归属或保住秘密，在关键选择点背叛、退出或清洗异己（目标：归属状态）",
+                "gainedInfo": null,
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              }
+            ],
+            "stageSummary": "本阶段无独立主目标（仅参与/对象）",
+            "knows": "本阶段主要为参与/对象，无主导公开行动摘要",
+            "goal": "本阶段无独立主目标（仅参与/对象）",
+            "action": "见 contributions（参与/对象）",
+            "relationChanges": [
+              "同场出现（非因果）"
+            ],
+            "gainedInfo": "NEEDS_DETAIL",
+            "misunderstanding": "NEEDS_DETAIL",
+            "endChange": "NEEDS_DETAIL",
+            "needsDetail": false
+          },
+          {
+            "stageId": "act4",
+            "contributions": [
+              {
+                "sourceBeatId": "beat-res",
+                "sourceOutlineBeatId": "ob-mto1p979-hkgh",
+                "sourceBlockId": "smb-mto1p977-jl6vc",
+                "familyId": "M08",
+                "templateId": "M08-1",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：裴烬为了结算阵营目标并承受公开后果，公开站队或接受阵营败露后的关系重排（目标：阵营胜负条件）",
+                "gainedInfo": null,
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              }
+            ],
+            "stageSummary": "本阶段无独立主目标（仅参与/对象）",
+            "knows": "本阶段主要为参与/对象，无主导公开行动摘要",
+            "goal": "本阶段无独立主目标（仅参与/对象）",
+            "action": "见 contributions（参与/对象）",
+            "relationChanges": [
+              "同场出现（非因果）"
+            ],
+            "gainedInfo": "NEEDS_DETAIL",
+            "misunderstanding": "NEEDS_DETAIL",
+            "endChange": "NEEDS_DETAIL",
+            "needsDetail": false
+          }
+        ]
+      }
+    ]
+  },
+  "clueView": {
+    "clues": [
+      {
+        "clueId": "fact-interface:ob-mto1p979-76hc",
+        "label": "事实接口（尚无线索实体）",
+        "mechanismId": "smb-mto1p977-mltyl",
+        "templateId": "M01-FRAMING",
+        "introducedAt": "act1",
+        "availableStages": [
+          "act1"
+        ],
+        "persists": false,
+        "stageId": "act1",
+        "possibleFinders": [
+          "T2",
+          "T3"
+        ],
+        "supportsFact": "误导物已就绪",
+        "isMisleading": true,
+        "isDecisive": false,
+        "missingDetail": true,
+        "detailNote": "这个剧情 beat 需要关键线索，但模板尚未提供具体线索内容。"
+      },
+      {
+        "clueId": "smb-mto1p977-kv4qc-foreshadow-0",
+        "label": "早期伏笔",
+        "mechanismId": "smb-mto1p977-kv4qc",
+        "templateId": "M07-5",
+        "introducedAt": "act1",
+        "availableStages": [
+          "act1",
+          "act2"
+        ],
+        "persists": true,
+        "stageId": "act1",
+        "possibleFinders": [
+          "T2",
+          "T6",
+          "T7",
+          "T4",
+          "T1"
+        ],
+        "supportsFact": "早期伏笔",
+        "isMisleading": false,
+        "isDecisive": false,
+        "missingDetail": false
+      },
+      {
+        "clueId": "smb-mto1p977-jl6vc-faction_foreshadow-0",
+        "label": "阵营伏笔",
+        "mechanismId": "smb-mto1p977-jl6vc",
+        "templateId": "M08-1",
+        "introducedAt": "act1",
+        "availableStages": [
+          "act1",
+          "act2"
+        ],
+        "persists": true,
+        "stageId": "act1",
+        "possibleFinders": [
+          "T2",
+          "T7",
+          "T3",
+          "T4",
+          "T5"
+        ],
+        "supportsFact": "阵营伏笔",
+        "isMisleading": false,
+        "isDecisive": false,
+        "missingDetail": false
+      },
+      {
+        "clueId": "smb-mto1p977-mltyl-false_lead-0",
+        "label": "误导",
+        "mechanismId": "smb-mto1p977-mltyl",
+        "templateId": "M01-FRAMING",
+        "introducedAt": "act2",
+        "availableStages": [
+          "act2"
+        ],
+        "persists": false,
+        "stageId": "act2",
+        "possibleFinders": [
+          "T2",
+          "T1",
+          "T4",
+          "T3"
+        ],
+        "supportsFact": "被嫁祸者遗失的玉佩",
+        "isMisleading": true,
+        "isDecisive": false,
+        "missingDetail": false
+      },
+      {
+        "clueId": "smb-mto1p977-mltyl-contradiction-1",
+        "label": "反证",
+        "mechanismId": "smb-mto1p977-mltyl",
+        "templateId": "M01-FRAMING",
+        "introducedAt": "act2",
+        "availableStages": [
+          "act2"
+        ],
+        "persists": false,
+        "stageId": "act2",
+        "possibleFinders": [
+          "T4"
+        ],
+        "supportsFact": "玉佩沾有仅库房存在的红蜡",
+        "isMisleading": false,
+        "isDecisive": false,
+        "missingDetail": false
+      },
+      {
+        "clueId": "smb-mto1p977-mltyl-true_evidence-2",
+        "label": "真手法",
+        "mechanismId": "smb-mto1p977-mltyl",
+        "templateId": "M01-FRAMING",
+        "introducedAt": "act3",
+        "availableStages": [
+          "act3"
+        ],
+        "persists": false,
+        "stageId": "act3",
+        "possibleFinders": [
+          "T4",
+          "T2",
+          "T3"
+        ],
+        "supportsFact": "勒杀",
+        "isMisleading": false,
+        "isDecisive": false,
+        "missingDetail": false
+      },
+      {
+        "clueId": "smb-mto1p977-mltyl-decisive_evidence-3",
+        "label": "突破",
+        "mechanismId": "smb-mto1p977-mltyl",
+        "templateId": "M01-FRAMING",
+        "introducedAt": "act3",
+        "availableStages": [
+          "act3",
+          "act4"
+        ],
+        "persists": true,
+        "stageId": "act3",
+        "possibleFinders": [
+          "T4",
+          "T2",
+          "T3",
+          "T1"
+        ],
+        "supportsFact": "库房钥匙记录证明真凶曾移动该物",
+        "isMisleading": false,
+        "isDecisive": false,
+        "missingDetail": false
+      },
+      {
+        "clueId": "smb-mto1p977-kv4qc-memory_fragment-1",
+        "label": "记忆碎片",
+        "mechanismId": "smb-mto1p977-kv4qc",
+        "templateId": "M07-5",
+        "introducedAt": "act3",
+        "availableStages": [
+          "act3"
+        ],
+        "persists": false,
+        "stageId": "act3",
+        "possibleFinders": [
+          "T2",
+          "T6",
+          "T7",
+          "T4",
+          "T1"
+        ],
+        "supportsFact": "记忆碎片",
+        "isMisleading": false,
+        "isDecisive": false,
+        "missingDetail": false
+      },
+      {
+        "clueId": "smb-mto1p977-kv4qc-identity_hint-2",
+        "label": "身份暗示",
+        "mechanismId": "smb-mto1p977-kv4qc",
+        "templateId": "M07-5",
+        "introducedAt": "act3",
+        "availableStages": [
+          "act3"
+        ],
+        "persists": false,
+        "stageId": "act3",
+        "possibleFinders": [
+          "T2",
+          "T6",
+          "T7",
+          "T4",
+          "T1"
+        ],
+        "supportsFact": "身份暗示",
+        "isMisleading": false,
+        "isDecisive": false,
+        "missingDetail": false
+      },
+      {
+        "clueId": "smb-mto1p977-kv4qc-misdirection-3",
+        "label": "误导",
+        "mechanismId": "smb-mto1p977-kv4qc",
+        "templateId": "M07-5",
+        "introducedAt": "act3",
+        "availableStages": [
+          "act3"
+        ],
+        "persists": false,
+        "stageId": "act3",
+        "possibleFinders": [
+          "T2",
+          "T6",
+          "T7",
+          "T4",
+          "T1"
+        ],
+        "supportsFact": "误导",
+        "isMisleading": true,
+        "isDecisive": false,
+        "missingDetail": false
+      },
+      {
+        "clueId": "smb-mto1p977-kv4qc-confirmation-4",
+        "label": "确认",
+        "mechanismId": "smb-mto1p977-kv4qc",
+        "templateId": "M07-5",
+        "introducedAt": "act3",
+        "availableStages": [
+          "act3"
+        ],
+        "persists": false,
+        "stageId": "act3",
+        "possibleFinders": [
+          "T2",
+          "T6",
+          "T7",
+          "T4",
+          "T1"
+        ],
+        "supportsFact": "确认",
+        "isMisleading": false,
+        "isDecisive": false,
+        "missingDetail": false
+      },
+      {
+        "clueId": "smb-mto1p977-kv4qc-decisive_reveal-5",
+        "label": "决定性揭示",
+        "mechanismId": "smb-mto1p977-kv4qc",
+        "templateId": "M07-5",
+        "introducedAt": "act3",
+        "availableStages": [
+          "act3"
+        ],
+        "persists": false,
+        "stageId": "act3",
+        "possibleFinders": [
+          "T2",
+          "T6",
+          "T7",
+          "T4",
+          "T1"
+        ],
+        "supportsFact": "决定性揭示",
+        "isMisleading": false,
+        "isDecisive": true,
+        "missingDetail": false
+      },
+      {
+        "clueId": "smb-mto1p977-jl6vc-membership_hint-1",
+        "label": "成员暗示",
+        "mechanismId": "smb-mto1p977-jl6vc",
+        "templateId": "M08-1",
+        "introducedAt": "act3",
+        "availableStages": [
+          "act3"
+        ],
+        "persists": false,
+        "stageId": "act3",
+        "possibleFinders": [
+          "T2",
+          "T7",
+          "T3",
+          "T4",
+          "T5"
+        ],
+        "supportsFact": "成员暗示",
+        "isMisleading": false,
+        "isDecisive": false,
+        "missingDetail": false
+      },
+      {
+        "clueId": "smb-mto1p977-jl6vc-secret_signal-2",
+        "label": "秘密信号",
+        "mechanismId": "smb-mto1p977-jl6vc",
+        "templateId": "M08-1",
+        "introducedAt": "act3",
+        "availableStages": [
+          "act3"
+        ],
+        "persists": false,
+        "stageId": "act3",
+        "possibleFinders": [
+          "T2",
+          "T7",
+          "T3",
+          "T4",
+          "T5"
+        ],
+        "supportsFact": "秘密信号",
+        "isMisleading": false,
+        "isDecisive": false,
+        "missingDetail": false
+      },
+      {
+        "clueId": "smb-mto1p977-jl6vc-recruitment_evidence-3",
+        "label": "招募证据",
+        "mechanismId": "smb-mto1p977-jl6vc",
+        "templateId": "M08-1",
+        "introducedAt": "act3",
+        "availableStages": [
+          "act3"
+        ],
+        "persists": false,
+        "stageId": "act3",
+        "possibleFinders": [
+          "T2",
+          "T7",
+          "T3",
+          "T4",
+          "T5"
+        ],
+        "supportsFact": "招募证据",
+        "isMisleading": false,
+        "isDecisive": false,
+        "missingDetail": false
+      },
+      {
+        "clueId": "smb-mto1p977-jl6vc-loyalty_test-4",
+        "label": "忠诚考验",
+        "mechanismId": "smb-mto1p977-jl6vc",
+        "templateId": "M08-1",
+        "introducedAt": "act3",
+        "availableStages": [
+          "act3"
+        ],
+        "persists": false,
+        "stageId": "act3",
+        "possibleFinders": [
+          "T2",
+          "T7",
+          "T3",
+          "T4",
+          "T5"
+        ],
+        "supportsFact": "忠诚考验",
+        "isMisleading": false,
+        "isDecisive": false,
+        "missingDetail": false
+      },
+      {
+        "clueId": "smb-mto1p977-jl6vc-betrayal_hint-5",
+        "label": "背叛暗示",
+        "mechanismId": "smb-mto1p977-jl6vc",
+        "templateId": "M08-1",
+        "introducedAt": "act3",
+        "availableStages": [
+          "act3"
+        ],
+        "persists": false,
+        "stageId": "act3",
+        "possibleFinders": [
+          "T2",
+          "T7",
+          "T3",
+          "T4",
+          "T5"
+        ],
+        "supportsFact": "背叛暗示",
+        "isMisleading": false,
+        "isDecisive": false,
+        "missingDetail": false
+      },
+      {
+        "clueId": "smb-mto1p977-jl6vc-internal_conflict-6",
+        "label": "内部冲突",
+        "mechanismId": "smb-mto1p977-jl6vc",
+        "templateId": "M08-1",
+        "introducedAt": "act3",
+        "availableStages": [
+          "act3"
+        ],
+        "persists": false,
+        "stageId": "act3",
+        "possibleFinders": [
+          "T2",
+          "T7",
+          "T3",
+          "T4",
+          "T5"
+        ],
+        "supportsFact": "内部冲突",
+        "isMisleading": false,
+        "isDecisive": false,
+        "missingDetail": false
+      },
+      {
+        "clueId": "smb-mto1p977-jl6vc-hidden_goal_hint-7",
+        "label": "隐藏目标暗示",
+        "mechanismId": "smb-mto1p977-jl6vc",
+        "templateId": "M08-1",
+        "introducedAt": "act3",
+        "availableStages": [
+          "act3"
+        ],
+        "persists": false,
+        "stageId": "act3",
+        "possibleFinders": [
+          "T2",
+          "T7",
+          "T3",
+          "T4",
+          "T5"
+        ],
+        "supportsFact": "隐藏目标暗示",
+        "isMisleading": false,
+        "isDecisive": false,
+        "missingDetail": false
+      },
+      {
+        "clueId": "smb-mto1p977-jl6vc-membership_confirmation-8",
+        "label": "归属确认",
+        "mechanismId": "smb-mto1p977-jl6vc",
+        "templateId": "M08-1",
+        "introducedAt": "act3",
+        "availableStages": [
+          "act3"
+        ],
+        "persists": false,
+        "stageId": "act3",
+        "possibleFinders": [
+          "T2",
+          "T7",
+          "T3",
+          "T4",
+          "T5"
+        ],
+        "supportsFact": "归属确认",
+        "isMisleading": false,
+        "isDecisive": false,
+        "missingDetail": false
+      },
+      {
+        "clueId": "smb-mto1p977-jl6vc-faction_exposure-9",
+        "label": "阵营暴露",
+        "mechanismId": "smb-mto1p977-jl6vc",
+        "templateId": "M08-1",
+        "introducedAt": "act3",
+        "availableStages": [
+          "act3"
+        ],
+        "persists": false,
+        "stageId": "act3",
+        "possibleFinders": [
+          "T2",
+          "T7",
+          "T3",
+          "T4",
+          "T5"
+        ],
+        "supportsFact": "阵营暴露",
+        "isMisleading": false,
+        "isDecisive": false,
+        "missingDetail": false
+      },
+      {
+        "clueId": "fact-interface:ob-mto1p979-1fr0",
+        "label": "事实接口（尚无线索实体）",
+        "mechanismId": "smb-mto1p977-kv4qc",
+        "templateId": "M07-5",
+        "introducedAt": "act4",
+        "availableStages": [
+          "act4"
+        ],
+        "persists": false,
+        "stageId": "act4",
+        "possibleFinders": [
+          "T2",
+          "T6",
+          "T7",
+          "T4",
+          "T1"
+        ],
+        "supportsFact": "身份确认；身份进入公开层",
+        "isMisleading": false,
+        "isDecisive": false,
+        "missingDetail": true,
+        "detailNote": "这个剧情 beat 需要关键线索，但模板尚未提供具体线索内容。"
+      },
+      {
+        "clueId": "fact-interface:ob-mto1p979-hkgh",
+        "label": "事实接口（尚无线索实体）",
+        "mechanismId": "smb-mto1p977-jl6vc",
+        "templateId": "M08-1",
+        "introducedAt": "act4",
+        "availableStages": [
+          "act4"
+        ],
+        "persists": false,
+        "stageId": "act4",
+        "possibleFinders": [
+          "T2",
+          "T7",
+          "T3",
+          "T4",
+          "T5"
+        ],
+        "supportsFact": "归属变化；阵营线结算",
+        "isMisleading": false,
+        "isDecisive": false,
+        "missingDetail": true,
+        "detailNote": "这个剧情 beat 需要关键线索，但模板尚未提供具体线索内容。"
+      }
+    ]
+  },
+  "executionView": {
+    "stages": [
+      {
+        "stageId": "act1",
+        "openingState": "开局：各线按积木 setup 状态进入（不新增前提）",
+        "stageGoal": "裴烬：准备可嫁祸的假象；裴烬：隐藏或维持当前身份表象；裴烬：公开亮明阵营归属与目标",
+        "beatsToAdvance": [
+          "ob-mto1p979-76hc",
+          "ob-mto1p979-wuyh",
+          "ob-mto1p979-k2pi"
+        ],
+        "cluesAvailable": [
+          "fact-interface:ob-mto1p979-76hc",
+          "smb-mto1p977-kv4qc-foreshadow-0",
+          "smb-mto1p977-jl6vc-faction_foreshadow-0"
+        ],
+        "charactersInPlay": [
+          "T2",
+          "T3",
+          "T6",
+          "T7"
+        ],
+        "candidateGameInsertionPoints": [
+          {
+            "placementId": "game-candidate-ob-mto1p979-76hc",
+            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+            "afterBeatId": "ob-mto1p979-76hc"
+          },
+          {
+            "placementId": "game-candidate-ob-mto1p979-wuyh",
+            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+            "afterBeatId": "ob-mto1p979-wuyh"
+          },
+          {
+            "placementId": "game-candidate-ob-mto1p979-k2pi",
+            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+            "afterBeatId": "ob-mto1p979-k2pi"
+          }
+        ],
+        "gameMechanismSlots": [
+          {
+            "placementId": "game-candidate-ob-mto1p979-76hc",
+            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+            "afterBeatId": "ob-mto1p979-76hc"
+          },
+          {
+            "placementId": "game-candidate-ob-mto1p979-wuyh",
+            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+            "afterBeatId": "ob-mto1p979-wuyh"
+          },
+          {
+            "placementId": "game-candidate-ob-mto1p979-k2pi",
+            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+            "afterBeatId": "ob-mto1p979-k2pi"
+          }
+        ],
+        "requiredStateBeforeNext": "误导物已就绪；身份仍未公开；阵营结构已成形"
+      },
+      {
+        "stageId": "act2",
+        "openingState": "承接上一阶段已声明后果；未声明者标 UNKNOWN",
+        "stageGoal": "裴烬：完成犯行并指向沈砚；顾晚：推翻对沈砚的错误判断；裴烬：寻找能确认身份的记录或信物；裴烬：夺取关键资源",
+        "beatsToAdvance": [
+          "ob-mto1p979-taqp",
+          "ob-mto1p979-dfub",
+          "ob-mto1p979-25vb",
+          "ob-mto1p979-brxr",
+          "ob-mto1p979-hmym"
+        ],
+        "cluesAvailable": [
+          "smb-mto1p977-kv4qc-foreshadow-0",
+          "smb-mto1p977-jl6vc-faction_foreshadow-0",
+          "smb-mto1p977-mltyl-false_lead-0",
+          "smb-mto1p977-mltyl-contradiction-1"
+        ],
+        "charactersInPlay": [
+          "T2",
+          "T1",
+          "T4",
+          "T3",
+          "T6",
+          "T7",
+          "T5"
+        ],
+        "candidateGameInsertionPoints": [
+          {
+            "placementId": "game-candidate-ob-mto1p979-taqp",
+            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+            "afterBeatId": "ob-mto1p979-taqp"
+          },
+          {
+            "placementId": "game-candidate-ob-mto1p979-dfub",
+            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+            "afterBeatId": "ob-mto1p979-dfub"
+          },
+          {
+            "placementId": "game-candidate-ob-mto1p979-25vb",
+            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+            "afterBeatId": "ob-mto1p979-25vb"
+          },
+          {
+            "placementId": "game-candidate-ob-mto1p979-brxr",
+            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+            "afterBeatId": "ob-mto1p979-brxr"
+          },
+          {
+            "placementId": "game-candidate-ob-mto1p979-hmym",
+            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+            "afterBeatId": "ob-mto1p979-hmym"
+          }
+        ],
+        "gameMechanismSlots": [
+          {
+            "placementId": "game-candidate-ob-mto1p979-taqp",
+            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+            "afterBeatId": "ob-mto1p979-taqp"
+          },
+          {
+            "placementId": "game-candidate-ob-mto1p979-dfub",
+            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+            "afterBeatId": "ob-mto1p979-dfub"
+          },
+          {
+            "placementId": "game-candidate-ob-mto1p979-25vb",
+            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+            "afterBeatId": "ob-mto1p979-25vb"
+          },
+          {
+            "placementId": "game-candidate-ob-mto1p979-brxr",
+            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+            "afterBeatId": "ob-mto1p979-brxr"
+          },
+          {
+            "placementId": "game-candidate-ob-mto1p979-hmym",
+            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+            "afterBeatId": "ob-mto1p979-hmym"
+          }
+        ],
+        "requiredStateBeforeNext": "犯行已发生；错误嫌疑成立；反证出现；身份线索；阵营压力升级"
+      },
+      {
+        "stageId": "act3",
+        "openingState": "承接上一阶段已声明后果；未声明者标 UNKNOWN",
+        "stageGoal": "顾晚：推翻对沈砚的错误判断；裴烬：启用真实身份对应的权限；裴烬：在暴露风险下改归属或保住秘密",
+        "beatsToAdvance": [
+          "ob-mto1p979-aqwq",
+          "ob-mto1p979-li8z",
+          "ob-mto1p979-37o0"
+        ],
+        "cluesAvailable": [
+          "smb-mto1p977-mltyl-true_evidence-2",
+          "smb-mto1p977-mltyl-decisive_evidence-3",
+          "smb-mto1p977-kv4qc-memory_fragment-1",
+          "smb-mto1p977-kv4qc-identity_hint-2",
+          "smb-mto1p977-kv4qc-misdirection-3",
+          "smb-mto1p977-kv4qc-confirmation-4",
+          "smb-mto1p977-kv4qc-decisive_reveal-5",
+          "smb-mto1p977-jl6vc-membership_hint-1",
+          "smb-mto1p977-jl6vc-secret_signal-2",
+          "smb-mto1p977-jl6vc-recruitment_evidence-3",
+          "smb-mto1p977-jl6vc-loyalty_test-4",
+          "smb-mto1p977-jl6vc-betrayal_hint-5",
+          "smb-mto1p977-jl6vc-internal_conflict-6",
+          "smb-mto1p977-jl6vc-hidden_goal_hint-7",
+          "smb-mto1p977-jl6vc-membership_confirmation-8",
+          "smb-mto1p977-jl6vc-faction_exposure-9"
+        ],
+        "charactersInPlay": [
+          "T4",
+          "T2",
+          "T3",
+          "T6",
+          "T7",
+          "T1",
+          "T5"
+        ],
+        "candidateGameInsertionPoints": [
+          {
+            "placementId": "game-candidate-ob-mto1p979-aqwq",
+            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+            "afterBeatId": "ob-mto1p979-aqwq"
+          },
+          {
+            "placementId": "game-candidate-ob-mto1p979-li8z",
+            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+            "afterBeatId": "ob-mto1p979-li8z"
+          },
+          {
+            "placementId": "game-candidate-ob-mto1p979-37o0",
+            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+            "afterBeatId": "ob-mto1p979-37o0"
+          }
+        ],
+        "gameMechanismSlots": [
+          {
+            "placementId": "game-candidate-ob-mto1p979-aqwq",
+            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+            "afterBeatId": "ob-mto1p979-aqwq"
+          },
+          {
+            "placementId": "game-candidate-ob-mto1p979-li8z",
+            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+            "afterBeatId": "ob-mto1p979-li8z"
+          },
+          {
+            "placementId": "game-candidate-ob-mto1p979-37o0",
+            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+            "afterBeatId": "ob-mto1p979-37o0"
+          }
+        ],
+        "requiredStateBeforeNext": "反证出现；身份已确认；资格/权限状态；场所权限可能开放；归属已改变；暴露风险上升"
+      },
+      {
+        "stageId": "act4",
+        "openingState": "承接上一阶段已声明后果；未声明者标 UNKNOWN",
+        "stageGoal": "顾晚：锁定真凶裴烬；裴烬：承受身份公开后的关系后果；裴烬：结算阵营目标并承受公开后果",
+        "beatsToAdvance": [
+          "ob-mto1p979-w22i",
+          "ob-mto1p979-1fr0",
+          "ob-mto1p979-hkgh"
+        ],
+        "cluesAvailable": [
+          "smb-mto1p977-mltyl-decisive_evidence-3",
+          "fact-interface:ob-mto1p979-1fr0",
+          "fact-interface:ob-mto1p979-hkgh"
+        ],
+        "charactersInPlay": [
+          "T4",
+          "T1",
+          "T2",
+          "T3",
+          "T6",
+          "T7",
+          "T5"
+        ],
+        "candidateGameInsertionPoints": [
+          {
+            "placementId": "game-candidate-ob-mto1p979-w22i",
+            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+            "afterBeatId": "ob-mto1p979-w22i"
+          },
+          {
+            "placementId": "game-candidate-ob-mto1p979-1fr0",
+            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+            "afterBeatId": "ob-mto1p979-1fr0"
+          },
+          {
+            "placementId": "game-candidate-ob-mto1p979-hkgh",
+            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+            "afterBeatId": "ob-mto1p979-hkgh"
+          }
+        ],
+        "gameMechanismSlots": [
+          {
+            "placementId": "game-candidate-ob-mto1p979-w22i",
+            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+            "afterBeatId": "ob-mto1p979-w22i"
+          },
+          {
+            "placementId": "game-candidate-ob-mto1p979-1fr0",
+            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+            "afterBeatId": "ob-mto1p979-1fr0"
+          },
+          {
+            "placementId": "game-candidate-ob-mto1p979-hkgh",
+            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+            "afterBeatId": "ob-mto1p979-hkgh"
+          }
+        ],
+        "requiredStateBeforeNext": "终幕：无强制下一阶段"
+      }
+    ]
+  },
+  "warnings": [
+    {
+      "id": "warn-low-weave",
+      "type": "LOW_WEAVE_DENSITY",
+      "severity": "info",
+      "message": "整本存在较少真正交织关系；当前母稿主要由平行剧情 + 同场并列构成。P6 未伪造额外因果。",
+      "stageIds": [
+        "act1",
+        "act2",
+        "act3",
+        "act4"
+      ],
+      "beatIds": []
+    },
+    {
+      "id": "warn-clue-ob-mto1p979-76hc",
+      "type": "MISSING_CLUE_DETAIL",
+      "severity": "info",
+      "message": "该剧情 beat 需要/产生事实接口，但模板尚未绑定具体线索内容。",
+      "stageIds": [
+        "act1"
+      ],
+      "beatIds": [
+        "ob-mto1p979-76hc"
+      ]
+    },
+    {
+      "id": "warn-detail-ob-mto1p979-37o0",
+      "type": "NEEDS_DETAIL",
+      "severity": "info",
+      "message": "「裴烬为了在暴露风险下改归属或保住秘密，在关键选择点背叛、退出或清洗异己（目标：归属状态）」仍缺具体细节。",
+      "stageIds": [
+        "act3"
+      ],
+      "beatIds": [
+        "ob-mto1p979-37o0"
+      ]
+    },
+    {
+      "id": "warn-clue-ob-mto1p979-1fr0",
+      "type": "MISSING_CLUE_DETAIL",
+      "severity": "info",
+      "message": "该剧情 beat 需要/产生事实接口，但模板尚未绑定具体线索内容。",
+      "stageIds": [
+        "act4"
+      ],
+      "beatIds": [
+        "ob-mto1p979-1fr0"
+      ]
+    },
+    {
+      "id": "warn-clue-ob-mto1p979-hkgh",
+      "type": "MISSING_CLUE_DETAIL",
+      "severity": "info",
+      "message": "该剧情 beat 需要/产生事实接口，但模板尚未绑定具体线索内容。",
+      "stageIds": [
+        "act4"
+      ],
+      "beatIds": [
+        "ob-mto1p979-hkgh"
+      ]
+    },
+    {
+      "id": "warn-conflict-cf-mto1p979-70fm",
+      "type": "ROLE_OVERLOAD",
+      "severity": "info",
+      "message": "萧敛 当前承担：victim HIGH、support（负载 3）",
+      "stageIds": [],
+      "beatIds": []
+    },
+    {
+      "id": "warn-conflict-cf-mto1p979-jz6t",
+      "type": "ROLE_OVERLOAD",
+      "severity": "high",
+      "message": "裴烬 当前承担：killer HIGH、identity_bearer HIGH、faction_lead HIGH（负载 7）",
+      "stageIds": [],
+      "beatIds": []
+    },
+    {
+      "id": "warn-conflict-cf-mto1p979-mb7v",
+      "type": "ROLE_OVERLOAD",
+      "severity": "info",
+      "message": "沈砚 当前承担：framed HIGH、member（负载 3）",
+      "stageIds": [],
+      "beatIds": []
+    },
+    {
+      "id": "warn-conflict-cf-mto1p979-c81x",
+      "type": "ROLE_OVERLOAD",
+      "severity": "info",
+      "message": "顾晚 当前承担：discoverer、discoverer、outsider（负载 3）",
+      "stageIds": [],
+      "beatIds": []
+    },
+    {
+      "id": "warn-conflict-cf-mto1p979-8bny",
+      "type": "UNRESOLVED_CONFLICT",
+      "severity": "info",
+      "message": "裴烬 同时是真凶与阵营领袖——可保留为强交织，或拆开降负载。",
+      "stageIds": [],
+      "beatIds": []
+    }
+  ],
+  "structureChangeRequests": [],
+  "status": "DRAFT",
+  "revision": 0,
+  "updatedAt": "2026-09-05T00:00:00.000Z"
+}

@@ -1,0 +1,185 @@
+{
+  "caseId": "GEN-06",
+  "title": "两封没有寄出的信",
+  "schemaVersion": 1,
+  "projectConfig": {
+    "playerCount": 5,
+    "stageCount": 4,
+    "genreTags": [
+      "现实",
+      "双线",
+      "低交织"
+    ]
+  },
+  "pipelineOk": true,
+  "pipelineError": null,
+  "gates": {
+    "G1": [
+      {
+        "id": "G1.playerCount",
+        "pass": true,
+        "message": "premise/players=5/5, want=5",
+        "details": {
+          "players": [
+            "L1",
+            "L2",
+            "L3",
+            "L4",
+            "L5"
+          ]
+        }
+      },
+      {
+        "id": "G1.stageCount",
+        "pass": true,
+        "message": "outline=4 draft=4 want=4",
+        "details": {
+          "outlineStageIds": [
+            "act1",
+            "act2",
+            "act3",
+            "act4"
+          ],
+          "draftStageIds": [
+            "act1",
+            "act2",
+            "act3",
+            "act4"
+          ]
+        }
+      },
+      {
+        "id": "G1.noPadPlayers",
+        "pass": true,
+        "message": "no padded players",
+        "details": {
+          "invented": []
+        }
+      },
+      {
+        "id": "G1.stageIdsFromProject",
+        "pass": true,
+        "message": "draft stage ids should come from project stages (or empty on hard fail)",
+        "details": {
+          "draftIds": [
+            "act1",
+            "act2",
+            "act3",
+            "act4"
+          ],
+          "projectIds": [
+            "act1",
+            "act2",
+            "act3",
+            "act4"
+          ]
+        }
+      }
+    ],
+    "G2": [
+      {
+        "id": "G2.keepParallel",
+        "pass": true,
+        "message": "KEEP_PARALLEL count=1",
+        "details": {
+          "keepParallel": 1,
+          "interwoven": 0
+        }
+      },
+      {
+        "id": "G2.maxInterwoven",
+        "pass": true,
+        "message": "INTERWOVEN=0 max=0",
+        "details": {
+          "interwoven": 0
+        }
+      },
+      {
+        "id": "G2.noForgedInterwovenProse",
+        "pass": true,
+        "message": "prose INTERWOVEN=0 outline=0",
+        "details": {}
+      },
+      {
+        "id": "G2.clueLifecycleIds",
+        "pass": true,
+        "message": "clue rows=18 uniqueIds=18",
+        "details": {}
+      },
+      {
+        "id": "G2.misleadingConsistency",
+        "pass": true,
+        "message": "misleading mismatches=0",
+        "details": {}
+      },
+      {
+        "id": "G2.pipelineProducedDraft",
+        "pass": true,
+        "message": "draft present",
+        "details": {}
+      }
+    ],
+    "G3": [
+      {
+        "id": "G3.structuralRoleCount",
+        "pass": true,
+        "message": "player roles available for playable adapt=5",
+        "details": {}
+      },
+      {
+        "id": "G3.stagesPresent",
+        "pass": true,
+        "message": "draft stages=4 (complete scripts not required in P8.0)",
+        "details": {}
+      },
+      {
+        "id": "G3.noForcedCulprit",
+        "pass": true,
+        "message": "no M01; killerAssignments=0",
+        "details": {
+          "killers": [],
+          "hasM01": false
+        }
+      },
+      {
+        "id": "G3.draftValidWithoutCulpritField",
+        "pass": true,
+        "message": "PMD must exist without correctCulpritRoleId / CompleteScriptPackage",
+        "details": {}
+      },
+      {
+        "id": "G3.noGameStillHasExecutionView",
+        "pass": true,
+        "message": "execution view present without GAME plan",
+        "details": {}
+      },
+      {
+        "id": "G3.noCompleteScriptRequired",
+        "pass": true,
+        "message": "P8.0 playable compatibility is structural only",
+        "details": {}
+      }
+    ]
+  },
+  "gatePass": {
+    "G1": true,
+    "G2": true,
+    "G3": true,
+    "all": true
+  },
+  "failureClass": null,
+  "editorialStatus": "PENDING",
+  "counts": {
+    "players": 5,
+    "stagesProject": 4,
+    "stagesOutline": 4,
+    "stagesDraft": 4,
+    "acceptedBlocks": 2,
+    "weaveLinks": 8,
+    "interwoven": 0,
+    "keepParallel": 1,
+    "clues": 18,
+    "warnings": 8,
+    "gameCandidates": 0
+  }
+}

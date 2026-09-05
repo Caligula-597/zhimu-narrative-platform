@@ -79,9 +79,10 @@ Deterministic Production Layer    ✅ FROZEN
 P7 Technical Vertical Slice       ✅
 
 ↓
-P8.0 Multi-Script Generalization Audit  ← 下一步
-  · 先 P8.0A Generalization Test Matrix（见 docs/P8_0A_GENERALIZATION_TEST_MATRIX_ZH.md）
-  · 不需要真人玩；样本 + 自动 Gate + 逐本 Editorial Gate
+P8.0 Multi-Script Generalization Audit  ← 当前
+  · P8.0A Matrix ✅ · P8.0B Corpus GEN-01～08 ✅
+  · 见 docs/P8_0B_REPRESENTATIVE_CORPUS_ZH.md
+  · 不需要真人玩；样本 + Machine Gate + Editorial Gate
 
 ↓
 P8.1 PlayableCreationSpec

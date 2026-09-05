@@ -1,0 +1,28 @@
+{
+  "caseId": "GEN-08",
+  "note": "P8.0 structural compatibility only; no CompleteScriptPackage / role prose",
+  "playerRoleIds": [
+    "B1",
+    "B2",
+    "B3",
+    "B4",
+    "B5",
+    "B6"
+  ],
+  "stageIds": [
+    "act1",
+    "act2",
+    "act3"
+  ],
+  "requireCulprit": true,
+  "gamePlan": [
+    {
+      "familyId": "M03",
+      "templateId": "M03",
+      "stageId": "act2",
+      "instanceKey": "power-access"
+    }
+  ],
+  "candidateGameInsertionPoints": [],
+  "compatible": true
+}

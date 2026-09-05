@@ -3,16 +3,18 @@
 > 阶段：P8.0 Multi-Script Generalization Audit 的第一刀  
 > 原则：**只冻结覆盖面与验收方式，不写产品功能**  
 > 上游：Deterministic Production Layer FROZEN（`b4e4cce`）  
-> 目标一句话：证明 `STORY → Integrator → ProductionMasterDraft V2 → Playable` **不只对当前 6 人古风案例有效**。
+> 目标一句话：证明 `STORY → Integrator → ProductionMasterDraft V2 → Playable` **不只对当前 6 人古风案例有效**。  
+> **代表案已定稿**：见 [`P8_0B_REPRESENTATIVE_CORPUS_ZH.md`](./P8_0B_REPRESENTATIVE_CORPUS_ZH.md)（GEN-01～GEN-08）。
 
 ## 0. 本刀做什么 / 不做什么
 
 | 做 | 不做 |
 |---|---|
 | 冻结要覆盖的差异维度 | 笛卡尔积穷举 |
-| 选 5～8 个代表案例 | 开 P6.1 LLM / Full Script |
+| **正式 8 本代表案例** | 开 P6.1 LLM / Full Script |
 | 定义 Machine + Editorial 双层 Gate | 要求真人桌测 |
 | 记录每本审查清单 | 改核心 Expander（除非解冻条件触发） |
+| A–H 仅 regression | 用 A–H 冒充泛化证明 |
 
 ## 1. 差异维度（覆盖矩阵 · 非穷举）
 
@@ -25,71 +27,54 @@
 | 机制 | 无 GAME · 单 GAME · 多 GAME |
 | 角色结构 | 单中心 · 双中心 · 群像 · 高负载角色 |
 
-**选代表案例，不跑全组合。** 每个案例应尽量撞到多个轴上的「非默认」点。
+## 2. 正式代表案（8 本 · 已冻结）
 
-## 2. 建议代表案例池（5～8 本）
+| ID | 样本 | 人数 | 幕 | 压测重点 |
+|---|---|---:|---:|---|
+| GEN-01 | 《雨夜公寓》 | 5 | 3 | 少人短幕 · M01 |
+| GEN-02 | 《长安夜宴》 | 6 | 5 | 五幕功能 · 阵营 |
+| GEN-03 | 《赫利俄斯站》 | 7 | 4 | 科幻权限 · 非古风 |
+| GEN-04 | 《毕业照之后》 | 8 | 5 | **无主凶案** |
+| GEN-05 | 《零点拍卖会》 | 6 | 4 | M03×2+M09 |
+| GEN-06 | 《两封没有寄出的信》 | 5 | 4 | 零假交织 |
+| GEN-07 | 《王座之下》 | 7 | 5 | Projection V2 |
+| GEN-08 | 《停电之前》 | 6 | 3 | 公共任务条件 |
 
-| ID | 画像 | 主要压测点 |
-|---|---|---|
-| A | 5 人 · 现代封闭推理 · 3 幕 | 少人 / 短幕 / 推凶 |
-| B | 6 人 · 古风阵营 · 5 幕 | 基线对照（现有）· 长幕 · 阵营 |
-| C | 7 人 · 科幻身份 · 4 幕 | 多人 / 身份结构 / 非古风 |
-| D | 8 人 · 情感悬疑 · 无主凶案 | 群像 / 非推凶 / 高人数 |
-| E | 6 人 · 强机制 / 弱推理 | 多 GAME · 机制是否挤掉叙事 |
-| F（可选） | 5～6 人 · 低交织平行线 | Integrator 假交织风险 |
-| G（可选） | 含高负载复杂角色 | Character Projection V2 承压 |
-| H（可选） | 校园/现实 · 单 GAME | 题材迁移 · 单机制 |
+输入路径：`shared/p8-generalization-cases/`。矩阵完整，**不需要第 9 本**。
 
-定稿时填写：样本来源（fixture / 人工大纲 / 真实剧本摘录）、路径、是否已生成 PMD V2。
+## 3. Machine Gate（三层）
 
-## 3. Coding 侧 Machine Gate（同一套合同）
+### G1 — Contract Generalization
 
-对每本样本，自动验证至少：
+人数 · 幕数 · 角色 ID · stage IDs · clue 生命周期 · projection — **不得写死 6 人 / 4 幕**。
 
-```text
-不同人数 · 不同幕数 · 不同 STORY 组合
-不同角色数量 · 不同 clue 数量
-→ schema / fidelity / determinism / projection / compile 兼容
-→ 核心代码无需 per-case 特判
-```
+### G2 — Semantic Generalization
 
-若换案例就要改 Expander / 硬编码人数幕数 → **泛化失败**，记录为合同解冻候选。
+requires/produces 可闭合 · 无 fake INTERWOVEN · OWNER/PARTICIPANT/TARGET · Truth flags · Structure warnings。
 
-## 4. Editorial Gate（逐本人工审查）
+### G3 — Downstream Compatibility
 
-每本必过：
+PMD V2 → **结构可编译 / 适配诊断**（不要为 P8.0 生成 CompleteScriptPackage）。
 
-1. STORY 选择是否合理  
-2. 人数有没有被隐性写死  
-3. 角色负载是否失衡  
-4. 阶段数量是否真的通用  
-5. Integrator 是否又出现假交织  
-6. Character Projection 是否还能正确承载复杂角色  
-7. Clue 生命周期是否正常  
-8. Truth View 是否保持语义一致  
-9. StructureChangeRequest 是否能抓节奏问题  
-10. CompleteScriptPackage 未来需要哪些新增信息  
+## 4. Editorial Gate
 
-另评：故事是否成立、人物是否像人、冲突与节奏、线索是否支撑推理、机制是否融入、模板味、「结构正确但不好看」。
+见 P8.0A 原十条 + 失败分类：`CONTRACT_FAILURE` / `GENERATION_FAILURE` / `CONTENT_QUALITY_FAILURE`。
 
-## 5. 通过标准（P8.0 阶段）
+## 5. 通过标准
 
 | 结果 | 含义 |
 |---|---|
-| Machine Gate 全绿 + Editorial 无结构性否决 | P8.0 PASS → 可开 P8.1 |
-| Machine 失败且需改合同 | 触发 Expander 解冻条件（见冻结文档） |
-| Machine 绿但 Editorial 结构性否决 | 记缺陷；区分「合同装不下」vs「样本质量差」 |
-| 仅文学偏好 / 润色意见 | **不解冻**；留给 Full Script Production |
+| Machine 全绿 + Editorial 无结构性否决 | P8.0 PASS → P8.1 |
+| Machine 失败且合同装不下 | 触发解冻条件 |
+| 仅文学偏好 | **不解冻** |
 
-## 6. 下游衔接
+## 6. 下游
 
 ```text
-P8.0A Matrix（本文）→ 选案 + 跑 Gate + 逐本审
-P8.0 完成 → P8.1 PlayableCreationSpec（人数/题材/机制等产品输入合同）
-P8.2 / Full Script Production V1 → CompleteScriptPackage
+P8.0A ✅ → P8.0B Corpus ✅ → P8.0D Editorial → Verdict
+→ P8.1 PlayableCreationSpec → P8.2 Full Script Production
 ```
 
 ## 7. 废止
 
-本阶段**不**以真人桌测为入口或出口 Gate。  
-桌测执行单（`P7_PRODUCT_PLAYTEST_ROUND1_ZH.md`）可选、不阻塞。
+不以真人桌测为入口或出口 Gate。

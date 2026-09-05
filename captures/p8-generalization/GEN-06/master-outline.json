@@ -1,0 +1,835 @@
+{
+  "id": "mod-mto1p974-t0zg",
+  "version": 1,
+  "sourceStoryStateRevision": 0,
+  "sourceBlockIds": [
+    "smb-mto1p972-n7n4g",
+    "smb-mto1p973-i8py7"
+  ],
+  "createdAt": "2026-09-05T00:00:00.000Z",
+  "updatedAt": "2026-09-05T00:00:00.000Z",
+  "status": "DRAFT",
+  "stages": [
+    {
+      "id": "act1",
+      "label": "铺垫",
+      "order": 0,
+      "beats": [
+        {
+          "id": "ob-mto1p973-njir",
+          "sourceBlockId": "smb-mto1p972-n7n4g",
+          "sourceBeatId": "beat-setup",
+          "familyId": "M08",
+          "templateId": "M08-1",
+          "blockTitle": "固定公开阵营｜公开阵营加公共任务赛道",
+          "summary": "夏临为了公开亮明阵营归属与目标，确认成员知情范围与联络方式（目标：阵营名单/暗号）",
+          "phaseBand": 0,
+          "stageKey": "LATENT",
+          "characterIds": [
+            "L1",
+            "L2"
+          ],
+          "clueIds": [
+            "smb-mto1p972-n7n4g-faction_foreshadow-0"
+          ],
+          "weaveGroupId": null,
+          "semantics": {
+            "actorRefs": [
+              "L1"
+            ],
+            "actorLabel": "夏临",
+            "goal": "公开亮明阵营归属与目标",
+            "action": "确认成员知情范围与联络方式",
+            "target": "阵营名单/暗号",
+            "requires": [],
+            "produces": [
+              {
+                "id": "faction_latent",
+                "kind": "faction",
+                "summary": "阵营结构已成形"
+              }
+            ],
+            "opposes": [],
+            "protects": [],
+            "locationHint": "私下会合点",
+            "actionKind": "ORGANIZE",
+            "independence": "INDEPENDENT",
+            "needsDetail": false
+          },
+          "needsDetail": false
+        },
+        {
+          "id": "ob-mto1p973-yy2x",
+          "sourceBlockId": "smb-mto1p973-i8py7",
+          "sourceBeatId": "beat-setup",
+          "familyId": "M07",
+          "templateId": "M07-2",
+          "blockTitle": "条件触发开放｜权限使用触发",
+          "summary": "江屿为了隐藏或维持当前身份表象，按伪装/未知状态行动，避免过早暴露（目标：身份表象）",
+          "phaseBand": 0,
+          "stageKey": "HIDDEN",
+          "characterIds": [
+            "L2",
+            "L3"
+          ],
+          "clueIds": [
+            "smb-mto1p973-i8py7-foreshadow-0"
+          ],
+          "weaveGroupId": null,
+          "semantics": {
+            "actorRefs": [
+              "L2"
+            ],
+            "actorLabel": "江屿",
+            "goal": "隐藏或维持当前身份表象",
+            "action": "按伪装/未知状态行动，避免过早暴露",
+            "target": "身份表象",
+            "requires": [],
+            "produces": [
+              {
+                "id": "identity_latent",
+                "kind": "identity",
+                "summary": "身份仍未公开"
+              }
+            ],
+            "opposes": [],
+            "protects": [],
+            "locationHint": "日常活动场所",
+            "actionKind": "CONCEAL",
+            "independence": "INDEPENDENT",
+            "needsDetail": false
+          },
+          "needsDetail": false
+        }
+      ]
+    },
+    {
+      "id": "act2",
+      "label": "加压",
+      "order": 1,
+      "beats": [
+        {
+          "id": "ob-mto1p973-5ckb",
+          "sourceBlockId": "smb-mto1p972-n7n4g",
+          "sourceBeatId": "beat-develop",
+          "familyId": "M08",
+          "templateId": "M08-1",
+          "blockTitle": "固定公开阵营｜公开阵营加公共任务赛道",
+          "summary": "夏临为了夺取关键资源，组织成员夺取或销毁关键物证/资源（目标：关键账册或信物）",
+          "phaseBand": 1,
+          "stageKey": "CONTACT",
+          "characterIds": [
+            "L1",
+            "L2",
+            "L3",
+            "L4",
+            "L5"
+          ],
+          "clueIds": [
+            "smb-mto1p972-n7n4g-faction_foreshadow-0"
+          ],
+          "weaveGroupId": null,
+          "semantics": {
+            "actorRefs": [
+              "L1"
+            ],
+            "actorLabel": "夏临",
+            "goal": "夺取关键资源",
+            "action": "组织成员夺取或销毁关键物证/资源",
+            "target": "关键账册或信物",
+            "requires": [
+              {
+                "id": "site_accessible",
+                "kind": "access",
+                "summary": "关键场所可进入"
+              },
+              {
+                "id": "faction_latent",
+                "kind": "faction",
+                "summary": "阵营已成形"
+              }
+            ],
+            "produces": [
+              {
+                "id": "faction_pressure",
+                "kind": "faction",
+                "summary": "阵营压力升级"
+              }
+            ],
+            "opposes": [
+              {
+                "id": "truth_locked",
+                "kind": "truth",
+                "summary": "调查真相公开"
+              }
+            ],
+            "protects": [
+              {
+                "id": "faction_secret",
+                "kind": "secret",
+                "summary": "阵营秘密"
+              }
+            ],
+            "locationHint": "关键场所",
+            "actionKind": "SECURE",
+            "independence": "SHAREABLE",
+            "needsDetail": false
+          },
+          "needsDetail": false
+        },
+        {
+          "id": "ob-mto1p973-f8rf",
+          "sourceBlockId": "smb-mto1p973-i8py7",
+          "sourceBeatId": "beat-develop",
+          "familyId": "M07",
+          "templateId": "M07-2",
+          "blockTitle": "条件触发开放｜权限使用触发",
+          "summary": "江屿为了用正式动作换取被条件锁住的信息，完成登记条件以触发内容开放（目标：身份记录）",
+          "phaseBand": 1,
+          "stageKey": "FIRST_ANOMALY",
+          "characterIds": [
+            "L2",
+            "L3",
+            "L4",
+            "L1",
+            "L5"
+          ],
+          "clueIds": [
+            "smb-mto1p973-i8py7-foreshadow-0"
+          ],
+          "weaveGroupId": null,
+          "semantics": {
+            "actorRefs": [
+              "L2"
+            ],
+            "actorLabel": "江屿",
+            "goal": "用正式动作换取被条件锁住的信息",
+            "action": "完成登记条件以触发内容开放",
+            "target": "身份记录",
+            "requires": [
+              {
+                "id": "formal_trigger",
+                "kind": "trigger",
+                "summary": "正式触发条件"
+              }
+            ],
+            "produces": [
+              {
+                "id": "identity_clue",
+                "kind": "identity_clue",
+                "summary": "条件开放的信息"
+              }
+            ],
+            "opposes": [],
+            "protects": [],
+            "locationHint": "藏有记录的场所",
+            "actionKind": "SEARCH",
+            "independence": "SHAREABLE",
+            "needsDetail": false
+          },
+          "needsDetail": false
+        }
+      ]
+    },
+    {
+      "id": "act3",
+      "label": "升级",
+      "order": 2,
+      "beats": [
+        {
+          "id": "ob-mto1p973-1ig7",
+          "sourceBlockId": "smb-mto1p972-n7n4g",
+          "sourceBeatId": "beat-climax",
+          "familyId": "M08",
+          "templateId": "M08-1",
+          "blockTitle": "固定公开阵营｜公开阵营加公共任务赛道",
+          "summary": "defector为了在暴露风险下改归属或保住秘密，在关键选择点背叛、退出或清洗异己（目标：归属状态）",
+          "phaseBand": 2,
+          "stageKey": "CONSEQUENCE",
+          "characterIds": [
+            "L1",
+            "L2",
+            "L3",
+            "L4",
+            "L5"
+          ],
+          "clueIds": [
+            "smb-mto1p972-n7n4g-membership_hint-1",
+            "smb-mto1p972-n7n4g-secret_signal-2",
+            "smb-mto1p972-n7n4g-recruitment_evidence-3",
+            "smb-mto1p972-n7n4g-loyalty_test-4",
+            "smb-mto1p972-n7n4g-betrayal_hint-5",
+            "smb-mto1p972-n7n4g-internal_conflict-6",
+            "smb-mto1p972-n7n4g-hidden_goal_hint-7",
+            "smb-mto1p972-n7n4g-membership_confirmation-8",
+            "smb-mto1p972-n7n4g-faction_exposure-9"
+          ],
+          "weaveGroupId": null,
+          "semantics": {
+            "actorRefs": [],
+            "actorLabel": "defector",
+            "goal": "在暴露风险下改归属或保住秘密",
+            "action": "在关键选择点背叛、退出或清洗异己",
+            "target": "归属状态",
+            "requires": [
+              {
+                "id": "faction_pressure",
+                "kind": "faction",
+                "summary": "阵营压力"
+              }
+            ],
+            "produces": [
+              {
+                "id": "allegiance_changed",
+                "kind": "faction",
+                "summary": "归属已改变"
+              },
+              {
+                "id": "faction_exposure_risk",
+                "kind": "exposure",
+                "summary": "暴露风险上升"
+              }
+            ],
+            "opposes": [],
+            "protects": [],
+            "locationHint": "阵营关键据点",
+            "actionKind": "SHIFT",
+            "independence": "DEPENDENT",
+            "needsDetail": true
+          },
+          "needsDetail": true
+        },
+        {
+          "id": "ob-mto1p973-6hm9",
+          "sourceBlockId": "smb-mto1p973-i8py7",
+          "sourceBeatId": "beat-climax",
+          "familyId": "M07",
+          "templateId": "M07-2",
+          "blockTitle": "条件触发开放｜权限使用触发",
+          "summary": "江屿为了确认真实身份并决定是否公开，核对身份线索并作出公开或隐瞒选择（目标：真实身份）",
+          "phaseBand": 2,
+          "stageKey": "CONSEQUENCE",
+          "characterIds": [
+            "L2",
+            "L3",
+            "L4",
+            "L1",
+            "L5"
+          ],
+          "clueIds": [
+            "smb-mto1p973-i8py7-memory_fragment-1",
+            "smb-mto1p973-i8py7-identity_hint-2",
+            "smb-mto1p973-i8py7-misdirection-3",
+            "smb-mto1p973-i8py7-confirmation-4",
+            "smb-mto1p973-i8py7-decisive_reveal-5"
+          ],
+          "weaveGroupId": null,
+          "semantics": {
+            "actorRefs": [
+              "L2"
+            ],
+            "actorLabel": "江屿",
+            "goal": "确认真实身份并决定是否公开",
+            "action": "核对身份线索并作出公开或隐瞒选择",
+            "target": "真实身份",
+            "requires": [
+              {
+                "id": "identity_clue",
+                "kind": "identity_clue",
+                "summary": "身份线索"
+              }
+            ],
+            "produces": [
+              {
+                "id": "identity_confirmed",
+                "kind": "identity",
+                "summary": "身份已确认"
+              },
+              {
+                "id": "family_status",
+                "kind": "status",
+                "summary": "家族/资格状态"
+              }
+            ],
+            "opposes": [],
+            "protects": [],
+            "locationHint": "藏有记录的场所",
+            "actionKind": "CONFIRM",
+            "independence": "DEPENDENT",
+            "needsDetail": false
+          },
+          "needsDetail": false
+        }
+      ]
+    },
+    {
+      "id": "act4",
+      "label": "收束",
+      "order": 3,
+      "beats": [
+        {
+          "id": "ob-mto1p973-3co0",
+          "sourceBlockId": "smb-mto1p972-n7n4g",
+          "sourceBeatId": "beat-res",
+          "familyId": "M08",
+          "templateId": "M08-1",
+          "blockTitle": "固定公开阵营｜公开阵营加公共任务赛道",
+          "summary": "夏临为了结算阵营目标并承受公开后果，公开站队或接受阵营败露后的关系重排（目标：阵营胜负条件）",
+          "phaseBand": 3,
+          "stageKey": "CONSEQUENCE",
+          "characterIds": [
+            "L1",
+            "L2",
+            "L3",
+            "L4",
+            "L5"
+          ],
+          "clueIds": [],
+          "weaveGroupId": null,
+          "semantics": {
+            "actorRefs": [
+              "L1"
+            ],
+            "actorLabel": "夏临",
+            "goal": "结算阵营目标并承受公开后果",
+            "action": "公开站队或接受阵营败露后的关系重排",
+            "target": "阵营胜负条件",
+            "requires": [
+              {
+                "id": "allegiance_changed",
+                "kind": "faction",
+                "summary": "归属变化"
+              }
+            ],
+            "produces": [
+              {
+                "id": "faction_settled",
+                "kind": "faction",
+                "summary": "阵营线结算"
+              }
+            ],
+            "opposes": [],
+            "protects": [],
+            "locationHint": "阵营关键据点",
+            "actionKind": "SETTLE",
+            "independence": "DEPENDENT",
+            "needsDetail": false
+          },
+          "needsDetail": false
+        },
+        {
+          "id": "ob-mto1p973-x6q6",
+          "sourceBlockId": "smb-mto1p973-i8py7",
+          "sourceBeatId": "beat-res",
+          "familyId": "M07",
+          "templateId": "M07-2",
+          "blockTitle": "条件触发开放｜权限使用触发",
+          "summary": "江屿为了承受身份公开后的关系后果，面对知情者与阵营/调查方的反应（目标：关系重组）",
+          "phaseBand": 3,
+          "stageKey": "CONSEQUENCE",
+          "characterIds": [
+            "L2",
+            "L3",
+            "L4",
+            "L1",
+            "L5"
+          ],
+          "clueIds": [],
+          "weaveGroupId": null,
+          "semantics": {
+            "actorRefs": [
+              "L2"
+            ],
+            "actorLabel": "江屿",
+            "goal": "承受身份公开后的关系后果",
+            "action": "面对知情者与阵营/调查方的反应",
+            "target": "关系重组",
+            "requires": [
+              {
+                "id": "identity_confirmed",
+                "kind": "identity",
+                "summary": "身份确认"
+              }
+            ],
+            "produces": [
+              {
+                "id": "identity_public",
+                "kind": "identity",
+                "summary": "身份进入公开层"
+              }
+            ],
+            "opposes": [],
+            "protects": [],
+            "locationHint": "藏有记录的场所",
+            "actionKind": "CONSEQUENCE",
+            "independence": "DEPENDENT",
+            "needsDetail": false
+          },
+          "needsDetail": false
+        }
+      ]
+    }
+  ],
+  "weaveLinks": [
+    {
+      "id": "wl-mto1p974-ub9c",
+      "kind": "WEAVE_SHARED_SCENE",
+      "relationQuality": "COLOCATED",
+      "status": "PROPOSED",
+      "beatIds": [
+        "ob-mto1p973-njir",
+        "ob-mto1p973-yy2x"
+      ],
+      "blockIds": [
+        "smb-mto1p972-n7n4g",
+        "smb-mto1p973-i8py7"
+      ],
+      "reason": "同阶段共享角色 L2——可同场并列，不算真正交织",
+      "sharedCharacterIds": [
+        "L2"
+      ],
+      "sharedFactKinds": [],
+      "sharedTargets": []
+    },
+    {
+      "id": "wl-mto1p974-jyr0",
+      "kind": "WEAVE_SHARED_CHARACTER",
+      "relationQuality": "COLOCATED",
+      "status": "PROPOSED",
+      "beatIds": [
+        "ob-mto1p973-njir",
+        "ob-mto1p973-f8rf"
+      ],
+      "blockIds": [
+        "smb-mto1p972-n7n4g",
+        "smb-mto1p973-i8py7"
+      ],
+      "reason": "共享角色 L1、L2——仅角色重合，保持同场并列而非强制合并",
+      "sharedCharacterIds": [
+        "L1",
+        "L2"
+      ],
+      "sharedFactKinds": [],
+      "sharedTargets": []
+    },
+    {
+      "id": "wl-mto1p974-t8fl",
+      "kind": "WEAVE_SHARED_SCENE",
+      "relationQuality": "COLOCATED",
+      "status": "PROPOSED",
+      "beatIds": [
+        "ob-mto1p973-5ckb",
+        "ob-mto1p973-f8rf"
+      ],
+      "blockIds": [
+        "smb-mto1p972-n7n4g",
+        "smb-mto1p973-i8py7"
+      ],
+      "reason": "同阶段共享角色 L1、L2、L3、L4、L5——可同场并列，不算真正交织",
+      "sharedCharacterIds": [
+        "L1",
+        "L2",
+        "L3",
+        "L4",
+        "L5"
+      ],
+      "sharedFactKinds": [],
+      "sharedTargets": []
+    },
+    {
+      "id": "wl-mto1p974-sazp",
+      "kind": "WEAVE_SHARED_CHARACTER",
+      "relationQuality": "COLOCATED",
+      "status": "PROPOSED",
+      "beatIds": [
+        "ob-mto1p973-5ckb",
+        "ob-mto1p973-6hm9"
+      ],
+      "blockIds": [
+        "smb-mto1p972-n7n4g",
+        "smb-mto1p973-i8py7"
+      ],
+      "reason": "共享角色 L1、L2、L3、L4、L5——仅角色重合，保持同场并列而非强制合并",
+      "sharedCharacterIds": [
+        "L1",
+        "L2",
+        "L3",
+        "L4",
+        "L5"
+      ],
+      "sharedFactKinds": [],
+      "sharedTargets": []
+    },
+    {
+      "id": "wl-mto1p974-q8qy",
+      "kind": "WEAVE_SHARED_SCENE",
+      "relationQuality": "COLOCATED",
+      "status": "PROPOSED",
+      "beatIds": [
+        "ob-mto1p973-1ig7",
+        "ob-mto1p973-6hm9"
+      ],
+      "blockIds": [
+        "smb-mto1p972-n7n4g",
+        "smb-mto1p973-i8py7"
+      ],
+      "reason": "同阶段共享角色 L1、L2、L3、L4、L5——可同场并列，不算真正交织",
+      "sharedCharacterIds": [
+        "L1",
+        "L2",
+        "L3",
+        "L4",
+        "L5"
+      ],
+      "sharedFactKinds": [],
+      "sharedTargets": []
+    },
+    {
+      "id": "wl-mto1p974-nbjd",
+      "kind": "WEAVE_SHARED_CHARACTER",
+      "relationQuality": "COLOCATED",
+      "status": "PROPOSED",
+      "beatIds": [
+        "ob-mto1p973-1ig7",
+        "ob-mto1p973-x6q6"
+      ],
+      "blockIds": [
+        "smb-mto1p972-n7n4g",
+        "smb-mto1p973-i8py7"
+      ],
+      "reason": "共享角色 L1、L2、L3、L4、L5——仅角色重合，保持同场并列而非强制合并",
+      "sharedCharacterIds": [
+        "L1",
+        "L2",
+        "L3",
+        "L4",
+        "L5"
+      ],
+      "sharedFactKinds": [],
+      "sharedTargets": []
+    },
+    {
+      "id": "wl-mto1p974-m1vx",
+      "kind": "WEAVE_SHARED_SCENE",
+      "relationQuality": "COLOCATED",
+      "status": "PROPOSED",
+      "beatIds": [
+        "ob-mto1p973-3co0",
+        "ob-mto1p973-x6q6"
+      ],
+      "blockIds": [
+        "smb-mto1p972-n7n4g",
+        "smb-mto1p973-i8py7"
+      ],
+      "reason": "同阶段共享角色 L1、L2、L3、L4、L5——可同场并列，不算真正交织",
+      "sharedCharacterIds": [
+        "L1",
+        "L2",
+        "L3",
+        "L4",
+        "L5"
+      ],
+      "sharedFactKinds": [],
+      "sharedTargets": []
+    },
+    {
+      "id": "wl-mto1p974-o42h",
+      "kind": "KEEP_PARALLEL",
+      "relationQuality": "PARALLEL",
+      "status": "PROPOSED",
+      "beatIds": [
+        "ob-mto1p973-5ckb",
+        "ob-mto1p973-f8rf"
+      ],
+      "blockIds": [
+        "smb-mto1p972-n7n4g",
+        "smb-mto1p973-i8py7"
+      ],
+      "reason": "固定公开阵营｜公开阵营加公共任务赛道 与 条件触发开放｜权限使用触发 无线索级交织证据，叙事线保持平行（同场/同角不算交织）",
+      "sharedCharacterIds": [
+        "L1",
+        "L2",
+        "L3",
+        "L4",
+        "L5"
+      ],
+      "sharedFactKinds": [],
+      "sharedTargets": []
+    }
+  ],
+  "conflictReport": [
+    {
+      "id": "cf-mto1p974-wdly",
+      "type": "ROLE_OVERLOAD",
+      "severity": "info",
+      "characterId": "L1",
+      "summary": "夏临 当前承担：faction_lead HIGH、discoverer（负载 3）",
+      "suggestions": [
+        {
+          "id": "keep",
+          "label": "保留"
+        },
+        {
+          "id": "reassign",
+          "label": "建议把次要职责换给其他角色"
+        },
+        {
+          "id": "intentional",
+          "label": "标记为有意重叠"
+        }
+      ],
+      "decision": null
+    },
+    {
+      "id": "cf-mto1p974-cq6g",
+      "type": "ROLE_OVERLOAD",
+      "severity": "info",
+      "characterId": "L2",
+      "summary": "江屿 当前承担：member、identity_bearer HIGH（负载 3）",
+      "suggestions": [
+        {
+          "id": "keep",
+          "label": "保留"
+        },
+        {
+          "id": "reassign",
+          "label": "建议把次要职责换给其他角色"
+        },
+        {
+          "id": "intentional",
+          "label": "标记为有意重叠"
+        }
+      ],
+      "decision": null
+    },
+    {
+      "id": "cf-mto1p974-f1g6",
+      "type": "ROLE_OVERLOAD",
+      "severity": "info",
+      "characterId": "L5",
+      "summary": "丁宁 当前承担：rival_lead HIGH、support（负载 3）",
+      "suggestions": [
+        {
+          "id": "keep",
+          "label": "保留"
+        },
+        {
+          "id": "reassign",
+          "label": "建议把次要职责换给其他角色"
+        },
+        {
+          "id": "intentional",
+          "label": "标记为有意重叠"
+        }
+      ],
+      "decision": null
+    }
+  ],
+  "characterLoadReport": [
+    {
+      "characterId": "L1",
+      "name": "夏临",
+      "totalLoad": 3,
+      "roles": [
+        {
+          "blockId": "smb-mto1p972-n7n4g",
+          "slotId": "factionLead",
+          "narrativeRole": "faction_lead",
+          "intensity": 2,
+          "intentionalOverlap": false
+        },
+        {
+          "blockId": "smb-mto1p973-i8py7",
+          "slotId": "revealer",
+          "narrativeRole": "discoverer",
+          "intensity": 1,
+          "intentionalOverlap": false
+        }
+      ]
+    },
+    {
+      "characterId": "L2",
+      "name": "江屿",
+      "totalLoad": 3,
+      "roles": [
+        {
+          "blockId": "smb-mto1p972-n7n4g",
+          "slotId": "memberA",
+          "narrativeRole": "member",
+          "intensity": 1,
+          "intentionalOverlap": false
+        },
+        {
+          "blockId": "smb-mto1p973-i8py7",
+          "slotId": "bearer",
+          "narrativeRole": "identity_bearer",
+          "intensity": 2,
+          "intentionalOverlap": false
+        }
+      ]
+    },
+    {
+      "characterId": "L5",
+      "name": "丁宁",
+      "totalLoad": 3,
+      "roles": [
+        {
+          "blockId": "smb-mto1p972-n7n4g",
+          "slotId": "rivalLead",
+          "narrativeRole": "rival_lead",
+          "intensity": 2,
+          "intentionalOverlap": false
+        },
+        {
+          "blockId": "smb-mto1p973-i8py7",
+          "slotId": "related",
+          "narrativeRole": "support",
+          "intensity": 1,
+          "intentionalOverlap": false
+        }
+      ]
+    },
+    {
+      "characterId": "L3",
+      "name": "陆晚",
+      "totalLoad": 2,
+      "roles": [
+        {
+          "blockId": "smb-mto1p972-n7n4g",
+          "slotId": "memberB",
+          "narrativeRole": "member",
+          "intensity": 1,
+          "intentionalOverlap": false
+        },
+        {
+          "blockId": "smb-mto1p973-i8py7",
+          "slotId": "knower",
+          "narrativeRole": "witness",
+          "intensity": 1,
+          "intentionalOverlap": false
+        }
+      ]
+    },
+    {
+      "characterId": "L4",
+      "name": "邱然",
+      "totalLoad": 2,
+      "roles": [
+        {
+          "blockId": "smb-mto1p972-n7n4g",
+          "slotId": "outsider",
+          "narrativeRole": "outsider",
+          "intensity": 1,
+          "intentionalOverlap": false
+        },
+        {
+          "blockId": "smb-mto1p973-i8py7",
+          "slotId": "misled",
+          "narrativeRole": "misled",
+          "intensity": 1,
+          "intentionalOverlap": false
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,102 @@
+{
+  "schemaVersion": 1,
+  "caseId": "GEN-01",
+  "title": "雨夜公寓",
+  "slug": "rainy-apartment",
+  "projectConfig": {
+    "playerCount": 5,
+    "stageCount": 3,
+    "genreTags": [
+      "现代",
+      "封闭推凶",
+      "单中心"
+    ]
+  },
+  "premise": {
+    "genre": "现代封闭推理",
+    "era": "当代都市",
+    "tone": [
+      "暴雨",
+      "封闭",
+      "推凶"
+    ],
+    "playerCount": 5,
+    "targetDuration": 120
+  },
+  "characters": [
+    {
+      "id": "R1",
+      "name": "林晚舟"
+    },
+    {
+      "id": "R2",
+      "name": "何叙"
+    },
+    {
+      "id": "R3",
+      "name": "赵听雨"
+    },
+    {
+      "id": "R4",
+      "name": "周鹤"
+    },
+    {
+      "id": "R5",
+      "name": "苏明"
+    },
+    {
+      "id": "NPC_GUARD",
+      "name": "门岗",
+      "isNpc": true
+    }
+  ],
+  "stages": [
+    {
+      "id": "act1",
+      "label": "第1幕",
+      "order": 0
+    },
+    {
+      "id": "act2",
+      "label": "第2幕",
+      "order": 1
+    },
+    {
+      "id": "act3",
+      "label": "第3幕",
+      "order": 2
+    }
+  ],
+  "storyPlan": [
+    {
+      "templateId": "M01-FRAMING",
+      "preferredVariantId": "V02",
+      "intentionalOverlap": false
+    },
+    {
+      "templateId": "M07-2",
+      "preferredVariantId": "V01",
+      "intentionalOverlap": true
+    }
+  ],
+  "gamePlan": [],
+  "expectedStructuralProperties": {
+    "playerCount": 5,
+    "stageCount": 3,
+    "forbidAutoPadSixthPlayer": true,
+    "allowEmptyFinalStage": false,
+    "maxInterwoven": null
+  },
+  "playableExpectation": {
+    "requireCulprit": true,
+    "gamePlacements": [],
+    "allowMissingCompleteScripts": true
+  },
+  "editorialFocus": [
+    "少人短幕",
+    "M01压缩到3幕",
+    "无GAME仍有execution view",
+    "无自动补第6人"
+  ],
+  "notes": "压测 playerCount=5 stageCount=3；禁止暗写 A-F/act1-act4/6人。"
+}

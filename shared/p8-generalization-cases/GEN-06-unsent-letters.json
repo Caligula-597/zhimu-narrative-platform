@@ -1,0 +1,102 @@
+{
+  "schemaVersion": 1,
+  "caseId": "GEN-06",
+  "title": "两封没有寄出的信",
+  "slug": "unsent-letters",
+  "projectConfig": {
+    "playerCount": 5,
+    "stageCount": 4,
+    "genreTags": [
+      "现实",
+      "双线",
+      "低交织"
+    ]
+  },
+  "premise": {
+    "genre": "双线低亲和平行",
+    "era": "当代家庭聚会",
+    "tone": [
+      "平行",
+      "隐瞒",
+      "低因果"
+    ],
+    "playerCount": 5,
+    "targetDuration": 150
+  },
+  "characters": [
+    {
+      "id": "L1",
+      "name": "夏临"
+    },
+    {
+      "id": "L2",
+      "name": "江屿"
+    },
+    {
+      "id": "L3",
+      "name": "陆晚"
+    },
+    {
+      "id": "L4",
+      "name": "邱然"
+    },
+    {
+      "id": "L5",
+      "name": "丁宁"
+    }
+  ],
+  "stages": [
+    {
+      "id": "act1",
+      "label": "第1幕",
+      "order": 0
+    },
+    {
+      "id": "act2",
+      "label": "第2幕",
+      "order": 1
+    },
+    {
+      "id": "act3",
+      "label": "第3幕",
+      "order": 2
+    },
+    {
+      "id": "act4",
+      "label": "第4幕",
+      "order": 3
+    }
+  ],
+  "storyPlan": [
+    {
+      "templateId": "M08-1",
+      "preferredVariantId": "V04",
+      "intentionalOverlap": false
+    },
+    {
+      "templateId": "M07-2",
+      "preferredVariantId": "V02",
+      "intentionalOverlap": false
+    }
+  ],
+  "gamePlan": [],
+  "expectedStructuralProperties": {
+    "playerCount": 5,
+    "stageCount": 4,
+    "forbidAutoPadSixthPlayer": true,
+    "requireKeepParallel": true,
+    "maxInterwoven": 0
+  },
+  "playableExpectation": {
+    "requireCulprit": false,
+    "gamePlacements": [],
+    "allowMissingCompleteScripts": true,
+    "allowOptionalKillerAssignments": true
+  },
+  "editorialFocus": [
+    "KEEP_PARALLEL",
+    "零假交织",
+    "PARALLEL_HEAVY合理"
+  ],
+  "notes": "新的低亲和平行案；不得复制 A–H 的 E 样本内容。"
+}

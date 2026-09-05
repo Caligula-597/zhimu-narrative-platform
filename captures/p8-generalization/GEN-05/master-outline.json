@@ -1,0 +1,776 @@
+{
+  "id": "mod-mto1p96z-hs5b",
+  "version": 1,
+  "sourceStoryStateRevision": 0,
+  "sourceBlockIds": [
+    "smb-mto1p96z-rh3eh",
+    "smb-mto1p96z-jpq6i"
+  ],
+  "createdAt": "2026-09-05T00:00:00.000Z",
+  "updatedAt": "2026-09-05T00:00:00.000Z",
+  "status": "DRAFT",
+  "stages": [
+    {
+      "id": "act1",
+      "label": "铺垫",
+      "order": 0,
+      "beats": [
+        {
+          "id": "ob-mto1p96z-c9u6",
+          "sourceBlockId": "smb-mto1p96z-rh3eh",
+          "sourceBeatId": "beat-setup",
+          "familyId": "M08",
+          "templateId": "M08-1",
+          "blockTitle": "固定公开阵营｜双公开阵营对峙",
+          "summary": "顾衡为了公开亮明阵营归属与目标，确认成员知情范围与联络方式（目标：阵营名单/暗号）",
+          "phaseBand": 0,
+          "stageKey": "LATENT",
+          "characterIds": [
+            "A1",
+            "A2"
+          ],
+          "clueIds": [
+            "smb-mto1p96z-rh3eh-faction_foreshadow-0"
+          ],
+          "weaveGroupId": null,
+          "semantics": {
+            "actorRefs": [
+              "A1"
+            ],
+            "actorLabel": "顾衡",
+            "goal": "公开亮明阵营归属与目标",
+            "action": "确认成员知情范围与联络方式",
+            "target": "阵营名单/暗号",
+            "requires": [],
+            "produces": [
+              {
+                "id": "faction_latent",
+                "kind": "faction",
+                "summary": "阵营结构已成形"
+              }
+            ],
+            "opposes": [],
+            "protects": [],
+            "locationHint": "私下会合点",
+            "actionKind": "ORGANIZE",
+            "independence": "INDEPENDENT",
+            "needsDetail": false
+          },
+          "needsDetail": false
+        },
+        {
+          "id": "ob-mto1p96z-98ji",
+          "sourceBlockId": "smb-mto1p96z-jpq6i",
+          "sourceBeatId": "beat-setup",
+          "familyId": "M07",
+          "templateId": "M07-5",
+          "blockTitle": "身份权限变化｜本人早知，主动伪装到点揭开",
+          "summary": "宋临为了隐藏或维持当前身份表象，按伪装/未知状态行动，避免过早暴露（目标：身份表象）",
+          "phaseBand": 0,
+          "stageKey": "HIDDEN",
+          "characterIds": [
+            "A6",
+            "A2"
+          ],
+          "clueIds": [
+            "smb-mto1p96z-jpq6i-foreshadow-0"
+          ],
+          "weaveGroupId": null,
+          "semantics": {
+            "actorRefs": [
+              "A6"
+            ],
+            "actorLabel": "宋临",
+            "goal": "隐藏或维持当前身份表象",
+            "action": "按伪装/未知状态行动，避免过早暴露",
+            "target": "身份表象",
+            "requires": [],
+            "produces": [
+              {
+                "id": "identity_latent",
+                "kind": "identity",
+                "summary": "身份仍未公开"
+              }
+            ],
+            "opposes": [],
+            "protects": [],
+            "locationHint": "日常活动场所",
+            "actionKind": "CONCEAL",
+            "independence": "INDEPENDENT",
+            "needsDetail": false
+          },
+          "needsDetail": false
+        }
+      ]
+    },
+    {
+      "id": "act2",
+      "label": "加压",
+      "order": 1,
+      "beats": [
+        {
+          "id": "ob-mto1p96z-u0jb",
+          "sourceBlockId": "smb-mto1p96z-rh3eh",
+          "sourceBeatId": "beat-develop",
+          "familyId": "M08",
+          "templateId": "M08-1",
+          "blockTitle": "固定公开阵营｜双公开阵营对峙",
+          "summary": "顾衡为了夺取关键资源，组织成员夺取或销毁关键物证/资源（目标：关键账册或信物）",
+          "phaseBand": 1,
+          "stageKey": "CONTACT",
+          "characterIds": [
+            "A1",
+            "A2",
+            "A3",
+            "A4",
+            "A5"
+          ],
+          "clueIds": [
+            "smb-mto1p96z-rh3eh-faction_foreshadow-0"
+          ],
+          "weaveGroupId": "wg-mto1p96z-s4gu",
+          "semantics": {
+            "actorRefs": [
+              "A1"
+            ],
+            "actorLabel": "顾衡",
+            "goal": "夺取关键资源",
+            "action": "组织成员夺取或销毁关键物证/资源",
+            "target": "关键账册或信物",
+            "requires": [
+              {
+                "id": "site_accessible",
+                "kind": "access",
+                "summary": "关键场所可进入"
+              },
+              {
+                "id": "faction_latent",
+                "kind": "faction",
+                "summary": "阵营已成形"
+              }
+            ],
+            "produces": [
+              {
+                "id": "faction_pressure",
+                "kind": "faction",
+                "summary": "阵营压力升级"
+              }
+            ],
+            "opposes": [
+              {
+                "id": "truth_locked",
+                "kind": "truth",
+                "summary": "调查真相公开"
+              }
+            ],
+            "protects": [
+              {
+                "id": "faction_secret",
+                "kind": "secret",
+                "summary": "阵营秘密"
+              }
+            ],
+            "locationHint": "关键场所",
+            "actionKind": "SECURE",
+            "independence": "SHAREABLE",
+            "needsDetail": false
+          },
+          "needsDetail": false
+        },
+        {
+          "id": "ob-mto1p96z-sgfd",
+          "sourceBlockId": "smb-mto1p96z-jpq6i",
+          "sourceBeatId": "beat-develop",
+          "familyId": "M07",
+          "templateId": "M07-5",
+          "blockTitle": "身份权限变化｜本人早知，主动伪装到点揭开",
+          "summary": "宋临为了寻找能确认身份的记录或信物，进入藏有记录的场所搜查身份相关物证（目标：身份记录）",
+          "phaseBand": 1,
+          "stageKey": "FIRST_ANOMALY",
+          "characterIds": [
+            "A6",
+            "A2",
+            "A3",
+            "A4",
+            "A1"
+          ],
+          "clueIds": [
+            "smb-mto1p96z-jpq6i-foreshadow-0"
+          ],
+          "weaveGroupId": null,
+          "semantics": {
+            "actorRefs": [
+              "A6"
+            ],
+            "actorLabel": "宋临",
+            "goal": "寻找能确认身份的记录或信物",
+            "action": "进入藏有记录的场所搜查身份相关物证",
+            "target": "身份记录",
+            "requires": [
+              {
+                "id": "site_accessible",
+                "kind": "access",
+                "summary": "关键场所可进入"
+              }
+            ],
+            "produces": [
+              {
+                "id": "identity_clue",
+                "kind": "identity_clue",
+                "summary": "身份线索"
+              }
+            ],
+            "opposes": [],
+            "protects": [],
+            "locationHint": "藏有记录的场所",
+            "actionKind": "SEARCH",
+            "independence": "SHAREABLE",
+            "needsDetail": false
+          },
+          "needsDetail": false
+        },
+        {
+          "id": "ob-mto1p96z-zqw8",
+          "sourceBlockId": "smb-mto1p96z-jpq6i",
+          "sourceBeatId": "beat-climax",
+          "familyId": "M07",
+          "templateId": "M07-5",
+          "blockTitle": "身份权限变化｜本人早知，主动伪装到点揭开",
+          "summary": "宋临为了启用真实身份对应的权限，在揭示后启用权限表并验证资格（目标：真实身份）",
+          "phaseBand": 2,
+          "stageKey": "CONSEQUENCE",
+          "characterIds": [
+            "A6",
+            "A2",
+            "A3",
+            "A4",
+            "A1"
+          ],
+          "clueIds": [
+            "smb-mto1p96z-jpq6i-memory_fragment-1",
+            "smb-mto1p96z-jpq6i-identity_hint-2",
+            "smb-mto1p96z-jpq6i-misdirection-3",
+            "smb-mto1p96z-jpq6i-confirmation-4",
+            "smb-mto1p96z-jpq6i-decisive_reveal-5"
+          ],
+          "weaveGroupId": "wg-mto1p96z-s4gu",
+          "semantics": {
+            "actorRefs": [
+              "A6"
+            ],
+            "actorLabel": "宋临",
+            "goal": "启用真实身份对应的权限",
+            "action": "在揭示后启用权限表并验证资格",
+            "target": "真实身份",
+            "requires": [
+              {
+                "id": "identity_clue",
+                "kind": "identity_clue",
+                "summary": "身份线索"
+              }
+            ],
+            "produces": [
+              {
+                "id": "identity_confirmed",
+                "kind": "identity",
+                "summary": "身份已确认"
+              },
+              {
+                "id": "family_status",
+                "kind": "status",
+                "summary": "资格/权限状态"
+              },
+              {
+                "id": "site_accessible",
+                "kind": "access",
+                "summary": "场所权限可能开放"
+              }
+            ],
+            "opposes": [],
+            "protects": [],
+            "locationHint": "藏有记录的场所",
+            "actionKind": "CONFIRM",
+            "independence": "DEPENDENT",
+            "needsDetail": false
+          },
+          "needsDetail": false
+        }
+      ]
+    },
+    {
+      "id": "act3",
+      "label": "升级",
+      "order": 2,
+      "beats": [
+        {
+          "id": "ob-mto1p96z-ad84",
+          "sourceBlockId": "smb-mto1p96z-rh3eh",
+          "sourceBeatId": "beat-climax",
+          "familyId": "M08",
+          "templateId": "M08-1",
+          "blockTitle": "固定公开阵营｜双公开阵营对峙",
+          "summary": "defector为了在暴露风险下改归属或保住秘密，在关键选择点背叛、退出或清洗异己（目标：归属状态）",
+          "phaseBand": 2,
+          "stageKey": "CONSEQUENCE",
+          "characterIds": [
+            "A1",
+            "A2",
+            "A3",
+            "A4",
+            "A5"
+          ],
+          "clueIds": [
+            "smb-mto1p96z-rh3eh-membership_hint-1",
+            "smb-mto1p96z-rh3eh-secret_signal-2",
+            "smb-mto1p96z-rh3eh-recruitment_evidence-3",
+            "smb-mto1p96z-rh3eh-loyalty_test-4",
+            "smb-mto1p96z-rh3eh-betrayal_hint-5",
+            "smb-mto1p96z-rh3eh-internal_conflict-6",
+            "smb-mto1p96z-rh3eh-hidden_goal_hint-7",
+            "smb-mto1p96z-rh3eh-membership_confirmation-8",
+            "smb-mto1p96z-rh3eh-faction_exposure-9"
+          ],
+          "weaveGroupId": null,
+          "semantics": {
+            "actorRefs": [],
+            "actorLabel": "defector",
+            "goal": "在暴露风险下改归属或保住秘密",
+            "action": "在关键选择点背叛、退出或清洗异己",
+            "target": "归属状态",
+            "requires": [
+              {
+                "id": "faction_pressure",
+                "kind": "faction",
+                "summary": "阵营压力"
+              }
+            ],
+            "produces": [
+              {
+                "id": "allegiance_changed",
+                "kind": "faction",
+                "summary": "归属已改变"
+              },
+              {
+                "id": "faction_exposure_risk",
+                "kind": "exposure",
+                "summary": "暴露风险上升"
+              }
+            ],
+            "opposes": [],
+            "protects": [],
+            "locationHint": "阵营关键据点",
+            "actionKind": "SHIFT",
+            "independence": "DEPENDENT",
+            "needsDetail": true
+          },
+          "needsDetail": true
+        }
+      ]
+    },
+    {
+      "id": "act4",
+      "label": "收束",
+      "order": 3,
+      "beats": [
+        {
+          "id": "ob-mto1p96z-xg53",
+          "sourceBlockId": "smb-mto1p96z-rh3eh",
+          "sourceBeatId": "beat-res",
+          "familyId": "M08",
+          "templateId": "M08-1",
+          "blockTitle": "固定公开阵营｜双公开阵营对峙",
+          "summary": "顾衡为了结算阵营目标并承受公开后果，公开站队或接受阵营败露后的关系重排（目标：阵营胜负条件）",
+          "phaseBand": 3,
+          "stageKey": "CONSEQUENCE",
+          "characterIds": [
+            "A1",
+            "A2",
+            "A3",
+            "A4",
+            "A5"
+          ],
+          "clueIds": [],
+          "weaveGroupId": null,
+          "semantics": {
+            "actorRefs": [
+              "A1"
+            ],
+            "actorLabel": "顾衡",
+            "goal": "结算阵营目标并承受公开后果",
+            "action": "公开站队或接受阵营败露后的关系重排",
+            "target": "阵营胜负条件",
+            "requires": [
+              {
+                "id": "allegiance_changed",
+                "kind": "faction",
+                "summary": "归属变化"
+              }
+            ],
+            "produces": [
+              {
+                "id": "faction_settled",
+                "kind": "faction",
+                "summary": "阵营线结算"
+              }
+            ],
+            "opposes": [],
+            "protects": [],
+            "locationHint": "阵营关键据点",
+            "actionKind": "SETTLE",
+            "independence": "DEPENDENT",
+            "needsDetail": false
+          },
+          "needsDetail": false
+        },
+        {
+          "id": "ob-mto1p96z-pzkf",
+          "sourceBlockId": "smb-mto1p96z-jpq6i",
+          "sourceBeatId": "beat-res",
+          "familyId": "M07",
+          "templateId": "M07-5",
+          "blockTitle": "身份权限变化｜本人早知，主动伪装到点揭开",
+          "summary": "宋临为了承受身份公开后的关系后果，面对知情者与阵营/调查方的反应（目标：关系重组）",
+          "phaseBand": 3,
+          "stageKey": "CONSEQUENCE",
+          "characterIds": [
+            "A6",
+            "A2",
+            "A3",
+            "A4",
+            "A1"
+          ],
+          "clueIds": [],
+          "weaveGroupId": null,
+          "semantics": {
+            "actorRefs": [
+              "A6"
+            ],
+            "actorLabel": "宋临",
+            "goal": "承受身份公开后的关系后果",
+            "action": "面对知情者与阵营/调查方的反应",
+            "target": "关系重组",
+            "requires": [
+              {
+                "id": "identity_confirmed",
+                "kind": "identity",
+                "summary": "身份确认"
+              }
+            ],
+            "produces": [
+              {
+                "id": "identity_public",
+                "kind": "identity",
+                "summary": "身份进入公开层"
+              }
+            ],
+            "opposes": [],
+            "protects": [],
+            "locationHint": "藏有记录的场所",
+            "actionKind": "CONSEQUENCE",
+            "independence": "DEPENDENT",
+            "needsDetail": false
+          },
+          "needsDetail": false
+        }
+      ]
+    }
+  ],
+  "weaveLinks": [
+    {
+      "id": "wl-mto1p96z-tbev",
+      "kind": "WEAVE_SHARED_SCENE",
+      "relationQuality": "COLOCATED",
+      "status": "PROPOSED",
+      "beatIds": [
+        "ob-mto1p96z-c9u6",
+        "ob-mto1p96z-98ji"
+      ],
+      "blockIds": [
+        "smb-mto1p96z-rh3eh",
+        "smb-mto1p96z-jpq6i"
+      ],
+      "reason": "同阶段共享角色 A2——可同场并列，不算真正交织",
+      "sharedCharacterIds": [
+        "A2"
+      ],
+      "sharedFactKinds": [],
+      "sharedTargets": []
+    },
+    {
+      "id": "wl-mto1p96z-z0n4",
+      "kind": "WEAVE_SHARED_CHARACTER",
+      "relationQuality": "COLOCATED",
+      "status": "PROPOSED",
+      "beatIds": [
+        "ob-mto1p96z-c9u6",
+        "ob-mto1p96z-sgfd"
+      ],
+      "blockIds": [
+        "smb-mto1p96z-rh3eh",
+        "smb-mto1p96z-jpq6i"
+      ],
+      "reason": "共享角色 A1、A2——仅角色重合，保持同场并列而非强制合并",
+      "sharedCharacterIds": [
+        "A1",
+        "A2"
+      ],
+      "sharedFactKinds": [],
+      "sharedTargets": []
+    },
+    {
+      "id": "wl-mto1p96z-4xin",
+      "kind": "WEAVE_SHARED_ACTION",
+      "relationQuality": "INTERWOVEN",
+      "status": "PROPOSED",
+      "beatIds": [
+        "ob-mto1p96z-u0jb",
+        "ob-mto1p96z-sgfd"
+      ],
+      "blockIds": [
+        "smb-mto1p96z-rh3eh",
+        "smb-mto1p96z-jpq6i"
+      ],
+      "reason": "两条剧情都需要在「关键场所」执行相近行动（shared-site-search），可共享一次行动",
+      "sharedCharacterIds": [
+        "A1",
+        "A2",
+        "A3",
+        "A4"
+      ],
+      "sharedFactKinds": [],
+      "sharedTargets": []
+    },
+    {
+      "id": "wl-mto1p96z-y66o",
+      "kind": "WEAVE_CAUSAL",
+      "relationQuality": "INTERWOVEN",
+      "status": "PROPOSED",
+      "beatIds": [
+        "ob-mto1p96z-u0jb",
+        "ob-mto1p96z-zqw8"
+      ],
+      "blockIds": [
+        "smb-mto1p96z-rh3eh",
+        "smb-mto1p96z-jpq6i"
+      ],
+      "reason": "身份权限变化｜本人早知，主动伪装到点揭开 的结果（site_accessible）满足 固定公开阵营｜双公开阵营对峙 的前置条件",
+      "sharedCharacterIds": [
+        "A1",
+        "A2",
+        "A3",
+        "A4"
+      ],
+      "sharedFactKinds": [
+        "site_accessible"
+      ],
+      "sharedTargets": []
+    },
+    {
+      "id": "wl-mto1p96z-nu97",
+      "kind": "WEAVE_SHARED_SCENE",
+      "relationQuality": "COLOCATED",
+      "status": "PROPOSED",
+      "beatIds": [
+        "ob-mto1p96z-ad84",
+        "ob-mto1p96z-zqw8"
+      ],
+      "blockIds": [
+        "smb-mto1p96z-rh3eh",
+        "smb-mto1p96z-jpq6i"
+      ],
+      "reason": "同阶段共享角色 A1、A2、A3、A4——可同场并列，不算真正交织",
+      "sharedCharacterIds": [
+        "A1",
+        "A2",
+        "A3",
+        "A4"
+      ],
+      "sharedFactKinds": [],
+      "sharedTargets": []
+    },
+    {
+      "id": "wl-mto1p96z-tf52",
+      "kind": "WEAVE_SHARED_CHARACTER",
+      "relationQuality": "COLOCATED",
+      "status": "PROPOSED",
+      "beatIds": [
+        "ob-mto1p96z-ad84",
+        "ob-mto1p96z-pzkf"
+      ],
+      "blockIds": [
+        "smb-mto1p96z-rh3eh",
+        "smb-mto1p96z-jpq6i"
+      ],
+      "reason": "共享角色 A1、A2、A3、A4——仅角色重合，保持同场并列而非强制合并",
+      "sharedCharacterIds": [
+        "A1",
+        "A2",
+        "A3",
+        "A4"
+      ],
+      "sharedFactKinds": [],
+      "sharedTargets": []
+    },
+    {
+      "id": "wl-mto1p96z-1n9g",
+      "kind": "WEAVE_SHARED_SCENE",
+      "relationQuality": "COLOCATED",
+      "status": "PROPOSED",
+      "beatIds": [
+        "ob-mto1p96z-xg53",
+        "ob-mto1p96z-pzkf"
+      ],
+      "blockIds": [
+        "smb-mto1p96z-rh3eh",
+        "smb-mto1p96z-jpq6i"
+      ],
+      "reason": "同阶段共享角色 A1、A2、A3、A4——可同场并列，不算真正交织",
+      "sharedCharacterIds": [
+        "A1",
+        "A2",
+        "A3",
+        "A4"
+      ],
+      "sharedFactKinds": [],
+      "sharedTargets": []
+    }
+  ],
+  "conflictReport": [
+    {
+      "id": "cf-mto1p96z-7ba7",
+      "type": "ROLE_OVERLOAD",
+      "severity": "info",
+      "characterId": "A1",
+      "summary": "顾衡 当前承担：faction_lead HIGH、support（负载 3）",
+      "suggestions": [
+        {
+          "id": "keep",
+          "label": "保留"
+        },
+        {
+          "id": "reassign",
+          "label": "建议把次要职责换给其他角色"
+        },
+        {
+          "id": "intentional",
+          "label": "标记为有意重叠"
+        }
+      ],
+      "decision": null
+    }
+  ],
+  "characterLoadReport": [
+    {
+      "characterId": "A1",
+      "name": "顾衡",
+      "totalLoad": 3,
+      "roles": [
+        {
+          "blockId": "smb-mto1p96z-rh3eh",
+          "slotId": "factionLead",
+          "narrativeRole": "faction_lead",
+          "intensity": 2,
+          "intentionalOverlap": false
+        },
+        {
+          "blockId": "smb-mto1p96z-jpq6i",
+          "slotId": "related",
+          "narrativeRole": "support",
+          "intensity": 1,
+          "intentionalOverlap": false
+        }
+      ]
+    },
+    {
+      "characterId": "A2",
+      "name": "沈珂",
+      "totalLoad": 2,
+      "roles": [
+        {
+          "blockId": "smb-mto1p96z-rh3eh",
+          "slotId": "memberA",
+          "narrativeRole": "member",
+          "intensity": 1,
+          "intentionalOverlap": false
+        },
+        {
+          "blockId": "smb-mto1p96z-jpq6i",
+          "slotId": "knower",
+          "narrativeRole": "witness",
+          "intensity": 1,
+          "intentionalOverlap": false
+        }
+      ]
+    },
+    {
+      "characterId": "A3",
+      "name": "白川",
+      "totalLoad": 2,
+      "roles": [
+        {
+          "blockId": "smb-mto1p96z-rh3eh",
+          "slotId": "memberB",
+          "narrativeRole": "member",
+          "intensity": 1,
+          "intentionalOverlap": false
+        },
+        {
+          "blockId": "smb-mto1p96z-jpq6i",
+          "slotId": "misled",
+          "narrativeRole": "misled",
+          "intensity": 1,
+          "intentionalOverlap": false
+        }
+      ]
+    },
+    {
+      "characterId": "A4",
+      "name": "唐霁",
+      "totalLoad": 2,
+      "roles": [
+        {
+          "blockId": "smb-mto1p96z-rh3eh",
+          "slotId": "outsider",
+          "narrativeRole": "outsider",
+          "intensity": 1,
+          "intentionalOverlap": false
+        },
+        {
+          "blockId": "smb-mto1p96z-jpq6i",
+          "slotId": "revealer",
+          "narrativeRole": "discoverer",
+          "intensity": 1,
+          "intentionalOverlap": false
+        }
+      ]
+    },
+    {
+      "characterId": "A5",
+      "name": "温拾",
+      "totalLoad": 2,
+      "roles": [
+        {
+          "blockId": "smb-mto1p96z-rh3eh",
+          "slotId": "rivalLead",
+          "narrativeRole": "rival_lead",
+          "intensity": 2,
+          "intentionalOverlap": false
+        }
+      ]
+    },
+    {
+      "characterId": "A6",
+      "name": "宋临",
+      "totalLoad": 2,
+      "roles": [
+        {
+          "blockId": "smb-mto1p96z-jpq6i",
+          "slotId": "bearer",
+          "narrativeRole": "identity_bearer",
+          "intensity": 2,
+          "intentionalOverlap": false
+        }
+      ]
+    }
+  ]
+}

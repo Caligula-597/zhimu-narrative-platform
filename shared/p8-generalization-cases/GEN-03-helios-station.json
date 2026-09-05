@@ -1,0 +1,126 @@
+{
+  "schemaVersion": 1,
+  "caseId": "GEN-03",
+  "title": "赫利俄斯站",
+  "slug": "helios-station",
+  "projectConfig": {
+    "playerCount": 7,
+    "stageCount": 4,
+    "genreTags": [
+      "科幻",
+      "身份权限",
+      "双中心"
+    ]
+  },
+  "premise": {
+    "genre": "科幻身份权限",
+    "era": "近未来空间站",
+    "tone": [
+      "权限",
+      "身份记录",
+      "资源"
+    ],
+    "playerCount": 7,
+    "targetDuration": 180
+  },
+  "characters": [
+    {
+      "id": "H1",
+      "name": "诺娃"
+    },
+    {
+      "id": "H2",
+      "name": "凯"
+    },
+    {
+      "id": "H3",
+      "name": "伊蕾"
+    },
+    {
+      "id": "H4",
+      "name": "芮安"
+    },
+    {
+      "id": "H5",
+      "name": "托尔"
+    },
+    {
+      "id": "H6",
+      "name": "米拉"
+    },
+    {
+      "id": "H7",
+      "name": "森"
+    }
+  ],
+  "stages": [
+    {
+      "id": "act1",
+      "label": "第1幕",
+      "order": 0
+    },
+    {
+      "id": "act2",
+      "label": "第2幕",
+      "order": 1
+    },
+    {
+      "id": "act3",
+      "label": "第3幕",
+      "order": 2
+    },
+    {
+      "id": "act4",
+      "label": "第4幕",
+      "order": 3
+    }
+  ],
+  "storyPlan": [
+    {
+      "templateId": "M07-2",
+      "preferredVariantId": "V01",
+      "intentionalOverlap": false
+    },
+    {
+      "templateId": "M07-5",
+      "preferredVariantId": "V01",
+      "intentionalOverlap": true
+    },
+    {
+      "templateId": "M08-2",
+      "preferredVariantId": "V01",
+      "intentionalOverlap": true
+    }
+  ],
+  "gamePlan": [
+    {
+      "familyId": "M03",
+      "templateId": "M03",
+      "stageId": "act3",
+      "instanceKey": "reactor-access-bid"
+    }
+  ],
+  "expectedStructuralProperties": {
+    "playerCount": 7,
+    "stageCount": 4,
+    "forbidAutoPadSixthPlayer": true
+  },
+  "playableExpectation": {
+    "requireCulprit": false,
+    "gamePlacements": [
+      {
+        "familyId": "M03",
+        "stageId": "act3"
+      }
+    ],
+    "allowMissingCompleteScripts": true,
+    "allowOptionalKillerAssignments": true
+  },
+  "editorialFocus": [
+    "非古风默认值",
+    "权限/场所访问语义",
+    "7人",
+    "单M03"
+  ],
+  "notes": "不需要杀人；压测身份/权限合同是否带着家族/府邸古风默认。"
+}

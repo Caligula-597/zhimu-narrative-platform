@@ -1,0 +1,1544 @@
+{
+  "id": "mod-mto1p979-xmlx",
+  "version": 1,
+  "sourceStoryStateRevision": 0,
+  "sourceBlockIds": [
+    "smb-mto1p977-mltyl",
+    "smb-mto1p977-kv4qc",
+    "smb-mto1p977-jl6vc"
+  ],
+  "createdAt": "2026-09-05T00:00:00.000Z",
+  "updatedAt": "2026-09-05T00:00:00.000Z",
+  "status": "DRAFT",
+  "stages": [
+    {
+      "id": "act1",
+      "label": "铺垫",
+      "order": 0,
+      "beats": [
+        {
+          "id": "ob-mto1p979-76hc",
+          "sourceBlockId": "smb-mto1p977-mltyl",
+          "sourceBeatId": "beat-setup",
+          "familyId": "M01",
+          "templateId": "M01-FRAMING",
+          "blockTitle": "嫁祸型追凶｜栽赃物品",
+          "summary": "裴烬为了准备可嫁祸的假象，布置与沈砚相关的误导物（目标：被嫁祸者遗失的玉佩）",
+          "phaseBand": 0,
+          "stageKey": "SETUP",
+          "characterIds": [
+            "T2",
+            "T3"
+          ],
+          "clueIds": [],
+          "weaveGroupId": null,
+          "semantics": {
+            "actorRefs": [
+              "T2"
+            ],
+            "actorLabel": "裴烬",
+            "goal": "准备可嫁祸的假象",
+            "action": "布置与沈砚相关的误导物",
+            "target": "被嫁祸者遗失的玉佩",
+            "requires": [],
+            "produces": [
+              {
+                "id": "false_lead_ready",
+                "kind": "false_lead",
+                "summary": "误导物已就绪"
+              }
+            ],
+            "opposes": [],
+            "protects": [],
+            "locationHint": "作案准备地",
+            "actionKind": "PREPARE",
+            "independence": "DEPENDENT",
+            "needsDetail": false
+          },
+          "needsDetail": false
+        },
+        {
+          "id": "ob-mto1p979-wuyh",
+          "sourceBlockId": "smb-mto1p977-kv4qc",
+          "sourceBeatId": "beat-setup",
+          "familyId": "M07",
+          "templateId": "M07-5",
+          "blockTitle": "身份权限变化｜本人早知，主动伪装到点揭开",
+          "summary": "裴烬为了隐藏或维持当前身份表象，按伪装/未知状态行动，避免过早暴露（目标：身份表象）",
+          "phaseBand": 0,
+          "stageKey": "HIDDEN",
+          "characterIds": [
+            "T2",
+            "T6"
+          ],
+          "clueIds": [
+            "smb-mto1p977-kv4qc-foreshadow-0"
+          ],
+          "weaveGroupId": null,
+          "semantics": {
+            "actorRefs": [
+              "T2"
+            ],
+            "actorLabel": "裴烬",
+            "goal": "隐藏或维持当前身份表象",
+            "action": "按伪装/未知状态行动，避免过早暴露",
+            "target": "身份表象",
+            "requires": [],
+            "produces": [
+              {
+                "id": "identity_latent",
+                "kind": "identity",
+                "summary": "身份仍未公开"
+              }
+            ],
+            "opposes": [],
+            "protects": [],
+            "locationHint": "日常活动场所",
+            "actionKind": "CONCEAL",
+            "independence": "INDEPENDENT",
+            "needsDetail": false
+          },
+          "needsDetail": false
+        },
+        {
+          "id": "ob-mto1p979-k2pi",
+          "sourceBlockId": "smb-mto1p977-jl6vc",
+          "sourceBeatId": "beat-setup",
+          "familyId": "M08",
+          "templateId": "M08-1",
+          "blockTitle": "固定公开阵营｜开局全员互认公开阵营",
+          "summary": "裴烬为了公开亮明阵营归属与目标，确认成员知情范围与联络方式（目标：阵营名单/暗号）",
+          "phaseBand": 0,
+          "stageKey": "LATENT",
+          "characterIds": [
+            "T2",
+            "T7"
+          ],
+          "clueIds": [
+            "smb-mto1p977-jl6vc-faction_foreshadow-0"
+          ],
+          "weaveGroupId": null,
+          "semantics": {
+            "actorRefs": [
+              "T2"
+            ],
+            "actorLabel": "裴烬",
+            "goal": "公开亮明阵营归属与目标",
+            "action": "确认成员知情范围与联络方式",
+            "target": "阵营名单/暗号",
+            "requires": [],
+            "produces": [
+              {
+                "id": "faction_latent",
+                "kind": "faction",
+                "summary": "阵营结构已成形"
+              }
+            ],
+            "opposes": [],
+            "protects": [],
+            "locationHint": "私下会合点",
+            "actionKind": "ORGANIZE",
+            "independence": "INDEPENDENT",
+            "needsDetail": false
+          },
+          "needsDetail": false
+        }
+      ]
+    },
+    {
+      "id": "act2",
+      "label": "加压",
+      "order": 1,
+      "beats": [
+        {
+          "id": "ob-mto1p979-taqp",
+          "sourceBlockId": "smb-mto1p977-mltyl",
+          "sourceBeatId": "beat-crime",
+          "familyId": "M01",
+          "templateId": "M01-FRAMING",
+          "blockTitle": "嫁祸型追凶｜栽赃物品",
+          "summary": "裴烬为了完成犯行并指向沈砚，实施犯行并留下指向沈砚的痕迹（目标：被嫁祸者遗失的玉佩）",
+          "phaseBand": 1,
+          "stageKey": "CRIME_DISCOVERY",
+          "characterIds": [
+            "T2",
+            "T1",
+            "T4"
+          ],
+          "clueIds": [
+            "smb-mto1p977-mltyl-false_lead-0"
+          ],
+          "weaveGroupId": null,
+          "semantics": {
+            "actorRefs": [
+              "T2"
+            ],
+            "actorLabel": "裴烬",
+            "goal": "完成犯行并指向沈砚",
+            "action": "实施犯行并留下指向沈砚的痕迹",
+            "target": "被嫁祸者遗失的玉佩",
+            "requires": [
+              {
+                "id": "false_lead_ready",
+                "kind": "false_lead",
+                "summary": "误导物"
+              }
+            ],
+            "produces": [
+              {
+                "id": "crime_done",
+                "kind": "crime",
+                "summary": "犯行已发生"
+              },
+              {
+                "id": "false_suspicion",
+                "kind": "suspicion",
+                "summary": "错误嫌疑成立"
+              }
+            ],
+            "opposes": [
+              {
+                "id": "clear_framed",
+                "kind": "clearance",
+                "summary": "洗清被嫁祸者"
+              }
+            ],
+            "protects": [],
+            "locationHint": "案发现场",
+            "actionKind": "COMMIT",
+            "independence": "DEPENDENT",
+            "needsDetail": false
+          },
+          "needsDetail": false
+        },
+        {
+          "id": "ob-mto1p979-dfub",
+          "sourceBlockId": "smb-mto1p977-mltyl",
+          "sourceBeatId": "beat-false",
+          "familyId": "M01",
+          "templateId": "M01-FRAMING",
+          "blockTitle": "嫁祸型追凶｜栽赃物品",
+          "summary": "裴烬为了完成犯行并指向沈砚，实施犯行并留下指向沈砚的痕迹（目标：被嫁祸者遗失的玉佩）",
+          "phaseBand": 1,
+          "stageKey": "FALSE_DIRECTION",
+          "characterIds": [
+            "T2",
+            "T3"
+          ],
+          "clueIds": [
+            "smb-mto1p977-mltyl-false_lead-0"
+          ],
+          "weaveGroupId": null,
+          "semantics": {
+            "actorRefs": [
+              "T2"
+            ],
+            "actorLabel": "裴烬",
+            "goal": "完成犯行并指向沈砚",
+            "action": "实施犯行并留下指向沈砚的痕迹",
+            "target": "被嫁祸者遗失的玉佩",
+            "requires": [
+              {
+                "id": "false_lead_ready",
+                "kind": "false_lead",
+                "summary": "误导物"
+              }
+            ],
+            "produces": [
+              {
+                "id": "crime_done",
+                "kind": "crime",
+                "summary": "犯行已发生"
+              },
+              {
+                "id": "false_suspicion",
+                "kind": "suspicion",
+                "summary": "错误嫌疑成立"
+              }
+            ],
+            "opposes": [
+              {
+                "id": "clear_framed",
+                "kind": "clearance",
+                "summary": "洗清被嫁祸者"
+              }
+            ],
+            "protects": [],
+            "locationHint": "案发现场",
+            "actionKind": "COMMIT",
+            "independence": "DEPENDENT",
+            "needsDetail": false
+          },
+          "needsDetail": false
+        },
+        {
+          "id": "ob-mto1p979-25vb",
+          "sourceBlockId": "smb-mto1p977-mltyl",
+          "sourceBeatId": "beat-contra",
+          "familyId": "M01",
+          "templateId": "M01-FRAMING",
+          "blockTitle": "嫁祸型追凶｜栽赃物品",
+          "summary": "顾晚为了推翻对沈砚的错误判断，对照现场与证物寻找矛盾（目标：被嫁祸者遗失的玉佩）",
+          "phaseBand": 1,
+          "stageKey": "CONTRADICTION",
+          "characterIds": [
+            "T4"
+          ],
+          "clueIds": [
+            "smb-mto1p977-mltyl-contradiction-1"
+          ],
+          "weaveGroupId": null,
+          "semantics": {
+            "actorRefs": [
+              "T4"
+            ],
+            "actorLabel": "顾晚",
+            "goal": "推翻对沈砚的错误判断",
+            "action": "对照现场与证物寻找矛盾",
+            "target": "被嫁祸者遗失的玉佩",
+            "requires": [
+              {
+                "id": "false_suspicion",
+                "kind": "suspicion",
+                "summary": "错误嫌疑"
+              }
+            ],
+            "produces": [
+              {
+                "id": "contradiction",
+                "kind": "contradiction",
+                "summary": "反证出现"
+              }
+            ],
+            "opposes": [],
+            "protects": [],
+            "locationHint": "案发现场",
+            "actionKind": "INVESTIGATE",
+            "independence": "SHAREABLE",
+            "needsDetail": false
+          },
+          "needsDetail": false
+        },
+        {
+          "id": "ob-mto1p979-brxr",
+          "sourceBlockId": "smb-mto1p977-kv4qc",
+          "sourceBeatId": "beat-develop",
+          "familyId": "M07",
+          "templateId": "M07-5",
+          "blockTitle": "身份权限变化｜本人早知，主动伪装到点揭开",
+          "summary": "裴烬为了寻找能确认身份的记录或信物，进入藏有记录的场所搜查身份相关物证（目标：身份记录）",
+          "phaseBand": 1,
+          "stageKey": "FIRST_ANOMALY",
+          "characterIds": [
+            "T2",
+            "T6",
+            "T7",
+            "T4",
+            "T1"
+          ],
+          "clueIds": [
+            "smb-mto1p977-kv4qc-foreshadow-0"
+          ],
+          "weaveGroupId": null,
+          "semantics": {
+            "actorRefs": [
+              "T2"
+            ],
+            "actorLabel": "裴烬",
+            "goal": "寻找能确认身份的记录或信物",
+            "action": "进入藏有记录的场所搜查身份相关物证",
+            "target": "身份记录",
+            "requires": [
+              {
+                "id": "site_accessible",
+                "kind": "access",
+                "summary": "关键场所可进入"
+              }
+            ],
+            "produces": [
+              {
+                "id": "identity_clue",
+                "kind": "identity_clue",
+                "summary": "身份线索"
+              }
+            ],
+            "opposes": [],
+            "protects": [],
+            "locationHint": "藏有记录的场所",
+            "actionKind": "SEARCH",
+            "independence": "SHAREABLE",
+            "needsDetail": false
+          },
+          "needsDetail": false
+        },
+        {
+          "id": "ob-mto1p979-hmym",
+          "sourceBlockId": "smb-mto1p977-jl6vc",
+          "sourceBeatId": "beat-develop",
+          "familyId": "M08",
+          "templateId": "M08-1",
+          "blockTitle": "固定公开阵营｜开局全员互认公开阵营",
+          "summary": "裴烬为了夺取关键资源，组织成员夺取或销毁关键物证/资源（目标：关键账册或信物）",
+          "phaseBand": 1,
+          "stageKey": "CONTACT",
+          "characterIds": [
+            "T2",
+            "T7",
+            "T3",
+            "T4",
+            "T5"
+          ],
+          "clueIds": [
+            "smb-mto1p977-jl6vc-faction_foreshadow-0"
+          ],
+          "weaveGroupId": null,
+          "semantics": {
+            "actorRefs": [
+              "T2"
+            ],
+            "actorLabel": "裴烬",
+            "goal": "夺取关键资源",
+            "action": "组织成员夺取或销毁关键物证/资源",
+            "target": "关键账册或信物",
+            "requires": [
+              {
+                "id": "site_accessible",
+                "kind": "access",
+                "summary": "关键场所可进入"
+              },
+              {
+                "id": "faction_latent",
+                "kind": "faction",
+                "summary": "阵营已成形"
+              }
+            ],
+            "produces": [
+              {
+                "id": "faction_pressure",
+                "kind": "faction",
+                "summary": "阵营压力升级"
+              }
+            ],
+            "opposes": [
+              {
+                "id": "truth_locked",
+                "kind": "truth",
+                "summary": "调查真相公开"
+              }
+            ],
+            "protects": [
+              {
+                "id": "faction_secret",
+                "kind": "secret",
+                "summary": "阵营秘密"
+              }
+            ],
+            "locationHint": "关键场所",
+            "actionKind": "SECURE",
+            "independence": "SHAREABLE",
+            "needsDetail": false
+          },
+          "needsDetail": false
+        }
+      ]
+    },
+    {
+      "id": "act3",
+      "label": "升级",
+      "order": 2,
+      "beats": [
+        {
+          "id": "ob-mto1p979-aqwq",
+          "sourceBlockId": "smb-mto1p977-mltyl",
+          "sourceBeatId": "beat-climax",
+          "familyId": "M01",
+          "templateId": "M01-FRAMING",
+          "blockTitle": "嫁祸型追凶｜栽赃物品",
+          "summary": "顾晚为了推翻对沈砚的错误判断，对照现场与证物寻找矛盾（目标：被嫁祸者遗失的玉佩）",
+          "phaseBand": 2,
+          "stageKey": "TRUTH_REVEAL",
+          "characterIds": [
+            "T4",
+            "T2",
+            "T3"
+          ],
+          "clueIds": [
+            "smb-mto1p977-mltyl-true_evidence-2",
+            "smb-mto1p977-mltyl-decisive_evidence-3"
+          ],
+          "weaveGroupId": null,
+          "semantics": {
+            "actorRefs": [
+              "T4"
+            ],
+            "actorLabel": "顾晚",
+            "goal": "推翻对沈砚的错误判断",
+            "action": "对照现场与证物寻找矛盾",
+            "target": "被嫁祸者遗失的玉佩",
+            "requires": [
+              {
+                "id": "false_suspicion",
+                "kind": "suspicion",
+                "summary": "错误嫌疑"
+              }
+            ],
+            "produces": [
+              {
+                "id": "contradiction",
+                "kind": "contradiction",
+                "summary": "反证出现"
+              }
+            ],
+            "opposes": [],
+            "protects": [],
+            "locationHint": "案发现场",
+            "actionKind": "INVESTIGATE",
+            "independence": "SHAREABLE",
+            "needsDetail": false
+          },
+          "needsDetail": false
+        },
+        {
+          "id": "ob-mto1p979-li8z",
+          "sourceBlockId": "smb-mto1p977-kv4qc",
+          "sourceBeatId": "beat-climax",
+          "familyId": "M07",
+          "templateId": "M07-5",
+          "blockTitle": "身份权限变化｜本人早知，主动伪装到点揭开",
+          "summary": "裴烬为了启用真实身份对应的权限，在揭示后启用权限表并验证资格（目标：真实身份）",
+          "phaseBand": 2,
+          "stageKey": "CONSEQUENCE",
+          "characterIds": [
+            "T2",
+            "T6",
+            "T7",
+            "T4",
+            "T1"
+          ],
+          "clueIds": [
+            "smb-mto1p977-kv4qc-memory_fragment-1",
+            "smb-mto1p977-kv4qc-identity_hint-2",
+            "smb-mto1p977-kv4qc-misdirection-3",
+            "smb-mto1p977-kv4qc-confirmation-4",
+            "smb-mto1p977-kv4qc-decisive_reveal-5"
+          ],
+          "weaveGroupId": null,
+          "semantics": {
+            "actorRefs": [
+              "T2"
+            ],
+            "actorLabel": "裴烬",
+            "goal": "启用真实身份对应的权限",
+            "action": "在揭示后启用权限表并验证资格",
+            "target": "真实身份",
+            "requires": [
+              {
+                "id": "identity_clue",
+                "kind": "identity_clue",
+                "summary": "身份线索"
+              }
+            ],
+            "produces": [
+              {
+                "id": "identity_confirmed",
+                "kind": "identity",
+                "summary": "身份已确认"
+              },
+              {
+                "id": "family_status",
+                "kind": "status",
+                "summary": "资格/权限状态"
+              },
+              {
+                "id": "site_accessible",
+                "kind": "access",
+                "summary": "场所权限可能开放"
+              }
+            ],
+            "opposes": [],
+            "protects": [],
+            "locationHint": "藏有记录的场所",
+            "actionKind": "CONFIRM",
+            "independence": "DEPENDENT",
+            "needsDetail": false
+          },
+          "needsDetail": false
+        },
+        {
+          "id": "ob-mto1p979-37o0",
+          "sourceBlockId": "smb-mto1p977-jl6vc",
+          "sourceBeatId": "beat-climax",
+          "familyId": "M08",
+          "templateId": "M08-1",
+          "blockTitle": "固定公开阵营｜开局全员互认公开阵营",
+          "summary": "defector为了在暴露风险下改归属或保住秘密，在关键选择点背叛、退出或清洗异己（目标：归属状态）",
+          "phaseBand": 2,
+          "stageKey": "CONSEQUENCE",
+          "characterIds": [
+            "T2",
+            "T7",
+            "T3",
+            "T4",
+            "T5"
+          ],
+          "clueIds": [
+            "smb-mto1p977-jl6vc-membership_hint-1",
+            "smb-mto1p977-jl6vc-secret_signal-2",
+            "smb-mto1p977-jl6vc-recruitment_evidence-3",
+            "smb-mto1p977-jl6vc-loyalty_test-4",
+            "smb-mto1p977-jl6vc-betrayal_hint-5",
+            "smb-mto1p977-jl6vc-internal_conflict-6",
+            "smb-mto1p977-jl6vc-hidden_goal_hint-7",
+            "smb-mto1p977-jl6vc-membership_confirmation-8",
+            "smb-mto1p977-jl6vc-faction_exposure-9"
+          ],
+          "weaveGroupId": null,
+          "semantics": {
+            "actorRefs": [],
+            "actorLabel": "defector",
+            "goal": "在暴露风险下改归属或保住秘密",
+            "action": "在关键选择点背叛、退出或清洗异己",
+            "target": "归属状态",
+            "requires": [
+              {
+                "id": "faction_pressure",
+                "kind": "faction",
+                "summary": "阵营压力"
+              }
+            ],
+            "produces": [
+              {
+                "id": "allegiance_changed",
+                "kind": "faction",
+                "summary": "归属已改变"
+              },
+              {
+                "id": "faction_exposure_risk",
+                "kind": "exposure",
+                "summary": "暴露风险上升"
+              }
+            ],
+            "opposes": [],
+            "protects": [],
+            "locationHint": "阵营关键据点",
+            "actionKind": "SHIFT",
+            "independence": "DEPENDENT",
+            "needsDetail": true
+          },
+          "needsDetail": true
+        }
+      ]
+    },
+    {
+      "id": "act4",
+      "label": "收束",
+      "order": 3,
+      "beats": [
+        {
+          "id": "ob-mto1p979-w22i",
+          "sourceBlockId": "smb-mto1p977-mltyl",
+          "sourceBeatId": "beat-res",
+          "familyId": "M01",
+          "templateId": "M01-FRAMING",
+          "blockTitle": "嫁祸型追凶｜栽赃物品",
+          "summary": "顾晚为了锁定真凶裴烬，用决定性证据揭穿嫁祸（目标：决定性证据）",
+          "phaseBand": 3,
+          "stageKey": "TRUTH_REVEAL",
+          "characterIds": [
+            "T4",
+            "T1",
+            "T2",
+            "T3"
+          ],
+          "clueIds": [
+            "smb-mto1p977-mltyl-decisive_evidence-3"
+          ],
+          "weaveGroupId": null,
+          "semantics": {
+            "actorRefs": [
+              "T4"
+            ],
+            "actorLabel": "顾晚",
+            "goal": "锁定真凶裴烬",
+            "action": "用决定性证据揭穿嫁祸",
+            "target": "决定性证据",
+            "requires": [
+              {
+                "id": "contradiction",
+                "kind": "contradiction",
+                "summary": "反证"
+              }
+            ],
+            "produces": [
+              {
+                "id": "truth_locked",
+                "kind": "truth",
+                "summary": "真凶锁定"
+              }
+            ],
+            "opposes": [],
+            "protects": [],
+            "locationHint": "案发现场周边",
+            "actionKind": "REVEAL",
+            "independence": "DEPENDENT",
+            "needsDetail": false
+          },
+          "needsDetail": false
+        },
+        {
+          "id": "ob-mto1p979-1fr0",
+          "sourceBlockId": "smb-mto1p977-kv4qc",
+          "sourceBeatId": "beat-res",
+          "familyId": "M07",
+          "templateId": "M07-5",
+          "blockTitle": "身份权限变化｜本人早知，主动伪装到点揭开",
+          "summary": "裴烬为了承受身份公开后的关系后果，面对知情者与阵营/调查方的反应（目标：关系重组）",
+          "phaseBand": 3,
+          "stageKey": "CONSEQUENCE",
+          "characterIds": [
+            "T2",
+            "T6",
+            "T7",
+            "T4",
+            "T1"
+          ],
+          "clueIds": [],
+          "weaveGroupId": null,
+          "semantics": {
+            "actorRefs": [
+              "T2"
+            ],
+            "actorLabel": "裴烬",
+            "goal": "承受身份公开后的关系后果",
+            "action": "面对知情者与阵营/调查方的反应",
+            "target": "关系重组",
+            "requires": [
+              {
+                "id": "identity_confirmed",
+                "kind": "identity",
+                "summary": "身份确认"
+              }
+            ],
+            "produces": [
+              {
+                "id": "identity_public",
+                "kind": "identity",
+                "summary": "身份进入公开层"
+              }
+            ],
+            "opposes": [],
+            "protects": [],
+            "locationHint": "藏有记录的场所",
+            "actionKind": "CONSEQUENCE",
+            "independence": "DEPENDENT",
+            "needsDetail": false
+          },
+          "needsDetail": false
+        },
+        {
+          "id": "ob-mto1p979-hkgh",
+          "sourceBlockId": "smb-mto1p977-jl6vc",
+          "sourceBeatId": "beat-res",
+          "familyId": "M08",
+          "templateId": "M08-1",
+          "blockTitle": "固定公开阵营｜开局全员互认公开阵营",
+          "summary": "裴烬为了结算阵营目标并承受公开后果，公开站队或接受阵营败露后的关系重排（目标：阵营胜负条件）",
+          "phaseBand": 3,
+          "stageKey": "CONSEQUENCE",
+          "characterIds": [
+            "T2",
+            "T7",
+            "T3",
+            "T4",
+            "T5"
+          ],
+          "clueIds": [],
+          "weaveGroupId": null,
+          "semantics": {
+            "actorRefs": [
+              "T2"
+            ],
+            "actorLabel": "裴烬",
+            "goal": "结算阵营目标并承受公开后果",
+            "action": "公开站队或接受阵营败露后的关系重排",
+            "target": "阵营胜负条件",
+            "requires": [
+              {
+                "id": "allegiance_changed",
+                "kind": "faction",
+                "summary": "归属变化"
+              }
+            ],
+            "produces": [
+              {
+                "id": "faction_settled",
+                "kind": "faction",
+                "summary": "阵营线结算"
+              }
+            ],
+            "opposes": [],
+            "protects": [],
+            "locationHint": "阵营关键据点",
+            "actionKind": "SETTLE",
+            "independence": "DEPENDENT",
+            "needsDetail": false
+          },
+          "needsDetail": false
+        }
+      ]
+    }
+  ],
+  "weaveLinks": [
+    {
+      "id": "wl-mto1p979-5feu",
+      "kind": "WEAVE_SHARED_SCENE",
+      "relationQuality": "COLOCATED",
+      "status": "PROPOSED",
+      "beatIds": [
+        "ob-mto1p979-76hc",
+        "ob-mto1p979-wuyh"
+      ],
+      "blockIds": [
+        "smb-mto1p977-mltyl",
+        "smb-mto1p977-kv4qc"
+      ],
+      "reason": "同阶段共享角色 T2——可同场并列，不算真正交织",
+      "sharedCharacterIds": [
+        "T2"
+      ],
+      "sharedFactKinds": [],
+      "sharedTargets": []
+    },
+    {
+      "id": "wl-mto1p979-ls6f",
+      "kind": "WEAVE_SHARED_CHARACTER",
+      "relationQuality": "COLOCATED",
+      "status": "PROPOSED",
+      "beatIds": [
+        "ob-mto1p979-76hc",
+        "ob-mto1p979-brxr"
+      ],
+      "blockIds": [
+        "smb-mto1p977-mltyl",
+        "smb-mto1p977-kv4qc"
+      ],
+      "reason": "共享角色 T2——仅角色重合，保持同场并列而非强制合并",
+      "sharedCharacterIds": [
+        "T2"
+      ],
+      "sharedFactKinds": [],
+      "sharedTargets": []
+    },
+    {
+      "id": "wl-mto1p979-3ol3",
+      "kind": "WEAVE_SHARED_SCENE",
+      "relationQuality": "COLOCATED",
+      "status": "PROPOSED",
+      "beatIds": [
+        "ob-mto1p979-76hc",
+        "ob-mto1p979-k2pi"
+      ],
+      "blockIds": [
+        "smb-mto1p977-mltyl",
+        "smb-mto1p977-jl6vc"
+      ],
+      "reason": "同阶段共享角色 T2——可同场并列，不算真正交织",
+      "sharedCharacterIds": [
+        "T2"
+      ],
+      "sharedFactKinds": [],
+      "sharedTargets": []
+    },
+    {
+      "id": "wl-mto1p979-oqev",
+      "kind": "WEAVE_SHARED_CHARACTER",
+      "relationQuality": "COLOCATED",
+      "status": "PROPOSED",
+      "beatIds": [
+        "ob-mto1p979-76hc",
+        "ob-mto1p979-hmym"
+      ],
+      "blockIds": [
+        "smb-mto1p977-mltyl",
+        "smb-mto1p977-jl6vc"
+      ],
+      "reason": "共享角色 T2、T3——仅角色重合，保持同场并列而非强制合并",
+      "sharedCharacterIds": [
+        "T2",
+        "T3"
+      ],
+      "sharedFactKinds": [],
+      "sharedTargets": []
+    },
+    {
+      "id": "wl-mto1p979-jb19",
+      "kind": "WEAVE_SHARED_SCENE",
+      "relationQuality": "COLOCATED",
+      "status": "PROPOSED",
+      "beatIds": [
+        "ob-mto1p979-taqp",
+        "ob-mto1p979-brxr"
+      ],
+      "blockIds": [
+        "smb-mto1p977-mltyl",
+        "smb-mto1p977-kv4qc"
+      ],
+      "reason": "同阶段共享角色 T2、T1、T4——可同场并列，不算真正交织",
+      "sharedCharacterIds": [
+        "T2",
+        "T1",
+        "T4"
+      ],
+      "sharedFactKinds": [],
+      "sharedTargets": []
+    },
+    {
+      "id": "wl-mto1p979-i271",
+      "kind": "WEAVE_SHARED_CHARACTER",
+      "relationQuality": "COLOCATED",
+      "status": "PROPOSED",
+      "beatIds": [
+        "ob-mto1p979-taqp",
+        "ob-mto1p979-li8z"
+      ],
+      "blockIds": [
+        "smb-mto1p977-mltyl",
+        "smb-mto1p977-kv4qc"
+      ],
+      "reason": "共享角色 T2、T1、T4——仅角色重合，保持同场并列而非强制合并",
+      "sharedCharacterIds": [
+        "T2",
+        "T1",
+        "T4"
+      ],
+      "sharedFactKinds": [],
+      "sharedTargets": []
+    },
+    {
+      "id": "wl-mto1p979-a3me",
+      "kind": "WEAVE_SHARED_SCENE",
+      "relationQuality": "COLOCATED",
+      "status": "PROPOSED",
+      "beatIds": [
+        "ob-mto1p979-taqp",
+        "ob-mto1p979-hmym"
+      ],
+      "blockIds": [
+        "smb-mto1p977-mltyl",
+        "smb-mto1p977-jl6vc"
+      ],
+      "reason": "同阶段共享角色 T2、T4——可同场并列，不算真正交织",
+      "sharedCharacterIds": [
+        "T2",
+        "T4"
+      ],
+      "sharedFactKinds": [],
+      "sharedTargets": []
+    },
+    {
+      "id": "wl-mto1p979-qhv8",
+      "kind": "WEAVE_SHARED_CHARACTER",
+      "relationQuality": "COLOCATED",
+      "status": "PROPOSED",
+      "beatIds": [
+        "ob-mto1p979-taqp",
+        "ob-mto1p979-37o0"
+      ],
+      "blockIds": [
+        "smb-mto1p977-mltyl",
+        "smb-mto1p977-jl6vc"
+      ],
+      "reason": "共享角色 T2、T4——仅角色重合，保持同场并列而非强制合并",
+      "sharedCharacterIds": [
+        "T2",
+        "T4"
+      ],
+      "sharedFactKinds": [],
+      "sharedTargets": []
+    },
+    {
+      "id": "wl-mto1p979-iv6c",
+      "kind": "WEAVE_SHARED_SCENE",
+      "relationQuality": "COLOCATED",
+      "status": "PROPOSED",
+      "beatIds": [
+        "ob-mto1p979-aqwq",
+        "ob-mto1p979-li8z"
+      ],
+      "blockIds": [
+        "smb-mto1p977-mltyl",
+        "smb-mto1p977-kv4qc"
+      ],
+      "reason": "同阶段共享角色 T4、T2——可同场并列，不算真正交织",
+      "sharedCharacterIds": [
+        "T4",
+        "T2"
+      ],
+      "sharedFactKinds": [],
+      "sharedTargets": []
+    },
+    {
+      "id": "wl-mto1p979-k2or",
+      "kind": "WEAVE_SHARED_CHARACTER",
+      "relationQuality": "COLOCATED",
+      "status": "PROPOSED",
+      "beatIds": [
+        "ob-mto1p979-aqwq",
+        "ob-mto1p979-1fr0"
+      ],
+      "blockIds": [
+        "smb-mto1p977-mltyl",
+        "smb-mto1p977-kv4qc"
+      ],
+      "reason": "共享角色 T4、T2——仅角色重合，保持同场并列而非强制合并",
+      "sharedCharacterIds": [
+        "T4",
+        "T2"
+      ],
+      "sharedFactKinds": [],
+      "sharedTargets": []
+    },
+    {
+      "id": "wl-mto1p979-5t9e",
+      "kind": "WEAVE_SHARED_SCENE",
+      "relationQuality": "COLOCATED",
+      "status": "PROPOSED",
+      "beatIds": [
+        "ob-mto1p979-aqwq",
+        "ob-mto1p979-37o0"
+      ],
+      "blockIds": [
+        "smb-mto1p977-mltyl",
+        "smb-mto1p977-jl6vc"
+      ],
+      "reason": "同阶段共享角色 T4、T2、T3——可同场并列，不算真正交织",
+      "sharedCharacterIds": [
+        "T4",
+        "T2",
+        "T3"
+      ],
+      "sharedFactKinds": [],
+      "sharedTargets": []
+    },
+    {
+      "id": "wl-mto1p979-tyq2",
+      "kind": "WEAVE_SHARED_CHARACTER",
+      "relationQuality": "COLOCATED",
+      "status": "PROPOSED",
+      "beatIds": [
+        "ob-mto1p979-aqwq",
+        "ob-mto1p979-hkgh"
+      ],
+      "blockIds": [
+        "smb-mto1p977-mltyl",
+        "smb-mto1p977-jl6vc"
+      ],
+      "reason": "共享角色 T4、T2、T3——仅角色重合，保持同场并列而非强制合并",
+      "sharedCharacterIds": [
+        "T4",
+        "T2",
+        "T3"
+      ],
+      "sharedFactKinds": [],
+      "sharedTargets": []
+    },
+    {
+      "id": "wl-mto1p979-d25j",
+      "kind": "WEAVE_SHARED_SCENE",
+      "relationQuality": "COLOCATED",
+      "status": "PROPOSED",
+      "beatIds": [
+        "ob-mto1p979-w22i",
+        "ob-mto1p979-1fr0"
+      ],
+      "blockIds": [
+        "smb-mto1p977-mltyl",
+        "smb-mto1p977-kv4qc"
+      ],
+      "reason": "同阶段共享角色 T4、T1、T2——可同场并列，不算真正交织",
+      "sharedCharacterIds": [
+        "T4",
+        "T1",
+        "T2"
+      ],
+      "sharedFactKinds": [],
+      "sharedTargets": []
+    },
+    {
+      "id": "wl-mto1p979-626o",
+      "kind": "WEAVE_SHARED_SCENE",
+      "relationQuality": "COLOCATED",
+      "status": "PROPOSED",
+      "beatIds": [
+        "ob-mto1p979-w22i",
+        "ob-mto1p979-hkgh"
+      ],
+      "blockIds": [
+        "smb-mto1p977-mltyl",
+        "smb-mto1p977-jl6vc"
+      ],
+      "reason": "同阶段共享角色 T4、T2、T3——可同场并列，不算真正交织",
+      "sharedCharacterIds": [
+        "T4",
+        "T2",
+        "T3"
+      ],
+      "sharedFactKinds": [],
+      "sharedTargets": []
+    },
+    {
+      "id": "wl-mto1p979-u21a",
+      "kind": "WEAVE_SHARED_SCENE",
+      "relationQuality": "COLOCATED",
+      "status": "PROPOSED",
+      "beatIds": [
+        "ob-mto1p979-wuyh",
+        "ob-mto1p979-k2pi"
+      ],
+      "blockIds": [
+        "smb-mto1p977-kv4qc",
+        "smb-mto1p977-jl6vc"
+      ],
+      "reason": "同阶段共享角色 T2——可同场并列，不算真正交织",
+      "sharedCharacterIds": [
+        "T2"
+      ],
+      "sharedFactKinds": [],
+      "sharedTargets": []
+    },
+    {
+      "id": "wl-mto1p979-krwq",
+      "kind": "WEAVE_SHARED_CHARACTER",
+      "relationQuality": "COLOCATED",
+      "status": "PROPOSED",
+      "beatIds": [
+        "ob-mto1p979-wuyh",
+        "ob-mto1p979-hmym"
+      ],
+      "blockIds": [
+        "smb-mto1p977-kv4qc",
+        "smb-mto1p977-jl6vc"
+      ],
+      "reason": "共享角色 T2——仅角色重合，保持同场并列而非强制合并",
+      "sharedCharacterIds": [
+        "T2"
+      ],
+      "sharedFactKinds": [],
+      "sharedTargets": []
+    },
+    {
+      "id": "wl-mto1p979-lyik",
+      "kind": "WEAVE_SHARED_ACTION",
+      "relationQuality": "INTERWOVEN",
+      "status": "PROPOSED",
+      "beatIds": [
+        "ob-mto1p979-brxr",
+        "ob-mto1p979-hmym"
+      ],
+      "blockIds": [
+        "smb-mto1p977-kv4qc",
+        "smb-mto1p977-jl6vc"
+      ],
+      "reason": "两条剧情都需要在「藏有记录的场所」执行相近行动（shared-site-search），可共享一次行动",
+      "sharedCharacterIds": [
+        "T2",
+        "T7",
+        "T4"
+      ],
+      "sharedFactKinds": [],
+      "sharedTargets": []
+    },
+    {
+      "id": "wl-mto1p979-1dm4",
+      "kind": "WEAVE_SHARED_CHARACTER",
+      "relationQuality": "COLOCATED",
+      "status": "PROPOSED",
+      "beatIds": [
+        "ob-mto1p979-brxr",
+        "ob-mto1p979-37o0"
+      ],
+      "blockIds": [
+        "smb-mto1p977-kv4qc",
+        "smb-mto1p977-jl6vc"
+      ],
+      "reason": "共享角色 T2、T7、T4——仅角色重合，保持同场并列而非强制合并",
+      "sharedCharacterIds": [
+        "T2",
+        "T7",
+        "T4"
+      ],
+      "sharedFactKinds": [],
+      "sharedTargets": []
+    },
+    {
+      "id": "wl-mto1p979-icgl",
+      "kind": "WEAVE_SHARED_SCENE",
+      "relationQuality": "COLOCATED",
+      "status": "PROPOSED",
+      "beatIds": [
+        "ob-mto1p979-li8z",
+        "ob-mto1p979-37o0"
+      ],
+      "blockIds": [
+        "smb-mto1p977-kv4qc",
+        "smb-mto1p977-jl6vc"
+      ],
+      "reason": "同阶段共享角色 T2、T7、T4——可同场并列，不算真正交织",
+      "sharedCharacterIds": [
+        "T2",
+        "T7",
+        "T4"
+      ],
+      "sharedFactKinds": [],
+      "sharedTargets": []
+    },
+    {
+      "id": "wl-mto1p979-leye",
+      "kind": "WEAVE_SHARED_CHARACTER",
+      "relationQuality": "COLOCATED",
+      "status": "PROPOSED",
+      "beatIds": [
+        "ob-mto1p979-li8z",
+        "ob-mto1p979-hkgh"
+      ],
+      "blockIds": [
+        "smb-mto1p977-kv4qc",
+        "smb-mto1p977-jl6vc"
+      ],
+      "reason": "共享角色 T2、T7、T4——仅角色重合，保持同场并列而非强制合并",
+      "sharedCharacterIds": [
+        "T2",
+        "T7",
+        "T4"
+      ],
+      "sharedFactKinds": [],
+      "sharedTargets": []
+    },
+    {
+      "id": "wl-mto1p979-xl5d",
+      "kind": "WEAVE_SHARED_SCENE",
+      "relationQuality": "COLOCATED",
+      "status": "PROPOSED",
+      "beatIds": [
+        "ob-mto1p979-1fr0",
+        "ob-mto1p979-hkgh"
+      ],
+      "blockIds": [
+        "smb-mto1p977-kv4qc",
+        "smb-mto1p977-jl6vc"
+      ],
+      "reason": "同阶段共享角色 T2、T7、T4——可同场并列，不算真正交织",
+      "sharedCharacterIds": [
+        "T2",
+        "T7",
+        "T4"
+      ],
+      "sharedFactKinds": [],
+      "sharedTargets": []
+    },
+    {
+      "id": "wl-mto1p979-xfbb",
+      "kind": "KEEP_PARALLEL",
+      "relationQuality": "PARALLEL",
+      "status": "PROPOSED",
+      "beatIds": [
+        "ob-mto1p979-taqp",
+        "ob-mto1p979-brxr"
+      ],
+      "blockIds": [
+        "smb-mto1p977-mltyl",
+        "smb-mto1p977-kv4qc"
+      ],
+      "reason": "嫁祸型追凶｜栽赃物品 与 身份权限变化｜本人早知，主动伪装到点揭开 无线索级交织证据，叙事线保持平行（同场/同角不算交织）",
+      "sharedCharacterIds": [
+        "T2",
+        "T1",
+        "T4"
+      ],
+      "sharedFactKinds": [],
+      "sharedTargets": []
+    },
+    {
+      "id": "wl-mto1p979-hl44",
+      "kind": "KEEP_PARALLEL",
+      "relationQuality": "PARALLEL",
+      "status": "PROPOSED",
+      "beatIds": [
+        "ob-mto1p979-taqp",
+        "ob-mto1p979-hmym"
+      ],
+      "blockIds": [
+        "smb-mto1p977-mltyl",
+        "smb-mto1p977-jl6vc"
+      ],
+      "reason": "嫁祸型追凶｜栽赃物品 与 固定公开阵营｜开局全员互认公开阵营 无线索级交织证据，叙事线保持平行（同场/同角不算交织）",
+      "sharedCharacterIds": [
+        "T2",
+        "T4"
+      ],
+      "sharedFactKinds": [],
+      "sharedTargets": []
+    }
+  ],
+  "conflictReport": [
+    {
+      "id": "cf-mto1p979-70fm",
+      "type": "ROLE_OVERLOAD",
+      "severity": "info",
+      "characterId": "T1",
+      "summary": "萧敛 当前承担：victim HIGH、support（负载 3）",
+      "suggestions": [
+        {
+          "id": "keep",
+          "label": "保留"
+        },
+        {
+          "id": "reassign",
+          "label": "建议把次要职责换给其他角色"
+        },
+        {
+          "id": "intentional",
+          "label": "标记为有意重叠"
+        }
+      ],
+      "decision": null
+    },
+    {
+      "id": "cf-mto1p979-jz6t",
+      "type": "ROLE_OVERLOAD",
+      "severity": "high",
+      "characterId": "T2",
+      "summary": "裴烬 当前承担：killer HIGH、identity_bearer HIGH、faction_lead HIGH（负载 7）",
+      "suggestions": [
+        {
+          "id": "keep",
+          "label": "保留"
+        },
+        {
+          "id": "reassign",
+          "label": "建议把次要职责换给其他角色"
+        },
+        {
+          "id": "intentional",
+          "label": "标记为有意重叠"
+        }
+      ],
+      "decision": null
+    },
+    {
+      "id": "cf-mto1p979-mb7v",
+      "type": "ROLE_OVERLOAD",
+      "severity": "info",
+      "characterId": "T3",
+      "summary": "沈砚 当前承担：framed HIGH、member（负载 3）",
+      "suggestions": [
+        {
+          "id": "keep",
+          "label": "保留"
+        },
+        {
+          "id": "reassign",
+          "label": "建议把次要职责换给其他角色"
+        },
+        {
+          "id": "intentional",
+          "label": "标记为有意重叠"
+        }
+      ],
+      "decision": null
+    },
+    {
+      "id": "cf-mto1p979-c81x",
+      "type": "ROLE_OVERLOAD",
+      "severity": "info",
+      "characterId": "T4",
+      "summary": "顾晚 当前承担：discoverer、discoverer、outsider（负载 3）",
+      "suggestions": [
+        {
+          "id": "keep",
+          "label": "保留"
+        },
+        {
+          "id": "reassign",
+          "label": "建议把次要职责换给其他角色"
+        },
+        {
+          "id": "intentional",
+          "label": "标记为有意重叠"
+        }
+      ],
+      "decision": null
+    },
+    {
+      "id": "cf-mto1p979-8bny",
+      "type": "INTENTIONAL_OVERLAP_CANDIDATE",
+      "severity": "info",
+      "characterId": "T2",
+      "summary": "裴烬 同时是真凶与阵营领袖——可保留为强交织，或拆开降负载。",
+      "suggestions": [
+        {
+          "id": "keep",
+          "label": "保留（强交织）"
+        },
+        {
+          "id": "reassign",
+          "label": "将阵营领袖换给其他人"
+        },
+        {
+          "id": "intentional",
+          "label": "标记为有意重叠"
+        }
+      ],
+      "decision": null
+    }
+  ],
+  "characterLoadReport": [
+    {
+      "characterId": "T2",
+      "name": "裴烬",
+      "totalLoad": 7,
+      "roles": [
+        {
+          "blockId": "smb-mto1p977-mltyl",
+          "slotId": "culprit",
+          "narrativeRole": "killer",
+          "intensity": 3,
+          "intentionalOverlap": false
+        },
+        {
+          "blockId": "smb-mto1p977-kv4qc",
+          "slotId": "bearer",
+          "narrativeRole": "identity_bearer",
+          "intensity": 2,
+          "intentionalOverlap": false
+        },
+        {
+          "blockId": "smb-mto1p977-jl6vc",
+          "slotId": "factionLead",
+          "narrativeRole": "faction_lead",
+          "intensity": 2,
+          "intentionalOverlap": false
+        }
+      ]
+    },
+    {
+      "characterId": "T1",
+      "name": "萧敛",
+      "totalLoad": 3,
+      "roles": [
+        {
+          "blockId": "smb-mto1p977-mltyl",
+          "slotId": "victim",
+          "narrativeRole": "victim",
+          "intensity": 2,
+          "intentionalOverlap": false
+        },
+        {
+          "blockId": "smb-mto1p977-kv4qc",
+          "slotId": "related",
+          "narrativeRole": "support",
+          "intensity": 1,
+          "intentionalOverlap": false
+        }
+      ]
+    },
+    {
+      "characterId": "T3",
+      "name": "沈砚",
+      "totalLoad": 3,
+      "roles": [
+        {
+          "blockId": "smb-mto1p977-mltyl",
+          "slotId": "framedCharacter",
+          "narrativeRole": "framed",
+          "intensity": 2,
+          "intentionalOverlap": false
+        },
+        {
+          "blockId": "smb-mto1p977-jl6vc",
+          "slotId": "memberB",
+          "narrativeRole": "member",
+          "intensity": 1,
+          "intentionalOverlap": false
+        }
+      ]
+    },
+    {
+      "characterId": "T4",
+      "name": "顾晚",
+      "totalLoad": 3,
+      "roles": [
+        {
+          "blockId": "smb-mto1p977-mltyl",
+          "slotId": "discoverer",
+          "narrativeRole": "discoverer",
+          "intensity": 1,
+          "intentionalOverlap": false
+        },
+        {
+          "blockId": "smb-mto1p977-kv4qc",
+          "slotId": "revealer",
+          "narrativeRole": "discoverer",
+          "intensity": 1,
+          "intentionalOverlap": false
+        },
+        {
+          "blockId": "smb-mto1p977-jl6vc",
+          "slotId": "outsider",
+          "narrativeRole": "outsider",
+          "intensity": 1,
+          "intentionalOverlap": false
+        }
+      ]
+    },
+    {
+      "characterId": "T7",
+      "name": "莫川",
+      "totalLoad": 2,
+      "roles": [
+        {
+          "blockId": "smb-mto1p977-kv4qc",
+          "slotId": "misled",
+          "narrativeRole": "misled",
+          "intensity": 1,
+          "intentionalOverlap": false
+        },
+        {
+          "blockId": "smb-mto1p977-jl6vc",
+          "slotId": "memberA",
+          "narrativeRole": "member",
+          "intensity": 1,
+          "intentionalOverlap": false
+        }
+      ]
+    },
+    {
+      "characterId": "T5",
+      "name": "霍辞",
+      "totalLoad": 2,
+      "roles": [
+        {
+          "blockId": "smb-mto1p977-jl6vc",
+          "slotId": "rivalLead",
+          "narrativeRole": "rival_lead",
+          "intensity": 2,
+          "intentionalOverlap": false
+        }
+      ]
+    },
+    {
+      "characterId": "T6",
+      "name": "谢听雪",
+      "totalLoad": 1,
+      "roles": [
+        {
+          "blockId": "smb-mto1p977-kv4qc",
+          "slotId": "knower",
+          "narrativeRole": "witness",
+          "intensity": 1,
+          "intentionalOverlap": false
+        }
+      ]
+    }
+  ]
+}

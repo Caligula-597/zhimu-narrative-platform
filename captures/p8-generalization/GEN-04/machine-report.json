@@ -1,0 +1,167 @@
+{
+  "caseId": "GEN-04",
+  "title": "毕业照之后",
+  "schemaVersion": 1,
+  "projectConfig": {
+    "playerCount": 8,
+    "stageCount": 5,
+    "genreTags": [
+      "校园",
+      "现实",
+      "群像",
+      "无主凶案"
+    ]
+  },
+  "pipelineOk": true,
+  "pipelineError": null,
+  "gates": {
+    "G1": [
+      {
+        "id": "G1.playerCount",
+        "pass": true,
+        "message": "premise/players=8/8, want=8",
+        "details": {
+          "players": [
+            "S1",
+            "S2",
+            "S3",
+            "S4",
+            "S5",
+            "S6",
+            "S7",
+            "S8"
+          ]
+        }
+      },
+      {
+        "id": "G1.stageCount",
+        "pass": false,
+        "message": "outline=4 draft=4 want=5",
+        "details": {
+          "outlineStageIds": [
+            "act1",
+            "act2",
+            "act3",
+            "act4"
+          ],
+          "draftStageIds": [
+            "act1",
+            "act2",
+            "act3",
+            "act4"
+          ]
+        }
+      },
+      {
+        "id": "G1.noPadPlayers",
+        "pass": true,
+        "message": "no padded players",
+        "details": {
+          "invented": []
+        }
+      },
+      {
+        "id": "G1.stageIdsFromProject",
+        "pass": true,
+        "message": "draft stage ids should come from project stages (or empty on hard fail)",
+        "details": {
+          "draftIds": [
+            "act1",
+            "act2",
+            "act3",
+            "act4"
+          ],
+          "projectIds": [
+            "act1",
+            "act2",
+            "act3",
+            "act4",
+            "act5"
+          ]
+        }
+      }
+    ],
+    "G2": [
+      {
+        "id": "G2.clueLifecycleIds",
+        "pass": true,
+        "message": "clue rows=29 uniqueIds=29",
+        "details": {}
+      },
+      {
+        "id": "G2.misleadingConsistency",
+        "pass": true,
+        "message": "misleading mismatches=0",
+        "details": {}
+      },
+      {
+        "id": "G2.pipelineProducedDraft",
+        "pass": true,
+        "message": "draft present",
+        "details": {}
+      }
+    ],
+    "G3": [
+      {
+        "id": "G3.structuralRoleCount",
+        "pass": true,
+        "message": "player roles available for playable adapt=8",
+        "details": {}
+      },
+      {
+        "id": "G3.stagesPresent",
+        "pass": true,
+        "message": "draft stages=4 (complete scripts not required in P8.0)",
+        "details": {}
+      },
+      {
+        "id": "G3.noForcedCulprit",
+        "pass": true,
+        "message": "no M01; killerAssignments=0",
+        "details": {
+          "killers": [],
+          "hasM01": false
+        }
+      },
+      {
+        "id": "G3.draftValidWithoutCulpritField",
+        "pass": true,
+        "message": "PMD must exist without correctCulpritRoleId / CompleteScriptPackage",
+        "details": {}
+      },
+      {
+        "id": "G3.noGameStillHasExecutionView",
+        "pass": true,
+        "message": "execution view present without GAME plan",
+        "details": {}
+      },
+      {
+        "id": "G3.noCompleteScriptRequired",
+        "pass": true,
+        "message": "P8.0 playable compatibility is structural only",
+        "details": {}
+      }
+    ]
+  },
+  "gatePass": {
+    "G1": false,
+    "G2": true,
+    "G3": true,
+    "all": false
+  },
+  "failureClass": "CONTRACT_FAILURE",
+  "editorialStatus": "PENDING",
+  "counts": {
+    "players": 8,
+    "stagesProject": 5,
+    "stagesOutline": 4,
+    "stagesDraft": 4,
+    "acceptedBlocks": 3,
+    "weaveLinks": 22,
+    "interwoven": 7,
+    "keepParallel": 2,
+    "clues": 29,
+    "warnings": 11,
+    "gameCandidates": 0
+  }
+}

@@ -1,0 +1,123 @@
+{
+  "schemaVersion": 1,
+  "caseId": "GEN-04",
+  "title": "毕业照之后",
+  "slug": "after-graduation-photo",
+  "projectConfig": {
+    "playerCount": 8,
+    "stageCount": 5,
+    "genreTags": [
+      "校园",
+      "现实",
+      "群像",
+      "无主凶案"
+    ]
+  },
+  "premise": {
+    "genre": "校园现实群像",
+    "era": "当代校园回忆",
+    "tone": [
+      "责任",
+      "隐瞒",
+      "群像"
+    ],
+    "playerCount": 8,
+    "targetDuration": 200
+  },
+  "characters": [
+    {
+      "id": "S1",
+      "name": "陈夏"
+    },
+    {
+      "id": "S2",
+      "name": "方禾"
+    },
+    {
+      "id": "S3",
+      "name": "梁柚"
+    },
+    {
+      "id": "S4",
+      "name": "韩汀"
+    },
+    {
+      "id": "S5",
+      "name": "许南"
+    },
+    {
+      "id": "S6",
+      "name": "乔安"
+    },
+    {
+      "id": "S7",
+      "name": "沐白"
+    },
+    {
+      "id": "S8",
+      "name": "程野"
+    }
+  ],
+  "stages": [
+    {
+      "id": "act1",
+      "label": "第1幕",
+      "order": 0
+    },
+    {
+      "id": "act2",
+      "label": "第2幕",
+      "order": 1
+    },
+    {
+      "id": "act3",
+      "label": "第3幕",
+      "order": 2
+    },
+    {
+      "id": "act4",
+      "label": "第4幕",
+      "order": 3
+    },
+    {
+      "id": "act5",
+      "label": "终局",
+      "order": 4
+    }
+  ],
+  "storyPlan": [
+    {
+      "templateId": "M08-1",
+      "preferredVariantId": "V04",
+      "intentionalOverlap": false
+    },
+    {
+      "templateId": "M08-7",
+      "preferredVariantId": "V01",
+      "intentionalOverlap": true
+    },
+    {
+      "templateId": "M07-2",
+      "preferredVariantId": "V02",
+      "intentionalOverlap": true
+    }
+  ],
+  "gamePlan": [],
+  "expectedStructuralProperties": {
+    "playerCount": 8,
+    "stageCount": 5,
+    "forbidAutoPadSixthPlayer": true
+  },
+  "playableExpectation": {
+    "requireCulprit": false,
+    "gamePlacements": [],
+    "allowMissingCompleteScripts": true,
+    "allowOptionalKillerAssignments": true
+  },
+  "editorialFocus": [
+    "无唯一killer也必须成立",
+    "不得要求framed/discoverer/decisive culprit",
+    "8人群像"
+  ],
+  "notes": "杀掉「剧本杀=一定有真凶」隐含假设。无 M01-FRAMING。"
+}
