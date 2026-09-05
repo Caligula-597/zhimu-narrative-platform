@@ -33,3 +33,9 @@ node scripts/production-master-draft-fidelity.mjs
 ```
 
 A/C/D/E/H fidelity 仍 PASS；投影回归覆盖 A/D/H 关键缺陷。
+
+## Gate
+
+本刀通过后，**Deterministic Production Layer 正式 FROZEN**。  
+见 [`P6_DETERMINISTIC_PRODUCTION_LAYER_FROZEN_ZH.md`](./P6_DETERMINISTIC_PRODUCTION_LAYER_FROZEN_ZH.md)。  
+除非桌测证明合同错了，否则不再改核心 Expander；下一次开 `Full Script Production V1`，不是继续 P6.n。

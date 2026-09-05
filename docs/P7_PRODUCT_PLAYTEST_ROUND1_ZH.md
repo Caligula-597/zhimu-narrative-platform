@@ -1,8 +1,10 @@
 # P7.4 Product Playtest Round 1 — 执行单
 
 > 冻结基线：`6795744`  
+> 上游结构层：Deterministic Production Layer FROZEN（`b4e4cce`，见 `docs/P6_DETERMINISTIC_PRODUCTION_LAYER_FROZEN_ZH.md`）  
 > 原则：**原则上不开发功能**；用当前 Runtime 跑真人局。  
-> 测的是工具，不是「商会库房案」文学质量。
+> 测的是工具，不是「商会库房案」文学质量。  
+> 桌测之后再进 P8.0；**不要**因本轮结果直接开 P6.1 LLM / Full Script Production（除非证明合同错了才回头解冻 Expander）。
 
 ---
 
