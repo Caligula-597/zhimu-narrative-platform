@@ -78,6 +78,11 @@ const showError = (error, fallback = "操作失败") => showToast(normalizeError
           .openCurrentCreatorProductionMasterDraftWorkbench();
         return true;
 
+      case "cockpit-open-playable-compile":
+        await (await import("../views/creator-playable-compile-workbench.js"))
+          .openCurrentCreatorPlayableCompileWorkbench();
+        return true;
+
       case "cockpit-open-document-import":
         callView("writer", "openOpeningPackage");
         return true;

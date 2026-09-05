@@ -65,6 +65,6 @@ P7 Playable Vertical Slice V1（docs/PLAYABLE_VERTICAL_SLICE_P7_ZH.md）
 P6.1 Optional LLM Rendering · M10/M11 · 39 GAME 全接 · 世界域/社区/商业化
 ```
 
-~~P3~~ ✅ → ~~P4 M08~~ ✅ → ~~P5~~ ✅ → ~~P5.1~~ ❌ → ~~P5.2~~ ✅ → ~~P6.0~~ ✅ → **P7 Playable Vertical Slice**（完整剧本开完一局；先 M03+M09；禁止 STORY runtime）
+~~P3~~ ✅ → ~~P4 M08~~ ✅ → ~~P5~~ ✅ → ~~P5.1~~ ❌ → ~~P5.2~~ ✅ → ~~P6.0~~ ✅ → **P7.0 Playable Contract + Fixture Compiler** ✅ → P7.1 Content Runtime → P7.2 M03 → P7.3 M09
 
 P6 硬边界仍有效。P6.1 不取消，等第一局跑通后再做「AI 润色这一段」插件。

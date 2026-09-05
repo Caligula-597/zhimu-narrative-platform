@@ -1,0 +1,1286 @@
+{
+  "schemaVersion": 1,
+  "id": "pp-fixture-warehouse-six-v1",
+  "title": "商会库房案",
+  "status": "READY",
+  "isStale": false,
+  "source": {
+    "sourceType": "FIXTURE",
+    "sourceId": "fixture-warehouse-six-v1",
+    "sourceRevision": "1.0.0",
+    "fixtureId": "fixture-warehouse-six-v1",
+    "fingerprint": "FIXTURE|fixture-warehouse-six-v1|1.0.0|fixture-warehouse-six-v1",
+    "compiledAt": "2026-09-05T00:00:00.000Z"
+  },
+  "roles": [
+    {
+      "id": "role_host",
+      "name": "主持人",
+      "type": "HOST",
+      "playerAssignable": false,
+      "sourceRefs": [
+        {
+          "sourceType": "HOST_SCRIPT",
+          "characterId": "role_host",
+          "label": "role:role_host"
+        }
+      ]
+    },
+    {
+      "id": "role_a",
+      "characterId": "char_a",
+      "name": "沈孤鸿",
+      "type": "PLAYER",
+      "playerAssignable": true,
+      "sourceRefs": [
+        {
+          "sourceType": "CHARACTER_SCRIPT",
+          "characterId": "char_a",
+          "label": "role:role_a"
+        }
+      ]
+    },
+    {
+      "id": "role_b",
+      "characterId": "char_b",
+      "name": "陆晚晴",
+      "type": "PLAYER",
+      "playerAssignable": true,
+      "sourceRefs": [
+        {
+          "sourceType": "CHARACTER_SCRIPT",
+          "characterId": "char_b",
+          "label": "role:role_b"
+        }
+      ]
+    },
+    {
+      "id": "role_c",
+      "characterId": "char_c",
+      "name": "赵启明",
+      "type": "PLAYER",
+      "playerAssignable": true,
+      "sourceRefs": [
+        {
+          "sourceType": "CHARACTER_SCRIPT",
+          "characterId": "char_c",
+          "label": "role:role_c"
+        }
+      ]
+    },
+    {
+      "id": "role_d",
+      "characterId": "char_d",
+      "name": "白素",
+      "type": "PLAYER",
+      "playerAssignable": true,
+      "sourceRefs": [
+        {
+          "sourceType": "CHARACTER_SCRIPT",
+          "characterId": "char_d",
+          "label": "role:role_d"
+        }
+      ]
+    },
+    {
+      "id": "role_e",
+      "characterId": "char_e",
+      "name": "周衡",
+      "type": "PLAYER",
+      "playerAssignable": true,
+      "sourceRefs": [
+        {
+          "sourceType": "CHARACTER_SCRIPT",
+          "characterId": "char_e",
+          "label": "role:role_e"
+        }
+      ]
+    },
+    {
+      "id": "role_f",
+      "characterId": "char_f",
+      "name": "方砚",
+      "type": "PLAYER",
+      "playerAssignable": true,
+      "sourceRefs": [
+        {
+          "sourceType": "CHARACTER_SCRIPT",
+          "characterId": "char_f",
+          "label": "role:role_f"
+        }
+      ]
+    }
+  ],
+  "stages": [
+    {
+      "id": "stage_1",
+      "order": 0,
+      "title": "第一幕·报案",
+      "stageRole": "SETUP",
+      "contentUnitIds": [
+        "cu_host_host_s1",
+        "cu_a_s1",
+        "cu_b_s1",
+        "cu_c_s1",
+        "cu_d_s1",
+        "cu_e_s1",
+        "cu_f_s1",
+        "cu_ab_shared_s1",
+        "cu_public_s1",
+        "cu_clue_clue_blood_photo"
+      ],
+      "clueIds": [
+        "clue_blood_photo"
+      ],
+      "mechanismPlacementIds": [],
+      "enterCondition": {
+        "type": "HOST_START"
+      },
+      "exitCondition": {
+        "type": "HOST_ADVANCE"
+      },
+      "sourceRefs": [
+        {
+          "sourceType": "FIXTURE",
+          "stageId": "stage_1",
+          "label": "第一幕·报案"
+        }
+      ]
+    },
+    {
+      "id": "stage_2",
+      "order": 1,
+      "title": "第二幕·库房争夺",
+      "stageRole": "PRESSURE",
+      "contentUnitIds": [
+        "cu_host_host_s2",
+        "cu_a_s2",
+        "cu_a_s2_win",
+        "cu_b_s2",
+        "cu_c_s2",
+        "cu_d_s2",
+        "cu_e_s2",
+        "cu_f_s2",
+        "cu_public_s2",
+        "cu_clue_clue_burned_ledger",
+        "cu_intro_place_m03_storage"
+      ],
+      "clueIds": [
+        "clue_burned_ledger"
+      ],
+      "mechanismPlacementIds": [
+        "place_m03_storage"
+      ],
+      "enterCondition": {
+        "type": "HOST_ADVANCE"
+      },
+      "exitCondition": {
+        "type": "HOST_ADVANCE"
+      },
+      "sourceRefs": [
+        {
+          "sourceType": "FIXTURE",
+          "stageId": "stage_2",
+          "label": "第二幕·库房争夺"
+        }
+      ]
+    },
+    {
+      "id": "stage_3",
+      "order": 2,
+      "title": "第三幕·账册余烬",
+      "stageRole": "ESCALATION",
+      "contentUnitIds": [
+        "cu_host_host_s3",
+        "cu_a_s3",
+        "cu_b_s3",
+        "cu_c_s3",
+        "cu_d_s3",
+        "cu_e_s3",
+        "cu_f_s3",
+        "cu_clue_clue_key_fragment"
+      ],
+      "clueIds": [
+        "clue_key_fragment"
+      ],
+      "mechanismPlacementIds": [],
+      "enterCondition": {
+        "type": "HOST_ADVANCE"
+      },
+      "exitCondition": {
+        "type": "HOST_ADVANCE"
+      },
+      "sourceRefs": [
+        {
+          "sourceType": "FIXTURE",
+          "stageId": "stage_3",
+          "label": "第三幕·账册余烬"
+        }
+      ]
+    },
+    {
+      "id": "stage_4",
+      "order": 3,
+      "title": "第四幕·投票结算",
+      "stageRole": "PAYOFF",
+      "contentUnitIds": [
+        "cu_host_host_s4",
+        "cu_a_s4",
+        "cu_b_s4",
+        "cu_c_s4",
+        "cu_d_s4",
+        "cu_e_s4",
+        "cu_f_s4",
+        "cu_intro_place_m09_final"
+      ],
+      "clueIds": [],
+      "mechanismPlacementIds": [
+        "place_m09_final"
+      ],
+      "enterCondition": {
+        "type": "HOST_ADVANCE"
+      },
+      "exitCondition": {
+        "type": "MECHANISM_SETTLED",
+        "placementId": "place_m09_final"
+      },
+      "sourceRefs": [
+        {
+          "sourceType": "FIXTURE",
+          "stageId": "stage_4",
+          "label": "第四幕·投票结算"
+        }
+      ]
+    }
+  ],
+  "contentUnits": [
+    {
+      "id": "cu_host_host_s1",
+      "type": "TEXT",
+      "stageId": "stage_1",
+      "audience": {
+        "roleIds": [
+          "role_host"
+        ],
+        "visibility": "HOST_ONLY"
+      },
+      "delivery": "AUTO_ON_STAGE",
+      "content": "第一幕开场：宣读公共案情，确认六名玩家就位。\n可发放线索：血迹照片。不要提前发放烧毁账册。",
+      "title": "主持·第一幕后台",
+      "sourceRef": {
+        "sourceType": "HOST_SCRIPT",
+        "sourceDocumentId": "doc_host_manual",
+        "stageId": "stage_1",
+        "sectionId": "host_s1",
+        "label": "主持·第一幕后台"
+      }
+    },
+    {
+      "id": "cu_host_host_s2",
+      "type": "TEXT",
+      "stageId": "stage_2",
+      "audience": {
+        "roleIds": [
+          "role_host"
+        ],
+        "visibility": "HOST_ONLY"
+      },
+      "delivery": "AUTO_ON_STAGE",
+      "content": "宣布商会规则：库房只允许一人进入。\n启动库房进入资格竞价（M03）。赢家将获得查看烧毁账册的权限。",
+      "title": "主持·第二幕后台",
+      "sourceRef": {
+        "sourceType": "HOST_SCRIPT",
+        "sourceDocumentId": "doc_host_manual",
+        "stageId": "stage_2",
+        "sectionId": "host_s2",
+        "label": "主持·第二幕后台"
+      }
+    },
+    {
+      "id": "cu_host_host_s3",
+      "type": "TEXT",
+      "stageId": "stage_3",
+      "audience": {
+        "roleIds": [
+          "role_host"
+        ],
+        "visibility": "HOST_ONLY"
+      },
+      "delivery": "AUTO_ON_STAGE",
+      "content": "发放关键线索：库房钥匙残件。确认赢家是否已读私人账册内容。",
+      "title": "主持·第三幕后台",
+      "sourceRef": {
+        "sourceType": "HOST_SCRIPT",
+        "sourceDocumentId": "doc_host_manual",
+        "stageId": "stage_3",
+        "sectionId": "host_s3",
+        "label": "主持·第三幕后台"
+      }
+    },
+    {
+      "id": "cu_host_host_s4",
+      "type": "TEXT",
+      "stageId": "stage_4",
+      "audience": {
+        "roleIds": [
+          "role_host"
+        ],
+        "visibility": "HOST_ONLY"
+      },
+      "delivery": "AUTO_ON_STAGE",
+      "content": "启动最终指凶投票（M09）。按多数票宣读结算。",
+      "title": "主持·终幕后台",
+      "sourceRef": {
+        "sourceType": "HOST_SCRIPT",
+        "sourceDocumentId": "doc_host_manual",
+        "stageId": "stage_4",
+        "sectionId": "host_s4",
+        "label": "主持·终幕后台"
+      }
+    },
+    {
+      "id": "cu_a_s1",
+      "type": "TEXT",
+      "stageId": "stage_1",
+      "audience": {
+        "roleIds": [
+          "role_a"
+        ],
+        "visibility": "PRIVATE"
+      },
+      "delivery": "AUTO_ON_STAGE",
+      "content": "你是商会书记沈孤鸿。昨夜你在库房门口见过一个模糊身影。\n你需要先弄清昨夜争执的起因。",
+      "title": "沈孤鸿·第一幕",
+      "sourceRef": {
+        "sourceType": "CHARACTER_SCRIPT",
+        "sourceDocumentId": "doc_role_a",
+        "characterId": "role_a",
+        "stageId": "stage_1",
+        "sectionId": "a_s1",
+        "label": "沈孤鸿·第一幕"
+      }
+    },
+    {
+      "id": "cu_a_s2",
+      "type": "TEXT",
+      "stageId": "stage_2",
+      "audience": {
+        "roleIds": [
+          "role_a"
+        ],
+        "visibility": "PRIVATE"
+      },
+      "delivery": "AUTO_ON_STAGE",
+      "content": "商会宣布库房只许一人进入。你决定参与争夺进入资格。",
+      "title": "沈孤鸿·第二幕",
+      "sourceRef": {
+        "sourceType": "CHARACTER_SCRIPT",
+        "sourceDocumentId": "doc_role_a",
+        "characterId": "role_a",
+        "stageId": "stage_2",
+        "sectionId": "a_s2",
+        "label": "沈孤鸿·第二幕"
+      }
+    },
+    {
+      "id": "cu_a_s2_win",
+      "type": "TEXT",
+      "stageId": "stage_2",
+      "audience": {
+        "roleIds": [
+          "role_a"
+        ],
+        "visibility": "PRIVATE"
+      },
+      "delivery": "CONDITION_UNLOCK",
+      "content": "你进入库房，看见半页烧毁的账册残页写着：赵启明经手银两去向不明。",
+      "title": "沈孤鸿·库房私人（竞价赢家解锁）",
+      "unlockCondition": {
+        "type": "PERMISSION",
+        "permissionId": "storage_room_access"
+      },
+      "sourceRef": {
+        "sourceType": "CHARACTER_SCRIPT",
+        "sourceDocumentId": "doc_role_a",
+        "characterId": "role_a",
+        "stageId": "stage_2",
+        "sectionId": "a_s2_win",
+        "label": "沈孤鸿·库房私人（竞价赢家解锁）"
+      },
+      "metadata": {
+        "unlockPermissionId": "storage_room_access"
+      }
+    },
+    {
+      "id": "cu_a_s3",
+      "type": "TEXT",
+      "stageId": "stage_3",
+      "audience": {
+        "roleIds": [
+          "role_a"
+        ],
+        "visibility": "PRIVATE"
+      },
+      "delivery": "AUTO_ON_STAGE",
+      "content": "你开始怀疑赵启明。你昨夜在库房门口见过沈孤鸿——不，那是别人看见你。你需要核对时间。",
+      "title": "沈孤鸿·第三幕",
+      "sourceRef": {
+        "sourceType": "CHARACTER_SCRIPT",
+        "sourceDocumentId": "doc_role_a",
+        "characterId": "role_a",
+        "stageId": "stage_3",
+        "sectionId": "a_s3",
+        "label": "沈孤鸿·第三幕"
+      }
+    },
+    {
+      "id": "cu_a_s4",
+      "type": "TEXT",
+      "stageId": "stage_4",
+      "audience": {
+        "roleIds": [
+          "role_a"
+        ],
+        "visibility": "PRIVATE"
+      },
+      "delivery": "AUTO_ON_STAGE",
+      "content": "最终投票时，你必须根据已掌握的账册与证词作出选择。",
+      "title": "沈孤鸿·终幕",
+      "sourceRef": {
+        "sourceType": "CHARACTER_SCRIPT",
+        "sourceDocumentId": "doc_role_a",
+        "characterId": "role_a",
+        "stageId": "stage_4",
+        "sectionId": "a_s4",
+        "label": "沈孤鸿·终幕"
+      }
+    },
+    {
+      "id": "cu_b_s1",
+      "type": "TEXT",
+      "stageId": "stage_1",
+      "audience": {
+        "roleIds": [
+          "role_b"
+        ],
+        "visibility": "PRIVATE"
+      },
+      "delivery": "AUTO_ON_STAGE",
+      "content": "你是账房陆晚晴。死者是你的上司。你隐瞒了账目缺口。",
+      "title": "陆晚晴·第一幕",
+      "sourceRef": {
+        "sourceType": "CHARACTER_SCRIPT",
+        "sourceDocumentId": "doc_role_b",
+        "characterId": "role_b",
+        "stageId": "stage_1",
+        "sectionId": "b_s1",
+        "label": "陆晚晴·第一幕"
+      }
+    },
+    {
+      "id": "cu_b_s2",
+      "type": "TEXT",
+      "stageId": "stage_2",
+      "audience": {
+        "roleIds": [
+          "role_b"
+        ],
+        "visibility": "PRIVATE"
+      },
+      "delivery": "AUTO_ON_STAGE",
+      "content": "你不希望任何人进入库房。你会尽量阻止竞价，或确保赢家不是赵启明。",
+      "title": "陆晚晴·第二幕",
+      "sourceRef": {
+        "sourceType": "CHARACTER_SCRIPT",
+        "sourceDocumentId": "doc_role_b",
+        "characterId": "role_b",
+        "stageId": "stage_2",
+        "sectionId": "b_s2",
+        "label": "陆晚晴·第二幕"
+      }
+    },
+    {
+      "id": "cu_b_s3",
+      "type": "TEXT",
+      "stageId": "stage_3",
+      "audience": {
+        "roleIds": [
+          "role_b"
+        ],
+        "visibility": "PRIVATE"
+      },
+      "delivery": "AUTO_ON_STAGE",
+      "content": "钥匙残件让你不安。你知道库房里还有第二套账。",
+      "title": "陆晚晴·第三幕",
+      "sourceRef": {
+        "sourceType": "CHARACTER_SCRIPT",
+        "sourceDocumentId": "doc_role_b",
+        "characterId": "role_b",
+        "stageId": "stage_3",
+        "sectionId": "b_s3",
+        "label": "陆晚晴·第三幕"
+      }
+    },
+    {
+      "id": "cu_b_s4",
+      "type": "TEXT",
+      "stageId": "stage_4",
+      "audience": {
+        "roleIds": [
+          "role_b"
+        ],
+        "visibility": "PRIVATE"
+      },
+      "delivery": "AUTO_ON_STAGE",
+      "content": "你需要在投票中自保，同时把嫌疑推到真正动手的人身上。",
+      "title": "陆晚晴·终幕",
+      "sourceRef": {
+        "sourceType": "CHARACTER_SCRIPT",
+        "sourceDocumentId": "doc_role_b",
+        "characterId": "role_b",
+        "stageId": "stage_4",
+        "sectionId": "b_s4",
+        "label": "陆晚晴·终幕"
+      }
+    },
+    {
+      "id": "cu_c_s1",
+      "type": "TEXT",
+      "stageId": "stage_1",
+      "audience": {
+        "roleIds": [
+          "role_c"
+        ],
+        "visibility": "PRIVATE"
+      },
+      "delivery": "AUTO_ON_STAGE",
+      "content": "你是管事赵启明。你昨夜确实去过库房附近，但你坚称只是巡夜。",
+      "title": "赵启明·第一幕",
+      "sourceRef": {
+        "sourceType": "CHARACTER_SCRIPT",
+        "sourceDocumentId": "doc_role_c",
+        "characterId": "role_c",
+        "stageId": "stage_1",
+        "sectionId": "c_s1",
+        "label": "赵启明·第一幕"
+      }
+    },
+    {
+      "id": "cu_c_s2",
+      "type": "TEXT",
+      "stageId": "stage_2",
+      "audience": {
+        "roleIds": [
+          "role_c"
+        ],
+        "visibility": "PRIVATE"
+      },
+      "delivery": "AUTO_ON_STAGE",
+      "content": "你必须阻止别人先看到账册。你会全力竞价。",
+      "title": "赵启明·第二幕",
+      "sourceRef": {
+        "sourceType": "CHARACTER_SCRIPT",
+        "sourceDocumentId": "doc_role_c",
+        "characterId": "role_c",
+        "stageId": "stage_2",
+        "sectionId": "c_s2",
+        "label": "赵启明·第二幕"
+      }
+    },
+    {
+      "id": "cu_c_s3",
+      "type": "TEXT",
+      "stageId": "stage_3",
+      "audience": {
+        "roleIds": [
+          "role_c"
+        ],
+        "visibility": "PRIVATE"
+      },
+      "delivery": "AUTO_ON_STAGE",
+      "content": "若账册已被人看过，你需要制造新的解释。",
+      "title": "赵启明·第三幕",
+      "sourceRef": {
+        "sourceType": "CHARACTER_SCRIPT",
+        "sourceDocumentId": "doc_role_c",
+        "characterId": "role_c",
+        "stageId": "stage_3",
+        "sectionId": "c_s3",
+        "label": "赵启明·第三幕"
+      }
+    },
+    {
+      "id": "cu_c_s4",
+      "type": "TEXT",
+      "stageId": "stage_4",
+      "audience": {
+        "roleIds": [
+          "role_c"
+        ],
+        "visibility": "PRIVATE"
+      },
+      "delivery": "AUTO_ON_STAGE",
+      "content": "最终投票关系到你是否被指认为真凶。",
+      "title": "赵启明·终幕",
+      "sourceRef": {
+        "sourceType": "CHARACTER_SCRIPT",
+        "sourceDocumentId": "doc_role_c",
+        "characterId": "role_c",
+        "stageId": "stage_4",
+        "sectionId": "c_s4",
+        "label": "赵启明·终幕"
+      }
+    },
+    {
+      "id": "cu_d_s1",
+      "type": "TEXT",
+      "stageId": "stage_1",
+      "audience": {
+        "roleIds": [
+          "role_d"
+        ],
+        "visibility": "PRIVATE"
+      },
+      "delivery": "AUTO_ON_STAGE",
+      "content": "你是死者远亲白素。你来商会是为了追问一笔旧债。",
+      "title": "白素·第一幕",
+      "sourceRef": {
+        "sourceType": "CHARACTER_SCRIPT",
+        "sourceDocumentId": "doc_role_d",
+        "characterId": "role_d",
+        "stageId": "stage_1",
+        "sectionId": "d_s1",
+        "label": "白素·第一幕"
+      }
+    },
+    {
+      "id": "cu_d_s2",
+      "type": "TEXT",
+      "stageId": "stage_2",
+      "audience": {
+        "roleIds": [
+          "role_d"
+        ],
+        "visibility": "PRIVATE"
+      },
+      "delivery": "AUTO_ON_STAGE",
+      "content": "你对库房兴趣不大，但你会观察谁最急着进去。",
+      "title": "白素·第二幕",
+      "sourceRef": {
+        "sourceType": "CHARACTER_SCRIPT",
+        "sourceDocumentId": "doc_role_d",
+        "characterId": "role_d",
+        "stageId": "stage_2",
+        "sectionId": "d_s2",
+        "label": "白素·第二幕"
+      }
+    },
+    {
+      "id": "cu_d_s3",
+      "type": "TEXT",
+      "stageId": "stage_3",
+      "audience": {
+        "roleIds": [
+          "role_d"
+        ],
+        "visibility": "PRIVATE"
+      },
+      "delivery": "AUTO_ON_STAGE",
+      "content": "你发现钥匙残件上的纹样与你家旧物相似。",
+      "title": "白素·第三幕",
+      "sourceRef": {
+        "sourceType": "CHARACTER_SCRIPT",
+        "sourceDocumentId": "doc_role_d",
+        "characterId": "role_d",
+        "stageId": "stage_3",
+        "sectionId": "d_s3",
+        "label": "白素·第三幕"
+      }
+    },
+    {
+      "id": "cu_d_s4",
+      "type": "TEXT",
+      "stageId": "stage_4",
+      "audience": {
+        "roleIds": [
+          "role_d"
+        ],
+        "visibility": "PRIVATE"
+      },
+      "delivery": "AUTO_ON_STAGE",
+      "content": "你掌握的旧债信息可能改写票型。",
+      "title": "白素·终幕",
+      "sourceRef": {
+        "sourceType": "CHARACTER_SCRIPT",
+        "sourceDocumentId": "doc_role_d",
+        "characterId": "role_d",
+        "stageId": "stage_4",
+        "sectionId": "d_s4",
+        "label": "白素·终幕"
+      }
+    },
+    {
+      "id": "cu_e_s1",
+      "type": "TEXT",
+      "stageId": "stage_1",
+      "audience": {
+        "roleIds": [
+          "role_e"
+        ],
+        "visibility": "PRIVATE"
+      },
+      "delivery": "AUTO_ON_STAGE",
+      "content": "你是更夫周衡。你作证看见沈孤鸿在库房门口停留。",
+      "title": "周衡·第一幕",
+      "sourceRef": {
+        "sourceType": "CHARACTER_SCRIPT",
+        "sourceDocumentId": "doc_role_e",
+        "characterId": "role_e",
+        "stageId": "stage_1",
+        "sectionId": "e_s1",
+        "label": "周衡·第一幕"
+      }
+    },
+    {
+      "id": "cu_e_s2",
+      "type": "TEXT",
+      "stageId": "stage_2",
+      "audience": {
+        "roleIds": [
+          "role_e"
+        ],
+        "visibility": "PRIVATE"
+      },
+      "delivery": "AUTO_ON_STAGE",
+      "content": "你不敢进库房，但你愿意把证词卖个好价钱。",
+      "title": "周衡·第二幕",
+      "sourceRef": {
+        "sourceType": "CHARACTER_SCRIPT",
+        "sourceDocumentId": "doc_role_e",
+        "characterId": "role_e",
+        "stageId": "stage_2",
+        "sectionId": "e_s2",
+        "label": "周衡·第二幕"
+      }
+    },
+    {
+      "id": "cu_e_s3",
+      "type": "TEXT",
+      "stageId": "stage_3",
+      "audience": {
+        "roleIds": [
+          "role_e"
+        ],
+        "visibility": "PRIVATE"
+      },
+      "delivery": "AUTO_ON_STAGE",
+      "content": "你开始怀疑自己认错了人。",
+      "title": "周衡·第三幕",
+      "sourceRef": {
+        "sourceType": "CHARACTER_SCRIPT",
+        "sourceDocumentId": "doc_role_e",
+        "characterId": "role_e",
+        "stageId": "stage_3",
+        "sectionId": "e_s3",
+        "label": "周衡·第三幕"
+      }
+    },
+    {
+      "id": "cu_e_s4",
+      "type": "TEXT",
+      "stageId": "stage_4",
+      "audience": {
+        "roleIds": [
+          "role_e"
+        ],
+        "visibility": "PRIVATE"
+      },
+      "delivery": "AUTO_ON_STAGE",
+      "content": "你的票可能决定沈孤鸿的命运。",
+      "title": "周衡·终幕",
+      "sourceRef": {
+        "sourceType": "CHARACTER_SCRIPT",
+        "sourceDocumentId": "doc_role_e",
+        "characterId": "role_e",
+        "stageId": "stage_4",
+        "sectionId": "e_s4",
+        "label": "周衡·终幕"
+      }
+    },
+    {
+      "id": "cu_f_s1",
+      "type": "TEXT",
+      "stageId": "stage_1",
+      "audience": {
+        "roleIds": [
+          "role_f"
+        ],
+        "visibility": "PRIVATE"
+      },
+      "delivery": "AUTO_ON_STAGE",
+      "content": "你是外聘师爷方砚。你与死者有秘密通信。",
+      "title": "方砚·第一幕",
+      "sourceRef": {
+        "sourceType": "CHARACTER_SCRIPT",
+        "sourceDocumentId": "doc_role_f",
+        "characterId": "role_f",
+        "stageId": "stage_1",
+        "sectionId": "f_s1",
+        "label": "方砚·第一幕"
+      }
+    },
+    {
+      "id": "cu_f_s2",
+      "type": "TEXT",
+      "stageId": "stage_2",
+      "audience": {
+        "roleIds": [
+          "role_f"
+        ],
+        "visibility": "PRIVATE"
+      },
+      "delivery": "AUTO_ON_STAGE",
+      "content": "你想进库房找那封信，但也不想暴露通信。",
+      "title": "方砚·第二幕",
+      "sourceRef": {
+        "sourceType": "CHARACTER_SCRIPT",
+        "sourceDocumentId": "doc_role_f",
+        "characterId": "role_f",
+        "stageId": "stage_2",
+        "sectionId": "f_s2",
+        "label": "方砚·第二幕"
+      }
+    },
+    {
+      "id": "cu_f_s3",
+      "type": "TEXT",
+      "stageId": "stage_3",
+      "audience": {
+        "roleIds": [
+          "role_f"
+        ],
+        "visibility": "PRIVATE"
+      },
+      "delivery": "AUTO_ON_STAGE",
+      "content": "钥匙残件不是你要的东西，你仍需要那封信。",
+      "title": "方砚·第三幕",
+      "sourceRef": {
+        "sourceType": "CHARACTER_SCRIPT",
+        "sourceDocumentId": "doc_role_f",
+        "characterId": "role_f",
+        "stageId": "stage_3",
+        "sectionId": "f_s3",
+        "label": "方砚·第三幕"
+      }
+    },
+    {
+      "id": "cu_f_s4",
+      "type": "TEXT",
+      "stageId": "stage_4",
+      "audience": {
+        "roleIds": [
+          "role_f"
+        ],
+        "visibility": "PRIVATE"
+      },
+      "delivery": "AUTO_ON_STAGE",
+      "content": "你可以选择公开通信内容，或沉默投票。",
+      "title": "方砚·终幕",
+      "sourceRef": {
+        "sourceType": "CHARACTER_SCRIPT",
+        "sourceDocumentId": "doc_role_f",
+        "characterId": "role_f",
+        "stageId": "stage_4",
+        "sectionId": "f_s4",
+        "label": "方砚·终幕"
+      }
+    },
+    {
+      "id": "cu_ab_shared_s1",
+      "type": "TEXT",
+      "stageId": "stage_1",
+      "audience": {
+        "roleIds": [
+          "role_a",
+          "role_b"
+        ],
+        "visibility": "SHARED"
+      },
+      "delivery": "AUTO_ON_STAGE",
+      "content": "你们昨夜在账房短暂交谈过，约定天亮后再对账。",
+      "title": "沈孤鸿与陆晚晴·共享记忆",
+      "sourceRef": {
+        "sourceType": "CHARACTER_SCRIPT",
+        "stageId": "stage_1",
+        "sectionId": "ab_shared_s1",
+        "label": "沈孤鸿与陆晚晴·共享记忆"
+      }
+    },
+    {
+      "id": "cu_public_s1",
+      "type": "TEXT",
+      "stageId": "stage_1",
+      "audience": {
+        "roleIds": [
+          "role_a",
+          "role_b",
+          "role_c",
+          "role_d",
+          "role_e",
+          "role_f"
+        ],
+        "visibility": "PUBLIC"
+      },
+      "delivery": "AUTO_ON_STAGE",
+      "content": "商会管事昨夜死于库房外侧走廊。现场有血迹。商会宣布即日起调查。",
+      "title": "公共案情",
+      "sourceRef": {
+        "sourceType": "HOST_SCRIPT",
+        "stageId": "stage_1",
+        "sectionId": "public_s1",
+        "label": "公共案情"
+      }
+    },
+    {
+      "id": "cu_public_s2",
+      "type": "TEXT",
+      "stageId": "stage_2",
+      "audience": {
+        "roleIds": [
+          "role_a",
+          "role_b",
+          "role_c",
+          "role_d",
+          "role_e",
+          "role_f"
+        ],
+        "visibility": "PUBLIC"
+      },
+      "delivery": "AUTO_ON_STAGE",
+      "content": "商会只允许一人进入库房。进入资格将通过竞价决定。",
+      "title": "公共规则·库房",
+      "sourceRef": {
+        "sourceType": "HOST_SCRIPT",
+        "stageId": "stage_2",
+        "sectionId": "public_s2",
+        "label": "公共规则·库房"
+      }
+    },
+    {
+      "id": "cu_clue_clue_blood_photo",
+      "type": "CLUE",
+      "stageId": "stage_1",
+      "audience": {
+        "roleIds": [
+          "role_a",
+          "role_b",
+          "role_c",
+          "role_d",
+          "role_e",
+          "role_f"
+        ],
+        "visibility": "PUBLIC"
+      },
+      "delivery": "HOST_RELEASE",
+      "content": "走廊血迹照片显示拖拽痕迹朝向库房门。",
+      "title": "血迹照片",
+      "sourceRef": {
+        "sourceType": "CLUE",
+        "sourceDocumentId": "doc_clue_blood",
+        "stageId": "stage_1",
+        "sectionId": "clue_blood_photo",
+        "label": "血迹照片"
+      }
+    },
+    {
+      "id": "cu_clue_clue_burned_ledger",
+      "type": "CLUE",
+      "stageId": "stage_2",
+      "audience": {
+        "roleIds": [],
+        "visibility": "PRIVATE"
+      },
+      "delivery": "CONDITION_UNLOCK",
+      "content": "残页写着：赵启明经手银两去向不明。",
+      "title": "烧毁的账册残页",
+      "unlockCondition": {
+        "type": "PERMISSION",
+        "permissionId": "storage_room_access"
+      },
+      "sourceRef": {
+        "sourceType": "CLUE",
+        "sourceDocumentId": "doc_clue_ledger",
+        "stageId": "stage_2",
+        "sectionId": "clue_burned_ledger",
+        "label": "烧毁的账册残页"
+      },
+      "metadata": {
+        "unlockPermissionId": "storage_room_access"
+      }
+    },
+    {
+      "id": "cu_clue_clue_key_fragment",
+      "type": "CLUE",
+      "stageId": "stage_3",
+      "audience": {
+        "roleIds": [
+          "role_a",
+          "role_b",
+          "role_c",
+          "role_d",
+          "role_e",
+          "role_f"
+        ],
+        "visibility": "PUBLIC"
+      },
+      "delivery": "HOST_RELEASE",
+      "content": "钥匙齿残缺，纹样似旧式商会印。",
+      "title": "库房钥匙残件",
+      "sourceRef": {
+        "sourceType": "CLUE",
+        "sourceDocumentId": "doc_clue_key",
+        "stageId": "stage_3",
+        "sectionId": "clue_key_fragment",
+        "label": "库房钥匙残件"
+      }
+    },
+    {
+      "id": "cu_intro_place_m03_storage",
+      "type": "SYSTEM",
+      "stageId": "stage_2",
+      "audience": {
+        "roleIds": [
+          "role_a",
+          "role_b",
+          "role_c",
+          "role_d",
+          "role_e",
+          "role_f"
+        ],
+        "visibility": "PUBLIC"
+      },
+      "delivery": "HOST_RELEASE",
+      "content": "请各位提交竞价。最高价者获得库房进入资格。",
+      "title": "库房进入资格竞价·开场说明",
+      "sourceRef": {
+        "sourceType": "SYSTEM_AUTHORED",
+        "stageId": "stage_2",
+        "sectionId": "intro_place_m03_storage",
+        "label": "库房进入资格竞价"
+      }
+    },
+    {
+      "id": "cu_intro_place_m09_final",
+      "type": "SYSTEM",
+      "stageId": "stage_4",
+      "audience": {
+        "roleIds": [
+          "role_a",
+          "role_b",
+          "role_c",
+          "role_d",
+          "role_e",
+          "role_f"
+        ],
+        "visibility": "PUBLIC"
+      },
+      "delivery": "HOST_RELEASE",
+      "content": "请投票指认真凶。多数票生效。",
+      "title": "最终指凶投票·开场说明",
+      "sourceRef": {
+        "sourceType": "SYSTEM_AUTHORED",
+        "stageId": "stage_4",
+        "sectionId": "intro_place_m09_final",
+        "label": "最终指凶投票"
+      }
+    }
+  ],
+  "clues": [
+    {
+      "id": "clue_blood_photo",
+      "title": "血迹照片",
+      "contentUnitId": "cu_clue_clue_blood_photo",
+      "stageId": "stage_1",
+      "defaultAudience": {
+        "roleIds": [
+          "role_a",
+          "role_b",
+          "role_c",
+          "role_d",
+          "role_e",
+          "role_f"
+        ],
+        "visibility": "PUBLIC"
+      },
+      "delivery": "HOST_RELEASE",
+      "repeatable": false,
+      "sourceRef": {
+        "sourceType": "CLUE",
+        "sourceDocumentId": "doc_clue_blood",
+        "stageId": "stage_1",
+        "sectionId": "clue_blood_photo",
+        "label": "血迹照片"
+      }
+    },
+    {
+      "id": "clue_burned_ledger",
+      "title": "烧毁的账册残页",
+      "contentUnitId": "cu_clue_clue_burned_ledger",
+      "stageId": "stage_2",
+      "defaultAudience": {
+        "roleIds": [],
+        "visibility": "PRIVATE"
+      },
+      "delivery": "CONDITION_UNLOCK",
+      "repeatable": false,
+      "sourceRef": {
+        "sourceType": "CLUE",
+        "sourceDocumentId": "doc_clue_ledger",
+        "stageId": "stage_2",
+        "sectionId": "clue_burned_ledger",
+        "label": "烧毁的账册残页"
+      }
+    },
+    {
+      "id": "clue_key_fragment",
+      "title": "库房钥匙残件",
+      "contentUnitId": "cu_clue_clue_key_fragment",
+      "stageId": "stage_3",
+      "defaultAudience": {
+        "roleIds": [
+          "role_a",
+          "role_b",
+          "role_c",
+          "role_d",
+          "role_e",
+          "role_f"
+        ],
+        "visibility": "PUBLIC"
+      },
+      "delivery": "HOST_RELEASE",
+      "repeatable": false,
+      "sourceRef": {
+        "sourceType": "CLUE",
+        "sourceDocumentId": "doc_clue_key",
+        "stageId": "stage_3",
+        "sectionId": "clue_key_fragment",
+        "label": "库房钥匙残件"
+      }
+    }
+  ],
+  "mechanismPlacements": [
+    {
+      "id": "place_m03_storage",
+      "mechanismTemplateId": "M03-1",
+      "familyId": "M03",
+      "stageId": "stage_2",
+      "title": "库房进入资格竞价",
+      "trigger": "HOST_START",
+      "participantRule": {
+        "type": "ALL_PLAYERS",
+        "roleIds": []
+      },
+      "introContentUnitId": "cu_intro_place_m03_storage",
+      "runtimeConfig": {},
+      "outcomeBindings": [
+        {
+          "outcomeMatcher": {
+            "type": "WINNER"
+          },
+          "effects": [
+            {
+              "type": "PERMISSION_GRANT",
+              "permissionId": "storage_room_access",
+              "target": "WINNER",
+              "valid": true
+            },
+            {
+              "type": "STATE_APPLY",
+              "key": "storage_room",
+              "value": "UNLOCKED_FOR_WINNER",
+              "valid": true
+            }
+          ]
+        }
+      ],
+      "fallback": {
+        "type": "HOST_OVERRIDE_PICK_WINNER"
+      },
+      "sourceRef": {
+        "sourceType": "SYSTEM_AUTHORED",
+        "stageId": "stage_2",
+        "sectionId": "place_m03_storage",
+        "label": "库房进入资格竞价"
+      }
+    },
+    {
+      "id": "place_m09_final",
+      "mechanismTemplateId": "M09-1",
+      "familyId": "M09",
+      "stageId": "stage_4",
+      "title": "最终指凶投票",
+      "trigger": "HOST_START",
+      "participantRule": {
+        "type": "ALL_PLAYERS",
+        "roleIds": []
+      },
+      "introContentUnitId": "cu_intro_place_m09_final",
+      "runtimeConfig": {},
+      "outcomeBindings": [
+        {
+          "outcomeMatcher": {
+            "type": "MAJORITY"
+          },
+          "effects": [
+            {
+              "type": "STATE_APPLY",
+              "key": "accused_role_id",
+              "value": "$majority_choice",
+              "valid": true
+            },
+            {
+              "type": "STATE_CLEAR",
+              "key": "vote_open",
+              "valid": true
+            }
+          ]
+        }
+      ],
+      "fallback": {
+        "type": "HOST_OVERRIDE_SETTLEMENT"
+      },
+      "sourceRef": {
+        "sourceType": "SYSTEM_AUTHORED",
+        "stageId": "stage_4",
+        "sectionId": "place_m09_final",
+        "label": "最终指凶投票"
+      }
+    }
+  ],
+  "permissions": [
+    {
+      "id": "storage_room_access",
+      "grants": [
+        "VIEW_CONTENT",
+        "RECEIVE_CLUE"
+      ],
+      "contentUnitIds": [
+        "cu_clue_clue_burned_ledger",
+        "cu_a_s2_win"
+      ],
+      "clueIds": [
+        "clue_burned_ledger"
+      ],
+      "summary": "允许查看库房私人文本与烧毁账册线索"
+    }
+  ],
+  "runtimeConfig": {
+    "startStageId": "stage_1",
+    "finalStageId": "stage_4",
+    "allowHostOverride": true,
+    "pinSnapshotOnSessionStart": true
+  },
+  "diagnostics": [],
+  "revision": 0,
+  "updatedAt": "2026-09-05T00:00:00.000Z"
+}

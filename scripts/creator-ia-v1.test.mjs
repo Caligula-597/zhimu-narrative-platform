@@ -56,6 +56,7 @@ test("Creator IA V1：整母稿交织入口", () => {
   assert.match(model, /cockpit-open-master-outline/);
   assert.match(model, /cockpit-open-production-master-draft/);
   assert.match(model, /详细母稿/);
+  assert.match(model, /cockpit-open-playable-compile/);
   const outline = read("../src/views/creator-master-outline-workbench.js");
   assert.match(outline, /先编排后写作|尝试交织成整本骨架|角色负载/);
   assert.match(outline, /展开详细母稿/);

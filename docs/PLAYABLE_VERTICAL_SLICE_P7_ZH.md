@@ -217,23 +217,26 @@ API tests pass ≠ vertical slice 成功。
 
 ---
 
-## 建议切片顺序（待「开工」brief）
+## 建议切片顺序
 
 ```text
-P7.0  PlayableProject + ContentUnit 合同 + 一本 fixture 编译
-P7.1  StageRuntime + 内容/线索发放 + 权限隔离
-P7.2  MechanismPlacement + M03 + PERMISSION_GRANT 闭环
-P7.3  M09 + 终局结算
-P7.4  Host override + 重连持久化
-P7.5  一整局验收（标准 1–13）
+P7.0  PlayableProject + ContentUnit 合同 + 一本 fixture 编译  ✅ 实现中/见下方
+P7.1 Content Runtime
+P7.2 MechanismPlacement + M03 + PERMISSION_GRANT 闭环
+P7.3 M09 + 终局结算
+P7.4 Host override + 重连持久化
+P7.5 一整局验收（标准 1–13）
 ```
 
----
+## P7.0 实现入口
 
-## 状态
+| 层 | 路径 |
+|---|---|
+| 合同 | `shared/playable-project-contracts.js` |
+| Fixture | `shared/playable-fixtures/warehouse-six.js` |
+| Compiler | `shared/playable-project-compiler.js` |
+| 持久化 | `backend/migrations/130_world_playable_projects.sql` + `playable-project-service.js` |
+| UI | `src/views/creator-playable-compile-workbench.js` |
+| 报告 | `docs/P7_PLAYABLE_FIXTURE_COMPILE_REPORT.md` |
 
-```text
-P6.0 Production Master Draft   ✅
-P6.1 Optional LLM Rendering    ⏸ 后移
-P7 Playable Vertical Slice     ✅ 范围冻结（待实现 brief）
-```
+原则：**已开局 session 固定使用开局时的 playable snapshot**（`runtimeConfig.pinSnapshotOnSessionStart`）。

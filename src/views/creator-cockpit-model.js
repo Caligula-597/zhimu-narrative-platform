@@ -76,6 +76,7 @@ export const STAGE_DEFS = [
     short: "试跑",
     subtitle: "压力测试、真人房间、检查与跑局数据",
     items: [
+      { id: "playable-compile", title: "Playable 编译", link: { canvas: "ai-playtest", action: "cockpit-open-playable-compile", label: "编译完整剧本 fixture" } },
       { id: "ai-playtest", title: "机器试跑", link: { canvas: "ai-playtest", view: "playtest", label: "打开试跑" } },
       { id: "test-room", title: "真人房间", link: { canvas: "test", action: "world-rooms", label: "管理房间" } },
       { id: "diagnostics", title: "作品诊断（高级）", link: { canvas: "diagnostics", view: "diagnostics", label: "作品诊断" } },

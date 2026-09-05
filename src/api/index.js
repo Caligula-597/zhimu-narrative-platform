@@ -398,6 +398,13 @@ export {
   saveProjectStoryState
 } from "./project-story-state.js";
 
+/* ── PlayableProject (P7.0 compile asset) ── */
+export {
+  getPlayableProject,
+  savePlayableProject,
+  compilePlayableFixture
+} from "./playable-project.js";
+
 /* ── Host Manual Compiler ── */
 export {
   getHostManual,

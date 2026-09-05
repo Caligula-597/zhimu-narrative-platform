@@ -369,6 +369,11 @@ function checkLevelLabel(level) {
 export function renderLaunchCanvas(ctx, cockpit, findItemLink) {
   const { checks, dashboard, counts, diagnostics, playtest } = ctx;
   const link = findItemLink("launch", cockpit.activeItem);
+  if (cockpit.activeItem === "playable-compile") {
+    return `<section class="cockpit-panel"><div class="panel-heading"><div><p>试跑发布</p><h3>Playable 编译检查</h3></div></div>
+      <p class="muted-note">把完整剧本 fixture 编译为 PlayableProject（不改原文、不启动房间）。P7.0 只验证编译合同。</p>
+      <div class="row">${linkButton({ action: "cockpit-open-playable-compile", label: "打开编译检查" }, "primary-btn")}</div></section>`;
+  }
   if (cockpit.activeCanvas === "diagnostics") {
     const result = diagnostics
       ? `<div class="diagnostic-headline ${diagnostics.summary?.danger ? "danger" : diagnostics.summary?.warning ? "warning" : "ready"}">
