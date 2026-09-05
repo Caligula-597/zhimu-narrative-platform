@@ -1,7 +1,9 @@
 /**
- * P7.2 Playable Runtime Effect Executor
- * Applies OutcomeBinding effects into PlayableRuntimeState.
- * STATE (keyStates) and PERMISSION (permissionGrants) stay strictly separate.
+ * P7.2 / P7.2.5 Playable Runtime Effect Executor
+ *
+ * UNIQUE write entry for permissionGrants + keyStates.
+ * Bridge must only: settlement → outcome → applyRuntimeEffects → here.
+ * Never mutate permission/state outside this module.
  */
 
 import { normalizeRuntimeEffect } from "./playable-project-contracts.js";
@@ -93,19 +95,82 @@ export function staticAudienceAllows(snapshot, roleId, contentUnit) {
   return false;
 }
 
-/**
- * Resolve effect target role. WINNER → winnerRoleId; explicit role id passthrough.
- */
 export function resolveEffectTargetRole(effect, { winnerRoleId } = {}) {
   const target = String(normalizeRuntimeEffect(effect).target || "WINNER");
   if (target === "WINNER") return winnerRoleId || null;
-  if (target === "ALL_PLAYERS") return null; // handled by caller expansion
+  if (target === "ALL_PLAYERS") return null;
   return target;
 }
 
 /**
- * Apply a list of OutcomeBinding effects idempotently.
- * Mutates only runtime overlay fields — never PlayableProject snapshot.
+ * Single-effect write entry. Idempotent via appliedEffectKeys.
+ * @returns {{ runtime, applied: boolean, applicationKey: string|null }}
+ */
+export function applyRuntimeEffect(runtime, {
+  effect,
+  placementId,
+  outcomeId,
+  outcomeIndex = 0,
+  effectIndex = 0,
+  targetRoleId,
+  now,
+} = {}) {
+  const state = {
+    ...runtime,
+    permissionGrants: [...asArray(runtime.permissionGrants)].map(normalizePermissionGrant),
+    keyStates: { ...record(runtime.keyStates) },
+    appliedEffectKeys: [...asArray(runtime.appliedEffectKeys)],
+  };
+  const normalized = normalizeRuntimeEffect(effect);
+  if (!normalized.valid || normalized.type === "INVALID" || !targetRoleId) {
+    return { runtime: state, applied: false, applicationKey: null };
+  }
+
+  const key = effectApplicationKey({
+    placementId,
+    outcomeIndex,
+    effectIndex,
+    targetRoleId,
+    effect: normalized,
+  });
+  if (state.appliedEffectKeys.includes(key)) {
+    return { runtime: state, applied: false, applicationKey: key };
+  }
+
+  const ts = nowIso(now);
+  state.appliedEffectKeys.push(key);
+
+  if (normalized.type === "PERMISSION_GRANT") {
+    const exists = state.permissionGrants.some(
+      (g) => g.permissionId === normalized.permissionId && g.targetRoleId === targetRoleId,
+    );
+    if (!exists) {
+      state.permissionGrants.push(
+        normalizePermissionGrant({
+          permissionId: normalized.permissionId,
+          targetRoleId,
+          sourcePlacementId: placementId,
+          sourceOutcomeId: outcomeId,
+          grantedAt: ts,
+          applicationKey: key,
+        }),
+      );
+    }
+  } else if (normalized.type === "PERMISSION_REVOKE") {
+    state.permissionGrants = state.permissionGrants.filter(
+      (g) => !(g.permissionId === normalized.permissionId && g.targetRoleId === targetRoleId),
+    );
+  } else if (normalized.type === "STATE_APPLY") {
+    state.keyStates[normalized.key] = normalized.value;
+  } else if (normalized.type === "STATE_CLEAR") {
+    delete state.keyStates[normalized.key];
+  }
+
+  return { runtime: state, applied: true, applicationKey: key };
+}
+
+/**
+ * Apply OutcomeBinding effects. Only public batch entry for Bridge.
  */
 export function applyRuntimeEffects(runtime, {
   effects,
@@ -114,21 +179,17 @@ export function applyRuntimeEffects(runtime, {
   outcomeIndex = 0,
   winnerRoleId,
   now,
-  appliedEffectKeys = null,
 } = {}) {
-  const state = {
+  let state = {
     ...runtime,
     permissionGrants: [...asArray(runtime.permissionGrants)].map(normalizePermissionGrant),
     keyStates: { ...record(runtime.keyStates) },
-    appliedEffectKeys: [...(appliedEffectKeys || asArray(runtime.appliedEffectKeys))],
+    appliedEffectKeys: [...asArray(runtime.appliedEffectKeys)],
   };
-  const ts = nowIso(now);
-  const applied = new Set(state.appliedEffectKeys);
   const list = asArray(effects);
 
   for (let effectIndex = 0; effectIndex < list.length; effectIndex++) {
-    const raw = list[effectIndex];
-    const effect = normalizeRuntimeEffect(raw);
+    const effect = normalizeRuntimeEffect(list[effectIndex]);
     if (!effect.valid || effect.type === "INVALID") continue;
 
     let targets = [];
@@ -140,54 +201,24 @@ export function applyRuntimeEffects(runtime, {
       const one = resolveEffectTargetRole(effect, { winnerRoleId });
       if (one) targets = [one];
     }
-    if (!targets.length) continue;
 
     for (const targetRoleId of targets) {
-      const key = effectApplicationKey({
+      const result = applyRuntimeEffect(state, {
+        effect,
         placementId,
+        outcomeId,
         outcomeIndex,
         effectIndex,
         targetRoleId,
-        effect,
+        now,
       });
-      if (applied.has(key)) continue;
-      applied.add(key);
-      state.appliedEffectKeys.push(key);
-
-      if (effect.type === "PERMISSION_GRANT") {
-        const exists = state.permissionGrants.some(
-          (g) => g.permissionId === effect.permissionId && g.targetRoleId === targetRoleId,
-        );
-        if (!exists) {
-          state.permissionGrants.push(
-            normalizePermissionGrant({
-              permissionId: effect.permissionId,
-              targetRoleId,
-              sourcePlacementId: placementId,
-              sourceOutcomeId: outcomeId,
-              grantedAt: ts,
-              applicationKey: key,
-            }),
-          );
-        }
-      } else if (effect.type === "PERMISSION_REVOKE") {
-        state.permissionGrants = state.permissionGrants.filter(
-          (g) => !(g.permissionId === effect.permissionId && g.targetRoleId === targetRoleId),
-        );
-      } else if (effect.type === "STATE_APPLY") {
-        state.keyStates[effect.key] = effect.value;
-      } else if (effect.type === "STATE_CLEAR") {
-        delete state.keyStates[effect.key];
-      }
+      state = result.runtime;
     }
   }
 
   return state;
 }
 
-/**
- * Select outcome binding for M03-style WINNER settlement.
- */
 export function selectOutcomeBinding(placement, settlementResult) {
   const bindings = asArray(placement?.outcomeBindings);
   if (!bindings.length) return { binding: null, outcomeIndex: -1 };

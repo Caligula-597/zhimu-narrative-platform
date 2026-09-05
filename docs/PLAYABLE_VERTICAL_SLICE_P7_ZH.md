@@ -222,8 +222,9 @@ API tests pass ≠ vertical slice 成功。
 ```text
 P7.0  PlayableProject + ContentUnit 合同 + 一本 fixture 编译  ✅ bf26f7a
 P7.1 Content Runtime（纯文本全幕）  ✅ 2ca02d5
-P7.2 Playable Mechanism Runtime Bridge（M03→Effect→Visibility）  ✅ 见 docs/P7_MECHANISM_RUNTIME_BRIDGE_V1_REPORT.md
-P7.3 M09 + 终局结算
+P7.2 Playable Mechanism Runtime Bridge（M03→Effect→Visibility）  ✅ 17be5eb
+P7.2.5 Runtime Code Health / Hardening  ✅ 见 docs/P7_RUNTIME_CODE_HEALTH_V1_REPORT.md
+P7.3 M09 + Ending Settlement
 P7.4 Host override + 重连持久化
 P7.5 一整局验收（标准 1–13）
 ```
@@ -261,3 +262,13 @@ P7.5 一整局验收（标准 1–13）
 | Visibility overlay | `playable-content-runtime.js`（audience 不变；permission 覆盖层） |
 | 测试 | `scripts/playable-mechanism-bridge.test.mjs` |
 | 报告 | `docs/P7_MECHANISM_RUNTIME_BRIDGE_V1_REPORT.md` |
+
+## P7.2.5 Code Health
+
+| 项 | 路径 |
+|---|---|
+| 依赖边界 | `docs/P7_RUNTIME_DEPENDENCY_ZH.md` |
+| FSM | `shared/playable-mechanism-execution.js` |
+| 错误码 | `shared/playable-runtime-errors.js` |
+| 隔离验证 | `npm run verify:playable` |
+| 报告 | `docs/P7_RUNTIME_CODE_HEALTH_V1_REPORT.md` |

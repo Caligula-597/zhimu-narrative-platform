@@ -1,9 +1,8 @@
 /**
- * P7.2 Playable Mechanism Runtime Bridge
- * Bridges PlayableMechanismPlacement → existing GAME template engine (M03-1)
- * → OutcomeBinding → Runtime Effect Executor → PlayableRuntimeState.
+ * P7.2 Playable Mechanism Runtime Bridge (+ P7.2.5 hardening)
  *
- * Does NOT create a second auction engine. Does NOT run room mechanismPackage.
+ * Layer: Placement ↔ existing GAME template engine ↔ OutcomeBinding ↔ Effect Executor.
+ * Must NOT write permissionGrants / keyStates directly — only via applyRuntimeEffects.
  */
 
 import {
@@ -17,13 +16,15 @@ import {
   PlayableContentRuntimeError,
   normalizePlayableRuntimeState,
 } from "./playable-content-runtime.js";
+import { applyRuntimeEffects, selectOutcomeBinding } from "./playable-runtime-effects.js";
+import { canonicalPlayableErrorCode } from "./playable-runtime-errors.js";
 import {
-  applyRuntimeEffects,
-  selectOutcomeBinding,
-} from "./playable-runtime-effects.js";
+  assertMechanismTransition,
+  normalizeMechanismExecution,
+} from "./playable-mechanism-execution.js";
 
 function fail(code, message, details) {
-  throw new PlayableContentRuntimeError(code, message, details);
+  throw new PlayableContentRuntimeError(canonicalPlayableErrorCode(code), message, details);
 }
 
 function nowIso(now) {
@@ -51,11 +52,7 @@ function requireRunning(state) {
 function upsertPlacementStatus(state, placementId, patch) {
   const list = asArray(state.placementStatuses);
   const idx = list.findIndex((p) => p.placementId === placementId);
-  const next = {
-    placementId,
-    status: patch.status,
-    note: patch.note,
-  };
+  const next = { placementId, status: patch.status, note: patch.note };
   if (idx < 0) return [...list, next];
   const copy = [...list];
   copy[idx] = { ...copy[idx], ...next };
@@ -68,32 +65,33 @@ function executionMap(state) {
   return {};
 }
 
-/**
- * Start (or resume) a placement's GAME template instance. Singleton per placement.
- */
 export function startPlacementMechanism(runtime, { placementId, now } = {}) {
   const state = requireRunning(normalizePlayableRuntimeState(runtime));
   const placement = getPlacement(state.playableSnapshot, placementId);
   if (!placement) fail("UNKNOWN_PLACEMENT", `Unknown placement ${placementId}`);
   if (placement.stageId !== state.currentStageId) {
-    fail("WRONG_STAGE", `Placement ${placementId} is not on active stage`);
+    fail("NOT_CURRENT_STAGE", `Placement ${placementId} is not on active stage`);
   }
   if (placement.familyId === "M09" || placement.mechanismTemplateId?.startsWith("M09")) {
     fail("MECHANISM_NOT_IMPLEMENTED", "M09 is not executable in P7.2");
   }
   if (placement.mechanismTemplateId !== "M03-1" && placement.familyId !== "M03") {
-    fail("MECHANISM_UNSUPPORTED", `P7.2 only bridges M03-1, got ${placement.mechanismTemplateId}`);
+    fail("MECHANISM_UNSUPPORTED", `Bridge only supports M03-1, got ${placement.mechanismTemplateId}`);
   }
 
   const executions = executionMap(state);
-  const existing = executions[placementId];
+  const existing = executions[placementId]
+    ? normalizeMechanismExecution(executions[placementId], placementId)
+    : null;
+
   if (existing?.status === "SETTLED") {
-    fail("MECHANISM_ALREADY_SETTLED", `Placement ${placementId} already settled`);
+    fail("ALREADY_SETTLED", `Placement ${placementId} already settled`);
   }
   if (existing?.status === "RUNNING" && existing.runtimeInstanceId) {
-    // Idempotent reconnect to same instance
     return normalizePlayableRuntimeState(state);
   }
+
+  assertMechanismTransition(existing?.status || "READY", "RUNNING");
 
   const roles = playerRoleIds(state.playableSnapshot);
   const assigned = state.roleAssignments.map((a) => a.playableRoleId);
@@ -117,7 +115,6 @@ export function startPlacementMechanism(runtime, { placementId, now } = {}) {
     players: roles,
     capacity: { currency: 100 },
   });
-  // Seed currency so bids work without economy domain
   for (const rid of roles) {
     gameState = {
       ...gameState,
@@ -136,18 +133,22 @@ export function startPlacementMechanism(runtime, { placementId, now } = {}) {
   });
 
   const runtimeInstanceId = `mech_${placementId}_${ts.replace(/[:.]/g, "")}`;
-  executions[placementId] = {
-    status: "RUNNING",
-    runtimeInstanceId,
-    templateId,
-    instance,
-    gameState,
-    outcomeId: null,
-    winnerRoleId: null,
-    settledAt: null,
-    appliedEffectIds: [],
-    startedAt: ts,
-  };
+  executions[placementId] = normalizeMechanismExecution(
+    {
+      placementId,
+      status: "RUNNING",
+      runtimeInstanceId,
+      templateId,
+      instance,
+      gameState,
+      outcomeId: null,
+      winnerRoleId: null,
+      settledAt: null,
+      appliedEffectIds: [],
+      startedAt: ts,
+    },
+    placementId,
+  );
 
   return normalizePlayableRuntimeState({
     ...state,
@@ -161,13 +162,12 @@ export function startPlacementMechanism(runtime, { placementId, now } = {}) {
   });
 }
 
-/**
- * Player bid on an active M03 placement. player identity = playableRoleId.
- */
 export function bidPlacementMechanism(runtime, { placementId, playableRoleId, amount, bidId, now } = {}) {
   const state = requireRunning(normalizePlayableRuntimeState(runtime));
   const executions = executionMap(state);
-  const exec = executions[placementId];
+  const exec = executions[placementId]
+    ? normalizeMechanismExecution(executions[placementId], placementId)
+    : null;
   if (!exec || exec.status !== "RUNNING") {
     fail("MECHANISM_NOT_RUNNING", `Placement ${placementId} is not running`);
   }
@@ -187,25 +187,25 @@ export function bidPlacementMechanism(runtime, { placementId, playableRoleId, am
   });
 }
 
-/**
- * Settle M03 + apply OutcomeBinding effects once (idempotent).
- */
 export function settlePlacementMechanism(runtime, { placementId, now } = {}) {
   const state = requireRunning(normalizePlayableRuntimeState(runtime));
   const placement = getPlacement(state.playableSnapshot, placementId);
   if (!placement) fail("UNKNOWN_PLACEMENT", `Unknown placement ${placementId}`);
 
   const executions = executionMap(state);
-  const exec = executions[placementId];
+  const exec = executions[placementId]
+    ? normalizeMechanismExecution(executions[placementId], placementId)
+    : null;
   if (!exec) fail("MECHANISM_NOT_STARTED", `Placement ${placementId} was never started`);
 
-  // Idempotent: already settled → return as-is
   if (exec.status === "SETTLED") {
     return normalizePlayableRuntimeState(state);
   }
   if (exec.status !== "RUNNING") {
     fail("MECHANISM_NOT_RUNNING", `Placement ${placementId} is not running`);
   }
+
+  assertMechanismTransition("RUNNING", "SETTLED");
 
   const templateId = exec.templateId || "M03-1";
   const settledGame = settleMechanism(templateId, exec.gameState, exec.instance);
@@ -222,6 +222,7 @@ export function settlePlacementMechanism(runtime, { placementId, now } = {}) {
 
   const outcomeId = `outcome_${placementId}_${outcomeIndex}_WINNER`;
   const ts = nowIso(now);
+  // Effect Executor is the only writer of permissionGrants / keyStates
   let next = applyRuntimeEffects(state, {
     effects: binding.effects,
     placementId,
@@ -232,23 +233,29 @@ export function settlePlacementMechanism(runtime, { placementId, now } = {}) {
   });
 
   const appliedIds = asArray(binding.effects).map((_, i) => `${outcomeId}#${i}`);
-  executions[placementId] = {
-    ...exec,
-    status: "SETTLED",
-    gameState: settledGame,
-    outcomeId,
-    winnerRoleId,
-    settledAt: ts,
-    appliedEffectIds: appliedIds,
-    result,
-  };
+  executions[placementId] = normalizeMechanismExecution(
+    {
+      ...exec,
+      status: "SETTLED",
+      gameState: settledGame,
+      outcomeId,
+      winnerRoleId,
+      settledAt: ts,
+      appliedEffectIds: appliedIds,
+      result,
+    },
+    placementId,
+  );
+
+  const winnerName =
+    (state.playableSnapshot.roles || []).find((r) => r.id === winnerRoleId)?.name || winnerRoleId;
 
   next = {
     ...next,
     mechanismExecutions: executions,
     placementStatuses: upsertPlacementStatus(next, placementId, {
       status: "SETTLED",
-      note: `已结算 · 赢家 ${winnerRoleId}`,
+      note: `已结算 · 赢家 ${winnerName}`,
     }),
     updatedAt: ts,
     revision: state.revision + 1,
@@ -259,5 +266,6 @@ export function settlePlacementMechanism(runtime, { placementId, now } = {}) {
 
 export function getPlacementExecution(runtime, placementId) {
   const state = normalizePlayableRuntimeState(runtime);
-  return executionMap(state)[placementId] || null;
+  const raw = executionMap(state)[placementId];
+  return raw ? normalizeMechanismExecution(raw, placementId) : null;
 }

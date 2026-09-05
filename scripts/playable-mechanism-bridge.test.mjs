@@ -91,7 +91,7 @@ test("placement only startable on current stage; M09 blocked", () => {
   runtime = startPlayableSession(runtime, { now: FIXED });
   assert.throws(
     () => startPlacementMechanism(runtime, { placementId: "place_m03_storage", now: FIXED }),
-    (e) => e.code === "WRONG_STAGE",
+    (e) => e.code === "NOT_CURRENT_STAGE",
   );
   runtime = advancePlayableStage(runtime, { now: FIXED });
   runtime = advancePlayableStage(runtime, { now: FIXED });
@@ -107,7 +107,7 @@ test("singleton runtime instance + settle applies WINNER effects", () => {
   const host = buildHostPlayableView(runtime);
   const m03 = host.placements.find((p) => p.id === "place_m03_storage");
   assert.equal(m03.status, "READY");
-  assert.equal(m03.runnable, true);
+  assert.equal(m03.canStart, true);
 
   runtime = startPlacementMechanism(runtime, { placementId: "place_m03_storage", now: FIXED });
   const instanceId = runtime.mechanismExecutions.place_m03_storage.runtimeInstanceId;
@@ -239,10 +239,16 @@ test("player view after settle exposes unlocked clue for winner only", () => {
   runtime = settlePlacementMechanism(runtime, { placementId: "place_m03_storage", now: FIXED });
   const winnerView = buildPlayerPlayableView(runtime, { playableRoleId: "role_e" });
   const loserView = buildPlayerPlayableView(runtime, { playableRoleId: "role_a" });
-  assert.ok(winnerView.clues.some((c) => c.clue.id === "clue_burned_ledger"));
+  assert.ok(winnerView.clues.some((c) => c.clueId === "clue_burned_ledger" || c.title?.includes("账册")));
   assert.ok(winnerView.contentUnits.some((u) => u.id === "cu_a_s2_win"));
-  assert.ok(!loserView.clues.some((c) => c.clue.id === "clue_burned_ledger"));
+  assert.ok(!loserView.clues.some((c) => c.clueId === "clue_burned_ledger"));
   assert.ok(!loserView.contentUnits.some((u) => u.id === "cu_a_s2_win"));
+  const hostView = buildHostPlayableView(runtime);
+  const settled = hostView.placements.find((p) => p.id === "place_m03_storage");
+  assert.equal(settled?.canStart, false);
+  assert.equal(settled?.canSettle, false);
+  assert.ok(settled?.winnerLabel);
+  assert.ok(settled?.outcomeSummary);
 });
 
 test("selectOutcomeBinding picks WINNER binding", () => {

@@ -1,5 +1,5 @@
 /**
- * P7.1/P7.2 Content Runtime service — binds READY PlayableProject to existing rooms.
+ * P7.1 Content Runtime service — binds READY PlayableProject to existing rooms.
  */
 
 import { transaction } from "./db.js";
@@ -23,6 +23,7 @@ import {
   fetchClueForRole,
   buildHostPlayableView,
   buildPlayerPlayableView,
+  buildRuntimePublicSummary,
   roleIdForUser,
   normalizePlayableRuntimeState,
 } from "../../shared/playable-content-runtime.js";
@@ -33,8 +34,20 @@ import {
 } from "../../shared/playable-mechanism-bridge.js";
 import { compileWarehouseSixFixture } from "../../shared/playable-project-compiler.js";
 
+function hostPayload(saved) {
+  return {
+    runtime: buildRuntimePublicSummary(saved),
+    view: buildHostPlayableView(saved),
+  };
+}
+
 function mapError(error) {
   if (error instanceof PlayableContentRuntimeError) return error;
+  if (error?.code) {
+    error.code = error.code === "WRONG_STAGE" ? "NOT_CURRENT_STAGE"
+      : error.code === "MECHANISM_ALREADY_SETTLED" ? "ALREADY_SETTLED"
+      : error.code;
+  }
   return error;
 }
 
@@ -65,7 +78,7 @@ export async function getRoomPlayableRuntime(roomId) {
 export async function getHostPlayableRuntime(roomId) {
   const runtime = await loadOrThrow(roomId);
   return {
-    runtime,
+    runtime: buildRuntimePublicSummary(runtime),
     view: buildHostPlayableView(runtime),
   };
 }
@@ -79,13 +92,7 @@ export async function getPlayerPlayableRuntime(roomId, userId) {
     throw err;
   }
   return {
-    runtime: {
-      status: runtime.status,
-      currentStageId: runtime.currentStageId,
-      playableProjectId: runtime.playableProjectId,
-      playableFingerprint: runtime.playableFingerprint,
-      revision: runtime.revision,
-    },
+    runtime: buildRuntimePublicSummary(runtime),
     view: buildPlayerPlayableView(runtime, { playableRoleId }),
   };
 }
@@ -129,7 +136,7 @@ export async function initializeRoomPlayableRuntime({
       roleAssignments: existing?.roleAssignments || [],
     });
     const saved = await upsertRoomPlayableRuntime(client, runtime, actorId);
-    return { runtime: saved, view: buildHostPlayableView(saved) };
+    return hostPayload(saved);
   });
 }
 
@@ -144,7 +151,7 @@ export async function assignRoomPlayableRole({ roomId, actorId, userId, playable
         roleSlotId,
       });
       const saved = await upsertRoomPlayableRuntime(client, next, actorId);
-      return { runtime: saved, view: buildHostPlayableView(saved) };
+      return hostPayload(saved);
     });
   } catch (error) {
     throw mapError(error);
@@ -158,7 +165,7 @@ export async function startRoomPlayableSession({ roomId, actorId }) {
       const current = await loadOrThrow(roomId, { client, forUpdate: true });
       const next = startPlayableSession(current);
       const saved = await upsertRoomPlayableRuntime(client, next, actorId);
-      return { runtime: saved, view: buildHostPlayableView(saved) };
+      return hostPayload(saved);
     });
   } catch (error) {
     throw mapError(error);
@@ -173,7 +180,7 @@ export async function releaseRoomPlayableContent({ roomId, actorId, contentUnitI
         contentUnitId,
       });
       const saved = await upsertRoomPlayableRuntime(client, next, actorId);
-      return { runtime: saved, view: buildHostPlayableView(saved) };
+      return hostPayload(saved);
     });
   } catch (error) {
     throw mapError(error);
@@ -186,7 +193,7 @@ export async function releaseRoomPlayableClue({ roomId, actorId, clueId }) {
       await requireRoom(client, roomId);
       const next = releaseClue(await loadOrThrow(roomId, { client, forUpdate: true }), { clueId });
       const saved = await upsertRoomPlayableRuntime(client, next, actorId);
-      return { runtime: saved, view: buildHostPlayableView(saved) };
+      return hostPayload(saved);
     });
   } catch (error) {
     throw mapError(error);
@@ -199,7 +206,7 @@ export async function advanceRoomPlayableStage({ roomId, actorId }) {
       await requireRoom(client, roomId);
       const next = advancePlayableStage(await loadOrThrow(roomId, { client, forUpdate: true }));
       const saved = await upsertRoomPlayableRuntime(client, next, actorId);
-      return { runtime: saved, view: buildHostPlayableView(saved) };
+      return hostPayload(saved);
     });
   } catch (error) {
     throw mapError(error);
@@ -212,7 +219,7 @@ export async function finishRoomPlayableSession({ roomId, actorId }) {
       await requireRoom(client, roomId);
       const next = finishPlayableSession(await loadOrThrow(roomId, { client, forUpdate: true }));
       const saved = await upsertRoomPlayableRuntime(client, next, actorId);
-      return { runtime: saved, view: buildHostPlayableView(saved) };
+      return hostPayload(saved);
     });
   } catch (error) {
     throw mapError(error);
@@ -294,7 +301,7 @@ export async function startRoomPlayableMechanism({ roomId, actorId, placementId 
         placementId,
       });
       const saved = await upsertRoomPlayableRuntime(client, next, actorId);
-      return { runtime: saved, view: buildHostPlayableView(saved) };
+      return hostPayload(saved);
     });
   } catch (error) {
     throw mapError(error);
@@ -309,7 +316,7 @@ export async function settleRoomPlayableMechanism({ roomId, actorId, placementId
         placementId,
       });
       const saved = await upsertRoomPlayableRuntime(client, next, actorId);
-      return { runtime: saved, view: buildHostPlayableView(saved) };
+      return hostPayload(saved);
     });
   } catch (error) {
     throw mapError(error);

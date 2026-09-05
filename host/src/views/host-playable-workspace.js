@@ -16,7 +16,7 @@ function playerOptions(assignedUserIds) {
 export function renderHostPlayableWorkspace() {
   const busy = state.hostPlayableBusy;
   const payload = state.cloudHostPlayableRuntime;
-  const header = `<div class="section-head compact"><div><h3>剧本内容运行</h3><p>P7.1 纯文本分幕 · 不执行 M03/M09</p></div>
+  const header = `<div class="section-head compact"><div><h3>剧本内容运行</h3><p>Playable Runtime · 内容分幕与玩法桥接</p></div>
     <button type="button" class="secondary-btn" data-action="host-playable-refresh" ${busy ? "disabled" : ""}>刷新</button></div>`;
 
   if (!payload) {
@@ -32,22 +32,19 @@ export function renderHostPlayableWorkspace() {
   }
 
   const view = payload.view || {};
-  const runtime = payload.runtime || {};
-  const snapshot = runtime.playableSnapshot || {};
-  const playerRoles = (snapshot.roles || []).filter((r) => r.type === "PLAYER");
-  const assigned = new Map((view.roleAssignments || []).map((a) => [a.playableRoleId, a]));
-  const assignedUsers = new Set((view.roleAssignments || []).map((a) => String(a.userId)));
+  const assignedUsers = new Set(
+    (view.playerRoles || []).filter((r) => r.assignedUserId).map((r) => String(r.assignedUserId)),
+  );
 
-  const roleRows = playerRoles
+  const roleRows = (view.playerRoles || [])
     .map((role) => {
-      const a = assigned.get(role.id);
-      const read = view.readByRole?.[role.id];
-      if (a) {
-        return `<div class="host-playable-role"><strong>${escapeHtml(role.name)}</strong><span>✓ ${escapeHtml(a.userId.slice(0, 8))}…${read ? ` · 已读 ${read.read}/${read.visible}` : ""}</span></div>`;
+      if (role.assigned) {
+        const uid = String(role.assignedUserId || "");
+        return `<div class="host-playable-role"><strong>${escapeHtml(role.name)}</strong><span>✓ ${escapeHtml(uid.slice(0, 8))}… · 已读 ${Number(role.read) || 0}/${Number(role.visible) || 0}</span></div>`;
       }
       return `<div class="host-playable-role"><strong>${escapeHtml(role.name)}</strong>
-        <select data-playable-assign-for="${escapeHtml(role.id)}">${playerOptions(assignedUsers)}</select>
-        <button type="button" class="secondary-btn" data-action="host-playable-assign" data-playable-role-id="${escapeHtml(role.id)}" ${busy ? "disabled" : ""}>分配</button>
+        <select data-playable-assign-for="${escapeHtml(role.roleId)}">${playerOptions(assignedUsers)}</select>
+        <button type="button" class="secondary-btn" data-action="host-playable-assign" data-playable-role-id="${escapeHtml(role.roleId)}" ${busy ? "disabled" : ""}>分配</button>
       </div>`;
     })
     .join("");
@@ -62,18 +59,16 @@ export function renderHostPlayableWorkspace() {
 
   const placements = (view.placements || [])
     .map((p) => {
-      const status = p.status || "NOT_IMPLEMENTED";
+      const placementId = p.placementId || p.id;
       let controls = "";
-      if (status === "READY" && p.runnable) {
-        controls = `<button type="button" class="primary-btn" data-action="host-playable-start-mechanism" data-placement-id="${escapeHtml(p.id)}" ${busy ? "disabled" : ""}>开始竞价</button>`;
-      } else if (status === "RUNNING") {
-        controls = `<button type="button" class="primary-btn" data-action="host-playable-settle-mechanism" data-placement-id="${escapeHtml(p.id)}" ${busy ? "disabled" : ""}>结算竞价</button>`;
-      } else if (status === "SETTLED") {
-        controls = `<span>已结算 · 赢家 ${escapeHtml(p.winnerRoleId || "—")} · 获得仓房优先查验权</span>`;
-      } else if (status === "NOT_IMPLEMENTED") {
-        controls = `<span>${escapeHtml(p.note || "暂不可运行 · P7.3")}</span>`;
+      if (p.canStart) {
+        controls = `<button type="button" class="primary-btn" data-action="host-playable-start-mechanism" data-placement-id="${escapeHtml(placementId)}" ${busy ? "disabled" : ""}>开始竞价</button>`;
+      } else if (p.canSettle) {
+        controls = `<button type="button" class="primary-btn" data-action="host-playable-settle-mechanism" data-placement-id="${escapeHtml(placementId)}" ${busy ? "disabled" : ""}>结算竞价</button>`;
+      } else {
+        controls = `<span>${escapeHtml(p.outcomeSummary || p.note || p.status || "")}</span>`;
       }
-      return `<div class="host-playable-placement"><div><strong>${escapeHtml(p.title || p.id)}</strong><small>${escapeHtml(status)}${p.runtimeInstanceId ? ` · ${escapeHtml(p.runtimeInstanceId.slice(0, 18))}…` : ""}</small></div>${controls}</div>`;
+      return `<div class="host-playable-placement"><div><strong>${escapeHtml(p.title || placementId)}</strong><small>${escapeHtml(p.status || "")}</small></div>${controls}</div>`;
     })
     .join("") || `<p class="muted-note">本幕无玩法位置</p>`;
 

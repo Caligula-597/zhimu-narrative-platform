@@ -332,9 +332,12 @@ function renderPlayableProgress() {
           clues.length
             ? clues
                 .map((row) => {
-                  const c = row.clue || row;
-                  const content = row.content;
-                  return `<div class="playable-clue"><strong>${escapeHtml(c.title || c.id)}</strong><p>${escapeHtml(content?.content || "")}</p></div>`;
+                  const title = row.title || row.clue?.title || row.clueId || row.clue?.id || "";
+                  const body =
+                    typeof row.content === "string"
+                      ? row.content
+                      : row.content?.content || "";
+                  return `<div class="playable-clue"><strong>${escapeHtml(title)}</strong><p>${escapeHtml(body)}</p></div>`;
                 })
                 .join("")
             : `<p class="muted">尚无线索</p>`
@@ -346,13 +349,15 @@ function renderPlayableProgress() {
           placements.length
             ? placements
                 .map((p) => {
-                  const bidUi =
-                    p.canBid
-                      ? `<div class="playable-bid-row"><input type="number" min="1" step="1" value="5" data-playable-bid-amount data-placement-id="${escapeHtml(p.id)}" /><button type="button" class="btn primary compact" data-action="playable-mechanism-bid" data-placement-id="${escapeHtml(p.id)}">出价</button></div>`
-                      : p.runnable === false && p.status !== "SETTLED"
-                        ? `<button type="button" class="btn quiet compact" disabled>暂不可运行</button>`
+                  const placementId = p.placementId || p.id;
+                  const bidUi = p.canBid
+                    ? `<div class="playable-bid-row"><input type="number" min="1" step="1" value="5" data-playable-bid-amount data-placement-id="${escapeHtml(placementId)}" /><button type="button" class="btn primary compact" data-action="playable-mechanism-bid" data-placement-id="${escapeHtml(placementId)}">出价</button></div>`
+                    : !p.canBid && p.status !== "SETTLED" && p.status !== "RUNNING"
+                      ? `<button type="button" class="btn quiet compact" disabled>暂不可运行</button>`
+                      : p.outcomeSummary
+                        ? `<small>${escapeHtml(p.outcomeSummary)}</small>`
                         : "";
-                  return `<div class="playable-placement"><strong>${escapeHtml(p.title || p.id)}</strong><p>${escapeHtml(p.note || "")}</p>${bidUi}</div>`;
+                  return `<div class="playable-placement"><strong>${escapeHtml(p.title || placementId)}</strong><p>${escapeHtml(p.note || "")}</p>${bidUi}</div>`;
                 })
                 .join("")
             : `<p class="muted">本幕无玩法</p>`

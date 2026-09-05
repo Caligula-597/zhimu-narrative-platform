@@ -124,7 +124,7 @@ test("AUTO_ON_STAGE / HOST_RELEASE / CONDITION_UNLOCK", () => {
 
   assert.throws(
     () => releaseClue(runtime, { clueId: "clue_burned_ledger", now: FIXED }),
-    (e) => e.code === "CONDITION_LOCKED" || e.code === "WRONG_STAGE",
+    (e) => e.code === "CONDITION_LOCKED" || e.code === "NOT_CURRENT_STAGE" || e.code === "WRONG_STAGE",
   );
 
   assert.ok(!ids(resolveVisibleContent({ runtime, roleId: "role_a" })).has("cu_a_s2_win"));
@@ -171,12 +171,15 @@ test("stage advance host path opens AUTO; player cannot conceptually advance wit
   assert.ok(!ids(resolveVisibleContent({ runtime, roleId: "role_a" })).has("cu_a_s3"));
 
   const host = buildHostPlayableView(runtime);
-  assert.equal(host.placements.some((p) => p.mechanismTemplateId?.startsWith("M03") || p.id.includes("m03")), true);
+  assert.equal(host.placements.some((p) => p.id.includes("m03")), true);
   const m03 = host.placements.find((p) => p.id.includes("m03"));
-  const others = host.placements.filter((p) => p.id !== m03?.id);
-  assert.equal(m03?.runnable, true);
+  assert.equal(m03?.canStart, true);
+  assert.equal(m03?.canSettle, false);
   assert.equal(m03?.status, "READY");
-  assert.equal(others.every((p) => p.runnable === false), true);
+  assert.ok(Array.isArray(host.playerRoles));
+  assert.equal(host.playerRoles.length, 6);
+  assert.equal("permissionGrants" in host, false);
+  assert.equal("keyStates" in host, false);
 });
 
 test("read receipt + persistence roundtrip shape", () => {
@@ -219,7 +222,9 @@ test("fixture complete pure-text session Stage1→Final", () => {
   const playerA = buildPlayerPlayableView(runtime, { playableRoleId: "role_a" });
   assert.ok(playerA.placements.some((p) => /库房|竞价|M03/i.test(p.title + p.note) || p.id.includes("m03")));
   assert.equal(playerA.placements.find((p) => p.id.includes("m03"))?.status, "READY");
-  assert.equal(playerA.placements.every((p) => p.runnable === false), true);
+  assert.equal(playerA.placements.every((p) => p.canBid === false), true);
+  assert.equal("permissionGrants" in playerA, false);
+  assert.equal("keyStates" in playerA, false);
   assert.ok(!ids(resolveVisibleContent({ runtime, roleId: "role_a" })).has("cu_a_s2_win"));
 
   runtime = advancePlayableStage(runtime, { now: FIXED }); // → 3
@@ -229,7 +234,7 @@ test("fixture complete pure-text session Stage1→Final", () => {
   runtime = advancePlayableStage(runtime, { now: FIXED }); // → 4
   const hostFinal = buildHostPlayableView(runtime);
   assert.ok(hostFinal.placements.some((p) => p.id.includes("m09") || /指凶|投票/i.test(p.title || "")));
-  assert.equal(hostFinal.placements.every((p) => p.runnable === false), true);
+  assert.equal(hostFinal.placements.every((p) => !p.canStart && !p.canSettle), true);
 
   runtime = finishPlayableSession(runtime, { now: FIXED });
   assert.equal(runtime.status, "FINISHED");

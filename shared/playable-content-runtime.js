@@ -15,6 +15,7 @@ import {
   roleHasPermission,
   normalizePermissionGrant,
 } from "./playable-runtime-effects.js";
+import { canonicalPlayableErrorCode } from "./playable-runtime-errors.js";
 
 export const PLAYABLE_RUNTIME_SCHEMA_VERSION = 1;
 
@@ -33,7 +34,7 @@ export class PlayableContentRuntimeError extends Error {
   constructor(code, message, details = {}) {
     super(message);
     this.name = "PlayableContentRuntimeError";
-    this.code = code;
+    this.code = canonicalPlayableErrorCode(code);
     this.details = details;
   }
 }
@@ -537,25 +538,26 @@ export function buildHostPlayableView(runtime) {
   const snapshot = state.playableSnapshot;
   const current = snapshot?.stages?.find((s) => s.id === state.currentStageId);
   const stageState = state.stageStates.find((s) => s.stageId === state.currentStageId);
-  const releasableClues = (snapshot?.clues || []).filter(
-    (c) =>
-      c.stageId === state.currentStageId &&
-      c.delivery === "HOST_RELEASE" &&
-      !state.releasedClueIds.includes(c.id),
-  );
-  const releasableContent = (snapshot?.contentUnits || []).filter(
-    (c) =>
-      c.stageId === state.currentStageId &&
-      c.delivery === "HOST_RELEASE" &&
-      !state.releasedContentUnitIds.includes(c.id) &&
-      c.audience.visibility !== "HOST_ONLY",
-  );
-  const hostOnly = (snapshot?.contentUnits || []).filter(
-    (c) =>
-      c.audience.visibility === "HOST_ONLY" &&
-      (stageState?.status === "ACTIVE" || stageState?.status === "COMPLETED") &&
-      c.stageId === state.currentStageId,
-  );
+  const roleName = (id) => (snapshot?.roles || []).find((r) => r.id === id)?.name || id;
+
+  const releasableClues = (snapshot?.clues || [])
+    .filter(
+      (c) =>
+        c.stageId === state.currentStageId &&
+        c.delivery === "HOST_RELEASE" &&
+        !state.releasedClueIds.includes(c.id),
+    )
+    .map((c) => ({ id: c.id, title: c.title }));
+
+  const hostOnlyContent = (snapshot?.contentUnits || [])
+    .filter(
+      (c) =>
+        c.audience.visibility === "HOST_ONLY" &&
+        (stageState?.status === "ACTIVE" || stageState?.status === "COMPLETED") &&
+        c.stageId === state.currentStageId,
+    )
+    .map((c) => ({ id: c.id, title: c.title }));
+
   const placements = (snapshot?.mechanismPlacements || [])
     .filter((p) => p.stageId === state.currentStageId)
     .map((p) => {
@@ -563,32 +565,50 @@ export function buildHostPlayableView(runtime) {
       const exec = state.mechanismExecutions?.[p.id];
       const isM03 = p.familyId === "M03" || String(p.mechanismTemplateId || "").startsWith("M03");
       const status = st?.status || "NOT_IMPLEMENTED";
+      const canStart = isM03 && status === "READY";
+      const canSettle = isM03 && status === "RUNNING";
+      const winnerLabel = exec?.winnerRoleId ? roleName(exec.winnerRoleId) : null;
       return {
+        placementId: p.id,
         id: p.id,
         title: p.title,
-        mechanismTemplateId: p.mechanismTemplateId,
         familyId: p.familyId,
         status,
         note: st?.note,
-        runnable: isM03 && (status === "READY" || status === "RUNNING"),
-        runtimeInstanceId: exec?.runtimeInstanceId || null,
-        winnerRoleId: exec?.winnerRoleId || null,
-        result: exec?.result || null,
+        canStart,
+        canSettle,
+        canBid: false,
+        winnerLabel,
+        outcomeSummary:
+          status === "SETTLED" && winnerLabel
+            ? `赢家：${winnerLabel} · 获得仓房优先查验权`
+            : status === "RUNNING"
+              ? "进行中"
+              : status === "READY"
+                ? "可开始"
+                : st?.note || null,
       };
     });
 
-  const readByRole = {};
-  for (const a of state.roleAssignments) {
-    const roleUnits = resolveVisibleContent({ runtime: state, roleId: a.playableRoleId });
-    const readIds = new Set(
-      state.readReceipts.filter((r) => r.roleId === a.playableRoleId).map((r) => r.contentUnitId),
-    );
-    readByRole[a.playableRoleId] = {
-      userId: a.userId,
-      visible: roleUnits.length,
-      read: roleUnits.filter((u) => readIds.has(u.id)).length,
-    };
-  }
+  const playerRoles = (snapshot?.roles || [])
+    .filter((r) => r.type === "PLAYER")
+    .map((role) => {
+      const a = state.roleAssignments.find((x) => x.playableRoleId === role.id);
+      const roleUnits = a
+        ? resolveVisibleContent({ runtime: state, roleId: role.id })
+        : [];
+      const readIds = new Set(
+        state.readReceipts.filter((r) => r.roleId === role.id).map((r) => r.contentUnitId),
+      );
+      return {
+        roleId: role.id,
+        name: role.name,
+        assignedUserId: a?.userId || null,
+        assigned: Boolean(a),
+        read: roleUnits.filter((u) => readIds.has(u.id)).length,
+        visible: roleUnits.length,
+      };
+    });
 
   return {
     status: state.status,
@@ -596,16 +616,14 @@ export function buildHostPlayableView(runtime) {
     currentStageTitle: current?.title,
     stageIndex: (snapshot?.stages || []).findIndex((s) => s.id === state.currentStageId) + 1,
     stageCount: snapshot?.stages?.length || 0,
-    stageStates: state.stageStates,
-    roleAssignments: state.roleAssignments,
-    readByRole,
+    playerRoles,
+    roleAssignments: state.roleAssignments.map((a) => ({
+      userId: a.userId,
+      playableRoleId: a.playableRoleId,
+    })),
     releasableClues,
-    releasableContent,
-    hostOnlyContent: hostOnly,
+    hostOnlyContent,
     placements,
-    permissionGrants: state.permissionGrants,
-    keyStates: state.keyStates,
-    releasedClueIds: state.releasedClueIds,
     playableProjectId: state.playableProjectId,
     playableFingerprint: state.playableFingerprint,
     revision: state.revision,
@@ -618,11 +636,19 @@ export function buildPlayerPlayableView(runtime, { playableRoleId }) {
   const role = (snapshot?.roles || []).find((r) => r.id === playableRoleId);
   const current = snapshot?.stages?.find((s) => s.id === state.currentStageId);
   const units = resolveVisibleContent({ runtime: state, roleId: playableRoleId });
-  const texts = units.filter((u) => u.type === "TEXT" || u.type === "SYSTEM" || u.type === "REVEAL");
+  const texts = units
+    .filter((u) => u.type === "TEXT" || u.type === "SYSTEM" || u.type === "REVEAL")
+    .map((u) => ({ id: u.id, title: u.title, content: u.content, type: u.type, stageId: u.stageId }));
   const clues = (snapshot?.clues || [])
     .map((c) => {
       const got = fetchClueForRole(state, { roleId: playableRoleId, clueId: c.id });
-      return got.ok ? { clue: c, content: got.unit } : null;
+      return got.ok
+        ? {
+            clueId: c.id,
+            title: c.title,
+            content: got.unit?.content || "",
+          }
+        : null;
     })
     .filter(Boolean);
 
@@ -633,21 +659,24 @@ export function buildPlayerPlayableView(runtime, { playableRoleId }) {
       const exec = state.mechanismExecutions?.[p.id];
       const status = st?.status || "WAITING_HOST";
       const isM03 = p.familyId === "M03" || String(p.mechanismTemplateId || "").startsWith("M03");
+      const isWinner = exec?.winnerRoleId === playableRoleId;
       return {
+        placementId: p.id,
         id: p.id,
         title: p.title,
         status,
+        canBid: isM03 && status === "RUNNING",
         note:
           status === "RUNNING"
             ? "竞价进行中，请出价"
             : status === "SETTLED"
-              ? `已结算${exec?.winnerRoleId === playableRoleId ? " · 你是赢家" : ""}`
+              ? isWinner
+                ? "已结算 · 你是赢家"
+                : "已结算"
               : status === "READY"
                 ? "等待主持开始"
                 : st?.note || "等待主持开始",
-        runnable: isM03 && status === "RUNNING",
-        canBid: isM03 && status === "RUNNING",
-        winnerRoleId: exec?.winnerRoleId || null,
+        outcomeSummary: status === "SETTLED" ? (isWinner ? "你获得了仓房优先查验权" : null) : null,
       };
     });
 
@@ -660,13 +689,31 @@ export function buildPlayerPlayableView(runtime, { playableRoleId }) {
     contentUnits: texts,
     clues,
     placements,
-    permissionGrants: state.permissionGrants.filter((g) => g.targetRoleId === playableRoleId),
-    keyStates: state.keyStates,
-    readReceipts: state.readReceipts.filter((r) => r.roleId === playableRoleId),
+    readReceipts: state.readReceipts
+      .filter((r) => r.roleId === playableRoleId)
+      .map((r) => ({ contentUnitId: r.contentUnitId, readAt: r.readAt })),
+  };
+}
+
+/** Public runtime summary — never expose snapshot / mechanismExecutions to UI. */
+export function buildRuntimePublicSummary(runtime) {
+  const state = normalizePlayableRuntimeState(runtime);
+  if (!state) return null;
+  return {
+    status: state.status,
+    currentStageId: state.currentStageId,
+    playableProjectId: state.playableProjectId,
+    playableFingerprint: state.playableFingerprint,
+    revision: state.revision,
   };
 }
 
 export function roleIdForUser(runtime, userId) {
   const state = normalizePlayableRuntimeState(runtime);
   return state?.roleAssignments?.find((a) => a.userId === userId)?.playableRoleId || null;
+}
+
+export function userIdForRole(runtime, playableRoleId) {
+  const state = normalizePlayableRuntimeState(runtime);
+  return state?.roleAssignments?.find((a) => a.playableRoleId === playableRoleId)?.userId || null;
 }
