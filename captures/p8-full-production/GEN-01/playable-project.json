@@ -1,0 +1,1379 @@
+{
+  "schemaVersion": 1,
+  "id": "gen-01-full-vertical-playable",
+  "title": "GEN-01 雨夜公寓",
+  "status": "READY",
+  "isStale": false,
+  "source": {
+    "sourceType": "COMPLETE_SCRIPT_PACKAGE",
+    "sourceId": "csp-writer-pmd-mod-mtoah044-4lg6",
+    "sourceRevision": "1",
+    "fixtureId": "csp-writer-pmd-mod-mtoah044-4lg6",
+    "fingerprint": "COMPLETE_SCRIPT_PACKAGE|csp-writer-pmd-mod-mtoah044-4lg6|1|csp-writer-pmd-mod-mtoah044-4lg6",
+    "compiledAt": "2026-09-05T18:00:00.000Z"
+  },
+  "roles": [
+    {
+      "id": "role_host",
+      "name": "主持人",
+      "type": "HOST",
+      "playerAssignable": false,
+      "sourceRefs": [
+        {
+          "sourceType": "HOST_SCRIPT",
+          "characterId": "role_host",
+          "label": "role:role_host"
+        }
+      ]
+    },
+    {
+      "id": "role_R2",
+      "characterId": "R2",
+      "name": "何叙",
+      "type": "PLAYER",
+      "playerAssignable": true,
+      "sourceRefs": [
+        {
+          "sourceType": "CHARACTER_SCRIPT",
+          "characterId": "R2",
+          "label": "role:role_R2"
+        }
+      ]
+    },
+    {
+      "id": "role_R3",
+      "characterId": "R3",
+      "name": "赵听雨",
+      "type": "PLAYER",
+      "playerAssignable": true,
+      "sourceRefs": [
+        {
+          "sourceType": "CHARACTER_SCRIPT",
+          "characterId": "R3",
+          "label": "role:role_R3"
+        }
+      ]
+    },
+    {
+      "id": "role_R5",
+      "characterId": "R5",
+      "name": "苏明",
+      "type": "PLAYER",
+      "playerAssignable": true,
+      "sourceRefs": [
+        {
+          "sourceType": "CHARACTER_SCRIPT",
+          "characterId": "R5",
+          "label": "role:role_R5"
+        }
+      ]
+    },
+    {
+      "id": "role_R4",
+      "characterId": "R4",
+      "name": "周鹤",
+      "type": "PLAYER",
+      "playerAssignable": true,
+      "sourceRefs": [
+        {
+          "sourceType": "CHARACTER_SCRIPT",
+          "characterId": "R4",
+          "label": "role:role_R4"
+        }
+      ]
+    },
+    {
+      "id": "role_R1",
+      "characterId": "R1",
+      "name": "林晚舟",
+      "type": "PLAYER",
+      "playerAssignable": true,
+      "sourceRefs": [
+        {
+          "sourceType": "CHARACTER_SCRIPT",
+          "characterId": "R1",
+          "label": "role:role_R1"
+        }
+      ]
+    },
+    {
+      "id": "role_NPC_GUARD",
+      "characterId": "NPC_GUARD",
+      "name": "门岗",
+      "type": "PLAYER",
+      "playerAssignable": false,
+      "sourceRefs": [
+        {
+          "sourceType": "CHARACTER_SCRIPT",
+          "characterId": "NPC_GUARD",
+          "label": "role:role_NPC_GUARD"
+        }
+      ]
+    }
+  ],
+  "stages": [
+    {
+      "id": "act1",
+      "order": 0,
+      "title": "铺垫",
+      "stageRole": "SETUP",
+      "contentUnitIds": [
+        "cu_host_host_act1",
+        "cu_role_R2_act1",
+        "cu_role_R3_act1",
+        "cu_role_R5_act1",
+        "cu_role_R4_act1",
+        "cu_public_act1",
+        "cu_clue_fact-interface:ob-mtoah042-lqix",
+        "cu_clue_smb-mtoah040-1aytq-foreshadow-0"
+      ],
+      "clueIds": [
+        "fact-interface:ob-mtoah042-lqix",
+        "smb-mtoah040-1aytq-foreshadow-0"
+      ],
+      "mechanismPlacementIds": [],
+      "enterCondition": {
+        "type": "HOST_START"
+      },
+      "exitCondition": {
+        "type": "HOST_ADVANCE"
+      },
+      "sourceRefs": [
+        {
+          "sourceType": "FIXTURE",
+          "stageId": "act1",
+          "label": "铺垫"
+        }
+      ]
+    },
+    {
+      "id": "act2",
+      "order": 1,
+      "title": "加压",
+      "stageRole": "PRESSURE",
+      "contentUnitIds": [
+        "cu_host_host_act2",
+        "cu_role_R2_act2",
+        "cu_role_R3_act2",
+        "cu_role_R5_act2",
+        "cu_role_R4_act2",
+        "cu_role_R1_act2",
+        "cu_role_NPC_GUARD_act2",
+        "cu_public_act2",
+        "cu_clue_smb-mtoah03v-snp45-false_lead-0",
+        "cu_clue_smb-mtoah03v-snp45-contradiction-1"
+      ],
+      "clueIds": [
+        "smb-mtoah03v-snp45-false_lead-0",
+        "smb-mtoah03v-snp45-contradiction-1"
+      ],
+      "mechanismPlacementIds": [],
+      "enterCondition": {
+        "type": "HOST_ADVANCE"
+      },
+      "exitCondition": {
+        "type": "HOST_ADVANCE"
+      },
+      "sourceRefs": [
+        {
+          "sourceType": "FIXTURE",
+          "stageId": "act2",
+          "label": "加压"
+        }
+      ]
+    },
+    {
+      "id": "act3",
+      "order": 2,
+      "title": "收束",
+      "stageRole": "PAYOFF",
+      "contentUnitIds": [
+        "cu_host_host_act3",
+        "cu_role_R2_act3",
+        "cu_role_R3_act3",
+        "cu_role_R5_act3",
+        "cu_role_R4_act3",
+        "cu_role_R1_act3",
+        "cu_role_NPC_GUARD_act3",
+        "cu_public_act3",
+        "cu_ending_truth",
+        "cu_clue_smb-mtoah03v-snp45-true_evidence-2",
+        "cu_clue_smb-mtoah03v-snp45-decisive_evidence-3",
+        "cu_clue_smb-mtoah040-1aytq-memory_fragment-1",
+        "cu_clue_smb-mtoah040-1aytq-identity_hint-2",
+        "cu_clue_smb-mtoah040-1aytq-misdirection-3",
+        "cu_clue_smb-mtoah040-1aytq-confirmation-4",
+        "cu_clue_smb-mtoah040-1aytq-decisive_reveal-5",
+        "cu_clue_fact-interface:ob-mtoah042-9on7"
+      ],
+      "clueIds": [
+        "smb-mtoah03v-snp45-true_evidence-2",
+        "smb-mtoah03v-snp45-decisive_evidence-3",
+        "smb-mtoah040-1aytq-memory_fragment-1",
+        "smb-mtoah040-1aytq-identity_hint-2",
+        "smb-mtoah040-1aytq-misdirection-3",
+        "smb-mtoah040-1aytq-confirmation-4",
+        "smb-mtoah040-1aytq-decisive_reveal-5",
+        "fact-interface:ob-mtoah042-9on7"
+      ],
+      "mechanismPlacementIds": [],
+      "enterCondition": {
+        "type": "HOST_ADVANCE"
+      },
+      "exitCondition": {
+        "type": "HOST_ADVANCE"
+      },
+      "sourceRefs": [
+        {
+          "sourceType": "FIXTURE",
+          "stageId": "act3",
+          "label": "收束"
+        }
+      ]
+    }
+  ],
+  "contentUnits": [
+    {
+      "id": "cu_host_host_act1",
+      "type": "TEXT",
+      "stageId": "act1",
+      "audience": {
+        "roleIds": [
+          "role_host"
+        ],
+        "visibility": "HOST_ONLY"
+      },
+      "delivery": "AUTO_ON_STAGE",
+      "content": "【本幕主持目标】何叙：准备可嫁祸的假象；苏明：隐藏或维持当前身份表象\n【真实发生】主持真相：何叙为了准备可嫁祸的假象，布置与赵听雨相关的误导物（目标：被嫁祸者遗失的玉佩） / 主持真相：苏明为了隐藏或维持当前身份表象，按伪装/未知状态行动，避免过早暴露（目标：身份表象）\n【可发线索】fact-interface:ob-mtoah042-lqix、smb-mtoah040-1aytq-foreshadow-0、smb-mtoah03v-snp45-false_lead-0、smb-mtoah03v-snp45-contradiction-1、smb-mtoah03v-snp45-true_evidence-2、smb-mtoah03v-snp45-decisive_evidence-3、smb-mtoah040-1aytq-memory_fragment-1、smb-mtoah040-1aytq-identity_hint-2、smb-mtoah040-1aytq-misdirection-3、smb-mtoah040-1aytq-confirmation-4、smb-mtoah040-1aytq-decisive_reveal-5、fact-interface:ob-mtoah042-9on7",
+      "title": "主持·铺垫",
+      "sourceRef": {
+        "sourceType": "HOST_SCRIPT",
+        "sourceDocumentId": "doc_host_manual",
+        "stageId": "act1",
+        "sectionId": "host_act1",
+        "label": "主持·铺垫"
+      }
+    },
+    {
+      "id": "cu_host_host_act2",
+      "type": "TEXT",
+      "stageId": "act2",
+      "audience": {
+        "roleIds": [
+          "role_host"
+        ],
+        "visibility": "HOST_ONLY"
+      },
+      "delivery": "AUTO_ON_STAGE",
+      "content": "【本幕主持目标】何叙：完成犯行并指向赵听雨；周鹤：推翻对赵听雨的错误判断；苏明：用正式动作换取被条件锁住的信息\n【真实发生】主持真相：何叙为了完成犯行并指向赵听雨，实施犯行并留下指向赵听雨的痕迹（目标：被嫁祸者遗失的玉佩） / 主持真相：周鹤为了推翻对赵听雨的错误判断，对照现场与证物寻找矛盾（目标：被嫁祸者遗失的玉佩） / 主持真相：苏明为了用正式动作换取被条件锁住的信息，完成登记条件以触发内容开放（目标：身份记录）\n【可发线索】fact-interface:ob-mtoah042-lqix、smb-mtoah040-1aytq-foreshadow-0、smb-mtoah03v-snp45-false_lead-0、smb-mtoah03v-snp45-contradiction-1、smb-mtoah03v-snp45-true_evidence-2、smb-mtoah03v-snp45-decisive_evidence-3、smb-mtoah040-1aytq-memory_fragment-1、smb-mtoah040-1aytq-identity_hint-2、smb-mtoah040-1aytq-misdirection-3、smb-mtoah040-1aytq-confirmation-4、smb-mtoah040-1aytq-decisive_reveal-5、fact-interface:ob-mtoah042-9on7",
+      "title": "主持·加压",
+      "sourceRef": {
+        "sourceType": "HOST_SCRIPT",
+        "sourceDocumentId": "doc_host_manual",
+        "stageId": "act2",
+        "sectionId": "host_act2",
+        "label": "主持·加压"
+      }
+    },
+    {
+      "id": "cu_host_host_act3",
+      "type": "TEXT",
+      "stageId": "act3",
+      "audience": {
+        "roleIds": [
+          "role_host"
+        ],
+        "visibility": "HOST_ONLY"
+      },
+      "delivery": "AUTO_ON_STAGE",
+      "content": "【本幕主持目标】周鹤：推翻对赵听雨的错误判断；周鹤：锁定真凶何叙；苏明：确认真实身份并决定是否公开；苏明：承受身份公开后的关系后果\n【真实发生】主持真相：周鹤为了推翻对赵听雨的错误判断，对照现场与证物寻找矛盾（目标：被嫁祸者遗失的玉佩） / 主持真相：周鹤为了锁定真凶何叙，用决定性证据揭穿嫁祸（目标：决定性证据） / 主持真相：苏明为了确认真实身份并决定是否公开，核对身份线索并作出公开或隐瞒选择（目标：真实身份） / 主持真相：苏明为了承受身份公开后的关系后果，面对知情者与阵营/调查方的反应（目标：关系重组）\n【可发线索】fact-interface:ob-mtoah042-lqix、smb-mtoah040-1aytq-foreshadow-0、smb-mtoah03v-snp45-false_lead-0、smb-mtoah03v-snp45-contradiction-1、smb-mtoah03v-snp45-true_evidence-2、smb-mtoah03v-snp45-decisive_evidence-3、smb-mtoah040-1aytq-memory_fragment-1、smb-mtoah040-1aytq-identity_hint-2、smb-mtoah040-1aytq-misdirection-3、smb-mtoah040-1aytq-confirmation-4、smb-mtoah040-1aytq-decisive_reveal-5、fact-interface:ob-mtoah042-9on7",
+      "title": "主持·收束",
+      "sourceRef": {
+        "sourceType": "HOST_SCRIPT",
+        "sourceDocumentId": "doc_host_manual",
+        "stageId": "act3",
+        "sectionId": "host_act3",
+        "label": "主持·收束"
+      }
+    },
+    {
+      "id": "cu_role_R2_act1",
+      "type": "TEXT",
+      "stageId": "act1",
+      "audience": {
+        "roleIds": [
+          "role_R2"
+        ],
+        "visibility": "PRIVATE"
+      },
+      "delivery": "AUTO_ON_STAGE",
+      "content": "【本幕目标】准备可嫁祸的假象\n【你的行动】布置与赵听雨相关的误导物\n【你掌握的信息】布置与赵听雨相关的误导物；玩家可见：布置与赵听雨相关的误导物（仅同场，不暗示因果）\n【关系变化】同场出现（非因果）",
+      "title": "何叙·act1",
+      "sourceRef": {
+        "sourceType": "CHARACTER_SCRIPT",
+        "sourceDocumentId": "doc_role_R2",
+        "characterId": "role_R2",
+        "stageId": "act1",
+        "sectionId": "role_R2_act1",
+        "label": "何叙·act1"
+      }
+    },
+    {
+      "id": "cu_role_R2_act2",
+      "type": "TEXT",
+      "stageId": "act2",
+      "audience": {
+        "roleIds": [
+          "role_R2"
+        ],
+        "visibility": "PRIVATE"
+      },
+      "delivery": "AUTO_ON_STAGE",
+      "content": "【本幕目标】完成犯行并指向赵听雨；完成犯行并指向赵听雨\n【你的行动】实施犯行并留下指向赵听雨的痕迹；实施犯行并留下指向赵听雨的痕迹\n【你掌握的信息】实施犯行并留下指向赵听雨的痕迹；玩家可见：实施犯行并留下指向赵听雨的痕迹（仅同场，不暗示因果）；玩家可见：实施犯行并留下指向赵听雨的痕迹\n【关系变化】同场出现（非因果）",
+      "title": "何叙·act2",
+      "sourceRef": {
+        "sourceType": "CHARACTER_SCRIPT",
+        "sourceDocumentId": "doc_role_R2",
+        "characterId": "role_R2",
+        "stageId": "act2",
+        "sectionId": "role_R2_act2",
+        "label": "何叙·act2"
+      }
+    },
+    {
+      "id": "cu_role_R2_act3",
+      "type": "TEXT",
+      "stageId": "act3",
+      "audience": {
+        "roleIds": [
+          "role_R2"
+        ],
+        "visibility": "PRIVATE"
+      },
+      "delivery": "AUTO_ON_STAGE",
+      "content": "【本幕目标】（无独立主目标）\n【你的行动】参与（非主导）：周鹤为了推翻对赵听雨的错误判断，对照现场与证物寻找矛盾（目标：被嫁祸者遗失的玉佩）；作为对象卷入：用决定性证据揭穿嫁祸\n【你掌握的信息】参与（非主导）：周鹤为了推翻对赵听雨的错误判断，对照现场与证物寻找矛盾（目标：被嫁祸者遗失的玉佩）；作为对象卷入：用决定性证据揭穿嫁祸；玩家可见：对照现场与证物寻找矛盾（仅同场，不暗示因果）；玩家可见：用决定性证据揭穿嫁祸（仅同场，不暗示因果）\n【关系变化】同场出现（非因果）",
+      "title": "何叙·act3",
+      "sourceRef": {
+        "sourceType": "CHARACTER_SCRIPT",
+        "sourceDocumentId": "doc_role_R2",
+        "characterId": "role_R2",
+        "stageId": "act3",
+        "sectionId": "role_R2_act3",
+        "label": "何叙·act3"
+      }
+    },
+    {
+      "id": "cu_role_R3_act1",
+      "type": "TEXT",
+      "stageId": "act1",
+      "audience": {
+        "roleIds": [
+          "role_R3"
+        ],
+        "visibility": "PRIVATE"
+      },
+      "delivery": "AUTO_ON_STAGE",
+      "content": "【本幕目标】（无独立主目标）\n【你的行动】作为对象卷入：布置与赵听雨相关的误导物\n【你掌握的信息】作为对象卷入：布置与赵听雨相关的误导物；玩家可见：布置与赵听雨相关的误导物（仅同场，不暗示因果）\n【关系变化】同场出现（非因果）",
+      "title": "赵听雨·act1",
+      "sourceRef": {
+        "sourceType": "CHARACTER_SCRIPT",
+        "sourceDocumentId": "doc_role_R3",
+        "characterId": "role_R3",
+        "stageId": "act1",
+        "sectionId": "role_R3_act1",
+        "label": "赵听雨·act1"
+      }
+    },
+    {
+      "id": "cu_role_R3_act2",
+      "type": "TEXT",
+      "stageId": "act2",
+      "audience": {
+        "roleIds": [
+          "role_R3"
+        ],
+        "visibility": "PRIVATE"
+      },
+      "delivery": "AUTO_ON_STAGE",
+      "content": "【本幕目标】（无独立主目标）\n【你的行动】作为对象卷入：实施犯行并留下指向赵听雨的痕迹；参与（非主导）：苏明为了用正式动作换取被条件锁住的信息，完成登记条件以触发内容开放（目标：身份记录）\n【你掌握的信息】作为对象卷入：实施犯行并留下指向赵听雨的痕迹；参与（非主导）：苏明为了用正式动作换取被条件锁住的信息，完成登记条件以触发内容开放（目标：身份记录）；玩家可见：实施犯行并留下指向赵听雨的痕迹；玩家可见：完成登记条件以触发内容开放（仅同场，不暗示因果）\n【关系变化】同场出现（非因果）",
+      "title": "赵听雨·act2",
+      "sourceRef": {
+        "sourceType": "CHARACTER_SCRIPT",
+        "sourceDocumentId": "doc_role_R3",
+        "characterId": "role_R3",
+        "stageId": "act2",
+        "sectionId": "role_R3_act2",
+        "label": "赵听雨·act2"
+      }
+    },
+    {
+      "id": "cu_role_R3_act3",
+      "type": "TEXT",
+      "stageId": "act3",
+      "audience": {
+        "roleIds": [
+          "role_R3"
+        ],
+        "visibility": "PRIVATE"
+      },
+      "delivery": "AUTO_ON_STAGE",
+      "content": "【本幕目标】（无独立主目标）\n【你的行动】作为对象卷入：对照现场与证物寻找矛盾；参与（非主导）：周鹤为了锁定真凶何叙，用决定性证据揭穿嫁祸（目标：决定性证据）；参与（非主导）：苏明为了确认真实身份并决定是否公开，核对身份线索并作出公开或隐瞒选择（目标：真实身份）；参与（非主导）：苏明为了承受身份公开后的关系后果，面对知情者与阵营/调查方的反应（目标：关系重组）\n【你掌握的信息】作为对象卷入：对照现场与证物寻找矛盾；参与（非主导）：周鹤为了锁定真凶何叙，用决定性证据揭穿嫁祸（目标：决定性证据）；参与（非主导）：苏明为了确认真实身份并决定是否公开，核对身份线索并作出公开或隐瞒选择（目标：真实身份）；参与（非主导）：苏明为了承受身份公开后的关系后果，面对知情者与阵营/调查方的反应（目标：关系重组）；玩家可见：对照现场与证物寻找矛盾（仅同场，不暗示因果）；玩家可见：用决定性证据揭穿嫁祸（仅同场，不暗示因果）\n【关系变化】同场出现（非因果）",
+      "title": "赵听雨·act3",
+      "sourceRef": {
+        "sourceType": "CHARACTER_SCRIPT",
+        "sourceDocumentId": "doc_role_R3",
+        "characterId": "role_R3",
+        "stageId": "act3",
+        "sectionId": "role_R3_act3",
+        "label": "赵听雨·act3"
+      }
+    },
+    {
+      "id": "cu_role_R5_act1",
+      "type": "TEXT",
+      "stageId": "act1",
+      "audience": {
+        "roleIds": [
+          "role_R5"
+        ],
+        "visibility": "PRIVATE"
+      },
+      "delivery": "AUTO_ON_STAGE",
+      "content": "【本幕目标】隐藏或维持当前身份表象\n【你的行动】按伪装/未知状态行动，避免过早暴露\n【你掌握的信息】按伪装/未知状态行动，避免过早暴露；玩家可见：按伪装/未知状态行动，避免过早暴露\n【关系变化】（无）",
+      "title": "苏明·act1",
+      "sourceRef": {
+        "sourceType": "CHARACTER_SCRIPT",
+        "sourceDocumentId": "doc_role_R5",
+        "characterId": "role_R5",
+        "stageId": "act1",
+        "sectionId": "role_R5_act1",
+        "label": "苏明·act1"
+      }
+    },
+    {
+      "id": "cu_role_R5_act2",
+      "type": "TEXT",
+      "stageId": "act2",
+      "audience": {
+        "roleIds": [
+          "role_R5"
+        ],
+        "visibility": "PRIVATE"
+      },
+      "delivery": "AUTO_ON_STAGE",
+      "content": "【本幕目标】用正式动作换取被条件锁住的信息\n【你的行动】完成登记条件以触发内容开放\n【你掌握的信息】完成登记条件以触发内容开放；玩家可见：完成登记条件以触发内容开放（仅同场，不暗示因果）\n【关系变化】同场出现（非因果）",
+      "title": "苏明·act2",
+      "sourceRef": {
+        "sourceType": "CHARACTER_SCRIPT",
+        "sourceDocumentId": "doc_role_R5",
+        "characterId": "role_R5",
+        "stageId": "act2",
+        "sectionId": "role_R5_act2",
+        "label": "苏明·act2"
+      }
+    },
+    {
+      "id": "cu_role_R5_act3",
+      "type": "TEXT",
+      "stageId": "act3",
+      "audience": {
+        "roleIds": [
+          "role_R5"
+        ],
+        "visibility": "PRIVATE"
+      },
+      "delivery": "AUTO_ON_STAGE",
+      "content": "【本幕目标】确认真实身份并决定是否公开；承受身份公开后的关系后果\n【你的行动】核对身份线索并作出公开或隐瞒选择；面对知情者与阵营/调查方的反应\n【你掌握的信息】核对身份线索并作出公开或隐瞒选择；面对知情者与阵营/调查方的反应；玩家可见：核对身份线索并作出公开或隐瞒选择（仅同场，不暗示因果）；玩家可见：面对知情者与阵营/调查方的反应（仅同场，不暗示因果）\n【关系变化】同场出现（非因果）",
+      "title": "苏明·act3",
+      "sourceRef": {
+        "sourceType": "CHARACTER_SCRIPT",
+        "sourceDocumentId": "doc_role_R5",
+        "characterId": "role_R5",
+        "stageId": "act3",
+        "sectionId": "role_R5_act3",
+        "label": "苏明·act3"
+      }
+    },
+    {
+      "id": "cu_role_R4_act1",
+      "type": "TEXT",
+      "stageId": "act1",
+      "audience": {
+        "roleIds": [
+          "role_R4"
+        ],
+        "visibility": "PRIVATE"
+      },
+      "delivery": "AUTO_ON_STAGE",
+      "content": "【本幕目标】（无独立主目标）\n【你的行动】参与（非主导）：苏明为了隐藏或维持当前身份表象，按伪装/未知状态行动，避免过早暴露（目标：身份表象）\n【你掌握的信息】参与（非主导）：苏明为了隐藏或维持当前身份表象，按伪装/未知状态行动，避免过早暴露（目标：身份表象）；玩家可见：按伪装/未知状态行动，避免过早暴露\n【关系变化】（无）",
+      "title": "周鹤·act1",
+      "sourceRef": {
+        "sourceType": "CHARACTER_SCRIPT",
+        "sourceDocumentId": "doc_role_R4",
+        "characterId": "role_R4",
+        "stageId": "act1",
+        "sectionId": "role_R4_act1",
+        "label": "周鹤·act1"
+      }
+    },
+    {
+      "id": "cu_role_R4_act2",
+      "type": "TEXT",
+      "stageId": "act2",
+      "audience": {
+        "roleIds": [
+          "role_R4"
+        ],
+        "visibility": "PRIVATE"
+      },
+      "delivery": "AUTO_ON_STAGE",
+      "content": "【本幕目标】推翻对赵听雨的错误判断\n【你的行动】参与（非主导）：何叙为了完成犯行并指向赵听雨，实施犯行并留下指向赵听雨的痕迹（目标：被嫁祸者遗失的玉佩）；对照现场与证物寻找矛盾；参与（非主导）：苏明为了用正式动作换取被条件锁住的信息，完成登记条件以触发内容开放（目标：身份记录）\n【你掌握的信息】参与（非主导）：何叙为了完成犯行并指向赵听雨，实施犯行并留下指向赵听雨的痕迹（目标：被嫁祸者遗失的玉佩）；对照现场与证物寻找矛盾；参与（非主导）：苏明为了用正式动作换取被条件锁住的信息，完成登记条件以触发内容开放（目标：身份记录）；玩家可见：实施犯行并留下指向赵听雨的痕迹（仅同场，不暗示因果）；玩家可见：对照现场与证物寻找矛盾；玩家可见：完成登记条件以触发内容开放（仅同场，不暗示因果）\n【关系变化】同场出现（非因果）",
+      "title": "周鹤·act2",
+      "sourceRef": {
+        "sourceType": "CHARACTER_SCRIPT",
+        "sourceDocumentId": "doc_role_R4",
+        "characterId": "role_R4",
+        "stageId": "act2",
+        "sectionId": "role_R4_act2",
+        "label": "周鹤·act2"
+      }
+    },
+    {
+      "id": "cu_role_R4_act3",
+      "type": "TEXT",
+      "stageId": "act3",
+      "audience": {
+        "roleIds": [
+          "role_R4"
+        ],
+        "visibility": "PRIVATE"
+      },
+      "delivery": "AUTO_ON_STAGE",
+      "content": "【本幕目标】推翻对赵听雨的错误判断；锁定真凶何叙\n【你的行动】对照现场与证物寻找矛盾；用决定性证据揭穿嫁祸；参与（非主导）：苏明为了确认真实身份并决定是否公开，核对身份线索并作出公开或隐瞒选择（目标：真实身份）；参与（非主导）：苏明为了承受身份公开后的关系后果，面对知情者与阵营/调查方的反应（目标：关系重组）\n【你掌握的信息】对照现场与证物寻找矛盾；用决定性证据揭穿嫁祸；参与（非主导）：苏明为了确认真实身份并决定是否公开，核对身份线索并作出公开或隐瞒选择（目标：真实身份）；参与（非主导）：苏明为了承受身份公开后的关系后果，面对知情者与阵营/调查方的反应（目标：关系重组）；玩家可见：对照现场与证物寻找矛盾（仅同场，不暗示因果）；玩家可见：用决定性证据揭穿嫁祸（仅同场，不暗示因果）\n【关系变化】同场出现（非因果）",
+      "title": "周鹤·act3",
+      "sourceRef": {
+        "sourceType": "CHARACTER_SCRIPT",
+        "sourceDocumentId": "doc_role_R4",
+        "characterId": "role_R4",
+        "stageId": "act3",
+        "sectionId": "role_R4_act3",
+        "label": "周鹤·act3"
+      }
+    },
+    {
+      "id": "cu_role_R1_act2",
+      "type": "TEXT",
+      "stageId": "act2",
+      "audience": {
+        "roleIds": [
+          "role_R1"
+        ],
+        "visibility": "PRIVATE"
+      },
+      "delivery": "AUTO_ON_STAGE",
+      "content": "【本幕目标】（无独立主目标）\n【你的行动】参与（非主导）：何叙为了完成犯行并指向赵听雨，实施犯行并留下指向赵听雨的痕迹（目标：被嫁祸者遗失的玉佩）；参与（非主导）：苏明为了用正式动作换取被条件锁住的信息，完成登记条件以触发内容开放（目标：身份记录）\n【你掌握的信息】参与（非主导）：何叙为了完成犯行并指向赵听雨，实施犯行并留下指向赵听雨的痕迹（目标：被嫁祸者遗失的玉佩）；参与（非主导）：苏明为了用正式动作换取被条件锁住的信息，完成登记条件以触发内容开放（目标：身份记录）；玩家可见：实施犯行并留下指向赵听雨的痕迹（仅同场，不暗示因果）；玩家可见：完成登记条件以触发内容开放（仅同场，不暗示因果）\n【关系变化】同场出现（非因果）",
+      "title": "林晚舟·act2",
+      "sourceRef": {
+        "sourceType": "CHARACTER_SCRIPT",
+        "sourceDocumentId": "doc_role_R1",
+        "characterId": "role_R1",
+        "stageId": "act2",
+        "sectionId": "role_R1_act2",
+        "label": "林晚舟·act2"
+      }
+    },
+    {
+      "id": "cu_role_R1_act3",
+      "type": "TEXT",
+      "stageId": "act3",
+      "audience": {
+        "roleIds": [
+          "role_R1"
+        ],
+        "visibility": "PRIVATE"
+      },
+      "delivery": "AUTO_ON_STAGE",
+      "content": "【本幕目标】（无独立主目标）\n【你的行动】参与（非主导）：周鹤为了锁定真凶何叙，用决定性证据揭穿嫁祸（目标：决定性证据）；参与（非主导）：苏明为了确认真实身份并决定是否公开，核对身份线索并作出公开或隐瞒选择（目标：真实身份）；参与（非主导）：苏明为了承受身份公开后的关系后果，面对知情者与阵营/调查方的反应（目标：关系重组）\n【你掌握的信息】参与（非主导）：周鹤为了锁定真凶何叙，用决定性证据揭穿嫁祸（目标：决定性证据）；参与（非主导）：苏明为了确认真实身份并决定是否公开，核对身份线索并作出公开或隐瞒选择（目标：真实身份）；参与（非主导）：苏明为了承受身份公开后的关系后果，面对知情者与阵营/调查方的反应（目标：关系重组）；玩家可见：用决定性证据揭穿嫁祸（仅同场，不暗示因果）；玩家可见：核对身份线索并作出公开或隐瞒选择（仅同场，不暗示因果）；玩家可见：面对知情者与阵营/调查方的反应（仅同场，不暗示因果）\n【关系变化】同场出现（非因果）",
+      "title": "林晚舟·act3",
+      "sourceRef": {
+        "sourceType": "CHARACTER_SCRIPT",
+        "sourceDocumentId": "doc_role_R1",
+        "characterId": "role_R1",
+        "stageId": "act3",
+        "sectionId": "role_R1_act3",
+        "label": "林晚舟·act3"
+      }
+    },
+    {
+      "id": "cu_role_NPC_GUARD_act2",
+      "type": "TEXT",
+      "stageId": "act2",
+      "audience": {
+        "roleIds": [
+          "role_NPC_GUARD"
+        ],
+        "visibility": "PRIVATE"
+      },
+      "delivery": "AUTO_ON_STAGE",
+      "content": "【本幕目标】（无独立主目标）\n【你的行动】参与（非主导）：苏明为了用正式动作换取被条件锁住的信息，完成登记条件以触发内容开放（目标：身份记录）\n【你掌握的信息】参与（非主导）：苏明为了用正式动作换取被条件锁住的信息，完成登记条件以触发内容开放（目标：身份记录）；玩家可见：完成登记条件以触发内容开放（仅同场，不暗示因果）\n【关系变化】同场出现（非因果）",
+      "title": "门岗·act2",
+      "sourceRef": {
+        "sourceType": "CHARACTER_SCRIPT",
+        "sourceDocumentId": "doc_role_NPC_GUARD",
+        "characterId": "role_NPC_GUARD",
+        "stageId": "act2",
+        "sectionId": "role_NPC_GUARD_act2",
+        "label": "门岗·act2"
+      }
+    },
+    {
+      "id": "cu_role_NPC_GUARD_act3",
+      "type": "TEXT",
+      "stageId": "act3",
+      "audience": {
+        "roleIds": [
+          "role_NPC_GUARD"
+        ],
+        "visibility": "PRIVATE"
+      },
+      "delivery": "AUTO_ON_STAGE",
+      "content": "【本幕目标】（无独立主目标）\n【你的行动】参与（非主导）：苏明为了确认真实身份并决定是否公开，核对身份线索并作出公开或隐瞒选择（目标：真实身份）；参与（非主导）：苏明为了承受身份公开后的关系后果，面对知情者与阵营/调查方的反应（目标：关系重组）\n【你掌握的信息】参与（非主导）：苏明为了确认真实身份并决定是否公开，核对身份线索并作出公开或隐瞒选择（目标：真实身份）；参与（非主导）：苏明为了承受身份公开后的关系后果，面对知情者与阵营/调查方的反应（目标：关系重组）；玩家可见：核对身份线索并作出公开或隐瞒选择（仅同场，不暗示因果）；玩家可见：面对知情者与阵营/调查方的反应（仅同场，不暗示因果）\n【关系变化】同场出现（非因果）",
+      "title": "门岗·act3",
+      "sourceRef": {
+        "sourceType": "CHARACTER_SCRIPT",
+        "sourceDocumentId": "doc_role_NPC_GUARD",
+        "characterId": "role_NPC_GUARD",
+        "stageId": "act3",
+        "sectionId": "role_NPC_GUARD_act3",
+        "label": "门岗·act3"
+      }
+    },
+    {
+      "id": "cu_public_act1",
+      "type": "TEXT",
+      "stageId": "act1",
+      "audience": {
+        "roleIds": [
+          "role_R2",
+          "role_R3",
+          "role_R5",
+          "role_R4",
+          "role_R1",
+          "role_NPC_GUARD"
+        ],
+        "visibility": "PUBLIC"
+      },
+      "delivery": "AUTO_ON_STAGE",
+      "content": "【公开】玩家可见：布置与赵听雨相关的误导物（仅同场，不暗示因果） / 玩家可见：按伪装/未知状态行动，避免过早暴露\n玩家可见：布置与赵听雨相关的误导物（仅同场，不暗示因果）\n玩家可见：按伪装/未知状态行动，避免过早暴露",
+      "title": "公共·铺垫",
+      "sourceRef": {
+        "sourceType": "HOST_SCRIPT",
+        "stageId": "act1",
+        "sectionId": "public_act1",
+        "label": "公共·铺垫"
+      }
+    },
+    {
+      "id": "cu_public_act2",
+      "type": "TEXT",
+      "stageId": "act2",
+      "audience": {
+        "roleIds": [
+          "role_R2",
+          "role_R3",
+          "role_R5",
+          "role_R4",
+          "role_R1",
+          "role_NPC_GUARD"
+        ],
+        "visibility": "PUBLIC"
+      },
+      "delivery": "AUTO_ON_STAGE",
+      "content": "【公开】玩家可见：实施犯行并留下指向赵听雨的痕迹（仅同场，不暗示因果） / 玩家可见：实施犯行并留下指向赵听雨的痕迹 / 玩家可见：对照现场与证物寻找矛盾 / 玩家可见：完成登记条件以触发内容开放（仅同场，不暗示因果）\n玩家可见：实施犯行并留下指向赵听雨的痕迹（仅同场，不暗示因果）\n玩家可见：实施犯行并留下指向赵听雨的痕迹\n玩家可见：对照现场与证物寻找矛盾\n玩家可见：完成登记条件以触发内容开放（仅同场，不暗示因果）",
+      "title": "公共·加压",
+      "sourceRef": {
+        "sourceType": "HOST_SCRIPT",
+        "stageId": "act2",
+        "sectionId": "public_act2",
+        "label": "公共·加压"
+      }
+    },
+    {
+      "id": "cu_public_act3",
+      "type": "TEXT",
+      "stageId": "act3",
+      "audience": {
+        "roleIds": [
+          "role_R2",
+          "role_R3",
+          "role_R5",
+          "role_R4",
+          "role_R1",
+          "role_NPC_GUARD"
+        ],
+        "visibility": "PUBLIC"
+      },
+      "delivery": "AUTO_ON_STAGE",
+      "content": "【公开】玩家可见：对照现场与证物寻找矛盾（仅同场，不暗示因果） / 玩家可见：用决定性证据揭穿嫁祸（仅同场，不暗示因果） / 玩家可见：核对身份线索并作出公开或隐瞒选择（仅同场，不暗示因果） / 玩家可见：面对知情者与阵营/调查方的反应（仅同场，不暗示因果）\n玩家可见：对照现场与证物寻找矛盾（仅同场，不暗示因果）\n玩家可见：用决定性证据揭穿嫁祸（仅同场，不暗示因果）\n玩家可见：核对身份线索并作出公开或隐瞒选择（仅同场，不暗示因果）\n玩家可见：面对知情者与阵营/调查方的反应（仅同场，不暗示因果）",
+      "title": "公共·收束",
+      "sourceRef": {
+        "sourceType": "HOST_SCRIPT",
+        "stageId": "act3",
+        "sectionId": "public_act3",
+        "label": "公共·收束"
+      }
+    },
+    {
+      "id": "cu_ending_truth",
+      "type": "REVEAL",
+      "stageId": "act3",
+      "audience": {
+        "roleIds": [
+          "role_R2",
+          "role_R3",
+          "role_R5",
+          "role_R4",
+          "role_R1",
+          "role_NPC_GUARD"
+        ],
+        "visibility": "PUBLIC"
+      },
+      "delivery": "AUTO_ON_STAGE",
+      "content": "【结算模式】CULPRIT_REVEAL\n何叙为了准备可嫁祸的假象，布置与赵听雨相关的误导物（目标：被嫁祸者遗失的玉佩）（发生=true；证据=MISLEADING；主张=FALSE）\n苏明为了隐藏或维持当前身份表象，按伪装/未知状态行动，避免过早暴露（目标：身份表象）（发生=true；证据=NEUTRAL；主张=UNKNOWN）\n何叙为了完成犯行并指向赵听雨，实施犯行并留下指向赵听雨的痕迹（目标：被嫁祸者遗失的玉佩）（发生=true；证据=MISLEADING；主张=FALSE）\n何叙为了完成犯行并指向赵听雨，实施犯行并留下指向赵听雨的痕迹（目标：被嫁祸者遗失的玉佩）（发生=true；证据=MISLEADING；主张=FALSE）\n周鹤为了推翻对赵听雨的错误判断，对照现场与证物寻找矛盾（目标：被嫁祸者遗失的玉佩）（发生=true；证据=SUPPORTING；主张=TRUE）\n苏明为了用正式动作换取被条件锁住的信息，完成登记条件以触发内容开放（目标：身份记录）（发生=true；证据=NEUTRAL；主张=UNKNOWN）\n周鹤为了推翻对赵听雨的错误判断，对照现场与证物寻找矛盾（目标：被嫁祸者遗失的玉佩）（发生=true；证据=SUPPORTING；主张=TRUE）\n周鹤为了锁定真凶何叙，用决定性证据揭穿嫁祸（目标：决定性证据）（发生=true；证据=NEUTRAL；主张=UNKNOWN）\n苏明为了确认真实身份并决定是否公开，核对身份线索并作出公开或隐瞒选择（目标：真实身份）（发生=true；证据=SUPPORTING；主张=TRUE）\n苏明为了承受身份公开后的关系后果，面对知情者与阵营/调查方的反应（目标：关系重组）（发生=true；证据=NEUTRAL；主张=UNKNOWN）",
+      "title": "终局揭示",
+      "sourceRef": {
+        "sourceType": "HOST_SCRIPT",
+        "stageId": "act3",
+        "sectionId": "ending_truth",
+        "label": "终局揭示"
+      }
+    },
+    {
+      "id": "cu_clue_fact-interface:ob-mtoah042-lqix",
+      "type": "CLUE",
+      "stageId": "act1",
+      "audience": {
+        "roleIds": [
+          "role_R2",
+          "role_R3",
+          "role_R5",
+          "role_R4",
+          "role_R1",
+          "role_NPC_GUARD"
+        ],
+        "visibility": "PUBLIC"
+      },
+      "delivery": "HOST_RELEASE",
+      "content": "【线索】该线索支持：误导物已就绪\n【可补细节】表象待 Writer 具体化；不得改 isMisleading / isDecisive。",
+      "title": "误导物已就绪",
+      "sourceRef": {
+        "sourceType": "CLUE",
+        "sourceDocumentId": "doc_fact-interface:ob-mtoah042-lqix",
+        "stageId": "act1",
+        "sectionId": "fact-interface:ob-mtoah042-lqix",
+        "label": "误导物已就绪"
+      }
+    },
+    {
+      "id": "cu_clue_smb-mtoah040-1aytq-foreshadow-0",
+      "type": "CLUE",
+      "stageId": "act1",
+      "audience": {
+        "roleIds": [
+          "role_R2",
+          "role_R3",
+          "role_R5",
+          "role_R4",
+          "role_R1",
+          "role_NPC_GUARD"
+        ],
+        "visibility": "PUBLIC"
+      },
+      "delivery": "HOST_RELEASE",
+      "content": "【线索】该线索支持：早期伏笔\n误导=false；决定性=false",
+      "title": "早期伏笔",
+      "sourceRef": {
+        "sourceType": "CLUE",
+        "sourceDocumentId": "doc_smb-mtoah040-1aytq-foreshadow-0",
+        "stageId": "act1",
+        "sectionId": "smb-mtoah040-1aytq-foreshadow-0",
+        "label": "早期伏笔"
+      }
+    },
+    {
+      "id": "cu_clue_smb-mtoah03v-snp45-false_lead-0",
+      "type": "CLUE",
+      "stageId": "act2",
+      "audience": {
+        "roleIds": [
+          "role_R2",
+          "role_R3",
+          "role_R5",
+          "role_R4",
+          "role_R1",
+          "role_NPC_GUARD"
+        ],
+        "visibility": "PUBLIC"
+      },
+      "delivery": "HOST_RELEASE",
+      "content": "【线索】该线索支持：被嫁祸者遗失的玉佩\n误导=true；决定性=false",
+      "title": "被嫁祸者遗失的玉佩",
+      "sourceRef": {
+        "sourceType": "CLUE",
+        "sourceDocumentId": "doc_smb-mtoah03v-snp45-false_lead-0",
+        "stageId": "act2",
+        "sectionId": "smb-mtoah03v-snp45-false_lead-0",
+        "label": "被嫁祸者遗失的玉佩"
+      }
+    },
+    {
+      "id": "cu_clue_smb-mtoah03v-snp45-contradiction-1",
+      "type": "CLUE",
+      "stageId": "act2",
+      "audience": {
+        "roleIds": [
+          "role_R4"
+        ],
+        "visibility": "PRIVATE"
+      },
+      "delivery": "HOST_RELEASE",
+      "content": "【线索】该线索支持：玉佩沾有仅库房存在的红蜡\n误导=false；决定性=false",
+      "title": "玉佩沾有仅库房存在的红蜡",
+      "sourceRef": {
+        "sourceType": "CLUE",
+        "sourceDocumentId": "doc_smb-mtoah03v-snp45-contradiction-1",
+        "stageId": "act2",
+        "sectionId": "smb-mtoah03v-snp45-contradiction-1",
+        "label": "玉佩沾有仅库房存在的红蜡"
+      }
+    },
+    {
+      "id": "cu_clue_smb-mtoah03v-snp45-true_evidence-2",
+      "type": "CLUE",
+      "stageId": "act3",
+      "audience": {
+        "roleIds": [
+          "role_R2",
+          "role_R3",
+          "role_R5",
+          "role_R4",
+          "role_R1",
+          "role_NPC_GUARD"
+        ],
+        "visibility": "PUBLIC"
+      },
+      "delivery": "HOST_RELEASE",
+      "content": "【线索】该线索支持：勒杀\n误导=false；决定性=false",
+      "title": "勒杀",
+      "sourceRef": {
+        "sourceType": "CLUE",
+        "sourceDocumentId": "doc_smb-mtoah03v-snp45-true_evidence-2",
+        "stageId": "act3",
+        "sectionId": "smb-mtoah03v-snp45-true_evidence-2",
+        "label": "勒杀"
+      }
+    },
+    {
+      "id": "cu_clue_smb-mtoah03v-snp45-decisive_evidence-3",
+      "type": "CLUE",
+      "stageId": "act3",
+      "audience": {
+        "roleIds": [
+          "role_R2",
+          "role_R3",
+          "role_R5",
+          "role_R4",
+          "role_R1",
+          "role_NPC_GUARD"
+        ],
+        "visibility": "PUBLIC"
+      },
+      "delivery": "HOST_RELEASE",
+      "content": "【线索】该线索支持：库房钥匙记录证明真凶曾移动该物\n误导=false；决定性=false",
+      "title": "库房钥匙记录证明真凶曾移动该物",
+      "sourceRef": {
+        "sourceType": "CLUE",
+        "sourceDocumentId": "doc_smb-mtoah03v-snp45-decisive_evidence-3",
+        "stageId": "act3",
+        "sectionId": "smb-mtoah03v-snp45-decisive_evidence-3",
+        "label": "库房钥匙记录证明真凶曾移动该物"
+      }
+    },
+    {
+      "id": "cu_clue_smb-mtoah040-1aytq-memory_fragment-1",
+      "type": "CLUE",
+      "stageId": "act3",
+      "audience": {
+        "roleIds": [
+          "role_R2",
+          "role_R3",
+          "role_R5",
+          "role_R4",
+          "role_R1",
+          "role_NPC_GUARD"
+        ],
+        "visibility": "PUBLIC"
+      },
+      "delivery": "HOST_RELEASE",
+      "content": "【线索】该线索支持：记忆碎片\n误导=false；决定性=false",
+      "title": "记忆碎片",
+      "sourceRef": {
+        "sourceType": "CLUE",
+        "sourceDocumentId": "doc_smb-mtoah040-1aytq-memory_fragment-1",
+        "stageId": "act3",
+        "sectionId": "smb-mtoah040-1aytq-memory_fragment-1",
+        "label": "记忆碎片"
+      }
+    },
+    {
+      "id": "cu_clue_smb-mtoah040-1aytq-identity_hint-2",
+      "type": "CLUE",
+      "stageId": "act3",
+      "audience": {
+        "roleIds": [
+          "role_R2",
+          "role_R3",
+          "role_R5",
+          "role_R4",
+          "role_R1",
+          "role_NPC_GUARD"
+        ],
+        "visibility": "PUBLIC"
+      },
+      "delivery": "HOST_RELEASE",
+      "content": "【线索】该线索支持：身份暗示\n误导=false；决定性=false",
+      "title": "身份暗示",
+      "sourceRef": {
+        "sourceType": "CLUE",
+        "sourceDocumentId": "doc_smb-mtoah040-1aytq-identity_hint-2",
+        "stageId": "act3",
+        "sectionId": "smb-mtoah040-1aytq-identity_hint-2",
+        "label": "身份暗示"
+      }
+    },
+    {
+      "id": "cu_clue_smb-mtoah040-1aytq-misdirection-3",
+      "type": "CLUE",
+      "stageId": "act3",
+      "audience": {
+        "roleIds": [
+          "role_R2",
+          "role_R3",
+          "role_R5",
+          "role_R4",
+          "role_R1",
+          "role_NPC_GUARD"
+        ],
+        "visibility": "PUBLIC"
+      },
+      "delivery": "HOST_RELEASE",
+      "content": "【线索】该线索支持：误导\n误导=true；决定性=false",
+      "title": "误导",
+      "sourceRef": {
+        "sourceType": "CLUE",
+        "sourceDocumentId": "doc_smb-mtoah040-1aytq-misdirection-3",
+        "stageId": "act3",
+        "sectionId": "smb-mtoah040-1aytq-misdirection-3",
+        "label": "误导"
+      }
+    },
+    {
+      "id": "cu_clue_smb-mtoah040-1aytq-confirmation-4",
+      "type": "CLUE",
+      "stageId": "act3",
+      "audience": {
+        "roleIds": [
+          "role_R2",
+          "role_R3",
+          "role_R5",
+          "role_R4",
+          "role_R1",
+          "role_NPC_GUARD"
+        ],
+        "visibility": "PUBLIC"
+      },
+      "delivery": "HOST_RELEASE",
+      "content": "【线索】该线索支持：确认\n误导=false；决定性=false",
+      "title": "确认",
+      "sourceRef": {
+        "sourceType": "CLUE",
+        "sourceDocumentId": "doc_smb-mtoah040-1aytq-confirmation-4",
+        "stageId": "act3",
+        "sectionId": "smb-mtoah040-1aytq-confirmation-4",
+        "label": "确认"
+      }
+    },
+    {
+      "id": "cu_clue_smb-mtoah040-1aytq-decisive_reveal-5",
+      "type": "CLUE",
+      "stageId": "act3",
+      "audience": {
+        "roleIds": [
+          "role_R2",
+          "role_R3",
+          "role_R5",
+          "role_R4",
+          "role_R1",
+          "role_NPC_GUARD"
+        ],
+        "visibility": "PUBLIC"
+      },
+      "delivery": "HOST_RELEASE",
+      "content": "【线索】该线索支持：决定性揭示\n误导=false；决定性=true",
+      "title": "决定性揭示",
+      "sourceRef": {
+        "sourceType": "CLUE",
+        "sourceDocumentId": "doc_smb-mtoah040-1aytq-decisive_reveal-5",
+        "stageId": "act3",
+        "sectionId": "smb-mtoah040-1aytq-decisive_reveal-5",
+        "label": "决定性揭示"
+      }
+    },
+    {
+      "id": "cu_clue_fact-interface:ob-mtoah042-9on7",
+      "type": "CLUE",
+      "stageId": "act3",
+      "audience": {
+        "roleIds": [
+          "role_R2",
+          "role_R3",
+          "role_R5",
+          "role_R4",
+          "role_R1",
+          "role_NPC_GUARD"
+        ],
+        "visibility": "PUBLIC"
+      },
+      "delivery": "HOST_RELEASE",
+      "content": "【线索】该线索支持：身份确认；身份进入公开层\n【可补细节】表象待 Writer 具体化；不得改 isMisleading / isDecisive。",
+      "title": "身份确认；身份进入公开层",
+      "sourceRef": {
+        "sourceType": "CLUE",
+        "sourceDocumentId": "doc_fact-interface:ob-mtoah042-9on7",
+        "stageId": "act3",
+        "sectionId": "fact-interface:ob-mtoah042-9on7",
+        "label": "身份确认；身份进入公开层"
+      }
+    }
+  ],
+  "clues": [
+    {
+      "id": "fact-interface:ob-mtoah042-lqix",
+      "title": "误导物已就绪",
+      "contentUnitId": "cu_clue_fact-interface:ob-mtoah042-lqix",
+      "stageId": "act1",
+      "defaultAudience": {
+        "roleIds": [
+          "role_R2",
+          "role_R3",
+          "role_R5",
+          "role_R4",
+          "role_R1",
+          "role_NPC_GUARD"
+        ],
+        "visibility": "PUBLIC"
+      },
+      "delivery": "HOST_RELEASE",
+      "repeatable": false,
+      "sourceRef": {
+        "sourceType": "CLUE",
+        "sourceDocumentId": "doc_fact-interface:ob-mtoah042-lqix",
+        "stageId": "act1",
+        "sectionId": "fact-interface:ob-mtoah042-lqix",
+        "label": "误导物已就绪"
+      }
+    },
+    {
+      "id": "smb-mtoah040-1aytq-foreshadow-0",
+      "title": "早期伏笔",
+      "contentUnitId": "cu_clue_smb-mtoah040-1aytq-foreshadow-0",
+      "stageId": "act1",
+      "defaultAudience": {
+        "roleIds": [
+          "role_R2",
+          "role_R3",
+          "role_R5",
+          "role_R4",
+          "role_R1",
+          "role_NPC_GUARD"
+        ],
+        "visibility": "PUBLIC"
+      },
+      "delivery": "HOST_RELEASE",
+      "repeatable": false,
+      "sourceRef": {
+        "sourceType": "CLUE",
+        "sourceDocumentId": "doc_smb-mtoah040-1aytq-foreshadow-0",
+        "stageId": "act1",
+        "sectionId": "smb-mtoah040-1aytq-foreshadow-0",
+        "label": "早期伏笔"
+      }
+    },
+    {
+      "id": "smb-mtoah03v-snp45-false_lead-0",
+      "title": "被嫁祸者遗失的玉佩",
+      "contentUnitId": "cu_clue_smb-mtoah03v-snp45-false_lead-0",
+      "stageId": "act2",
+      "defaultAudience": {
+        "roleIds": [
+          "role_R2",
+          "role_R3",
+          "role_R5",
+          "role_R4",
+          "role_R1",
+          "role_NPC_GUARD"
+        ],
+        "visibility": "PUBLIC"
+      },
+      "delivery": "HOST_RELEASE",
+      "repeatable": false,
+      "sourceRef": {
+        "sourceType": "CLUE",
+        "sourceDocumentId": "doc_smb-mtoah03v-snp45-false_lead-0",
+        "stageId": "act2",
+        "sectionId": "smb-mtoah03v-snp45-false_lead-0",
+        "label": "被嫁祸者遗失的玉佩"
+      }
+    },
+    {
+      "id": "smb-mtoah03v-snp45-contradiction-1",
+      "title": "玉佩沾有仅库房存在的红蜡",
+      "contentUnitId": "cu_clue_smb-mtoah03v-snp45-contradiction-1",
+      "stageId": "act2",
+      "defaultAudience": {
+        "roleIds": [
+          "role_R4"
+        ],
+        "visibility": "PRIVATE"
+      },
+      "delivery": "HOST_RELEASE",
+      "repeatable": false,
+      "sourceRef": {
+        "sourceType": "CLUE",
+        "sourceDocumentId": "doc_smb-mtoah03v-snp45-contradiction-1",
+        "stageId": "act2",
+        "sectionId": "smb-mtoah03v-snp45-contradiction-1",
+        "label": "玉佩沾有仅库房存在的红蜡"
+      }
+    },
+    {
+      "id": "smb-mtoah03v-snp45-true_evidence-2",
+      "title": "勒杀",
+      "contentUnitId": "cu_clue_smb-mtoah03v-snp45-true_evidence-2",
+      "stageId": "act3",
+      "defaultAudience": {
+        "roleIds": [
+          "role_R2",
+          "role_R3",
+          "role_R5",
+          "role_R4",
+          "role_R1",
+          "role_NPC_GUARD"
+        ],
+        "visibility": "PUBLIC"
+      },
+      "delivery": "HOST_RELEASE",
+      "repeatable": false,
+      "sourceRef": {
+        "sourceType": "CLUE",
+        "sourceDocumentId": "doc_smb-mtoah03v-snp45-true_evidence-2",
+        "stageId": "act3",
+        "sectionId": "smb-mtoah03v-snp45-true_evidence-2",
+        "label": "勒杀"
+      }
+    },
+    {
+      "id": "smb-mtoah03v-snp45-decisive_evidence-3",
+      "title": "库房钥匙记录证明真凶曾移动该物",
+      "contentUnitId": "cu_clue_smb-mtoah03v-snp45-decisive_evidence-3",
+      "stageId": "act3",
+      "defaultAudience": {
+        "roleIds": [
+          "role_R2",
+          "role_R3",
+          "role_R5",
+          "role_R4",
+          "role_R1",
+          "role_NPC_GUARD"
+        ],
+        "visibility": "PUBLIC"
+      },
+      "delivery": "HOST_RELEASE",
+      "repeatable": false,
+      "sourceRef": {
+        "sourceType": "CLUE",
+        "sourceDocumentId": "doc_smb-mtoah03v-snp45-decisive_evidence-3",
+        "stageId": "act3",
+        "sectionId": "smb-mtoah03v-snp45-decisive_evidence-3",
+        "label": "库房钥匙记录证明真凶曾移动该物"
+      }
+    },
+    {
+      "id": "smb-mtoah040-1aytq-memory_fragment-1",
+      "title": "记忆碎片",
+      "contentUnitId": "cu_clue_smb-mtoah040-1aytq-memory_fragment-1",
+      "stageId": "act3",
+      "defaultAudience": {
+        "roleIds": [
+          "role_R2",
+          "role_R3",
+          "role_R5",
+          "role_R4",
+          "role_R1",
+          "role_NPC_GUARD"
+        ],
+        "visibility": "PUBLIC"
+      },
+      "delivery": "HOST_RELEASE",
+      "repeatable": false,
+      "sourceRef": {
+        "sourceType": "CLUE",
+        "sourceDocumentId": "doc_smb-mtoah040-1aytq-memory_fragment-1",
+        "stageId": "act3",
+        "sectionId": "smb-mtoah040-1aytq-memory_fragment-1",
+        "label": "记忆碎片"
+      }
+    },
+    {
+      "id": "smb-mtoah040-1aytq-identity_hint-2",
+      "title": "身份暗示",
+      "contentUnitId": "cu_clue_smb-mtoah040-1aytq-identity_hint-2",
+      "stageId": "act3",
+      "defaultAudience": {
+        "roleIds": [
+          "role_R2",
+          "role_R3",
+          "role_R5",
+          "role_R4",
+          "role_R1",
+          "role_NPC_GUARD"
+        ],
+        "visibility": "PUBLIC"
+      },
+      "delivery": "HOST_RELEASE",
+      "repeatable": false,
+      "sourceRef": {
+        "sourceType": "CLUE",
+        "sourceDocumentId": "doc_smb-mtoah040-1aytq-identity_hint-2",
+        "stageId": "act3",
+        "sectionId": "smb-mtoah040-1aytq-identity_hint-2",
+        "label": "身份暗示"
+      }
+    },
+    {
+      "id": "smb-mtoah040-1aytq-misdirection-3",
+      "title": "误导",
+      "contentUnitId": "cu_clue_smb-mtoah040-1aytq-misdirection-3",
+      "stageId": "act3",
+      "defaultAudience": {
+        "roleIds": [
+          "role_R2",
+          "role_R3",
+          "role_R5",
+          "role_R4",
+          "role_R1",
+          "role_NPC_GUARD"
+        ],
+        "visibility": "PUBLIC"
+      },
+      "delivery": "HOST_RELEASE",
+      "repeatable": false,
+      "sourceRef": {
+        "sourceType": "CLUE",
+        "sourceDocumentId": "doc_smb-mtoah040-1aytq-misdirection-3",
+        "stageId": "act3",
+        "sectionId": "smb-mtoah040-1aytq-misdirection-3",
+        "label": "误导"
+      }
+    },
+    {
+      "id": "smb-mtoah040-1aytq-confirmation-4",
+      "title": "确认",
+      "contentUnitId": "cu_clue_smb-mtoah040-1aytq-confirmation-4",
+      "stageId": "act3",
+      "defaultAudience": {
+        "roleIds": [
+          "role_R2",
+          "role_R3",
+          "role_R5",
+          "role_R4",
+          "role_R1",
+          "role_NPC_GUARD"
+        ],
+        "visibility": "PUBLIC"
+      },
+      "delivery": "HOST_RELEASE",
+      "repeatable": false,
+      "sourceRef": {
+        "sourceType": "CLUE",
+        "sourceDocumentId": "doc_smb-mtoah040-1aytq-confirmation-4",
+        "stageId": "act3",
+        "sectionId": "smb-mtoah040-1aytq-confirmation-4",
+        "label": "确认"
+      }
+    },
+    {
+      "id": "smb-mtoah040-1aytq-decisive_reveal-5",
+      "title": "决定性揭示",
+      "contentUnitId": "cu_clue_smb-mtoah040-1aytq-decisive_reveal-5",
+      "stageId": "act3",
+      "defaultAudience": {
+        "roleIds": [
+          "role_R2",
+          "role_R3",
+          "role_R5",
+          "role_R4",
+          "role_R1",
+          "role_NPC_GUARD"
+        ],
+        "visibility": "PUBLIC"
+      },
+      "delivery": "HOST_RELEASE",
+      "repeatable": false,
+      "sourceRef": {
+        "sourceType": "CLUE",
+        "sourceDocumentId": "doc_smb-mtoah040-1aytq-decisive_reveal-5",
+        "stageId": "act3",
+        "sectionId": "smb-mtoah040-1aytq-decisive_reveal-5",
+        "label": "决定性揭示"
+      }
+    },
+    {
+      "id": "fact-interface:ob-mtoah042-9on7",
+      "title": "身份确认；身份进入公开层",
+      "contentUnitId": "cu_clue_fact-interface:ob-mtoah042-9on7",
+      "stageId": "act3",
+      "defaultAudience": {
+        "roleIds": [
+          "role_R2",
+          "role_R3",
+          "role_R5",
+          "role_R4",
+          "role_R1",
+          "role_NPC_GUARD"
+        ],
+        "visibility": "PUBLIC"
+      },
+      "delivery": "HOST_RELEASE",
+      "repeatable": false,
+      "sourceRef": {
+        "sourceType": "CLUE",
+        "sourceDocumentId": "doc_fact-interface:ob-mtoah042-9on7",
+        "stageId": "act3",
+        "sectionId": "fact-interface:ob-mtoah042-9on7",
+        "label": "身份确认；身份进入公开层"
+      }
+    }
+  ],
+  "mechanismPlacements": [],
+  "permissions": [],
+  "runtimeConfig": {
+    "startStageId": "act1",
+    "finalStageId": "act3",
+    "allowHostOverride": true,
+    "pinSnapshotOnSessionStart": true
+  },
+  "diagnostics": [],
+  "revision": 0,
+  "updatedAt": "2026-09-05T18:00:00.000Z"
+}

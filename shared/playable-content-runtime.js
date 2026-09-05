@@ -271,7 +271,9 @@ export function assignPlayableRole(runtime, { userId, playableRoleId, roleSlotId
 }
 
 function playerRoles(snapshot) {
-  return (snapshot.roles || []).filter((r) => r.type === "PLAYER");
+  return (snapshot.roles || []).filter(
+    (r) => r.type === "PLAYER" && r.playerAssignable !== false,
+  );
 }
 
 export function startPlayableSession(runtime, { now } = {}) {
@@ -442,11 +444,22 @@ export function finishPlayableSession(runtime, { now } = {}) {
   const state = requireRunning(normalizePlayableRuntimeState(runtime));
   assertCanFinishPlayableSession(state);
   const ts = nowIso(now);
-  const ending = normalizeEndingSettlement({
-    ...state.endingSettlement,
-    status: "CONFIRMED",
-    confirmedAt: ts,
-  });
+  const ending = state.endingSettlement
+    ? normalizeEndingSettlement({
+        ...state.endingSettlement,
+        status: "CONFIRMED",
+        confirmedAt: ts,
+      })
+    : normalizeEndingSettlement({
+        id: `ending_content_${ts.replace(/[:.]/g, "")}`,
+        roomId: state.roomId,
+        sourcePlacementId: "",
+        status: "CONFIRMED",
+        publicSummary: "终幕内容已完成。",
+        hostSummary: "无必要 GAME · 内容路径结束",
+        settledAt: ts,
+        confirmedAt: ts,
+      });
   const stageStates = state.stageStates.map((st) => {
     if (st.stageId === state.currentStageId) {
       return { ...st, status: "COMPLETED", completedAt: ts };
@@ -572,7 +585,10 @@ export function buildHostPlayableView(runtime) {
   const current = snapshot?.stages?.find((s) => s.id === state.currentStageId);
   const stageState = state.stageStates.find((s) => s.stageId === state.currentStageId);
   const roleName = (id) => (snapshot?.roles || []).find((r) => r.id === id)?.name || id;
-  const playerIds = (snapshot?.roles || []).filter((r) => r.type === "PLAYER").map((r) => r.id);
+  const playerIds = (snapshot?.roles || [])
+    .filter((r) => r.type === "PLAYER" && r.playerAssignable !== false)
+    .map((r) => r.id);
+
   const finishGate = canFinishPlayableSession(state);
   const ending = state.endingSettlement
     ? normalizeEndingSettlement(state.endingSettlement)

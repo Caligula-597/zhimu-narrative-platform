@@ -91,12 +91,12 @@ P8.0 Multi-Script Generalization Audit  ✅ 完成
   · P8.1 PlayableCreationSpec ✅（docs/P8_1_PLAYABLE_CREATION_SPEC_ZH.md）
   · P8.2.0 CompleteScriptPackage + Packets ✅（docs/P8_2_0_COMPLETE_SCRIPT_PACKAGE_ZH.md）
   · P8.2.1 Writer Port + Provenance Diff ✅（docs/P8_2_1_WRITER_PORT_ZH.md）
+  · P8.2.2 Full Production Vertical Slice ✅（docs/P8_2_2_FULL_PRODUCTION_VERTICAL_SLICE_ZH.md）
+    Full Script Production Infrastructure ✅ PASS
+    From-zero Technical Vertical Slice ✅ CLOSED
 
 ↓
-P8.2.2 Full Production Vertical Slice
-
-↓
-P8.2 / Full Script Production V1
+题材实例化 / Variant / GAME narrative / 真实 Writer（内容产品阶段）
 
 ↓
 Config → CompleteScriptPackage

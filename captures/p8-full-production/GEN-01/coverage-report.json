@@ -1,0 +1,194 @@
+{
+  "characterCoverage": [
+    {
+      "characterId": "R2",
+      "roleId": "role_R2",
+      "expectedContributionStageIds": [
+        "act1",
+        "act2",
+        "act3"
+      ],
+      "producedSectionStageIds": [
+        "act1",
+        "act2",
+        "act3"
+      ],
+      "missingStageIds": [],
+      "sectionCount": 3,
+      "nonEmpty": true
+    },
+    {
+      "characterId": "R3",
+      "roleId": "role_R3",
+      "expectedContributionStageIds": [
+        "act1",
+        "act2",
+        "act3"
+      ],
+      "producedSectionStageIds": [
+        "act1",
+        "act2",
+        "act3"
+      ],
+      "missingStageIds": [],
+      "sectionCount": 3,
+      "nonEmpty": true
+    },
+    {
+      "characterId": "R5",
+      "roleId": "role_R5",
+      "expectedContributionStageIds": [
+        "act1",
+        "act2",
+        "act3"
+      ],
+      "producedSectionStageIds": [
+        "act1",
+        "act2",
+        "act3"
+      ],
+      "missingStageIds": [],
+      "sectionCount": 3,
+      "nonEmpty": true
+    },
+    {
+      "characterId": "R4",
+      "roleId": "role_R4",
+      "expectedContributionStageIds": [
+        "act1",
+        "act2",
+        "act3"
+      ],
+      "producedSectionStageIds": [
+        "act1",
+        "act2",
+        "act3"
+      ],
+      "missingStageIds": [],
+      "sectionCount": 3,
+      "nonEmpty": true
+    },
+    {
+      "characterId": "R1",
+      "roleId": "role_R1",
+      "expectedContributionStageIds": [
+        "act2",
+        "act3"
+      ],
+      "producedSectionStageIds": [
+        "act2",
+        "act3"
+      ],
+      "missingStageIds": [],
+      "sectionCount": 2,
+      "nonEmpty": true
+    }
+  ],
+  "stageCoverage": [
+    {
+      "stageId": "act1",
+      "hasHostSection": true,
+      "hostSectionIds": [
+        "host_act1"
+      ]
+    },
+    {
+      "stageId": "act2",
+      "hasHostSection": true,
+      "hostSectionIds": [
+        "host_act2"
+      ]
+    },
+    {
+      "stageId": "act3",
+      "hasHostSection": true,
+      "hostSectionIds": [
+        "host_act3"
+      ]
+    }
+  ],
+  "clueCoverage": {
+    "pmdClueIds": [
+      "fact-interface:ob-mtoah042-lqix",
+      "smb-mtoah040-1aytq-foreshadow-0",
+      "smb-mtoah03v-snp45-false_lead-0",
+      "smb-mtoah03v-snp45-contradiction-1",
+      "smb-mtoah03v-snp45-true_evidence-2",
+      "smb-mtoah03v-snp45-decisive_evidence-3",
+      "smb-mtoah040-1aytq-memory_fragment-1",
+      "smb-mtoah040-1aytq-identity_hint-2",
+      "smb-mtoah040-1aytq-misdirection-3",
+      "smb-mtoah040-1aytq-confirmation-4",
+      "smb-mtoah040-1aytq-decisive_reveal-5",
+      "fact-interface:ob-mtoah042-9on7"
+    ],
+    "packageClueIds": [
+      "fact-interface:ob-mtoah042-lqix",
+      "smb-mtoah040-1aytq-foreshadow-0",
+      "smb-mtoah03v-snp45-false_lead-0",
+      "smb-mtoah03v-snp45-contradiction-1",
+      "smb-mtoah03v-snp45-true_evidence-2",
+      "smb-mtoah03v-snp45-decisive_evidence-3",
+      "smb-mtoah040-1aytq-memory_fragment-1",
+      "smb-mtoah040-1aytq-identity_hint-2",
+      "smb-mtoah040-1aytq-misdirection-3",
+      "smb-mtoah040-1aytq-confirmation-4",
+      "smb-mtoah040-1aytq-decisive_reveal-5",
+      "fact-interface:ob-mtoah042-9on7"
+    ],
+    "missingInPackage": [],
+    "extraInPackage": [],
+    "fidelityIssues": [],
+    "playableClueIds": [
+      "fact-interface:ob-mtoah042-lqix",
+      "smb-mtoah040-1aytq-foreshadow-0",
+      "smb-mtoah03v-snp45-false_lead-0",
+      "smb-mtoah03v-snp45-contradiction-1",
+      "smb-mtoah03v-snp45-true_evidence-2",
+      "smb-mtoah03v-snp45-decisive_evidence-3",
+      "smb-mtoah040-1aytq-memory_fragment-1",
+      "smb-mtoah040-1aytq-identity_hint-2",
+      "smb-mtoah040-1aytq-misdirection-3",
+      "smb-mtoah040-1aytq-confirmation-4",
+      "smb-mtoah040-1aytq-decisive_reveal-5",
+      "fact-interface:ob-mtoah042-9on7"
+    ]
+  },
+  "truthCoverage": {
+    "finalStageId": "act3",
+    "finalTruthBeatIds": [
+      "ob-mtoah042-i1xp",
+      "ob-mtoah042-b1r4",
+      "ob-mtoah042-28mp",
+      "ob-mtoah042-9on7"
+    ],
+    "endingProvenanceBeatIds": [
+      "ob-mtoah042-lqix",
+      "ob-mtoah042-066a",
+      "ob-mtoah042-kpoh",
+      "ob-mtoah042-z8j5",
+      "ob-mtoah042-y4ee",
+      "ob-mtoah042-ldq3",
+      "ob-mtoah042-i1xp",
+      "ob-mtoah042-b1r4",
+      "ob-mtoah042-28mp",
+      "ob-mtoah042-9on7"
+    ],
+    "missingFinalTruthBeatIds": [],
+    "endingSectionCount": 1,
+    "endingNonEmpty": true
+  },
+  "endingCoverage": {
+    "packageEndingSections": [
+      "ending_truth"
+    ],
+    "playableEndingUnitIds": [
+      "cu_ending_truth"
+    ],
+    "hasPlayableEndingContent": true
+  },
+  "assignablePlayerCount": 5,
+  "stageCount": 3,
+  "ok": true,
+  "errors": []
+}

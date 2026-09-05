@@ -172,6 +172,7 @@ export function requiredPlacementsForCompletion(snapshot, stageId) {
 
 /**
  * Thin guard — not a full rule engine.
+ * Content-only scripts (no required final GAME) may finish without a vote EndingSettlement.
  */
 export function canFinishPlayableSession(runtime) {
   const state = runtime;
@@ -199,6 +200,15 @@ export function canFinishPlayableSession(runtime) {
   const ending = state.endingSettlement
     ? normalizeEndingSettlement(state.endingSettlement)
     : null;
+
+  // No required GAME on final stage → content-only finish (GEN-01 / no M09)
+  if (required.length === 0) {
+    if (ending?.status === "CONFIRMED") {
+      return { ok: false, code: "ENDING_ALREADY_CONFIRMED", reason: "Ending already confirmed" };
+    }
+    return { ok: true, code: "OK", ending, mode: "CONTENT_ONLY" };
+  }
+
   if (!ending) {
     return { ok: false, code: "ENDING_MISSING", reason: "Ending settlement missing" };
   }
@@ -208,7 +218,7 @@ export function canFinishPlayableSession(runtime) {
   if (ending.status !== "PENDING_CONFIRMATION") {
     return { ok: false, code: "NOT_READY_TO_SETTLE", reason: "Ending not pending confirmation" };
   }
-  return { ok: true, code: "OK", ending };
+  return { ok: true, code: "OK", ending, mode: "GAME" };
 }
 
 export function assertCanFinishPlayableSession(runtime) {

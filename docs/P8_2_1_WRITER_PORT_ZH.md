@@ -69,4 +69,4 @@ Writer 成功**不会**自动批准。有 proposed canon 或 INVALID section 时
 
 真实 LLM、Prompt、Retry/Critic、genre、GAME/STORY 修补、UI、Compiler 改造。
 
-下一刀：**P8.2.2 Full Production Vertical Slice**
+下一刀：**P8.2.2 Full Production Vertical Slice** ✅（见 docs/P8_2_2_FULL_PRODUCTION_VERTICAL_SLICE_ZH.md）

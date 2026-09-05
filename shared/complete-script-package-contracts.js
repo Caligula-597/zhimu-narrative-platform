@@ -60,12 +60,22 @@ export function normalizeCompleteScriptPackage(value = {}) {
   const status = COMPLETE_SCRIPT_PACKAGE_STATUSES.includes(src.status) ? src.status : "DRAFT";
   const roles = asArray(src.roles).map((r) => {
     const row = record(r);
+    const type = row.type === "HOST" ? "HOST" : "PLAYER";
+    const explicitAssignable = row.playerAssignable;
     return {
       id: cleanId(row.id),
       name: cleanText(row.name, 80) || cleanId(row.id),
-      type: row.type === "HOST" ? "HOST" : "PLAYER",
+      type,
       characterId: cleanId(row.characterId) || undefined,
-      playerAssignable: row.type !== "HOST",
+      // Honor explicit false (e.g. NPC_*); HOST never assignable
+      playerAssignable:
+        type === "HOST"
+          ? false
+          : explicitAssignable === false
+            ? false
+            : explicitAssignable === true
+              ? true
+              : true,
     };
   });
 

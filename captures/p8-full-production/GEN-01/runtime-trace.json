@@ -1,0 +1,1776 @@
+{
+  "pmdId": "pmd-mod-mtoah044-4lg6",
+  "packageId": "csp-writer-pmd-mod-mtoah044-4lg6",
+  "playableProjectId": "gen-01-full-vertical-playable",
+  "sectionToContentUnit": [
+    {
+      "contentUnitId": "cu_host_host_act1",
+      "sectionId": "host_act1",
+      "stageId": "act1",
+      "visibility": "HOST_ONLY",
+      "provenance": {
+        "sourceBeatIds": [
+          "ob-mtoah042-lqix",
+          "ob-mtoah042-066a"
+        ],
+        "sourceClueIds": [
+          "fact-interface:ob-mtoah042-lqix",
+          "smb-mtoah040-1aytq-foreshadow-0",
+          "smb-mtoah03v-snp45-false_lead-0",
+          "smb-mtoah03v-snp45-contradiction-1"
+        ],
+        "sourceFactIds": [
+          "fact:smb-mtoah03v-snp45:beat-setup:false_lead:R2",
+          "fact:smb-mtoah040-1aytq:beat-setup:identity_latent:R5",
+          "fact:smb-mtoah03v-snp45:beat-crime:crime_done:R2",
+          "fact:smb-mtoah03v-snp45:beat-crime:suspicion:R2"
+        ]
+      }
+    },
+    {
+      "contentUnitId": "cu_host_host_act2",
+      "sectionId": "host_act2",
+      "stageId": "act2",
+      "visibility": "HOST_ONLY",
+      "provenance": {
+        "sourceBeatIds": [
+          "ob-mtoah042-kpoh",
+          "ob-mtoah042-z8j5",
+          "ob-mtoah042-y4ee",
+          "ob-mtoah042-ldq3"
+        ],
+        "sourceClueIds": [
+          "fact-interface:ob-mtoah042-lqix",
+          "smb-mtoah040-1aytq-foreshadow-0",
+          "smb-mtoah03v-snp45-false_lead-0",
+          "smb-mtoah03v-snp45-contradiction-1"
+        ],
+        "sourceFactIds": [
+          "fact:smb-mtoah03v-snp45:beat-setup:false_lead:R2",
+          "fact:smb-mtoah040-1aytq:beat-setup:identity_latent:R5",
+          "fact:smb-mtoah03v-snp45:beat-crime:crime_done:R2",
+          "fact:smb-mtoah03v-snp45:beat-crime:suspicion:R2"
+        ]
+      }
+    },
+    {
+      "contentUnitId": "cu_host_host_act3",
+      "sectionId": "host_act3",
+      "stageId": "act3",
+      "visibility": "HOST_ONLY",
+      "provenance": {
+        "sourceBeatIds": [
+          "ob-mtoah042-i1xp",
+          "ob-mtoah042-b1r4",
+          "ob-mtoah042-28mp",
+          "ob-mtoah042-9on7"
+        ],
+        "sourceClueIds": [
+          "fact-interface:ob-mtoah042-lqix",
+          "smb-mtoah040-1aytq-foreshadow-0",
+          "smb-mtoah03v-snp45-false_lead-0",
+          "smb-mtoah03v-snp45-contradiction-1"
+        ],
+        "sourceFactIds": [
+          "fact:smb-mtoah03v-snp45:beat-setup:false_lead:R2",
+          "fact:smb-mtoah040-1aytq:beat-setup:identity_latent:R5",
+          "fact:smb-mtoah03v-snp45:beat-crime:crime_done:R2",
+          "fact:smb-mtoah03v-snp45:beat-crime:suspicion:R2"
+        ]
+      }
+    },
+    {
+      "contentUnitId": "cu_role_R2_act1",
+      "sectionId": "role_R2_act1",
+      "stageId": "act1",
+      "visibility": "PRIVATE",
+      "provenance": {
+        "sourceBeatIds": [
+          "ob-mtoah042-lqix"
+        ],
+        "sourceClueIds": [
+          "fact-interface:ob-mtoah042-lqix",
+          "smb-mtoah040-1aytq-foreshadow-0",
+          "smb-mtoah03v-snp45-false_lead-0"
+        ],
+        "sourceFactIds": [
+          "fact:smb-mtoah03v-snp45:beat-setup:false_lead:R2",
+          "fact:smb-mtoah03v-snp45:beat-crime:crime_done:R2",
+          "fact:smb-mtoah03v-snp45:beat-crime:suspicion:R2"
+        ]
+      }
+    },
+    {
+      "contentUnitId": "cu_role_R2_act2",
+      "sectionId": "role_R2_act2",
+      "stageId": "act2",
+      "visibility": "PRIVATE",
+      "provenance": {
+        "sourceBeatIds": [
+          "ob-mtoah042-kpoh",
+          "ob-mtoah042-z8j5"
+        ],
+        "sourceClueIds": [
+          "fact-interface:ob-mtoah042-lqix",
+          "smb-mtoah040-1aytq-foreshadow-0",
+          "smb-mtoah03v-snp45-false_lead-0"
+        ],
+        "sourceFactIds": [
+          "fact:smb-mtoah03v-snp45:beat-setup:false_lead:R2",
+          "fact:smb-mtoah03v-snp45:beat-crime:crime_done:R2",
+          "fact:smb-mtoah03v-snp45:beat-crime:suspicion:R2"
+        ]
+      }
+    },
+    {
+      "contentUnitId": "cu_role_R2_act3",
+      "sectionId": "role_R2_act3",
+      "stageId": "act3",
+      "visibility": "PRIVATE",
+      "provenance": {
+        "sourceBeatIds": [
+          "ob-mtoah042-i1xp",
+          "ob-mtoah042-b1r4"
+        ],
+        "sourceClueIds": [
+          "fact-interface:ob-mtoah042-lqix",
+          "smb-mtoah03v-snp45-false_lead-0",
+          "smb-mtoah03v-snp45-true_evidence-2"
+        ],
+        "sourceFactIds": [
+          "fact:smb-mtoah03v-snp45:beat-setup:false_lead:R2",
+          "fact:smb-mtoah03v-snp45:beat-crime:crime_done:R2",
+          "fact:smb-mtoah03v-snp45:beat-crime:suspicion:R2"
+        ]
+      }
+    },
+    {
+      "contentUnitId": "cu_role_R3_act1",
+      "sectionId": "role_R3_act1",
+      "stageId": "act1",
+      "visibility": "PRIVATE",
+      "provenance": {
+        "sourceBeatIds": [
+          "ob-mtoah042-lqix"
+        ],
+        "sourceClueIds": [
+          "fact-interface:ob-mtoah042-lqix",
+          "smb-mtoah040-1aytq-foreshadow-0",
+          "smb-mtoah03v-snp45-false_lead-0"
+        ],
+        "sourceFactIds": [
+          "fact:smb-mtoah03v-snp45:beat-setup:false_lead:R2",
+          "fact:smb-mtoah03v-snp45:beat-false:crime_done:R2",
+          "fact:smb-mtoah03v-snp45:beat-false:suspicion:R2"
+        ]
+      }
+    },
+    {
+      "contentUnitId": "cu_role_R3_act2",
+      "sectionId": "role_R3_act2",
+      "stageId": "act2",
+      "visibility": "PRIVATE",
+      "provenance": {
+        "sourceBeatIds": [
+          "ob-mtoah042-z8j5",
+          "ob-mtoah042-ldq3"
+        ],
+        "sourceClueIds": [
+          "fact-interface:ob-mtoah042-lqix",
+          "smb-mtoah040-1aytq-foreshadow-0",
+          "smb-mtoah03v-snp45-false_lead-0"
+        ],
+        "sourceFactIds": [
+          "fact:smb-mtoah03v-snp45:beat-setup:false_lead:R2",
+          "fact:smb-mtoah03v-snp45:beat-false:crime_done:R2",
+          "fact:smb-mtoah03v-snp45:beat-false:suspicion:R2"
+        ]
+      }
+    },
+    {
+      "contentUnitId": "cu_role_R3_act3",
+      "sectionId": "role_R3_act3",
+      "stageId": "act3",
+      "visibility": "PRIVATE",
+      "provenance": {
+        "sourceBeatIds": [
+          "ob-mtoah042-i1xp",
+          "ob-mtoah042-b1r4",
+          "ob-mtoah042-28mp",
+          "ob-mtoah042-9on7"
+        ],
+        "sourceClueIds": [
+          "fact-interface:ob-mtoah042-lqix",
+          "smb-mtoah040-1aytq-foreshadow-0",
+          "smb-mtoah03v-snp45-false_lead-0"
+        ],
+        "sourceFactIds": [
+          "fact:smb-mtoah03v-snp45:beat-setup:false_lead:R2",
+          "fact:smb-mtoah03v-snp45:beat-false:crime_done:R2",
+          "fact:smb-mtoah03v-snp45:beat-false:suspicion:R2"
+        ]
+      }
+    },
+    {
+      "contentUnitId": "cu_role_R5_act1",
+      "sectionId": "role_R5_act1",
+      "stageId": "act1",
+      "visibility": "PRIVATE",
+      "provenance": {
+        "sourceBeatIds": [
+          "ob-mtoah042-066a"
+        ],
+        "sourceClueIds": [
+          "fact-interface:ob-mtoah042-lqix",
+          "smb-mtoah040-1aytq-foreshadow-0",
+          "smb-mtoah040-1aytq-memory_fragment-1"
+        ],
+        "sourceFactIds": [
+          "fact:smb-mtoah040-1aytq:beat-setup:identity_latent:R5",
+          "fact:smb-mtoah040-1aytq:beat-develop:identity_clue:R5",
+          "fact:smb-mtoah040-1aytq:beat-develop:formal_trigger:R5"
+        ]
+      }
+    },
+    {
+      "contentUnitId": "cu_role_R5_act2",
+      "sectionId": "role_R5_act2",
+      "stageId": "act2",
+      "visibility": "PRIVATE",
+      "provenance": {
+        "sourceBeatIds": [
+          "ob-mtoah042-ldq3"
+        ],
+        "sourceClueIds": [
+          "smb-mtoah040-1aytq-foreshadow-0",
+          "smb-mtoah03v-snp45-false_lead-0",
+          "smb-mtoah03v-snp45-contradiction-1"
+        ],
+        "sourceFactIds": [
+          "fact:smb-mtoah040-1aytq:beat-setup:identity_latent:R5",
+          "fact:smb-mtoah040-1aytq:beat-develop:identity_clue:R5",
+          "fact:smb-mtoah040-1aytq:beat-develop:formal_trigger:R5"
+        ]
+      }
+    },
+    {
+      "contentUnitId": "cu_role_R5_act3",
+      "sectionId": "role_R5_act3",
+      "stageId": "act3",
+      "visibility": "PRIVATE",
+      "provenance": {
+        "sourceBeatIds": [
+          "ob-mtoah042-28mp",
+          "ob-mtoah042-9on7"
+        ],
+        "sourceClueIds": [
+          "smb-mtoah040-1aytq-foreshadow-0",
+          "smb-mtoah03v-snp45-true_evidence-2",
+          "smb-mtoah03v-snp45-decisive_evidence-3"
+        ],
+        "sourceFactIds": [
+          "fact:smb-mtoah040-1aytq:beat-setup:identity_latent:R5",
+          "fact:smb-mtoah040-1aytq:beat-develop:identity_clue:R5",
+          "fact:smb-mtoah040-1aytq:beat-develop:formal_trigger:R5"
+        ]
+      }
+    },
+    {
+      "contentUnitId": "cu_role_R4_act1",
+      "sectionId": "role_R4_act1",
+      "stageId": "act1",
+      "visibility": "PRIVATE",
+      "provenance": {
+        "sourceBeatIds": [
+          "ob-mtoah042-066a"
+        ],
+        "sourceClueIds": [
+          "fact-interface:ob-mtoah042-lqix",
+          "smb-mtoah040-1aytq-foreshadow-0",
+          "smb-mtoah03v-snp45-false_lead-0"
+        ],
+        "sourceFactIds": [
+          "fact:smb-mtoah040-1aytq:beat-setup:identity_latent:R5",
+          "fact:smb-mtoah03v-snp45:beat-crime:crime_done:R2",
+          "fact:smb-mtoah03v-snp45:beat-crime:suspicion:R2"
+        ]
+      }
+    },
+    {
+      "contentUnitId": "cu_role_R4_act2",
+      "sectionId": "role_R4_act2",
+      "stageId": "act2",
+      "visibility": "PRIVATE",
+      "provenance": {
+        "sourceBeatIds": [
+          "ob-mtoah042-kpoh",
+          "ob-mtoah042-y4ee",
+          "ob-mtoah042-ldq3"
+        ],
+        "sourceClueIds": [
+          "smb-mtoah040-1aytq-foreshadow-0",
+          "smb-mtoah03v-snp45-false_lead-0",
+          "smb-mtoah03v-snp45-contradiction-1"
+        ],
+        "sourceFactIds": [
+          "fact:smb-mtoah040-1aytq:beat-setup:identity_latent:R5",
+          "fact:smb-mtoah03v-snp45:beat-crime:crime_done:R2",
+          "fact:smb-mtoah03v-snp45:beat-crime:suspicion:R2"
+        ]
+      }
+    },
+    {
+      "contentUnitId": "cu_role_R4_act3",
+      "sectionId": "role_R4_act3",
+      "stageId": "act3",
+      "visibility": "PRIVATE",
+      "provenance": {
+        "sourceBeatIds": [
+          "ob-mtoah042-i1xp",
+          "ob-mtoah042-b1r4",
+          "ob-mtoah042-28mp",
+          "ob-mtoah042-9on7"
+        ],
+        "sourceClueIds": [
+          "smb-mtoah040-1aytq-foreshadow-0",
+          "smb-mtoah03v-snp45-false_lead-0",
+          "smb-mtoah03v-snp45-contradiction-1"
+        ],
+        "sourceFactIds": [
+          "fact:smb-mtoah040-1aytq:beat-setup:identity_latent:R5",
+          "fact:smb-mtoah03v-snp45:beat-crime:crime_done:R2",
+          "fact:smb-mtoah03v-snp45:beat-crime:suspicion:R2"
+        ]
+      }
+    },
+    {
+      "contentUnitId": "cu_role_R1_act2",
+      "sectionId": "role_R1_act2",
+      "stageId": "act2",
+      "visibility": "PRIVATE",
+      "provenance": {
+        "sourceBeatIds": [
+          "ob-mtoah042-kpoh",
+          "ob-mtoah042-ldq3"
+        ],
+        "sourceClueIds": [
+          "smb-mtoah040-1aytq-foreshadow-0",
+          "smb-mtoah03v-snp45-false_lead-0",
+          "smb-mtoah03v-snp45-contradiction-1"
+        ],
+        "sourceFactIds": [
+          "fact:smb-mtoah03v-snp45:beat-crime:crime_done:R2",
+          "fact:smb-mtoah03v-snp45:beat-crime:suspicion:R2",
+          "fact:smb-mtoah03v-snp45:beat-crime:false_lead:R2"
+        ]
+      }
+    },
+    {
+      "contentUnitId": "cu_role_R1_act3",
+      "sectionId": "role_R1_act3",
+      "stageId": "act3",
+      "visibility": "PRIVATE",
+      "provenance": {
+        "sourceBeatIds": [
+          "ob-mtoah042-b1r4",
+          "ob-mtoah042-28mp",
+          "ob-mtoah042-9on7"
+        ],
+        "sourceClueIds": [
+          "smb-mtoah040-1aytq-foreshadow-0",
+          "smb-mtoah03v-snp45-false_lead-0",
+          "smb-mtoah03v-snp45-true_evidence-2"
+        ],
+        "sourceFactIds": [
+          "fact:smb-mtoah03v-snp45:beat-crime:crime_done:R2",
+          "fact:smb-mtoah03v-snp45:beat-crime:suspicion:R2",
+          "fact:smb-mtoah03v-snp45:beat-crime:false_lead:R2"
+        ]
+      }
+    },
+    {
+      "contentUnitId": "cu_role_NPC_GUARD_act2",
+      "sectionId": "role_NPC_GUARD_act2",
+      "stageId": "act2",
+      "visibility": "PRIVATE",
+      "provenance": {
+        "sourceBeatIds": [
+          "ob-mtoah042-ldq3"
+        ],
+        "sourceClueIds": [
+          "smb-mtoah040-1aytq-foreshadow-0",
+          "smb-mtoah03v-snp45-false_lead-0",
+          "smb-mtoah03v-snp45-contradiction-1"
+        ],
+        "sourceFactIds": [
+          "fact:smb-mtoah040-1aytq:beat-develop:identity_clue:R5",
+          "fact:smb-mtoah040-1aytq:beat-develop:formal_trigger:R5",
+          "fact:smb-mtoah040-1aytq:beat-climax:identity_confirmed:R5"
+        ]
+      }
+    },
+    {
+      "contentUnitId": "cu_role_NPC_GUARD_act3",
+      "sectionId": "role_NPC_GUARD_act3",
+      "stageId": "act3",
+      "visibility": "PRIVATE",
+      "provenance": {
+        "sourceBeatIds": [
+          "ob-mtoah042-28mp",
+          "ob-mtoah042-9on7"
+        ],
+        "sourceClueIds": [
+          "smb-mtoah040-1aytq-foreshadow-0",
+          "smb-mtoah03v-snp45-true_evidence-2",
+          "smb-mtoah03v-snp45-decisive_evidence-3"
+        ],
+        "sourceFactIds": [
+          "fact:smb-mtoah040-1aytq:beat-develop:identity_clue:R5",
+          "fact:smb-mtoah040-1aytq:beat-develop:formal_trigger:R5",
+          "fact:smb-mtoah040-1aytq:beat-climax:identity_confirmed:R5"
+        ]
+      }
+    },
+    {
+      "contentUnitId": "cu_public_act1",
+      "sectionId": "public_act1",
+      "stageId": "act1",
+      "visibility": "PUBLIC",
+      "provenance": {
+        "sourceBeatIds": [
+          "ob-mtoah042-lqix",
+          "ob-mtoah042-066a"
+        ],
+        "sourceClueIds": [],
+        "sourceFactIds": [
+          "fact:smb-mtoah03v-snp45:beat-setup:false_lead:R2",
+          "fact:smb-mtoah040-1aytq:beat-setup:identity_latent:R5"
+        ]
+      }
+    },
+    {
+      "contentUnitId": "cu_public_act2",
+      "sectionId": "public_act2",
+      "stageId": "act2",
+      "visibility": "PUBLIC",
+      "provenance": {
+        "sourceBeatIds": [
+          "ob-mtoah042-kpoh",
+          "ob-mtoah042-z8j5",
+          "ob-mtoah042-y4ee",
+          "ob-mtoah042-ldq3"
+        ],
+        "sourceClueIds": [],
+        "sourceFactIds": [
+          "fact:smb-mtoah03v-snp45:beat-crime:crime_done:R2",
+          "fact:smb-mtoah03v-snp45:beat-crime:suspicion:R2",
+          "fact:smb-mtoah03v-snp45:beat-crime:false_lead:R2",
+          "fact:smb-mtoah03v-snp45:beat-false:crime_done:R2"
+        ]
+      }
+    },
+    {
+      "contentUnitId": "cu_public_act3",
+      "sectionId": "public_act3",
+      "stageId": "act3",
+      "visibility": "PUBLIC",
+      "provenance": {
+        "sourceBeatIds": [
+          "ob-mtoah042-i1xp",
+          "ob-mtoah042-b1r4",
+          "ob-mtoah042-28mp",
+          "ob-mtoah042-9on7"
+        ],
+        "sourceClueIds": [],
+        "sourceFactIds": [
+          "fact:smb-mtoah03v-snp45:beat-climax:contradiction:R4",
+          "fact:smb-mtoah03v-snp45:beat-climax:suspicion:R4",
+          "fact:smb-mtoah03v-snp45:beat-res:truth_locked:R4",
+          "fact:smb-mtoah03v-snp45:beat-res:contradiction:R4"
+        ]
+      }
+    },
+    {
+      "contentUnitId": "cu_ending_truth",
+      "sectionId": "ending_truth",
+      "stageId": "act3",
+      "visibility": "PUBLIC",
+      "provenance": {
+        "sourceBeatIds": [
+          "ob-mtoah042-lqix",
+          "ob-mtoah042-066a",
+          "ob-mtoah042-kpoh",
+          "ob-mtoah042-z8j5",
+          "ob-mtoah042-y4ee",
+          "ob-mtoah042-ldq3",
+          "ob-mtoah042-i1xp",
+          "ob-mtoah042-b1r4",
+          "ob-mtoah042-28mp",
+          "ob-mtoah042-9on7"
+        ],
+        "sourceClueIds": [
+          "smb-mtoah040-1aytq-decisive_reveal-5"
+        ],
+        "sourceFactIds": [
+          "fact:smb-mtoah03v-snp45:beat-setup:false_lead:R2",
+          "fact:smb-mtoah040-1aytq:beat-setup:identity_latent:R5",
+          "fact:smb-mtoah03v-snp45:beat-crime:crime_done:R2",
+          "fact:smb-mtoah03v-snp45:beat-crime:suspicion:R2",
+          "fact:smb-mtoah03v-snp45:beat-crime:false_lead:R2",
+          "fact:smb-mtoah03v-snp45:beat-false:crime_done:R2",
+          "fact:smb-mtoah03v-snp45:beat-false:suspicion:R2",
+          "fact:smb-mtoah03v-snp45:beat-false:false_lead:R2"
+        ]
+      }
+    },
+    {
+      "contentUnitId": "cu_clue_fact-interface:ob-mtoah042-lqix",
+      "sectionId": "fact-interface:ob-mtoah042-lqix",
+      "stageId": "act1",
+      "visibility": "PUBLIC",
+      "provenance": {
+        "sourceBeatIds": [],
+        "sourceClueIds": [
+          "fact-interface:ob-mtoah042-lqix"
+        ],
+        "sourceFactIds": []
+      }
+    },
+    {
+      "contentUnitId": "cu_clue_smb-mtoah040-1aytq-foreshadow-0",
+      "sectionId": "smb-mtoah040-1aytq-foreshadow-0",
+      "stageId": "act1",
+      "visibility": "PUBLIC",
+      "provenance": {
+        "sourceBeatIds": [
+          "ob-mtoah042-066a",
+          "ob-mtoah042-ldq3"
+        ],
+        "sourceClueIds": [
+          "smb-mtoah040-1aytq-foreshadow-0"
+        ],
+        "sourceFactIds": [
+          "fact:smb-mtoah040-1aytq:beat-setup:identity_latent:R5",
+          "fact:smb-mtoah040-1aytq:beat-develop:identity_clue:R5",
+          "fact:smb-mtoah040-1aytq:beat-develop:formal_trigger:R5"
+        ]
+      }
+    },
+    {
+      "contentUnitId": "cu_clue_smb-mtoah03v-snp45-false_lead-0",
+      "sectionId": "smb-mtoah03v-snp45-false_lead-0",
+      "stageId": "act2",
+      "visibility": "PUBLIC",
+      "provenance": {
+        "sourceBeatIds": [
+          "ob-mtoah042-kpoh",
+          "ob-mtoah042-z8j5"
+        ],
+        "sourceClueIds": [
+          "smb-mtoah03v-snp45-false_lead-0"
+        ],
+        "sourceFactIds": [
+          "fact:smb-mtoah03v-snp45:beat-crime:crime_done:R2",
+          "fact:smb-mtoah03v-snp45:beat-crime:suspicion:R2",
+          "fact:smb-mtoah03v-snp45:beat-crime:false_lead:R2",
+          "fact:smb-mtoah03v-snp45:beat-false:crime_done:R2"
+        ]
+      }
+    },
+    {
+      "contentUnitId": "cu_clue_smb-mtoah03v-snp45-contradiction-1",
+      "sectionId": "smb-mtoah03v-snp45-contradiction-1",
+      "stageId": "act2",
+      "visibility": "PRIVATE",
+      "provenance": {
+        "sourceBeatIds": [
+          "ob-mtoah042-y4ee"
+        ],
+        "sourceClueIds": [
+          "smb-mtoah03v-snp45-contradiction-1"
+        ],
+        "sourceFactIds": [
+          "fact:smb-mtoah03v-snp45:beat-contra:contradiction:R4",
+          "fact:smb-mtoah03v-snp45:beat-contra:suspicion:R4"
+        ]
+      }
+    },
+    {
+      "contentUnitId": "cu_clue_smb-mtoah03v-snp45-true_evidence-2",
+      "sectionId": "smb-mtoah03v-snp45-true_evidence-2",
+      "stageId": "act3",
+      "visibility": "PUBLIC",
+      "provenance": {
+        "sourceBeatIds": [
+          "ob-mtoah042-i1xp"
+        ],
+        "sourceClueIds": [
+          "smb-mtoah03v-snp45-true_evidence-2"
+        ],
+        "sourceFactIds": [
+          "fact:smb-mtoah03v-snp45:beat-climax:contradiction:R4",
+          "fact:smb-mtoah03v-snp45:beat-climax:suspicion:R4"
+        ]
+      }
+    },
+    {
+      "contentUnitId": "cu_clue_smb-mtoah03v-snp45-decisive_evidence-3",
+      "sectionId": "smb-mtoah03v-snp45-decisive_evidence-3",
+      "stageId": "act3",
+      "visibility": "PUBLIC",
+      "provenance": {
+        "sourceBeatIds": [
+          "ob-mtoah042-i1xp",
+          "ob-mtoah042-b1r4"
+        ],
+        "sourceClueIds": [
+          "smb-mtoah03v-snp45-decisive_evidence-3"
+        ],
+        "sourceFactIds": [
+          "fact:smb-mtoah03v-snp45:beat-climax:contradiction:R4",
+          "fact:smb-mtoah03v-snp45:beat-climax:suspicion:R4",
+          "fact:smb-mtoah03v-snp45:beat-res:truth_locked:R4",
+          "fact:smb-mtoah03v-snp45:beat-res:contradiction:R4"
+        ]
+      }
+    },
+    {
+      "contentUnitId": "cu_clue_smb-mtoah040-1aytq-memory_fragment-1",
+      "sectionId": "smb-mtoah040-1aytq-memory_fragment-1",
+      "stageId": "act3",
+      "visibility": "PUBLIC",
+      "provenance": {
+        "sourceBeatIds": [
+          "ob-mtoah042-28mp"
+        ],
+        "sourceClueIds": [
+          "smb-mtoah040-1aytq-memory_fragment-1"
+        ],
+        "sourceFactIds": [
+          "fact:smb-mtoah040-1aytq:beat-climax:identity_confirmed:R5",
+          "fact:smb-mtoah040-1aytq:beat-climax:family_status:R5",
+          "fact:smb-mtoah040-1aytq:beat-climax:identity_clue:R5"
+        ]
+      }
+    },
+    {
+      "contentUnitId": "cu_clue_smb-mtoah040-1aytq-identity_hint-2",
+      "sectionId": "smb-mtoah040-1aytq-identity_hint-2",
+      "stageId": "act3",
+      "visibility": "PUBLIC",
+      "provenance": {
+        "sourceBeatIds": [
+          "ob-mtoah042-28mp"
+        ],
+        "sourceClueIds": [
+          "smb-mtoah040-1aytq-identity_hint-2"
+        ],
+        "sourceFactIds": [
+          "fact:smb-mtoah040-1aytq:beat-climax:identity_confirmed:R5",
+          "fact:smb-mtoah040-1aytq:beat-climax:family_status:R5",
+          "fact:smb-mtoah040-1aytq:beat-climax:identity_clue:R5"
+        ]
+      }
+    },
+    {
+      "contentUnitId": "cu_clue_smb-mtoah040-1aytq-misdirection-3",
+      "sectionId": "smb-mtoah040-1aytq-misdirection-3",
+      "stageId": "act3",
+      "visibility": "PUBLIC",
+      "provenance": {
+        "sourceBeatIds": [
+          "ob-mtoah042-28mp"
+        ],
+        "sourceClueIds": [
+          "smb-mtoah040-1aytq-misdirection-3"
+        ],
+        "sourceFactIds": [
+          "fact:smb-mtoah040-1aytq:beat-climax:identity_confirmed:R5",
+          "fact:smb-mtoah040-1aytq:beat-climax:family_status:R5",
+          "fact:smb-mtoah040-1aytq:beat-climax:identity_clue:R5"
+        ]
+      }
+    },
+    {
+      "contentUnitId": "cu_clue_smb-mtoah040-1aytq-confirmation-4",
+      "sectionId": "smb-mtoah040-1aytq-confirmation-4",
+      "stageId": "act3",
+      "visibility": "PUBLIC",
+      "provenance": {
+        "sourceBeatIds": [
+          "ob-mtoah042-28mp"
+        ],
+        "sourceClueIds": [
+          "smb-mtoah040-1aytq-confirmation-4"
+        ],
+        "sourceFactIds": [
+          "fact:smb-mtoah040-1aytq:beat-climax:identity_confirmed:R5",
+          "fact:smb-mtoah040-1aytq:beat-climax:family_status:R5",
+          "fact:smb-mtoah040-1aytq:beat-climax:identity_clue:R5"
+        ]
+      }
+    },
+    {
+      "contentUnitId": "cu_clue_smb-mtoah040-1aytq-decisive_reveal-5",
+      "sectionId": "smb-mtoah040-1aytq-decisive_reveal-5",
+      "stageId": "act3",
+      "visibility": "PUBLIC",
+      "provenance": {
+        "sourceBeatIds": [
+          "ob-mtoah042-28mp"
+        ],
+        "sourceClueIds": [
+          "smb-mtoah040-1aytq-decisive_reveal-5"
+        ],
+        "sourceFactIds": [
+          "fact:smb-mtoah040-1aytq:beat-climax:identity_confirmed:R5",
+          "fact:smb-mtoah040-1aytq:beat-climax:family_status:R5",
+          "fact:smb-mtoah040-1aytq:beat-climax:identity_clue:R5"
+        ]
+      }
+    },
+    {
+      "contentUnitId": "cu_clue_fact-interface:ob-mtoah042-9on7",
+      "sectionId": "fact-interface:ob-mtoah042-9on7",
+      "stageId": "act3",
+      "visibility": "PUBLIC",
+      "provenance": {
+        "sourceBeatIds": [],
+        "sourceClueIds": [
+          "fact-interface:ob-mtoah042-9on7"
+        ],
+        "sourceFactIds": []
+      }
+    }
+  ],
+  "clueTrace": [
+    {
+      "clueId": "fact-interface:ob-mtoah042-lqix",
+      "pmd": {
+        "isMisleading": true,
+        "isDecisive": false,
+        "introducedAt": "act1"
+      },
+      "package": {
+        "isMisleading": true,
+        "isDecisive": false,
+        "stageId": "act1",
+        "hasParagraphs": true,
+        "provenance": {
+          "sourceClueId": "fact-interface:ob-mtoah042-lqix",
+          "sourceBeatIds": []
+        }
+      },
+      "playable": {
+        "stageId": "act1",
+        "contentUnitId": "cu_clue_fact-interface:ob-mtoah042-lqix",
+        "hasContentUnit": true,
+        "sourceSectionId": "fact-interface:ob-mtoah042-lqix"
+      },
+      "ok": true
+    },
+    {
+      "clueId": "smb-mtoah040-1aytq-foreshadow-0",
+      "pmd": {
+        "isMisleading": false,
+        "isDecisive": false,
+        "introducedAt": "act1"
+      },
+      "package": {
+        "isMisleading": false,
+        "isDecisive": false,
+        "stageId": "act1",
+        "hasParagraphs": true,
+        "provenance": {
+          "sourceClueId": "smb-mtoah040-1aytq-foreshadow-0",
+          "sourceBeatIds": [
+            "ob-mtoah042-066a",
+            "ob-mtoah042-ldq3"
+          ]
+        }
+      },
+      "playable": {
+        "stageId": "act1",
+        "contentUnitId": "cu_clue_smb-mtoah040-1aytq-foreshadow-0",
+        "hasContentUnit": true,
+        "sourceSectionId": "smb-mtoah040-1aytq-foreshadow-0"
+      },
+      "ok": true
+    },
+    {
+      "clueId": "smb-mtoah03v-snp45-false_lead-0",
+      "pmd": {
+        "isMisleading": true,
+        "isDecisive": false,
+        "introducedAt": "act2"
+      },
+      "package": {
+        "isMisleading": true,
+        "isDecisive": false,
+        "stageId": "act2",
+        "hasParagraphs": true,
+        "provenance": {
+          "sourceClueId": "smb-mtoah03v-snp45-false_lead-0",
+          "sourceBeatIds": [
+            "ob-mtoah042-kpoh",
+            "ob-mtoah042-z8j5"
+          ]
+        }
+      },
+      "playable": {
+        "stageId": "act2",
+        "contentUnitId": "cu_clue_smb-mtoah03v-snp45-false_lead-0",
+        "hasContentUnit": true,
+        "sourceSectionId": "smb-mtoah03v-snp45-false_lead-0"
+      },
+      "ok": true
+    },
+    {
+      "clueId": "smb-mtoah03v-snp45-contradiction-1",
+      "pmd": {
+        "isMisleading": false,
+        "isDecisive": false,
+        "introducedAt": "act2"
+      },
+      "package": {
+        "isMisleading": false,
+        "isDecisive": false,
+        "stageId": "act2",
+        "hasParagraphs": true,
+        "provenance": {
+          "sourceClueId": "smb-mtoah03v-snp45-contradiction-1",
+          "sourceBeatIds": [
+            "ob-mtoah042-y4ee"
+          ]
+        }
+      },
+      "playable": {
+        "stageId": "act2",
+        "contentUnitId": "cu_clue_smb-mtoah03v-snp45-contradiction-1",
+        "hasContentUnit": true,
+        "sourceSectionId": "smb-mtoah03v-snp45-contradiction-1"
+      },
+      "ok": true
+    },
+    {
+      "clueId": "smb-mtoah03v-snp45-true_evidence-2",
+      "pmd": {
+        "isMisleading": false,
+        "isDecisive": false,
+        "introducedAt": "act3"
+      },
+      "package": {
+        "isMisleading": false,
+        "isDecisive": false,
+        "stageId": "act3",
+        "hasParagraphs": true,
+        "provenance": {
+          "sourceClueId": "smb-mtoah03v-snp45-true_evidence-2",
+          "sourceBeatIds": [
+            "ob-mtoah042-i1xp"
+          ]
+        }
+      },
+      "playable": {
+        "stageId": "act3",
+        "contentUnitId": "cu_clue_smb-mtoah03v-snp45-true_evidence-2",
+        "hasContentUnit": true,
+        "sourceSectionId": "smb-mtoah03v-snp45-true_evidence-2"
+      },
+      "ok": true
+    },
+    {
+      "clueId": "smb-mtoah03v-snp45-decisive_evidence-3",
+      "pmd": {
+        "isMisleading": false,
+        "isDecisive": false,
+        "introducedAt": "act3"
+      },
+      "package": {
+        "isMisleading": false,
+        "isDecisive": false,
+        "stageId": "act3",
+        "hasParagraphs": true,
+        "provenance": {
+          "sourceClueId": "smb-mtoah03v-snp45-decisive_evidence-3",
+          "sourceBeatIds": [
+            "ob-mtoah042-i1xp",
+            "ob-mtoah042-b1r4"
+          ]
+        }
+      },
+      "playable": {
+        "stageId": "act3",
+        "contentUnitId": "cu_clue_smb-mtoah03v-snp45-decisive_evidence-3",
+        "hasContentUnit": true,
+        "sourceSectionId": "smb-mtoah03v-snp45-decisive_evidence-3"
+      },
+      "ok": true
+    },
+    {
+      "clueId": "smb-mtoah040-1aytq-memory_fragment-1",
+      "pmd": {
+        "isMisleading": false,
+        "isDecisive": false,
+        "introducedAt": "act3"
+      },
+      "package": {
+        "isMisleading": false,
+        "isDecisive": false,
+        "stageId": "act3",
+        "hasParagraphs": true,
+        "provenance": {
+          "sourceClueId": "smb-mtoah040-1aytq-memory_fragment-1",
+          "sourceBeatIds": [
+            "ob-mtoah042-28mp"
+          ]
+        }
+      },
+      "playable": {
+        "stageId": "act3",
+        "contentUnitId": "cu_clue_smb-mtoah040-1aytq-memory_fragment-1",
+        "hasContentUnit": true,
+        "sourceSectionId": "smb-mtoah040-1aytq-memory_fragment-1"
+      },
+      "ok": true
+    },
+    {
+      "clueId": "smb-mtoah040-1aytq-identity_hint-2",
+      "pmd": {
+        "isMisleading": false,
+        "isDecisive": false,
+        "introducedAt": "act3"
+      },
+      "package": {
+        "isMisleading": false,
+        "isDecisive": false,
+        "stageId": "act3",
+        "hasParagraphs": true,
+        "provenance": {
+          "sourceClueId": "smb-mtoah040-1aytq-identity_hint-2",
+          "sourceBeatIds": [
+            "ob-mtoah042-28mp"
+          ]
+        }
+      },
+      "playable": {
+        "stageId": "act3",
+        "contentUnitId": "cu_clue_smb-mtoah040-1aytq-identity_hint-2",
+        "hasContentUnit": true,
+        "sourceSectionId": "smb-mtoah040-1aytq-identity_hint-2"
+      },
+      "ok": true
+    },
+    {
+      "clueId": "smb-mtoah040-1aytq-misdirection-3",
+      "pmd": {
+        "isMisleading": true,
+        "isDecisive": false,
+        "introducedAt": "act3"
+      },
+      "package": {
+        "isMisleading": true,
+        "isDecisive": false,
+        "stageId": "act3",
+        "hasParagraphs": true,
+        "provenance": {
+          "sourceClueId": "smb-mtoah040-1aytq-misdirection-3",
+          "sourceBeatIds": [
+            "ob-mtoah042-28mp"
+          ]
+        }
+      },
+      "playable": {
+        "stageId": "act3",
+        "contentUnitId": "cu_clue_smb-mtoah040-1aytq-misdirection-3",
+        "hasContentUnit": true,
+        "sourceSectionId": "smb-mtoah040-1aytq-misdirection-3"
+      },
+      "ok": true
+    },
+    {
+      "clueId": "smb-mtoah040-1aytq-confirmation-4",
+      "pmd": {
+        "isMisleading": false,
+        "isDecisive": false,
+        "introducedAt": "act3"
+      },
+      "package": {
+        "isMisleading": false,
+        "isDecisive": false,
+        "stageId": "act3",
+        "hasParagraphs": true,
+        "provenance": {
+          "sourceClueId": "smb-mtoah040-1aytq-confirmation-4",
+          "sourceBeatIds": [
+            "ob-mtoah042-28mp"
+          ]
+        }
+      },
+      "playable": {
+        "stageId": "act3",
+        "contentUnitId": "cu_clue_smb-mtoah040-1aytq-confirmation-4",
+        "hasContentUnit": true,
+        "sourceSectionId": "smb-mtoah040-1aytq-confirmation-4"
+      },
+      "ok": true
+    },
+    {
+      "clueId": "smb-mtoah040-1aytq-decisive_reveal-5",
+      "pmd": {
+        "isMisleading": false,
+        "isDecisive": true,
+        "introducedAt": "act3"
+      },
+      "package": {
+        "isMisleading": false,
+        "isDecisive": true,
+        "stageId": "act3",
+        "hasParagraphs": true,
+        "provenance": {
+          "sourceClueId": "smb-mtoah040-1aytq-decisive_reveal-5",
+          "sourceBeatIds": [
+            "ob-mtoah042-28mp"
+          ]
+        }
+      },
+      "playable": {
+        "stageId": "act3",
+        "contentUnitId": "cu_clue_smb-mtoah040-1aytq-decisive_reveal-5",
+        "hasContentUnit": true,
+        "sourceSectionId": "smb-mtoah040-1aytq-decisive_reveal-5"
+      },
+      "ok": true
+    },
+    {
+      "clueId": "fact-interface:ob-mtoah042-9on7",
+      "pmd": {
+        "isMisleading": false,
+        "isDecisive": false,
+        "introducedAt": "act3"
+      },
+      "package": {
+        "isMisleading": false,
+        "isDecisive": false,
+        "stageId": "act3",
+        "hasParagraphs": true,
+        "provenance": {
+          "sourceClueId": "fact-interface:ob-mtoah042-9on7",
+          "sourceBeatIds": []
+        }
+      },
+      "playable": {
+        "stageId": "act3",
+        "contentUnitId": "cu_clue_fact-interface:ob-mtoah042-9on7",
+        "hasContentUnit": true,
+        "sourceSectionId": "fact-interface:ob-mtoah042-9on7"
+      },
+      "ok": true
+    }
+  ],
+  "roleCoverage": [
+    {
+      "characterId": "R2",
+      "roleId": "role_R2",
+      "expectedContributionStageIds": [
+        "act1",
+        "act2",
+        "act3"
+      ],
+      "producedSectionStageIds": [
+        "act1",
+        "act2",
+        "act3"
+      ],
+      "missingStageIds": [],
+      "sectionCount": 3,
+      "nonEmpty": true
+    },
+    {
+      "characterId": "R3",
+      "roleId": "role_R3",
+      "expectedContributionStageIds": [
+        "act1",
+        "act2",
+        "act3"
+      ],
+      "producedSectionStageIds": [
+        "act1",
+        "act2",
+        "act3"
+      ],
+      "missingStageIds": [],
+      "sectionCount": 3,
+      "nonEmpty": true
+    },
+    {
+      "characterId": "R5",
+      "roleId": "role_R5",
+      "expectedContributionStageIds": [
+        "act1",
+        "act2",
+        "act3"
+      ],
+      "producedSectionStageIds": [
+        "act1",
+        "act2",
+        "act3"
+      ],
+      "missingStageIds": [],
+      "sectionCount": 3,
+      "nonEmpty": true
+    },
+    {
+      "characterId": "R4",
+      "roleId": "role_R4",
+      "expectedContributionStageIds": [
+        "act1",
+        "act2",
+        "act3"
+      ],
+      "producedSectionStageIds": [
+        "act1",
+        "act2",
+        "act3"
+      ],
+      "missingStageIds": [],
+      "sectionCount": 3,
+      "nonEmpty": true
+    },
+    {
+      "characterId": "R1",
+      "roleId": "role_R1",
+      "expectedContributionStageIds": [
+        "act2",
+        "act3"
+      ],
+      "producedSectionStageIds": [
+        "act2",
+        "act3"
+      ],
+      "missingStageIds": [],
+      "sectionCount": 2,
+      "nonEmpty": true
+    }
+  ],
+  "stageCoverage": [
+    {
+      "stageId": "act1",
+      "hasHostSection": true,
+      "hostSectionIds": [
+        "host_act1"
+      ]
+    },
+    {
+      "stageId": "act2",
+      "hasHostSection": true,
+      "hostSectionIds": [
+        "host_act2"
+      ]
+    },
+    {
+      "stageId": "act3",
+      "hasHostSection": true,
+      "hostSectionIds": [
+        "host_act3"
+      ]
+    }
+  ],
+  "runtimeProof": {
+    "sessionStarted": true,
+    "unassignedStartBlocked": true,
+    "stagesVisited": [
+      "act1",
+      "act2",
+      "act3"
+    ],
+    "privacyChecks": [
+      {
+        "stageId": "act1",
+        "roleId": "role_R2",
+        "hasPrivateOnStage": true,
+        "hasPublic": true,
+        "hostOnlyLeaked": false,
+        "foreignPrivateLeaks": [],
+        "ok": true
+      },
+      {
+        "stageId": "act1",
+        "roleId": "role_R3",
+        "hasPrivateOnStage": true,
+        "hasPublic": true,
+        "hostOnlyLeaked": false,
+        "foreignPrivateLeaks": [],
+        "ok": true
+      },
+      {
+        "stageId": "act1",
+        "roleId": "role_R5",
+        "hasPrivateOnStage": true,
+        "hasPublic": true,
+        "hostOnlyLeaked": false,
+        "foreignPrivateLeaks": [],
+        "ok": true
+      },
+      {
+        "stageId": "act1",
+        "roleId": "role_R4",
+        "hasPrivateOnStage": true,
+        "hasPublic": true,
+        "hostOnlyLeaked": false,
+        "foreignPrivateLeaks": [],
+        "ok": true
+      },
+      {
+        "stageId": "act1",
+        "roleId": "role_R1",
+        "hasPrivateOnStage": true,
+        "hasPublic": true,
+        "hostOnlyLeaked": false,
+        "foreignPrivateLeaks": [],
+        "ok": true
+      },
+      {
+        "stageId": "act1",
+        "roleId": "role_host",
+        "hostSeesHostOnly": true,
+        "ok": true
+      },
+      {
+        "stageId": "act2",
+        "roleId": "role_R2",
+        "hasPrivateOnStage": true,
+        "hasPublic": true,
+        "hostOnlyLeaked": false,
+        "foreignPrivateLeaks": [],
+        "ok": true
+      },
+      {
+        "stageId": "act2",
+        "roleId": "role_R3",
+        "hasPrivateOnStage": true,
+        "hasPublic": true,
+        "hostOnlyLeaked": false,
+        "foreignPrivateLeaks": [],
+        "ok": true
+      },
+      {
+        "stageId": "act2",
+        "roleId": "role_R5",
+        "hasPrivateOnStage": true,
+        "hasPublic": true,
+        "hostOnlyLeaked": false,
+        "foreignPrivateLeaks": [],
+        "ok": true
+      },
+      {
+        "stageId": "act2",
+        "roleId": "role_R4",
+        "hasPrivateOnStage": true,
+        "hasPublic": true,
+        "hostOnlyLeaked": false,
+        "foreignPrivateLeaks": [],
+        "ok": true
+      },
+      {
+        "stageId": "act2",
+        "roleId": "role_R1",
+        "hasPrivateOnStage": true,
+        "hasPublic": true,
+        "hostOnlyLeaked": false,
+        "foreignPrivateLeaks": [],
+        "ok": true
+      },
+      {
+        "stageId": "act2",
+        "roleId": "role_host",
+        "hostSeesHostOnly": true,
+        "ok": true
+      },
+      {
+        "stageId": "act3",
+        "roleId": "role_R2",
+        "hasPrivateOnStage": true,
+        "hasPublic": true,
+        "hostOnlyLeaked": false,
+        "foreignPrivateLeaks": [],
+        "ok": true
+      },
+      {
+        "stageId": "act3",
+        "roleId": "role_R3",
+        "hasPrivateOnStage": true,
+        "hasPublic": true,
+        "hostOnlyLeaked": false,
+        "foreignPrivateLeaks": [],
+        "ok": true
+      },
+      {
+        "stageId": "act3",
+        "roleId": "role_R5",
+        "hasPrivateOnStage": true,
+        "hasPublic": true,
+        "hostOnlyLeaked": false,
+        "foreignPrivateLeaks": [],
+        "ok": true
+      },
+      {
+        "stageId": "act3",
+        "roleId": "role_R4",
+        "hasPrivateOnStage": true,
+        "hasPublic": true,
+        "hostOnlyLeaked": false,
+        "foreignPrivateLeaks": [],
+        "ok": true
+      },
+      {
+        "stageId": "act3",
+        "roleId": "role_R1",
+        "hasPrivateOnStage": true,
+        "hasPublic": true,
+        "hostOnlyLeaked": false,
+        "foreignPrivateLeaks": [],
+        "ok": true
+      },
+      {
+        "stageId": "act3",
+        "roleId": "role_host",
+        "hostSeesHostOnly": true,
+        "ok": true
+      }
+    ],
+    "clueChecks": [
+      {
+        "stageId": "act1",
+        "clueId": "fact-interface:ob-mtoah042-lqix",
+        "viewerRoleId": "role_R2",
+        "blockedBeforeRelease": true,
+        "visibleAfterRelease": true,
+        "ok": true
+      },
+      {
+        "stageId": "act1",
+        "clueId": "smb-mtoah040-1aytq-foreshadow-0",
+        "viewerRoleId": "role_R2",
+        "blockedBeforeRelease": true,
+        "visibleAfterRelease": true,
+        "ok": true
+      },
+      {
+        "stageId": "act2",
+        "clueId": "smb-mtoah03v-snp45-false_lead-0",
+        "viewerRoleId": "role_R2",
+        "blockedBeforeRelease": true,
+        "visibleAfterRelease": true,
+        "ok": true
+      },
+      {
+        "stageId": "act2",
+        "clueId": "smb-mtoah03v-snp45-contradiction-1",
+        "viewerRoleId": "role_R4",
+        "blockedBeforeRelease": true,
+        "visibleAfterRelease": true,
+        "ok": true
+      },
+      {
+        "stageId": "act3",
+        "clueId": "smb-mtoah03v-snp45-true_evidence-2",
+        "viewerRoleId": "role_R2",
+        "blockedBeforeRelease": true,
+        "visibleAfterRelease": true,
+        "ok": true
+      },
+      {
+        "stageId": "act3",
+        "clueId": "smb-mtoah03v-snp45-decisive_evidence-3",
+        "viewerRoleId": "role_R2",
+        "blockedBeforeRelease": true,
+        "visibleAfterRelease": true,
+        "ok": true
+      },
+      {
+        "stageId": "act3",
+        "clueId": "smb-mtoah040-1aytq-memory_fragment-1",
+        "viewerRoleId": "role_R2",
+        "blockedBeforeRelease": true,
+        "visibleAfterRelease": true,
+        "ok": true
+      },
+      {
+        "stageId": "act3",
+        "clueId": "smb-mtoah040-1aytq-identity_hint-2",
+        "viewerRoleId": "role_R2",
+        "blockedBeforeRelease": true,
+        "visibleAfterRelease": true,
+        "ok": true
+      },
+      {
+        "stageId": "act3",
+        "clueId": "smb-mtoah040-1aytq-misdirection-3",
+        "viewerRoleId": "role_R2",
+        "blockedBeforeRelease": true,
+        "visibleAfterRelease": true,
+        "ok": true
+      },
+      {
+        "stageId": "act3",
+        "clueId": "smb-mtoah040-1aytq-confirmation-4",
+        "viewerRoleId": "role_R2",
+        "blockedBeforeRelease": true,
+        "visibleAfterRelease": true,
+        "ok": true
+      },
+      {
+        "stageId": "act3",
+        "clueId": "smb-mtoah040-1aytq-decisive_reveal-5",
+        "viewerRoleId": "role_R2",
+        "blockedBeforeRelease": true,
+        "visibleAfterRelease": true,
+        "ok": true
+      },
+      {
+        "stageId": "act3",
+        "clueId": "fact-interface:ob-mtoah042-9on7",
+        "viewerRoleId": "role_R2",
+        "blockedBeforeRelease": true,
+        "visibleAfterRelease": true,
+        "ok": true
+      }
+    ],
+    "finished": true,
+    "refreshOk": true,
+    "errors": [],
+    "finalStatus": "FINISHED",
+    "endingMode": "CONTENT_ONLY"
+  },
+  "production": {
+    "gateStatus": "READY_WITH_WARNINGS",
+    "writerStatuses": [
+      {
+        "sectionId": "host",
+        "status": "GENERATED",
+        "diff": "CLEAN"
+      },
+      {
+        "sectionId": "role:R2",
+        "status": "GENERATED",
+        "diff": "CLEAN"
+      },
+      {
+        "sectionId": "role:R3",
+        "status": "GENERATED",
+        "diff": "CLEAN"
+      },
+      {
+        "sectionId": "role:R5",
+        "status": "GENERATED",
+        "diff": "CLEAN"
+      },
+      {
+        "sectionId": "role:R4",
+        "status": "GENERATED",
+        "diff": "CLEAN"
+      },
+      {
+        "sectionId": "role:R1",
+        "status": "GENERATED",
+        "diff": "CLEAN"
+      },
+      {
+        "sectionId": "role:NPC_GUARD",
+        "status": "GENERATED",
+        "diff": "CLEAN"
+      },
+      {
+        "sectionId": "clue:fact-interface:ob-mtoah042-lqix",
+        "status": "GENERATED",
+        "diff": "CLEAN"
+      },
+      {
+        "sectionId": "clue:smb-mtoah040-1aytq-foreshadow-0",
+        "status": "GENERATED",
+        "diff": "CLEAN"
+      },
+      {
+        "sectionId": "clue:smb-mtoah03v-snp45-false_lead-0",
+        "status": "GENERATED",
+        "diff": "CLEAN"
+      },
+      {
+        "sectionId": "clue:smb-mtoah03v-snp45-contradiction-1",
+        "status": "GENERATED",
+        "diff": "CLEAN"
+      },
+      {
+        "sectionId": "clue:smb-mtoah03v-snp45-true_evidence-2",
+        "status": "GENERATED",
+        "diff": "CLEAN"
+      },
+      {
+        "sectionId": "clue:smb-mtoah03v-snp45-decisive_evidence-3",
+        "status": "GENERATED",
+        "diff": "CLEAN"
+      },
+      {
+        "sectionId": "clue:smb-mtoah040-1aytq-memory_fragment-1",
+        "status": "GENERATED",
+        "diff": "CLEAN"
+      },
+      {
+        "sectionId": "clue:smb-mtoah040-1aytq-identity_hint-2",
+        "status": "GENERATED",
+        "diff": "CLEAN"
+      },
+      {
+        "sectionId": "clue:smb-mtoah040-1aytq-misdirection-3",
+        "status": "GENERATED",
+        "diff": "CLEAN"
+      },
+      {
+        "sectionId": "clue:smb-mtoah040-1aytq-confirmation-4",
+        "status": "GENERATED",
+        "diff": "CLEAN"
+      },
+      {
+        "sectionId": "clue:smb-mtoah040-1aytq-decisive_reveal-5",
+        "status": "GENERATED",
+        "diff": "CLEAN"
+      },
+      {
+        "sectionId": "clue:fact-interface:ob-mtoah042-9on7",
+        "status": "GENERATED",
+        "diff": "CLEAN"
+      },
+      {
+        "sectionId": "public:act1",
+        "status": "GENERATED",
+        "diff": "CLEAN"
+      },
+      {
+        "sectionId": "public:act2",
+        "status": "GENERATED",
+        "diff": "CLEAN"
+      },
+      {
+        "sectionId": "public:act3",
+        "status": "GENERATED",
+        "diff": "CLEAN"
+      },
+      {
+        "sectionId": "ending",
+        "status": "GENERATED",
+        "diff": "CLEAN"
+      }
+    ],
+    "packageStatusBeforeApprove": "READY_FOR_REVIEW",
+    "packageStatusAfterApprove": "READY_TO_COMPILE",
+    "approveOk": true,
+    "validationOk": true
+  },
+  "compile": {
+    "status": "READY",
+    "assignablePlayers": 5,
+    "stages": [
+      "act1",
+      "act2",
+      "act3"
+    ],
+    "startStage": "act1",
+    "finalStage": "act3",
+    "errorCodes": []
+  },
+  "coverage": {
+    "characterCoverage": [
+      {
+        "characterId": "R2",
+        "roleId": "role_R2",
+        "expectedContributionStageIds": [
+          "act1",
+          "act2",
+          "act3"
+        ],
+        "producedSectionStageIds": [
+          "act1",
+          "act2",
+          "act3"
+        ],
+        "missingStageIds": [],
+        "sectionCount": 3,
+        "nonEmpty": true
+      },
+      {
+        "characterId": "R3",
+        "roleId": "role_R3",
+        "expectedContributionStageIds": [
+          "act1",
+          "act2",
+          "act3"
+        ],
+        "producedSectionStageIds": [
+          "act1",
+          "act2",
+          "act3"
+        ],
+        "missingStageIds": [],
+        "sectionCount": 3,
+        "nonEmpty": true
+      },
+      {
+        "characterId": "R5",
+        "roleId": "role_R5",
+        "expectedContributionStageIds": [
+          "act1",
+          "act2",
+          "act3"
+        ],
+        "producedSectionStageIds": [
+          "act1",
+          "act2",
+          "act3"
+        ],
+        "missingStageIds": [],
+        "sectionCount": 3,
+        "nonEmpty": true
+      },
+      {
+        "characterId": "R4",
+        "roleId": "role_R4",
+        "expectedContributionStageIds": [
+          "act1",
+          "act2",
+          "act3"
+        ],
+        "producedSectionStageIds": [
+          "act1",
+          "act2",
+          "act3"
+        ],
+        "missingStageIds": [],
+        "sectionCount": 3,
+        "nonEmpty": true
+      },
+      {
+        "characterId": "R1",
+        "roleId": "role_R1",
+        "expectedContributionStageIds": [
+          "act2",
+          "act3"
+        ],
+        "producedSectionStageIds": [
+          "act2",
+          "act3"
+        ],
+        "missingStageIds": [],
+        "sectionCount": 2,
+        "nonEmpty": true
+      }
+    ],
+    "stageCoverage": [
+      {
+        "stageId": "act1",
+        "hasHostSection": true,
+        "hostSectionIds": [
+          "host_act1"
+        ]
+      },
+      {
+        "stageId": "act2",
+        "hasHostSection": true,
+        "hostSectionIds": [
+          "host_act2"
+        ]
+      },
+      {
+        "stageId": "act3",
+        "hasHostSection": true,
+        "hostSectionIds": [
+          "host_act3"
+        ]
+      }
+    ],
+    "clueCoverage": {
+      "pmdClueIds": [
+        "fact-interface:ob-mtoah042-lqix",
+        "smb-mtoah040-1aytq-foreshadow-0",
+        "smb-mtoah03v-snp45-false_lead-0",
+        "smb-mtoah03v-snp45-contradiction-1",
+        "smb-mtoah03v-snp45-true_evidence-2",
+        "smb-mtoah03v-snp45-decisive_evidence-3",
+        "smb-mtoah040-1aytq-memory_fragment-1",
+        "smb-mtoah040-1aytq-identity_hint-2",
+        "smb-mtoah040-1aytq-misdirection-3",
+        "smb-mtoah040-1aytq-confirmation-4",
+        "smb-mtoah040-1aytq-decisive_reveal-5",
+        "fact-interface:ob-mtoah042-9on7"
+      ],
+      "packageClueIds": [
+        "fact-interface:ob-mtoah042-lqix",
+        "smb-mtoah040-1aytq-foreshadow-0",
+        "smb-mtoah03v-snp45-false_lead-0",
+        "smb-mtoah03v-snp45-contradiction-1",
+        "smb-mtoah03v-snp45-true_evidence-2",
+        "smb-mtoah03v-snp45-decisive_evidence-3",
+        "smb-mtoah040-1aytq-memory_fragment-1",
+        "smb-mtoah040-1aytq-identity_hint-2",
+        "smb-mtoah040-1aytq-misdirection-3",
+        "smb-mtoah040-1aytq-confirmation-4",
+        "smb-mtoah040-1aytq-decisive_reveal-5",
+        "fact-interface:ob-mtoah042-9on7"
+      ],
+      "missingInPackage": [],
+      "extraInPackage": [],
+      "fidelityIssues": [],
+      "playableClueIds": [
+        "fact-interface:ob-mtoah042-lqix",
+        "smb-mtoah040-1aytq-foreshadow-0",
+        "smb-mtoah03v-snp45-false_lead-0",
+        "smb-mtoah03v-snp45-contradiction-1",
+        "smb-mtoah03v-snp45-true_evidence-2",
+        "smb-mtoah03v-snp45-decisive_evidence-3",
+        "smb-mtoah040-1aytq-memory_fragment-1",
+        "smb-mtoah040-1aytq-identity_hint-2",
+        "smb-mtoah040-1aytq-misdirection-3",
+        "smb-mtoah040-1aytq-confirmation-4",
+        "smb-mtoah040-1aytq-decisive_reveal-5",
+        "fact-interface:ob-mtoah042-9on7"
+      ]
+    },
+    "truthCoverage": {
+      "finalStageId": "act3",
+      "finalTruthBeatIds": [
+        "ob-mtoah042-i1xp",
+        "ob-mtoah042-b1r4",
+        "ob-mtoah042-28mp",
+        "ob-mtoah042-9on7"
+      ],
+      "endingProvenanceBeatIds": [
+        "ob-mtoah042-lqix",
+        "ob-mtoah042-066a",
+        "ob-mtoah042-kpoh",
+        "ob-mtoah042-z8j5",
+        "ob-mtoah042-y4ee",
+        "ob-mtoah042-ldq3",
+        "ob-mtoah042-i1xp",
+        "ob-mtoah042-b1r4",
+        "ob-mtoah042-28mp",
+        "ob-mtoah042-9on7"
+      ],
+      "missingFinalTruthBeatIds": [],
+      "endingSectionCount": 1,
+      "endingNonEmpty": true
+    },
+    "endingCoverage": {
+      "packageEndingSections": [
+        "ending_truth"
+      ],
+      "playableEndingUnitIds": [
+        "cu_ending_truth"
+      ],
+      "hasPlayableEndingContent": true
+    },
+    "assignablePlayerCount": 5,
+    "stageCount": 3,
+    "ok": true,
+    "errors": []
+  }
+}

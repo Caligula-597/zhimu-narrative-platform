@@ -11,12 +11,26 @@ import { compilePlayableProject } from "./playable-project-compiler.js";
  */
 export function toPlayableCompileSource(pkgInput) {
   const pkg = normalizeCompleteScriptPackage(pkgInput);
+  const endingStageId =
+    pkg.endingContent?.finalStageId ||
+    pkg.stages[pkg.stages.length - 1]?.id ||
+    "";
+  const endingAsPublic = asArray(pkg.endingContent?.sections).map((s) => ({
+    id: s.id,
+    stageId: s.stageId || endingStageId,
+    title: s.title,
+    paragraphs: s.paragraphs,
+    type: "REVEAL",
+    delivery: "AUTO_ON_STAGE",
+  }));
+
   return {
     metadata: {
       fixtureId: pkg.id,
       revision: String(pkg.metadata.revision || pkg.revision || "1"),
       title: pkg.metadata.title,
-      playerCount: pkg.roles.filter((r) => r.type === "PLAYER").length,
+      playerCount: pkg.roles.filter((r) => r.type === "PLAYER" && r.playerAssignable !== false)
+        .length,
       sourceType: "COMPLETE_SCRIPT_PACKAGE",
     },
     roles: pkg.roles.map((r) => ({
@@ -64,15 +78,18 @@ export function toPlayableCompileSource(pkgInput) {
       title: s.title,
       paragraphs: s.paragraphs,
     })),
-    publicScripts: pkg.publicScripts.map((s) => ({
-      id: s.id,
-      stageId: s.stageId,
-      title: s.title,
-      paragraphs: s.paragraphs,
-      type: s.type,
-      delivery: s.delivery,
-      unlockPermissionId: s.unlockPermissionId,
-    })),
+    publicScripts: [
+      ...pkg.publicScripts.map((s) => ({
+        id: s.id,
+        stageId: s.stageId,
+        title: s.title,
+        paragraphs: s.paragraphs,
+        type: s.type,
+        delivery: s.delivery,
+        unlockPermissionId: s.unlockPermissionId,
+      })),
+      ...endingAsPublic,
+    ],
     clues: pkg.clues.map((c) => ({
       id: c.id,
       title: c.title,
@@ -87,6 +104,10 @@ export function toPlayableCompileSource(pkgInput) {
     mechanismAnnotations: pkg.mechanismAnnotations || [],
     permissions: pkg.permissions || [],
   };
+}
+
+function asArray(value) {
+  return Array.isArray(value) ? value : [];
 }
 
 export function compileCompleteScriptPackage(pkgInput, options = {}) {

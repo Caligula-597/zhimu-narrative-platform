@@ -25,13 +25,17 @@ export function assembleCompleteScriptDraftFromPmd(pmd, { projectId = "project",
     type: "HOST",
     playerAssignable: false,
   };
-  const playerRoles = asArray(pmd?.characterViews?.characters).map((c, i) => ({
-    id: `role_${c.characterId || i}`,
-    name: c.name || c.characterId,
-    type: "PLAYER",
-    characterId: c.characterId || c.id,
-    playerAssignable: true,
-  }));
+  const playerRoles = asArray(pmd?.characterViews?.characters).map((c, i) => {
+    const characterId = c.characterId || c.id || String(i);
+    const isNpc = /^NPC_/i.test(String(characterId));
+    return {
+      id: `role_${characterId}`,
+      name: c.name || characterId,
+      type: "PLAYER",
+      characterId,
+      playerAssignable: !isNpc,
+    };
+  });
 
   const stages = asArray(pmd?.stages)
     .slice()

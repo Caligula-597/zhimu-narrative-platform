@@ -63,7 +63,7 @@ npm run verify:playable
 
 ```text
 P8.2.1 Writer Port + Provenance Diff ✅（见 docs/P8_2_1_WRITER_PORT_ZH.md）
-P8.2.2 Full Production Vertical Slice
+P8.2.2 Full Production Vertical Slice ✅（见 docs/P8_2_2_FULL_PRODUCTION_VERTICAL_SLICE_ZH.md）
   （deterministic test writer，仍可不接真实 LLM）
 ↓
 P8.2.2 全链代表 fixture 证明

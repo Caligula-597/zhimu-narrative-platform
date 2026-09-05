@@ -1,0 +1,1751 @@
+{
+  "version": 1,
+  "id": "csp-writer-pmd-mod-mtoah044-4lg6",
+  "projectId": "gen-01-full-vertical",
+  "source": {
+    "productionMasterDraftId": "pmd-mod-mtoah044-4lg6",
+    "productionMasterDraftRevision": "v1:mod-mtoah044-4lg6:act1@0:{ob-mtoah042-lqix|smb-mtoah03v-snp45|beat-setup,ob-mtoah042-066a|smb-mtoah040-1aytq|beat-set",
+    "sourceStoryStateRevision": 0,
+    "sourceMasterOutlineRevision": "v1:mod-mtoah044-4lg6:act1@0:{ob-mtoah042-lqix|smb-mtoah03v-snp45|beat-setup,ob-mtoah042-066a|smb-mtoah040-1aytq|beat-set"
+  },
+  "status": "READY_TO_COMPILE",
+  "metadata": {
+    "title": "GEN-01 雨夜公寓",
+    "premiseSummary": "现代封闭推理 · 当代都市 · 暴雨 · 封闭 · 推凶",
+    "revision": 1
+  },
+  "roles": [
+    {
+      "id": "role_host",
+      "name": "主持人",
+      "type": "HOST",
+      "playerAssignable": false
+    },
+    {
+      "id": "role_R2",
+      "name": "何叙",
+      "type": "PLAYER",
+      "characterId": "R2",
+      "playerAssignable": true
+    },
+    {
+      "id": "role_R3",
+      "name": "赵听雨",
+      "type": "PLAYER",
+      "characterId": "R3",
+      "playerAssignable": true
+    },
+    {
+      "id": "role_R5",
+      "name": "苏明",
+      "type": "PLAYER",
+      "characterId": "R5",
+      "playerAssignable": true
+    },
+    {
+      "id": "role_R4",
+      "name": "周鹤",
+      "type": "PLAYER",
+      "characterId": "R4",
+      "playerAssignable": true
+    },
+    {
+      "id": "role_R1",
+      "name": "林晚舟",
+      "type": "PLAYER",
+      "characterId": "R1",
+      "playerAssignable": true
+    },
+    {
+      "id": "role_NPC_GUARD",
+      "name": "门岗",
+      "type": "PLAYER",
+      "characterId": "NPC_GUARD",
+      "playerAssignable": false
+    }
+  ],
+  "stages": [
+    {
+      "id": "act1",
+      "order": 0,
+      "title": "铺垫",
+      "stageRole": "SETUP",
+      "enterCondition": {
+        "type": "HOST_START"
+      },
+      "exitCondition": {
+        "type": "HOST_ADVANCE"
+      },
+      "mechanismAnnotationIds": []
+    },
+    {
+      "id": "act2",
+      "order": 1,
+      "title": "加压",
+      "stageRole": "PRESSURE",
+      "enterCondition": {
+        "type": "HOST_ADVANCE"
+      },
+      "exitCondition": {
+        "type": "HOST_ADVANCE"
+      },
+      "mechanismAnnotationIds": []
+    },
+    {
+      "id": "act3",
+      "order": 2,
+      "title": "收束",
+      "stageRole": "PAYOFF",
+      "enterCondition": {
+        "type": "HOST_ADVANCE"
+      },
+      "exitCondition": {
+        "type": "HOST_ADVANCE"
+      },
+      "mechanismAnnotationIds": []
+    }
+  ],
+  "hostScript": {
+    "documentId": "doc_host_manual",
+    "sections": [
+      {
+        "id": "host_act1",
+        "stageId": "act1",
+        "title": "主持·铺垫",
+        "paragraphs": [
+          "【本幕主持目标】何叙：准备可嫁祸的假象；苏明：隐藏或维持当前身份表象",
+          "【真实发生】主持真相：何叙为了准备可嫁祸的假象，布置与赵听雨相关的误导物（目标：被嫁祸者遗失的玉佩） / 主持真相：苏明为了隐藏或维持当前身份表象，按伪装/未知状态行动，避免过早暴露（目标：身份表象）",
+          "【可发线索】fact-interface:ob-mtoah042-lqix、smb-mtoah040-1aytq-foreshadow-0、smb-mtoah03v-snp45-false_lead-0、smb-mtoah03v-snp45-contradiction-1、smb-mtoah03v-snp45-true_evidence-2、smb-mtoah03v-snp45-decisive_evidence-3、smb-mtoah040-1aytq-memory_fragment-1、smb-mtoah040-1aytq-identity_hint-2、smb-mtoah040-1aytq-misdirection-3、smb-mtoah040-1aytq-confirmation-4、smb-mtoah040-1aytq-decisive_reveal-5、fact-interface:ob-mtoah042-9on7"
+        ],
+        "roleIds": [],
+        "provenance": {
+          "sourceBeatIds": [
+            "ob-mtoah042-lqix",
+            "ob-mtoah042-066a"
+          ],
+          "sourceClueIds": [
+            "fact-interface:ob-mtoah042-lqix",
+            "smb-mtoah040-1aytq-foreshadow-0",
+            "smb-mtoah03v-snp45-false_lead-0",
+            "smb-mtoah03v-snp45-contradiction-1"
+          ],
+          "sourceFactIds": [
+            "fact:smb-mtoah03v-snp45:beat-setup:false_lead:R2",
+            "fact:smb-mtoah040-1aytq:beat-setup:identity_latent:R5",
+            "fact:smb-mtoah03v-snp45:beat-crime:crime_done:R2",
+            "fact:smb-mtoah03v-snp45:beat-crime:suspicion:R2"
+          ]
+        }
+      },
+      {
+        "id": "host_act2",
+        "stageId": "act2",
+        "title": "主持·加压",
+        "paragraphs": [
+          "【本幕主持目标】何叙：完成犯行并指向赵听雨；周鹤：推翻对赵听雨的错误判断；苏明：用正式动作换取被条件锁住的信息",
+          "【真实发生】主持真相：何叙为了完成犯行并指向赵听雨，实施犯行并留下指向赵听雨的痕迹（目标：被嫁祸者遗失的玉佩） / 主持真相：周鹤为了推翻对赵听雨的错误判断，对照现场与证物寻找矛盾（目标：被嫁祸者遗失的玉佩） / 主持真相：苏明为了用正式动作换取被条件锁住的信息，完成登记条件以触发内容开放（目标：身份记录）",
+          "【可发线索】fact-interface:ob-mtoah042-lqix、smb-mtoah040-1aytq-foreshadow-0、smb-mtoah03v-snp45-false_lead-0、smb-mtoah03v-snp45-contradiction-1、smb-mtoah03v-snp45-true_evidence-2、smb-mtoah03v-snp45-decisive_evidence-3、smb-mtoah040-1aytq-memory_fragment-1、smb-mtoah040-1aytq-identity_hint-2、smb-mtoah040-1aytq-misdirection-3、smb-mtoah040-1aytq-confirmation-4、smb-mtoah040-1aytq-decisive_reveal-5、fact-interface:ob-mtoah042-9on7"
+        ],
+        "roleIds": [],
+        "provenance": {
+          "sourceBeatIds": [
+            "ob-mtoah042-kpoh",
+            "ob-mtoah042-z8j5",
+            "ob-mtoah042-y4ee",
+            "ob-mtoah042-ldq3"
+          ],
+          "sourceClueIds": [
+            "fact-interface:ob-mtoah042-lqix",
+            "smb-mtoah040-1aytq-foreshadow-0",
+            "smb-mtoah03v-snp45-false_lead-0",
+            "smb-mtoah03v-snp45-contradiction-1"
+          ],
+          "sourceFactIds": [
+            "fact:smb-mtoah03v-snp45:beat-setup:false_lead:R2",
+            "fact:smb-mtoah040-1aytq:beat-setup:identity_latent:R5",
+            "fact:smb-mtoah03v-snp45:beat-crime:crime_done:R2",
+            "fact:smb-mtoah03v-snp45:beat-crime:suspicion:R2"
+          ]
+        }
+      },
+      {
+        "id": "host_act3",
+        "stageId": "act3",
+        "title": "主持·收束",
+        "paragraphs": [
+          "【本幕主持目标】周鹤：推翻对赵听雨的错误判断；周鹤：锁定真凶何叙；苏明：确认真实身份并决定是否公开；苏明：承受身份公开后的关系后果",
+          "【真实发生】主持真相：周鹤为了推翻对赵听雨的错误判断，对照现场与证物寻找矛盾（目标：被嫁祸者遗失的玉佩） / 主持真相：周鹤为了锁定真凶何叙，用决定性证据揭穿嫁祸（目标：决定性证据） / 主持真相：苏明为了确认真实身份并决定是否公开，核对身份线索并作出公开或隐瞒选择（目标：真实身份） / 主持真相：苏明为了承受身份公开后的关系后果，面对知情者与阵营/调查方的反应（目标：关系重组）",
+          "【可发线索】fact-interface:ob-mtoah042-lqix、smb-mtoah040-1aytq-foreshadow-0、smb-mtoah03v-snp45-false_lead-0、smb-mtoah03v-snp45-contradiction-1、smb-mtoah03v-snp45-true_evidence-2、smb-mtoah03v-snp45-decisive_evidence-3、smb-mtoah040-1aytq-memory_fragment-1、smb-mtoah040-1aytq-identity_hint-2、smb-mtoah040-1aytq-misdirection-3、smb-mtoah040-1aytq-confirmation-4、smb-mtoah040-1aytq-decisive_reveal-5、fact-interface:ob-mtoah042-9on7"
+        ],
+        "roleIds": [],
+        "provenance": {
+          "sourceBeatIds": [
+            "ob-mtoah042-i1xp",
+            "ob-mtoah042-b1r4",
+            "ob-mtoah042-28mp",
+            "ob-mtoah042-9on7"
+          ],
+          "sourceClueIds": [
+            "fact-interface:ob-mtoah042-lqix",
+            "smb-mtoah040-1aytq-foreshadow-0",
+            "smb-mtoah03v-snp45-false_lead-0",
+            "smb-mtoah03v-snp45-contradiction-1"
+          ],
+          "sourceFactIds": [
+            "fact:smb-mtoah03v-snp45:beat-setup:false_lead:R2",
+            "fact:smb-mtoah040-1aytq:beat-setup:identity_latent:R5",
+            "fact:smb-mtoah03v-snp45:beat-crime:crime_done:R2",
+            "fact:smb-mtoah03v-snp45:beat-crime:suspicion:R2"
+          ]
+        }
+      }
+    ]
+  },
+  "roleScripts": {
+    "role_R2": [
+      {
+        "id": "role_R2_act1",
+        "stageId": "act1",
+        "title": "何叙·act1",
+        "paragraphs": [
+          "【本幕目标】准备可嫁祸的假象",
+          "【你的行动】布置与赵听雨相关的误导物",
+          "【你掌握的信息】布置与赵听雨相关的误导物；玩家可见：布置与赵听雨相关的误导物（仅同场，不暗示因果）",
+          "【关系变化】同场出现（非因果）"
+        ],
+        "roleIds": [],
+        "provenance": {
+          "sourceBeatIds": [
+            "ob-mtoah042-lqix"
+          ],
+          "sourceClueIds": [
+            "fact-interface:ob-mtoah042-lqix",
+            "smb-mtoah040-1aytq-foreshadow-0",
+            "smb-mtoah03v-snp45-false_lead-0"
+          ],
+          "sourceFactIds": [
+            "fact:smb-mtoah03v-snp45:beat-setup:false_lead:R2",
+            "fact:smb-mtoah03v-snp45:beat-crime:crime_done:R2",
+            "fact:smb-mtoah03v-snp45:beat-crime:suspicion:R2"
+          ]
+        }
+      },
+      {
+        "id": "role_R2_act2",
+        "stageId": "act2",
+        "title": "何叙·act2",
+        "paragraphs": [
+          "【本幕目标】完成犯行并指向赵听雨；完成犯行并指向赵听雨",
+          "【你的行动】实施犯行并留下指向赵听雨的痕迹；实施犯行并留下指向赵听雨的痕迹",
+          "【你掌握的信息】实施犯行并留下指向赵听雨的痕迹；玩家可见：实施犯行并留下指向赵听雨的痕迹（仅同场，不暗示因果）；玩家可见：实施犯行并留下指向赵听雨的痕迹",
+          "【关系变化】同场出现（非因果）"
+        ],
+        "roleIds": [],
+        "provenance": {
+          "sourceBeatIds": [
+            "ob-mtoah042-kpoh",
+            "ob-mtoah042-z8j5"
+          ],
+          "sourceClueIds": [
+            "fact-interface:ob-mtoah042-lqix",
+            "smb-mtoah040-1aytq-foreshadow-0",
+            "smb-mtoah03v-snp45-false_lead-0"
+          ],
+          "sourceFactIds": [
+            "fact:smb-mtoah03v-snp45:beat-setup:false_lead:R2",
+            "fact:smb-mtoah03v-snp45:beat-crime:crime_done:R2",
+            "fact:smb-mtoah03v-snp45:beat-crime:suspicion:R2"
+          ]
+        }
+      },
+      {
+        "id": "role_R2_act3",
+        "stageId": "act3",
+        "title": "何叙·act3",
+        "paragraphs": [
+          "【本幕目标】（无独立主目标）",
+          "【你的行动】参与（非主导）：周鹤为了推翻对赵听雨的错误判断，对照现场与证物寻找矛盾（目标：被嫁祸者遗失的玉佩）；作为对象卷入：用决定性证据揭穿嫁祸",
+          "【你掌握的信息】参与（非主导）：周鹤为了推翻对赵听雨的错误判断，对照现场与证物寻找矛盾（目标：被嫁祸者遗失的玉佩）；作为对象卷入：用决定性证据揭穿嫁祸；玩家可见：对照现场与证物寻找矛盾（仅同场，不暗示因果）；玩家可见：用决定性证据揭穿嫁祸（仅同场，不暗示因果）",
+          "【关系变化】同场出现（非因果）"
+        ],
+        "roleIds": [],
+        "provenance": {
+          "sourceBeatIds": [
+            "ob-mtoah042-i1xp",
+            "ob-mtoah042-b1r4"
+          ],
+          "sourceClueIds": [
+            "fact-interface:ob-mtoah042-lqix",
+            "smb-mtoah03v-snp45-false_lead-0",
+            "smb-mtoah03v-snp45-true_evidence-2"
+          ],
+          "sourceFactIds": [
+            "fact:smb-mtoah03v-snp45:beat-setup:false_lead:R2",
+            "fact:smb-mtoah03v-snp45:beat-crime:crime_done:R2",
+            "fact:smb-mtoah03v-snp45:beat-crime:suspicion:R2"
+          ]
+        }
+      }
+    ],
+    "role_R3": [
+      {
+        "id": "role_R3_act1",
+        "stageId": "act1",
+        "title": "赵听雨·act1",
+        "paragraphs": [
+          "【本幕目标】（无独立主目标）",
+          "【你的行动】作为对象卷入：布置与赵听雨相关的误导物",
+          "【你掌握的信息】作为对象卷入：布置与赵听雨相关的误导物；玩家可见：布置与赵听雨相关的误导物（仅同场，不暗示因果）",
+          "【关系变化】同场出现（非因果）"
+        ],
+        "roleIds": [],
+        "provenance": {
+          "sourceBeatIds": [
+            "ob-mtoah042-lqix"
+          ],
+          "sourceClueIds": [
+            "fact-interface:ob-mtoah042-lqix",
+            "smb-mtoah040-1aytq-foreshadow-0",
+            "smb-mtoah03v-snp45-false_lead-0"
+          ],
+          "sourceFactIds": [
+            "fact:smb-mtoah03v-snp45:beat-setup:false_lead:R2",
+            "fact:smb-mtoah03v-snp45:beat-false:crime_done:R2",
+            "fact:smb-mtoah03v-snp45:beat-false:suspicion:R2"
+          ]
+        }
+      },
+      {
+        "id": "role_R3_act2",
+        "stageId": "act2",
+        "title": "赵听雨·act2",
+        "paragraphs": [
+          "【本幕目标】（无独立主目标）",
+          "【你的行动】作为对象卷入：实施犯行并留下指向赵听雨的痕迹；参与（非主导）：苏明为了用正式动作换取被条件锁住的信息，完成登记条件以触发内容开放（目标：身份记录）",
+          "【你掌握的信息】作为对象卷入：实施犯行并留下指向赵听雨的痕迹；参与（非主导）：苏明为了用正式动作换取被条件锁住的信息，完成登记条件以触发内容开放（目标：身份记录）；玩家可见：实施犯行并留下指向赵听雨的痕迹；玩家可见：完成登记条件以触发内容开放（仅同场，不暗示因果）",
+          "【关系变化】同场出现（非因果）"
+        ],
+        "roleIds": [],
+        "provenance": {
+          "sourceBeatIds": [
+            "ob-mtoah042-z8j5",
+            "ob-mtoah042-ldq3"
+          ],
+          "sourceClueIds": [
+            "fact-interface:ob-mtoah042-lqix",
+            "smb-mtoah040-1aytq-foreshadow-0",
+            "smb-mtoah03v-snp45-false_lead-0"
+          ],
+          "sourceFactIds": [
+            "fact:smb-mtoah03v-snp45:beat-setup:false_lead:R2",
+            "fact:smb-mtoah03v-snp45:beat-false:crime_done:R2",
+            "fact:smb-mtoah03v-snp45:beat-false:suspicion:R2"
+          ]
+        }
+      },
+      {
+        "id": "role_R3_act3",
+        "stageId": "act3",
+        "title": "赵听雨·act3",
+        "paragraphs": [
+          "【本幕目标】（无独立主目标）",
+          "【你的行动】作为对象卷入：对照现场与证物寻找矛盾；参与（非主导）：周鹤为了锁定真凶何叙，用决定性证据揭穿嫁祸（目标：决定性证据）；参与（非主导）：苏明为了确认真实身份并决定是否公开，核对身份线索并作出公开或隐瞒选择（目标：真实身份）；参与（非主导）：苏明为了承受身份公开后的关系后果，面对知情者与阵营/调查方的反应（目标：关系重组）",
+          "【你掌握的信息】作为对象卷入：对照现场与证物寻找矛盾；参与（非主导）：周鹤为了锁定真凶何叙，用决定性证据揭穿嫁祸（目标：决定性证据）；参与（非主导）：苏明为了确认真实身份并决定是否公开，核对身份线索并作出公开或隐瞒选择（目标：真实身份）；参与（非主导）：苏明为了承受身份公开后的关系后果，面对知情者与阵营/调查方的反应（目标：关系重组）；玩家可见：对照现场与证物寻找矛盾（仅同场，不暗示因果）；玩家可见：用决定性证据揭穿嫁祸（仅同场，不暗示因果）",
+          "【关系变化】同场出现（非因果）"
+        ],
+        "roleIds": [],
+        "provenance": {
+          "sourceBeatIds": [
+            "ob-mtoah042-i1xp",
+            "ob-mtoah042-b1r4",
+            "ob-mtoah042-28mp",
+            "ob-mtoah042-9on7"
+          ],
+          "sourceClueIds": [
+            "fact-interface:ob-mtoah042-lqix",
+            "smb-mtoah040-1aytq-foreshadow-0",
+            "smb-mtoah03v-snp45-false_lead-0"
+          ],
+          "sourceFactIds": [
+            "fact:smb-mtoah03v-snp45:beat-setup:false_lead:R2",
+            "fact:smb-mtoah03v-snp45:beat-false:crime_done:R2",
+            "fact:smb-mtoah03v-snp45:beat-false:suspicion:R2"
+          ]
+        }
+      }
+    ],
+    "role_R5": [
+      {
+        "id": "role_R5_act1",
+        "stageId": "act1",
+        "title": "苏明·act1",
+        "paragraphs": [
+          "【本幕目标】隐藏或维持当前身份表象",
+          "【你的行动】按伪装/未知状态行动，避免过早暴露",
+          "【你掌握的信息】按伪装/未知状态行动，避免过早暴露；玩家可见：按伪装/未知状态行动，避免过早暴露",
+          "【关系变化】（无）"
+        ],
+        "roleIds": [],
+        "provenance": {
+          "sourceBeatIds": [
+            "ob-mtoah042-066a"
+          ],
+          "sourceClueIds": [
+            "fact-interface:ob-mtoah042-lqix",
+            "smb-mtoah040-1aytq-foreshadow-0",
+            "smb-mtoah040-1aytq-memory_fragment-1"
+          ],
+          "sourceFactIds": [
+            "fact:smb-mtoah040-1aytq:beat-setup:identity_latent:R5",
+            "fact:smb-mtoah040-1aytq:beat-develop:identity_clue:R5",
+            "fact:smb-mtoah040-1aytq:beat-develop:formal_trigger:R5"
+          ]
+        }
+      },
+      {
+        "id": "role_R5_act2",
+        "stageId": "act2",
+        "title": "苏明·act2",
+        "paragraphs": [
+          "【本幕目标】用正式动作换取被条件锁住的信息",
+          "【你的行动】完成登记条件以触发内容开放",
+          "【你掌握的信息】完成登记条件以触发内容开放；玩家可见：完成登记条件以触发内容开放（仅同场，不暗示因果）",
+          "【关系变化】同场出现（非因果）"
+        ],
+        "roleIds": [],
+        "provenance": {
+          "sourceBeatIds": [
+            "ob-mtoah042-ldq3"
+          ],
+          "sourceClueIds": [
+            "smb-mtoah040-1aytq-foreshadow-0",
+            "smb-mtoah03v-snp45-false_lead-0",
+            "smb-mtoah03v-snp45-contradiction-1"
+          ],
+          "sourceFactIds": [
+            "fact:smb-mtoah040-1aytq:beat-setup:identity_latent:R5",
+            "fact:smb-mtoah040-1aytq:beat-develop:identity_clue:R5",
+            "fact:smb-mtoah040-1aytq:beat-develop:formal_trigger:R5"
+          ]
+        }
+      },
+      {
+        "id": "role_R5_act3",
+        "stageId": "act3",
+        "title": "苏明·act3",
+        "paragraphs": [
+          "【本幕目标】确认真实身份并决定是否公开；承受身份公开后的关系后果",
+          "【你的行动】核对身份线索并作出公开或隐瞒选择；面对知情者与阵营/调查方的反应",
+          "【你掌握的信息】核对身份线索并作出公开或隐瞒选择；面对知情者与阵营/调查方的反应；玩家可见：核对身份线索并作出公开或隐瞒选择（仅同场，不暗示因果）；玩家可见：面对知情者与阵营/调查方的反应（仅同场，不暗示因果）",
+          "【关系变化】同场出现（非因果）"
+        ],
+        "roleIds": [],
+        "provenance": {
+          "sourceBeatIds": [
+            "ob-mtoah042-28mp",
+            "ob-mtoah042-9on7"
+          ],
+          "sourceClueIds": [
+            "smb-mtoah040-1aytq-foreshadow-0",
+            "smb-mtoah03v-snp45-true_evidence-2",
+            "smb-mtoah03v-snp45-decisive_evidence-3"
+          ],
+          "sourceFactIds": [
+            "fact:smb-mtoah040-1aytq:beat-setup:identity_latent:R5",
+            "fact:smb-mtoah040-1aytq:beat-develop:identity_clue:R5",
+            "fact:smb-mtoah040-1aytq:beat-develop:formal_trigger:R5"
+          ]
+        }
+      }
+    ],
+    "role_R4": [
+      {
+        "id": "role_R4_act1",
+        "stageId": "act1",
+        "title": "周鹤·act1",
+        "paragraphs": [
+          "【本幕目标】（无独立主目标）",
+          "【你的行动】参与（非主导）：苏明为了隐藏或维持当前身份表象，按伪装/未知状态行动，避免过早暴露（目标：身份表象）",
+          "【你掌握的信息】参与（非主导）：苏明为了隐藏或维持当前身份表象，按伪装/未知状态行动，避免过早暴露（目标：身份表象）；玩家可见：按伪装/未知状态行动，避免过早暴露",
+          "【关系变化】（无）"
+        ],
+        "roleIds": [],
+        "provenance": {
+          "sourceBeatIds": [
+            "ob-mtoah042-066a"
+          ],
+          "sourceClueIds": [
+            "fact-interface:ob-mtoah042-lqix",
+            "smb-mtoah040-1aytq-foreshadow-0",
+            "smb-mtoah03v-snp45-false_lead-0"
+          ],
+          "sourceFactIds": [
+            "fact:smb-mtoah040-1aytq:beat-setup:identity_latent:R5",
+            "fact:smb-mtoah03v-snp45:beat-crime:crime_done:R2",
+            "fact:smb-mtoah03v-snp45:beat-crime:suspicion:R2"
+          ]
+        }
+      },
+      {
+        "id": "role_R4_act2",
+        "stageId": "act2",
+        "title": "周鹤·act2",
+        "paragraphs": [
+          "【本幕目标】推翻对赵听雨的错误判断",
+          "【你的行动】参与（非主导）：何叙为了完成犯行并指向赵听雨，实施犯行并留下指向赵听雨的痕迹（目标：被嫁祸者遗失的玉佩）；对照现场与证物寻找矛盾；参与（非主导）：苏明为了用正式动作换取被条件锁住的信息，完成登记条件以触发内容开放（目标：身份记录）",
+          "【你掌握的信息】参与（非主导）：何叙为了完成犯行并指向赵听雨，实施犯行并留下指向赵听雨的痕迹（目标：被嫁祸者遗失的玉佩）；对照现场与证物寻找矛盾；参与（非主导）：苏明为了用正式动作换取被条件锁住的信息，完成登记条件以触发内容开放（目标：身份记录）；玩家可见：实施犯行并留下指向赵听雨的痕迹（仅同场，不暗示因果）；玩家可见：对照现场与证物寻找矛盾；玩家可见：完成登记条件以触发内容开放（仅同场，不暗示因果）",
+          "【关系变化】同场出现（非因果）"
+        ],
+        "roleIds": [],
+        "provenance": {
+          "sourceBeatIds": [
+            "ob-mtoah042-kpoh",
+            "ob-mtoah042-y4ee",
+            "ob-mtoah042-ldq3"
+          ],
+          "sourceClueIds": [
+            "smb-mtoah040-1aytq-foreshadow-0",
+            "smb-mtoah03v-snp45-false_lead-0",
+            "smb-mtoah03v-snp45-contradiction-1"
+          ],
+          "sourceFactIds": [
+            "fact:smb-mtoah040-1aytq:beat-setup:identity_latent:R5",
+            "fact:smb-mtoah03v-snp45:beat-crime:crime_done:R2",
+            "fact:smb-mtoah03v-snp45:beat-crime:suspicion:R2"
+          ]
+        }
+      },
+      {
+        "id": "role_R4_act3",
+        "stageId": "act3",
+        "title": "周鹤·act3",
+        "paragraphs": [
+          "【本幕目标】推翻对赵听雨的错误判断；锁定真凶何叙",
+          "【你的行动】对照现场与证物寻找矛盾；用决定性证据揭穿嫁祸；参与（非主导）：苏明为了确认真实身份并决定是否公开，核对身份线索并作出公开或隐瞒选择（目标：真实身份）；参与（非主导）：苏明为了承受身份公开后的关系后果，面对知情者与阵营/调查方的反应（目标：关系重组）",
+          "【你掌握的信息】对照现场与证物寻找矛盾；用决定性证据揭穿嫁祸；参与（非主导）：苏明为了确认真实身份并决定是否公开，核对身份线索并作出公开或隐瞒选择（目标：真实身份）；参与（非主导）：苏明为了承受身份公开后的关系后果，面对知情者与阵营/调查方的反应（目标：关系重组）；玩家可见：对照现场与证物寻找矛盾（仅同场，不暗示因果）；玩家可见：用决定性证据揭穿嫁祸（仅同场，不暗示因果）",
+          "【关系变化】同场出现（非因果）"
+        ],
+        "roleIds": [],
+        "provenance": {
+          "sourceBeatIds": [
+            "ob-mtoah042-i1xp",
+            "ob-mtoah042-b1r4",
+            "ob-mtoah042-28mp",
+            "ob-mtoah042-9on7"
+          ],
+          "sourceClueIds": [
+            "smb-mtoah040-1aytq-foreshadow-0",
+            "smb-mtoah03v-snp45-false_lead-0",
+            "smb-mtoah03v-snp45-contradiction-1"
+          ],
+          "sourceFactIds": [
+            "fact:smb-mtoah040-1aytq:beat-setup:identity_latent:R5",
+            "fact:smb-mtoah03v-snp45:beat-crime:crime_done:R2",
+            "fact:smb-mtoah03v-snp45:beat-crime:suspicion:R2"
+          ]
+        }
+      }
+    ],
+    "role_R1": [
+      {
+        "id": "role_R1_act2",
+        "stageId": "act2",
+        "title": "林晚舟·act2",
+        "paragraphs": [
+          "【本幕目标】（无独立主目标）",
+          "【你的行动】参与（非主导）：何叙为了完成犯行并指向赵听雨，实施犯行并留下指向赵听雨的痕迹（目标：被嫁祸者遗失的玉佩）；参与（非主导）：苏明为了用正式动作换取被条件锁住的信息，完成登记条件以触发内容开放（目标：身份记录）",
+          "【你掌握的信息】参与（非主导）：何叙为了完成犯行并指向赵听雨，实施犯行并留下指向赵听雨的痕迹（目标：被嫁祸者遗失的玉佩）；参与（非主导）：苏明为了用正式动作换取被条件锁住的信息，完成登记条件以触发内容开放（目标：身份记录）；玩家可见：实施犯行并留下指向赵听雨的痕迹（仅同场，不暗示因果）；玩家可见：完成登记条件以触发内容开放（仅同场，不暗示因果）",
+          "【关系变化】同场出现（非因果）"
+        ],
+        "roleIds": [],
+        "provenance": {
+          "sourceBeatIds": [
+            "ob-mtoah042-kpoh",
+            "ob-mtoah042-ldq3"
+          ],
+          "sourceClueIds": [
+            "smb-mtoah040-1aytq-foreshadow-0",
+            "smb-mtoah03v-snp45-false_lead-0",
+            "smb-mtoah03v-snp45-contradiction-1"
+          ],
+          "sourceFactIds": [
+            "fact:smb-mtoah03v-snp45:beat-crime:crime_done:R2",
+            "fact:smb-mtoah03v-snp45:beat-crime:suspicion:R2",
+            "fact:smb-mtoah03v-snp45:beat-crime:false_lead:R2"
+          ]
+        }
+      },
+      {
+        "id": "role_R1_act3",
+        "stageId": "act3",
+        "title": "林晚舟·act3",
+        "paragraphs": [
+          "【本幕目标】（无独立主目标）",
+          "【你的行动】参与（非主导）：周鹤为了锁定真凶何叙，用决定性证据揭穿嫁祸（目标：决定性证据）；参与（非主导）：苏明为了确认真实身份并决定是否公开，核对身份线索并作出公开或隐瞒选择（目标：真实身份）；参与（非主导）：苏明为了承受身份公开后的关系后果，面对知情者与阵营/调查方的反应（目标：关系重组）",
+          "【你掌握的信息】参与（非主导）：周鹤为了锁定真凶何叙，用决定性证据揭穿嫁祸（目标：决定性证据）；参与（非主导）：苏明为了确认真实身份并决定是否公开，核对身份线索并作出公开或隐瞒选择（目标：真实身份）；参与（非主导）：苏明为了承受身份公开后的关系后果，面对知情者与阵营/调查方的反应（目标：关系重组）；玩家可见：用决定性证据揭穿嫁祸（仅同场，不暗示因果）；玩家可见：核对身份线索并作出公开或隐瞒选择（仅同场，不暗示因果）；玩家可见：面对知情者与阵营/调查方的反应（仅同场，不暗示因果）",
+          "【关系变化】同场出现（非因果）"
+        ],
+        "roleIds": [],
+        "provenance": {
+          "sourceBeatIds": [
+            "ob-mtoah042-b1r4",
+            "ob-mtoah042-28mp",
+            "ob-mtoah042-9on7"
+          ],
+          "sourceClueIds": [
+            "smb-mtoah040-1aytq-foreshadow-0",
+            "smb-mtoah03v-snp45-false_lead-0",
+            "smb-mtoah03v-snp45-true_evidence-2"
+          ],
+          "sourceFactIds": [
+            "fact:smb-mtoah03v-snp45:beat-crime:crime_done:R2",
+            "fact:smb-mtoah03v-snp45:beat-crime:suspicion:R2",
+            "fact:smb-mtoah03v-snp45:beat-crime:false_lead:R2"
+          ]
+        }
+      }
+    ],
+    "role_NPC_GUARD": [
+      {
+        "id": "role_NPC_GUARD_act2",
+        "stageId": "act2",
+        "title": "门岗·act2",
+        "paragraphs": [
+          "【本幕目标】（无独立主目标）",
+          "【你的行动】参与（非主导）：苏明为了用正式动作换取被条件锁住的信息，完成登记条件以触发内容开放（目标：身份记录）",
+          "【你掌握的信息】参与（非主导）：苏明为了用正式动作换取被条件锁住的信息，完成登记条件以触发内容开放（目标：身份记录）；玩家可见：完成登记条件以触发内容开放（仅同场，不暗示因果）",
+          "【关系变化】同场出现（非因果）"
+        ],
+        "roleIds": [],
+        "provenance": {
+          "sourceBeatIds": [
+            "ob-mtoah042-ldq3"
+          ],
+          "sourceClueIds": [
+            "smb-mtoah040-1aytq-foreshadow-0",
+            "smb-mtoah03v-snp45-false_lead-0",
+            "smb-mtoah03v-snp45-contradiction-1"
+          ],
+          "sourceFactIds": [
+            "fact:smb-mtoah040-1aytq:beat-develop:identity_clue:R5",
+            "fact:smb-mtoah040-1aytq:beat-develop:formal_trigger:R5",
+            "fact:smb-mtoah040-1aytq:beat-climax:identity_confirmed:R5"
+          ]
+        }
+      },
+      {
+        "id": "role_NPC_GUARD_act3",
+        "stageId": "act3",
+        "title": "门岗·act3",
+        "paragraphs": [
+          "【本幕目标】（无独立主目标）",
+          "【你的行动】参与（非主导）：苏明为了确认真实身份并决定是否公开，核对身份线索并作出公开或隐瞒选择（目标：真实身份）；参与（非主导）：苏明为了承受身份公开后的关系后果，面对知情者与阵营/调查方的反应（目标：关系重组）",
+          "【你掌握的信息】参与（非主导）：苏明为了确认真实身份并决定是否公开，核对身份线索并作出公开或隐瞒选择（目标：真实身份）；参与（非主导）：苏明为了承受身份公开后的关系后果，面对知情者与阵营/调查方的反应（目标：关系重组）；玩家可见：核对身份线索并作出公开或隐瞒选择（仅同场，不暗示因果）；玩家可见：面对知情者与阵营/调查方的反应（仅同场，不暗示因果）",
+          "【关系变化】同场出现（非因果）"
+        ],
+        "roleIds": [],
+        "provenance": {
+          "sourceBeatIds": [
+            "ob-mtoah042-28mp",
+            "ob-mtoah042-9on7"
+          ],
+          "sourceClueIds": [
+            "smb-mtoah040-1aytq-foreshadow-0",
+            "smb-mtoah03v-snp45-true_evidence-2",
+            "smb-mtoah03v-snp45-decisive_evidence-3"
+          ],
+          "sourceFactIds": [
+            "fact:smb-mtoah040-1aytq:beat-develop:identity_clue:R5",
+            "fact:smb-mtoah040-1aytq:beat-develop:formal_trigger:R5",
+            "fact:smb-mtoah040-1aytq:beat-climax:identity_confirmed:R5"
+          ]
+        }
+      }
+    ]
+  },
+  "sharedScripts": [],
+  "publicScripts": [
+    {
+      "id": "public_act1",
+      "stageId": "act1",
+      "title": "公共·铺垫",
+      "paragraphs": [
+        "【公开】玩家可见：布置与赵听雨相关的误导物（仅同场，不暗示因果） / 玩家可见：按伪装/未知状态行动，避免过早暴露",
+        "玩家可见：布置与赵听雨相关的误导物（仅同场，不暗示因果）",
+        "玩家可见：按伪装/未知状态行动，避免过早暴露"
+      ],
+      "roleIds": [],
+      "provenance": {
+        "sourceBeatIds": [
+          "ob-mtoah042-lqix",
+          "ob-mtoah042-066a"
+        ],
+        "sourceClueIds": [],
+        "sourceFactIds": [
+          "fact:smb-mtoah03v-snp45:beat-setup:false_lead:R2",
+          "fact:smb-mtoah040-1aytq:beat-setup:identity_latent:R5"
+        ]
+      }
+    },
+    {
+      "id": "public_act2",
+      "stageId": "act2",
+      "title": "公共·加压",
+      "paragraphs": [
+        "【公开】玩家可见：实施犯行并留下指向赵听雨的痕迹（仅同场，不暗示因果） / 玩家可见：实施犯行并留下指向赵听雨的痕迹 / 玩家可见：对照现场与证物寻找矛盾 / 玩家可见：完成登记条件以触发内容开放（仅同场，不暗示因果）",
+        "玩家可见：实施犯行并留下指向赵听雨的痕迹（仅同场，不暗示因果）",
+        "玩家可见：实施犯行并留下指向赵听雨的痕迹",
+        "玩家可见：对照现场与证物寻找矛盾",
+        "玩家可见：完成登记条件以触发内容开放（仅同场，不暗示因果）"
+      ],
+      "roleIds": [],
+      "provenance": {
+        "sourceBeatIds": [
+          "ob-mtoah042-kpoh",
+          "ob-mtoah042-z8j5",
+          "ob-mtoah042-y4ee",
+          "ob-mtoah042-ldq3"
+        ],
+        "sourceClueIds": [],
+        "sourceFactIds": [
+          "fact:smb-mtoah03v-snp45:beat-crime:crime_done:R2",
+          "fact:smb-mtoah03v-snp45:beat-crime:suspicion:R2",
+          "fact:smb-mtoah03v-snp45:beat-crime:false_lead:R2",
+          "fact:smb-mtoah03v-snp45:beat-false:crime_done:R2"
+        ]
+      }
+    },
+    {
+      "id": "public_act3",
+      "stageId": "act3",
+      "title": "公共·收束",
+      "paragraphs": [
+        "【公开】玩家可见：对照现场与证物寻找矛盾（仅同场，不暗示因果） / 玩家可见：用决定性证据揭穿嫁祸（仅同场，不暗示因果） / 玩家可见：核对身份线索并作出公开或隐瞒选择（仅同场，不暗示因果） / 玩家可见：面对知情者与阵营/调查方的反应（仅同场，不暗示因果）",
+        "玩家可见：对照现场与证物寻找矛盾（仅同场，不暗示因果）",
+        "玩家可见：用决定性证据揭穿嫁祸（仅同场，不暗示因果）",
+        "玩家可见：核对身份线索并作出公开或隐瞒选择（仅同场，不暗示因果）",
+        "玩家可见：面对知情者与阵营/调查方的反应（仅同场，不暗示因果）"
+      ],
+      "roleIds": [],
+      "provenance": {
+        "sourceBeatIds": [
+          "ob-mtoah042-i1xp",
+          "ob-mtoah042-b1r4",
+          "ob-mtoah042-28mp",
+          "ob-mtoah042-9on7"
+        ],
+        "sourceClueIds": [],
+        "sourceFactIds": [
+          "fact:smb-mtoah03v-snp45:beat-climax:contradiction:R4",
+          "fact:smb-mtoah03v-snp45:beat-climax:suspicion:R4",
+          "fact:smb-mtoah03v-snp45:beat-res:truth_locked:R4",
+          "fact:smb-mtoah03v-snp45:beat-res:contradiction:R4"
+        ]
+      }
+    }
+  ],
+  "clues": [
+    {
+      "id": "fact-interface:ob-mtoah042-lqix",
+      "title": "误导物已就绪",
+      "stageId": "act1",
+      "delivery": "HOST_RELEASE",
+      "visibility": "PUBLIC",
+      "paragraphs": [
+        "【线索】该线索支持：误导物已就绪",
+        "【可补细节】表象待 Writer 具体化；不得改 isMisleading / isDecisive。"
+      ],
+      "documentId": "doc_fact-interface:ob-mtoah042-lqix",
+      "roleIds": [
+        "role_R2",
+        "role_R3"
+      ],
+      "isMisleading": true,
+      "isDecisive": false,
+      "supportsFact": "误导物已就绪",
+      "provenance": {
+        "sourceClueId": "fact-interface:ob-mtoah042-lqix",
+        "sourceBeatIds": []
+      }
+    },
+    {
+      "id": "smb-mtoah040-1aytq-foreshadow-0",
+      "title": "早期伏笔",
+      "stageId": "act1",
+      "delivery": "HOST_RELEASE",
+      "visibility": "PUBLIC",
+      "paragraphs": [
+        "【线索】该线索支持：早期伏笔",
+        "误导=false；决定性=false"
+      ],
+      "documentId": "doc_smb-mtoah040-1aytq-foreshadow-0",
+      "roleIds": [
+        "role_R5",
+        "role_R4",
+        "role_R1",
+        "role_R3",
+        "role_NPC_GUARD"
+      ],
+      "isMisleading": false,
+      "isDecisive": false,
+      "supportsFact": "早期伏笔",
+      "provenance": {
+        "sourceClueId": "smb-mtoah040-1aytq-foreshadow-0",
+        "sourceBeatIds": [
+          "ob-mtoah042-066a",
+          "ob-mtoah042-ldq3"
+        ]
+      }
+    },
+    {
+      "id": "smb-mtoah03v-snp45-false_lead-0",
+      "title": "被嫁祸者遗失的玉佩",
+      "stageId": "act2",
+      "delivery": "HOST_RELEASE",
+      "visibility": "PUBLIC",
+      "paragraphs": [
+        "【线索】该线索支持：被嫁祸者遗失的玉佩",
+        "误导=true；决定性=false"
+      ],
+      "documentId": "doc_smb-mtoah03v-snp45-false_lead-0",
+      "roleIds": [
+        "role_R2",
+        "role_R1",
+        "role_R4",
+        "role_R3"
+      ],
+      "isMisleading": true,
+      "isDecisive": false,
+      "supportsFact": "被嫁祸者遗失的玉佩",
+      "provenance": {
+        "sourceClueId": "smb-mtoah03v-snp45-false_lead-0",
+        "sourceBeatIds": [
+          "ob-mtoah042-kpoh",
+          "ob-mtoah042-z8j5"
+        ]
+      }
+    },
+    {
+      "id": "smb-mtoah03v-snp45-contradiction-1",
+      "title": "玉佩沾有仅库房存在的红蜡",
+      "stageId": "act2",
+      "delivery": "HOST_RELEASE",
+      "visibility": "PRIVATE",
+      "paragraphs": [
+        "【线索】该线索支持：玉佩沾有仅库房存在的红蜡",
+        "误导=false；决定性=false"
+      ],
+      "documentId": "doc_smb-mtoah03v-snp45-contradiction-1",
+      "roleIds": [
+        "role_R4"
+      ],
+      "isMisleading": false,
+      "isDecisive": false,
+      "supportsFact": "玉佩沾有仅库房存在的红蜡",
+      "provenance": {
+        "sourceClueId": "smb-mtoah03v-snp45-contradiction-1",
+        "sourceBeatIds": [
+          "ob-mtoah042-y4ee"
+        ]
+      }
+    },
+    {
+      "id": "smb-mtoah03v-snp45-true_evidence-2",
+      "title": "勒杀",
+      "stageId": "act3",
+      "delivery": "HOST_RELEASE",
+      "visibility": "PUBLIC",
+      "paragraphs": [
+        "【线索】该线索支持：勒杀",
+        "误导=false；决定性=false"
+      ],
+      "documentId": "doc_smb-mtoah03v-snp45-true_evidence-2",
+      "roleIds": [
+        "role_R4",
+        "role_R2",
+        "role_R3"
+      ],
+      "isMisleading": false,
+      "isDecisive": false,
+      "supportsFact": "勒杀",
+      "provenance": {
+        "sourceClueId": "smb-mtoah03v-snp45-true_evidence-2",
+        "sourceBeatIds": [
+          "ob-mtoah042-i1xp"
+        ]
+      }
+    },
+    {
+      "id": "smb-mtoah03v-snp45-decisive_evidence-3",
+      "title": "库房钥匙记录证明真凶曾移动该物",
+      "stageId": "act3",
+      "delivery": "HOST_RELEASE",
+      "visibility": "PUBLIC",
+      "paragraphs": [
+        "【线索】该线索支持：库房钥匙记录证明真凶曾移动该物",
+        "误导=false；决定性=false"
+      ],
+      "documentId": "doc_smb-mtoah03v-snp45-decisive_evidence-3",
+      "roleIds": [
+        "role_R4",
+        "role_R2",
+        "role_R3",
+        "role_R1"
+      ],
+      "isMisleading": false,
+      "isDecisive": false,
+      "supportsFact": "库房钥匙记录证明真凶曾移动该物",
+      "provenance": {
+        "sourceClueId": "smb-mtoah03v-snp45-decisive_evidence-3",
+        "sourceBeatIds": [
+          "ob-mtoah042-i1xp",
+          "ob-mtoah042-b1r4"
+        ]
+      }
+    },
+    {
+      "id": "smb-mtoah040-1aytq-memory_fragment-1",
+      "title": "记忆碎片",
+      "stageId": "act3",
+      "delivery": "HOST_RELEASE",
+      "visibility": "PUBLIC",
+      "paragraphs": [
+        "【线索】该线索支持：记忆碎片",
+        "误导=false；决定性=false"
+      ],
+      "documentId": "doc_smb-mtoah040-1aytq-memory_fragment-1",
+      "roleIds": [
+        "role_R5",
+        "role_R4",
+        "role_R1",
+        "role_R3",
+        "role_NPC_GUARD"
+      ],
+      "isMisleading": false,
+      "isDecisive": false,
+      "supportsFact": "记忆碎片",
+      "provenance": {
+        "sourceClueId": "smb-mtoah040-1aytq-memory_fragment-1",
+        "sourceBeatIds": [
+          "ob-mtoah042-28mp"
+        ]
+      }
+    },
+    {
+      "id": "smb-mtoah040-1aytq-identity_hint-2",
+      "title": "身份暗示",
+      "stageId": "act3",
+      "delivery": "HOST_RELEASE",
+      "visibility": "PUBLIC",
+      "paragraphs": [
+        "【线索】该线索支持：身份暗示",
+        "误导=false；决定性=false"
+      ],
+      "documentId": "doc_smb-mtoah040-1aytq-identity_hint-2",
+      "roleIds": [
+        "role_R5",
+        "role_R4",
+        "role_R1",
+        "role_R3",
+        "role_NPC_GUARD"
+      ],
+      "isMisleading": false,
+      "isDecisive": false,
+      "supportsFact": "身份暗示",
+      "provenance": {
+        "sourceClueId": "smb-mtoah040-1aytq-identity_hint-2",
+        "sourceBeatIds": [
+          "ob-mtoah042-28mp"
+        ]
+      }
+    },
+    {
+      "id": "smb-mtoah040-1aytq-misdirection-3",
+      "title": "误导",
+      "stageId": "act3",
+      "delivery": "HOST_RELEASE",
+      "visibility": "PUBLIC",
+      "paragraphs": [
+        "【线索】该线索支持：误导",
+        "误导=true；决定性=false"
+      ],
+      "documentId": "doc_smb-mtoah040-1aytq-misdirection-3",
+      "roleIds": [
+        "role_R5",
+        "role_R4",
+        "role_R1",
+        "role_R3",
+        "role_NPC_GUARD"
+      ],
+      "isMisleading": true,
+      "isDecisive": false,
+      "supportsFact": "误导",
+      "provenance": {
+        "sourceClueId": "smb-mtoah040-1aytq-misdirection-3",
+        "sourceBeatIds": [
+          "ob-mtoah042-28mp"
+        ]
+      }
+    },
+    {
+      "id": "smb-mtoah040-1aytq-confirmation-4",
+      "title": "确认",
+      "stageId": "act3",
+      "delivery": "HOST_RELEASE",
+      "visibility": "PUBLIC",
+      "paragraphs": [
+        "【线索】该线索支持：确认",
+        "误导=false；决定性=false"
+      ],
+      "documentId": "doc_smb-mtoah040-1aytq-confirmation-4",
+      "roleIds": [
+        "role_R5",
+        "role_R4",
+        "role_R1",
+        "role_R3",
+        "role_NPC_GUARD"
+      ],
+      "isMisleading": false,
+      "isDecisive": false,
+      "supportsFact": "确认",
+      "provenance": {
+        "sourceClueId": "smb-mtoah040-1aytq-confirmation-4",
+        "sourceBeatIds": [
+          "ob-mtoah042-28mp"
+        ]
+      }
+    },
+    {
+      "id": "smb-mtoah040-1aytq-decisive_reveal-5",
+      "title": "决定性揭示",
+      "stageId": "act3",
+      "delivery": "HOST_RELEASE",
+      "visibility": "PUBLIC",
+      "paragraphs": [
+        "【线索】该线索支持：决定性揭示",
+        "误导=false；决定性=true"
+      ],
+      "documentId": "doc_smb-mtoah040-1aytq-decisive_reveal-5",
+      "roleIds": [
+        "role_R5",
+        "role_R4",
+        "role_R1",
+        "role_R3",
+        "role_NPC_GUARD"
+      ],
+      "isMisleading": false,
+      "isDecisive": true,
+      "supportsFact": "决定性揭示",
+      "provenance": {
+        "sourceClueId": "smb-mtoah040-1aytq-decisive_reveal-5",
+        "sourceBeatIds": [
+          "ob-mtoah042-28mp"
+        ]
+      }
+    },
+    {
+      "id": "fact-interface:ob-mtoah042-9on7",
+      "title": "身份确认；身份进入公开层",
+      "stageId": "act3",
+      "delivery": "HOST_RELEASE",
+      "visibility": "PUBLIC",
+      "paragraphs": [
+        "【线索】该线索支持：身份确认；身份进入公开层",
+        "【可补细节】表象待 Writer 具体化；不得改 isMisleading / isDecisive。"
+      ],
+      "documentId": "doc_fact-interface:ob-mtoah042-9on7",
+      "roleIds": [
+        "role_R5",
+        "role_R4",
+        "role_R1",
+        "role_R3",
+        "role_NPC_GUARD"
+      ],
+      "isMisleading": false,
+      "isDecisive": false,
+      "supportsFact": "身份确认；身份进入公开层",
+      "provenance": {
+        "sourceClueId": "fact-interface:ob-mtoah042-9on7",
+        "sourceBeatIds": []
+      }
+    }
+  ],
+  "endingContent": {
+    "finalStageId": "act3",
+    "resolutionMode": "CULPRIT_REVEAL",
+    "sections": [
+      {
+        "id": "ending_truth",
+        "stageId": "act3",
+        "title": "终局揭示",
+        "paragraphs": [
+          "【结算模式】CULPRIT_REVEAL",
+          "何叙为了准备可嫁祸的假象，布置与赵听雨相关的误导物（目标：被嫁祸者遗失的玉佩）（发生=true；证据=MISLEADING；主张=FALSE）",
+          "苏明为了隐藏或维持当前身份表象，按伪装/未知状态行动，避免过早暴露（目标：身份表象）（发生=true；证据=NEUTRAL；主张=UNKNOWN）",
+          "何叙为了完成犯行并指向赵听雨，实施犯行并留下指向赵听雨的痕迹（目标：被嫁祸者遗失的玉佩）（发生=true；证据=MISLEADING；主张=FALSE）",
+          "何叙为了完成犯行并指向赵听雨，实施犯行并留下指向赵听雨的痕迹（目标：被嫁祸者遗失的玉佩）（发生=true；证据=MISLEADING；主张=FALSE）",
+          "周鹤为了推翻对赵听雨的错误判断，对照现场与证物寻找矛盾（目标：被嫁祸者遗失的玉佩）（发生=true；证据=SUPPORTING；主张=TRUE）",
+          "苏明为了用正式动作换取被条件锁住的信息，完成登记条件以触发内容开放（目标：身份记录）（发生=true；证据=NEUTRAL；主张=UNKNOWN）",
+          "周鹤为了推翻对赵听雨的错误判断，对照现场与证物寻找矛盾（目标：被嫁祸者遗失的玉佩）（发生=true；证据=SUPPORTING；主张=TRUE）",
+          "周鹤为了锁定真凶何叙，用决定性证据揭穿嫁祸（目标：决定性证据）（发生=true；证据=NEUTRAL；主张=UNKNOWN）",
+          "苏明为了确认真实身份并决定是否公开，核对身份线索并作出公开或隐瞒选择（目标：真实身份）（发生=true；证据=SUPPORTING；主张=TRUE）",
+          "苏明为了承受身份公开后的关系后果，面对知情者与阵营/调查方的反应（目标：关系重组）（发生=true；证据=NEUTRAL；主张=UNKNOWN）"
+        ],
+        "roleIds": [],
+        "provenance": {
+          "sourceBeatIds": [
+            "ob-mtoah042-lqix",
+            "ob-mtoah042-066a",
+            "ob-mtoah042-kpoh",
+            "ob-mtoah042-z8j5",
+            "ob-mtoah042-y4ee",
+            "ob-mtoah042-ldq3",
+            "ob-mtoah042-i1xp",
+            "ob-mtoah042-b1r4",
+            "ob-mtoah042-28mp",
+            "ob-mtoah042-9on7"
+          ],
+          "sourceClueIds": [
+            "smb-mtoah040-1aytq-decisive_reveal-5"
+          ],
+          "sourceFactIds": [
+            "fact:smb-mtoah03v-snp45:beat-setup:false_lead:R2",
+            "fact:smb-mtoah040-1aytq:beat-setup:identity_latent:R5",
+            "fact:smb-mtoah03v-snp45:beat-crime:crime_done:R2",
+            "fact:smb-mtoah03v-snp45:beat-crime:suspicion:R2",
+            "fact:smb-mtoah03v-snp45:beat-crime:false_lead:R2",
+            "fact:smb-mtoah03v-snp45:beat-false:crime_done:R2",
+            "fact:smb-mtoah03v-snp45:beat-false:suspicion:R2",
+            "fact:smb-mtoah03v-snp45:beat-false:false_lead:R2"
+          ]
+        }
+      }
+    ]
+  },
+  "mechanismAnnotations": [],
+  "permissions": [],
+  "provenanceIndex": {
+    "host_act1": {
+      "sourceBeatIds": [
+        "ob-mtoah042-lqix",
+        "ob-mtoah042-066a"
+      ],
+      "sourceClueIds": [
+        "fact-interface:ob-mtoah042-lqix",
+        "smb-mtoah040-1aytq-foreshadow-0",
+        "smb-mtoah03v-snp45-false_lead-0",
+        "smb-mtoah03v-snp45-contradiction-1"
+      ],
+      "sourceFactIds": [
+        "fact:smb-mtoah03v-snp45:beat-setup:false_lead:R2",
+        "fact:smb-mtoah040-1aytq:beat-setup:identity_latent:R5",
+        "fact:smb-mtoah03v-snp45:beat-crime:crime_done:R2",
+        "fact:smb-mtoah03v-snp45:beat-crime:suspicion:R2"
+      ],
+      "sectionStatus": "GENERATED"
+    },
+    "host_act2": {
+      "sourceBeatIds": [
+        "ob-mtoah042-kpoh",
+        "ob-mtoah042-z8j5",
+        "ob-mtoah042-y4ee",
+        "ob-mtoah042-ldq3"
+      ],
+      "sourceClueIds": [
+        "fact-interface:ob-mtoah042-lqix",
+        "smb-mtoah040-1aytq-foreshadow-0",
+        "smb-mtoah03v-snp45-false_lead-0",
+        "smb-mtoah03v-snp45-contradiction-1"
+      ],
+      "sourceFactIds": [
+        "fact:smb-mtoah03v-snp45:beat-setup:false_lead:R2",
+        "fact:smb-mtoah040-1aytq:beat-setup:identity_latent:R5",
+        "fact:smb-mtoah03v-snp45:beat-crime:crime_done:R2",
+        "fact:smb-mtoah03v-snp45:beat-crime:suspicion:R2"
+      ],
+      "sectionStatus": "GENERATED"
+    },
+    "host_act3": {
+      "sourceBeatIds": [
+        "ob-mtoah042-i1xp",
+        "ob-mtoah042-b1r4",
+        "ob-mtoah042-28mp",
+        "ob-mtoah042-9on7"
+      ],
+      "sourceClueIds": [
+        "fact-interface:ob-mtoah042-lqix",
+        "smb-mtoah040-1aytq-foreshadow-0",
+        "smb-mtoah03v-snp45-false_lead-0",
+        "smb-mtoah03v-snp45-contradiction-1"
+      ],
+      "sourceFactIds": [
+        "fact:smb-mtoah03v-snp45:beat-setup:false_lead:R2",
+        "fact:smb-mtoah040-1aytq:beat-setup:identity_latent:R5",
+        "fact:smb-mtoah03v-snp45:beat-crime:crime_done:R2",
+        "fact:smb-mtoah03v-snp45:beat-crime:suspicion:R2"
+      ],
+      "sectionStatus": "GENERATED"
+    },
+    "public_act1": {
+      "sourceBeatIds": [
+        "ob-mtoah042-lqix",
+        "ob-mtoah042-066a"
+      ],
+      "sourceClueIds": [],
+      "sourceFactIds": [
+        "fact:smb-mtoah03v-snp45:beat-setup:false_lead:R2",
+        "fact:smb-mtoah040-1aytq:beat-setup:identity_latent:R5"
+      ],
+      "sectionStatus": "GENERATED"
+    },
+    "public_act2": {
+      "sourceBeatIds": [
+        "ob-mtoah042-kpoh",
+        "ob-mtoah042-z8j5",
+        "ob-mtoah042-y4ee",
+        "ob-mtoah042-ldq3"
+      ],
+      "sourceClueIds": [],
+      "sourceFactIds": [
+        "fact:smb-mtoah03v-snp45:beat-crime:crime_done:R2",
+        "fact:smb-mtoah03v-snp45:beat-crime:suspicion:R2",
+        "fact:smb-mtoah03v-snp45:beat-crime:false_lead:R2",
+        "fact:smb-mtoah03v-snp45:beat-false:crime_done:R2"
+      ],
+      "sectionStatus": "GENERATED"
+    },
+    "public_act3": {
+      "sourceBeatIds": [
+        "ob-mtoah042-i1xp",
+        "ob-mtoah042-b1r4",
+        "ob-mtoah042-28mp",
+        "ob-mtoah042-9on7"
+      ],
+      "sourceClueIds": [],
+      "sourceFactIds": [
+        "fact:smb-mtoah03v-snp45:beat-climax:contradiction:R4",
+        "fact:smb-mtoah03v-snp45:beat-climax:suspicion:R4",
+        "fact:smb-mtoah03v-snp45:beat-res:truth_locked:R4",
+        "fact:smb-mtoah03v-snp45:beat-res:contradiction:R4"
+      ],
+      "sectionStatus": "GENERATED"
+    },
+    "ending_truth": {
+      "sourceBeatIds": [
+        "ob-mtoah042-lqix",
+        "ob-mtoah042-066a",
+        "ob-mtoah042-kpoh",
+        "ob-mtoah042-z8j5",
+        "ob-mtoah042-y4ee",
+        "ob-mtoah042-ldq3",
+        "ob-mtoah042-i1xp",
+        "ob-mtoah042-b1r4",
+        "ob-mtoah042-28mp",
+        "ob-mtoah042-9on7"
+      ],
+      "sourceClueIds": [
+        "smb-mtoah040-1aytq-decisive_reveal-5"
+      ],
+      "sourceFactIds": [
+        "fact:smb-mtoah03v-snp45:beat-setup:false_lead:R2",
+        "fact:smb-mtoah040-1aytq:beat-setup:identity_latent:R5",
+        "fact:smb-mtoah03v-snp45:beat-crime:crime_done:R2",
+        "fact:smb-mtoah03v-snp45:beat-crime:suspicion:R2",
+        "fact:smb-mtoah03v-snp45:beat-crime:false_lead:R2",
+        "fact:smb-mtoah03v-snp45:beat-false:crime_done:R2",
+        "fact:smb-mtoah03v-snp45:beat-false:suspicion:R2",
+        "fact:smb-mtoah03v-snp45:beat-false:false_lead:R2"
+      ],
+      "sectionStatus": "GENERATED"
+    },
+    "role_R2_act1": {
+      "sourceCharacterId": "R2",
+      "sourceBeatIds": [
+        "ob-mtoah042-lqix"
+      ],
+      "sourceClueIds": [
+        "fact-interface:ob-mtoah042-lqix",
+        "smb-mtoah040-1aytq-foreshadow-0",
+        "smb-mtoah03v-snp45-false_lead-0"
+      ],
+      "sourceFactIds": [
+        "fact:smb-mtoah03v-snp45:beat-setup:false_lead:R2",
+        "fact:smb-mtoah03v-snp45:beat-crime:crime_done:R2",
+        "fact:smb-mtoah03v-snp45:beat-crime:suspicion:R2"
+      ],
+      "sectionStatus": "GENERATED"
+    },
+    "role_R2_act2": {
+      "sourceCharacterId": "R2",
+      "sourceBeatIds": [
+        "ob-mtoah042-kpoh",
+        "ob-mtoah042-z8j5"
+      ],
+      "sourceClueIds": [
+        "fact-interface:ob-mtoah042-lqix",
+        "smb-mtoah040-1aytq-foreshadow-0",
+        "smb-mtoah03v-snp45-false_lead-0"
+      ],
+      "sourceFactIds": [
+        "fact:smb-mtoah03v-snp45:beat-setup:false_lead:R2",
+        "fact:smb-mtoah03v-snp45:beat-crime:crime_done:R2",
+        "fact:smb-mtoah03v-snp45:beat-crime:suspicion:R2"
+      ],
+      "sectionStatus": "GENERATED"
+    },
+    "role_R2_act3": {
+      "sourceCharacterId": "R2",
+      "sourceBeatIds": [
+        "ob-mtoah042-i1xp",
+        "ob-mtoah042-b1r4"
+      ],
+      "sourceClueIds": [
+        "fact-interface:ob-mtoah042-lqix",
+        "smb-mtoah03v-snp45-false_lead-0",
+        "smb-mtoah03v-snp45-true_evidence-2"
+      ],
+      "sourceFactIds": [
+        "fact:smb-mtoah03v-snp45:beat-setup:false_lead:R2",
+        "fact:smb-mtoah03v-snp45:beat-crime:crime_done:R2",
+        "fact:smb-mtoah03v-snp45:beat-crime:suspicion:R2"
+      ],
+      "sectionStatus": "GENERATED"
+    },
+    "role_R3_act1": {
+      "sourceCharacterId": "R3",
+      "sourceBeatIds": [
+        "ob-mtoah042-lqix"
+      ],
+      "sourceClueIds": [
+        "fact-interface:ob-mtoah042-lqix",
+        "smb-mtoah040-1aytq-foreshadow-0",
+        "smb-mtoah03v-snp45-false_lead-0"
+      ],
+      "sourceFactIds": [
+        "fact:smb-mtoah03v-snp45:beat-setup:false_lead:R2",
+        "fact:smb-mtoah03v-snp45:beat-false:crime_done:R2",
+        "fact:smb-mtoah03v-snp45:beat-false:suspicion:R2"
+      ],
+      "sectionStatus": "GENERATED"
+    },
+    "role_R3_act2": {
+      "sourceCharacterId": "R3",
+      "sourceBeatIds": [
+        "ob-mtoah042-z8j5",
+        "ob-mtoah042-ldq3"
+      ],
+      "sourceClueIds": [
+        "fact-interface:ob-mtoah042-lqix",
+        "smb-mtoah040-1aytq-foreshadow-0",
+        "smb-mtoah03v-snp45-false_lead-0"
+      ],
+      "sourceFactIds": [
+        "fact:smb-mtoah03v-snp45:beat-setup:false_lead:R2",
+        "fact:smb-mtoah03v-snp45:beat-false:crime_done:R2",
+        "fact:smb-mtoah03v-snp45:beat-false:suspicion:R2"
+      ],
+      "sectionStatus": "GENERATED"
+    },
+    "role_R3_act3": {
+      "sourceCharacterId": "R3",
+      "sourceBeatIds": [
+        "ob-mtoah042-i1xp",
+        "ob-mtoah042-b1r4",
+        "ob-mtoah042-28mp",
+        "ob-mtoah042-9on7"
+      ],
+      "sourceClueIds": [
+        "fact-interface:ob-mtoah042-lqix",
+        "smb-mtoah040-1aytq-foreshadow-0",
+        "smb-mtoah03v-snp45-false_lead-0"
+      ],
+      "sourceFactIds": [
+        "fact:smb-mtoah03v-snp45:beat-setup:false_lead:R2",
+        "fact:smb-mtoah03v-snp45:beat-false:crime_done:R2",
+        "fact:smb-mtoah03v-snp45:beat-false:suspicion:R2"
+      ],
+      "sectionStatus": "GENERATED"
+    },
+    "role_R5_act1": {
+      "sourceCharacterId": "R5",
+      "sourceBeatIds": [
+        "ob-mtoah042-066a"
+      ],
+      "sourceClueIds": [
+        "fact-interface:ob-mtoah042-lqix",
+        "smb-mtoah040-1aytq-foreshadow-0",
+        "smb-mtoah040-1aytq-memory_fragment-1"
+      ],
+      "sourceFactIds": [
+        "fact:smb-mtoah040-1aytq:beat-setup:identity_latent:R5",
+        "fact:smb-mtoah040-1aytq:beat-develop:identity_clue:R5",
+        "fact:smb-mtoah040-1aytq:beat-develop:formal_trigger:R5"
+      ],
+      "sectionStatus": "GENERATED"
+    },
+    "role_R5_act2": {
+      "sourceCharacterId": "R5",
+      "sourceBeatIds": [
+        "ob-mtoah042-ldq3"
+      ],
+      "sourceClueIds": [
+        "smb-mtoah040-1aytq-foreshadow-0",
+        "smb-mtoah03v-snp45-false_lead-0",
+        "smb-mtoah03v-snp45-contradiction-1"
+      ],
+      "sourceFactIds": [
+        "fact:smb-mtoah040-1aytq:beat-setup:identity_latent:R5",
+        "fact:smb-mtoah040-1aytq:beat-develop:identity_clue:R5",
+        "fact:smb-mtoah040-1aytq:beat-develop:formal_trigger:R5"
+      ],
+      "sectionStatus": "GENERATED"
+    },
+    "role_R5_act3": {
+      "sourceCharacterId": "R5",
+      "sourceBeatIds": [
+        "ob-mtoah042-28mp",
+        "ob-mtoah042-9on7"
+      ],
+      "sourceClueIds": [
+        "smb-mtoah040-1aytq-foreshadow-0",
+        "smb-mtoah03v-snp45-true_evidence-2",
+        "smb-mtoah03v-snp45-decisive_evidence-3"
+      ],
+      "sourceFactIds": [
+        "fact:smb-mtoah040-1aytq:beat-setup:identity_latent:R5",
+        "fact:smb-mtoah040-1aytq:beat-develop:identity_clue:R5",
+        "fact:smb-mtoah040-1aytq:beat-develop:formal_trigger:R5"
+      ],
+      "sectionStatus": "GENERATED"
+    },
+    "role_R4_act1": {
+      "sourceCharacterId": "R4",
+      "sourceBeatIds": [
+        "ob-mtoah042-066a"
+      ],
+      "sourceClueIds": [
+        "fact-interface:ob-mtoah042-lqix",
+        "smb-mtoah040-1aytq-foreshadow-0",
+        "smb-mtoah03v-snp45-false_lead-0"
+      ],
+      "sourceFactIds": [
+        "fact:smb-mtoah040-1aytq:beat-setup:identity_latent:R5",
+        "fact:smb-mtoah03v-snp45:beat-crime:crime_done:R2",
+        "fact:smb-mtoah03v-snp45:beat-crime:suspicion:R2"
+      ],
+      "sectionStatus": "GENERATED"
+    },
+    "role_R4_act2": {
+      "sourceCharacterId": "R4",
+      "sourceBeatIds": [
+        "ob-mtoah042-kpoh",
+        "ob-mtoah042-y4ee",
+        "ob-mtoah042-ldq3"
+      ],
+      "sourceClueIds": [
+        "smb-mtoah040-1aytq-foreshadow-0",
+        "smb-mtoah03v-snp45-false_lead-0",
+        "smb-mtoah03v-snp45-contradiction-1"
+      ],
+      "sourceFactIds": [
+        "fact:smb-mtoah040-1aytq:beat-setup:identity_latent:R5",
+        "fact:smb-mtoah03v-snp45:beat-crime:crime_done:R2",
+        "fact:smb-mtoah03v-snp45:beat-crime:suspicion:R2"
+      ],
+      "sectionStatus": "GENERATED"
+    },
+    "role_R4_act3": {
+      "sourceCharacterId": "R4",
+      "sourceBeatIds": [
+        "ob-mtoah042-i1xp",
+        "ob-mtoah042-b1r4",
+        "ob-mtoah042-28mp",
+        "ob-mtoah042-9on7"
+      ],
+      "sourceClueIds": [
+        "smb-mtoah040-1aytq-foreshadow-0",
+        "smb-mtoah03v-snp45-false_lead-0",
+        "smb-mtoah03v-snp45-contradiction-1"
+      ],
+      "sourceFactIds": [
+        "fact:smb-mtoah040-1aytq:beat-setup:identity_latent:R5",
+        "fact:smb-mtoah03v-snp45:beat-crime:crime_done:R2",
+        "fact:smb-mtoah03v-snp45:beat-crime:suspicion:R2"
+      ],
+      "sectionStatus": "GENERATED"
+    },
+    "role_R1_act2": {
+      "sourceCharacterId": "R1",
+      "sourceBeatIds": [
+        "ob-mtoah042-kpoh",
+        "ob-mtoah042-ldq3"
+      ],
+      "sourceClueIds": [
+        "smb-mtoah040-1aytq-foreshadow-0",
+        "smb-mtoah03v-snp45-false_lead-0",
+        "smb-mtoah03v-snp45-contradiction-1"
+      ],
+      "sourceFactIds": [
+        "fact:smb-mtoah03v-snp45:beat-crime:crime_done:R2",
+        "fact:smb-mtoah03v-snp45:beat-crime:suspicion:R2",
+        "fact:smb-mtoah03v-snp45:beat-crime:false_lead:R2"
+      ],
+      "sectionStatus": "GENERATED"
+    },
+    "role_R1_act3": {
+      "sourceCharacterId": "R1",
+      "sourceBeatIds": [
+        "ob-mtoah042-b1r4",
+        "ob-mtoah042-28mp",
+        "ob-mtoah042-9on7"
+      ],
+      "sourceClueIds": [
+        "smb-mtoah040-1aytq-foreshadow-0",
+        "smb-mtoah03v-snp45-false_lead-0",
+        "smb-mtoah03v-snp45-true_evidence-2"
+      ],
+      "sourceFactIds": [
+        "fact:smb-mtoah03v-snp45:beat-crime:crime_done:R2",
+        "fact:smb-mtoah03v-snp45:beat-crime:suspicion:R2",
+        "fact:smb-mtoah03v-snp45:beat-crime:false_lead:R2"
+      ],
+      "sectionStatus": "GENERATED"
+    },
+    "role_NPC_GUARD_act2": {
+      "sourceCharacterId": "NPC_GUARD",
+      "sourceBeatIds": [
+        "ob-mtoah042-ldq3"
+      ],
+      "sourceClueIds": [
+        "smb-mtoah040-1aytq-foreshadow-0",
+        "smb-mtoah03v-snp45-false_lead-0",
+        "smb-mtoah03v-snp45-contradiction-1"
+      ],
+      "sourceFactIds": [
+        "fact:smb-mtoah040-1aytq:beat-develop:identity_clue:R5",
+        "fact:smb-mtoah040-1aytq:beat-develop:formal_trigger:R5",
+        "fact:smb-mtoah040-1aytq:beat-climax:identity_confirmed:R5"
+      ],
+      "sectionStatus": "GENERATED"
+    },
+    "role_NPC_GUARD_act3": {
+      "sourceCharacterId": "NPC_GUARD",
+      "sourceBeatIds": [
+        "ob-mtoah042-28mp",
+        "ob-mtoah042-9on7"
+      ],
+      "sourceClueIds": [
+        "smb-mtoah040-1aytq-foreshadow-0",
+        "smb-mtoah03v-snp45-true_evidence-2",
+        "smb-mtoah03v-snp45-decisive_evidence-3"
+      ],
+      "sourceFactIds": [
+        "fact:smb-mtoah040-1aytq:beat-develop:identity_clue:R5",
+        "fact:smb-mtoah040-1aytq:beat-develop:formal_trigger:R5",
+        "fact:smb-mtoah040-1aytq:beat-climax:identity_confirmed:R5"
+      ],
+      "sectionStatus": "GENERATED"
+    },
+    "clue:fact-interface:ob-mtoah042-lqix": {
+      "sourceClueId": "fact-interface:ob-mtoah042-lqix",
+      "sourceBeatIds": [],
+      "sourceClueIds": [
+        "fact-interface:ob-mtoah042-lqix"
+      ],
+      "sourceFactIds": [],
+      "sectionStatus": "GENERATED"
+    },
+    "clue:smb-mtoah040-1aytq-foreshadow-0": {
+      "sourceClueId": "smb-mtoah040-1aytq-foreshadow-0",
+      "sourceBeatIds": [
+        "ob-mtoah042-066a",
+        "ob-mtoah042-ldq3"
+      ],
+      "sourceClueIds": [
+        "smb-mtoah040-1aytq-foreshadow-0"
+      ],
+      "sourceFactIds": [
+        "fact:smb-mtoah040-1aytq:beat-setup:identity_latent:R5",
+        "fact:smb-mtoah040-1aytq:beat-develop:identity_clue:R5",
+        "fact:smb-mtoah040-1aytq:beat-develop:formal_trigger:R5"
+      ],
+      "sectionStatus": "GENERATED"
+    },
+    "clue:smb-mtoah03v-snp45-false_lead-0": {
+      "sourceClueId": "smb-mtoah03v-snp45-false_lead-0",
+      "sourceBeatIds": [
+        "ob-mtoah042-kpoh",
+        "ob-mtoah042-z8j5"
+      ],
+      "sourceClueIds": [
+        "smb-mtoah03v-snp45-false_lead-0"
+      ],
+      "sourceFactIds": [
+        "fact:smb-mtoah03v-snp45:beat-crime:crime_done:R2",
+        "fact:smb-mtoah03v-snp45:beat-crime:suspicion:R2",
+        "fact:smb-mtoah03v-snp45:beat-crime:false_lead:R2",
+        "fact:smb-mtoah03v-snp45:beat-false:crime_done:R2"
+      ],
+      "sectionStatus": "GENERATED"
+    },
+    "clue:smb-mtoah03v-snp45-contradiction-1": {
+      "sourceClueId": "smb-mtoah03v-snp45-contradiction-1",
+      "sourceBeatIds": [
+        "ob-mtoah042-y4ee"
+      ],
+      "sourceClueIds": [
+        "smb-mtoah03v-snp45-contradiction-1"
+      ],
+      "sourceFactIds": [
+        "fact:smb-mtoah03v-snp45:beat-contra:contradiction:R4",
+        "fact:smb-mtoah03v-snp45:beat-contra:suspicion:R4"
+      ],
+      "sectionStatus": "GENERATED"
+    },
+    "clue:smb-mtoah03v-snp45-true_evidence-2": {
+      "sourceClueId": "smb-mtoah03v-snp45-true_evidence-2",
+      "sourceBeatIds": [
+        "ob-mtoah042-i1xp"
+      ],
+      "sourceClueIds": [
+        "smb-mtoah03v-snp45-true_evidence-2"
+      ],
+      "sourceFactIds": [
+        "fact:smb-mtoah03v-snp45:beat-climax:contradiction:R4",
+        "fact:smb-mtoah03v-snp45:beat-climax:suspicion:R4"
+      ],
+      "sectionStatus": "GENERATED"
+    },
+    "clue:smb-mtoah03v-snp45-decisive_evidence-3": {
+      "sourceClueId": "smb-mtoah03v-snp45-decisive_evidence-3",
+      "sourceBeatIds": [
+        "ob-mtoah042-i1xp",
+        "ob-mtoah042-b1r4"
+      ],
+      "sourceClueIds": [
+        "smb-mtoah03v-snp45-decisive_evidence-3"
+      ],
+      "sourceFactIds": [
+        "fact:smb-mtoah03v-snp45:beat-climax:contradiction:R4",
+        "fact:smb-mtoah03v-snp45:beat-climax:suspicion:R4",
+        "fact:smb-mtoah03v-snp45:beat-res:truth_locked:R4",
+        "fact:smb-mtoah03v-snp45:beat-res:contradiction:R4"
+      ],
+      "sectionStatus": "GENERATED"
+    },
+    "clue:smb-mtoah040-1aytq-memory_fragment-1": {
+      "sourceClueId": "smb-mtoah040-1aytq-memory_fragment-1",
+      "sourceBeatIds": [
+        "ob-mtoah042-28mp"
+      ],
+      "sourceClueIds": [
+        "smb-mtoah040-1aytq-memory_fragment-1"
+      ],
+      "sourceFactIds": [
+        "fact:smb-mtoah040-1aytq:beat-climax:identity_confirmed:R5",
+        "fact:smb-mtoah040-1aytq:beat-climax:family_status:R5",
+        "fact:smb-mtoah040-1aytq:beat-climax:identity_clue:R5"
+      ],
+      "sectionStatus": "GENERATED"
+    },
+    "clue:smb-mtoah040-1aytq-identity_hint-2": {
+      "sourceClueId": "smb-mtoah040-1aytq-identity_hint-2",
+      "sourceBeatIds": [
+        "ob-mtoah042-28mp"
+      ],
+      "sourceClueIds": [
+        "smb-mtoah040-1aytq-identity_hint-2"
+      ],
+      "sourceFactIds": [
+        "fact:smb-mtoah040-1aytq:beat-climax:identity_confirmed:R5",
+        "fact:smb-mtoah040-1aytq:beat-climax:family_status:R5",
+        "fact:smb-mtoah040-1aytq:beat-climax:identity_clue:R5"
+      ],
+      "sectionStatus": "GENERATED"
+    },
+    "clue:smb-mtoah040-1aytq-misdirection-3": {
+      "sourceClueId": "smb-mtoah040-1aytq-misdirection-3",
+      "sourceBeatIds": [
+        "ob-mtoah042-28mp"
+      ],
+      "sourceClueIds": [
+        "smb-mtoah040-1aytq-misdirection-3"
+      ],
+      "sourceFactIds": [
+        "fact:smb-mtoah040-1aytq:beat-climax:identity_confirmed:R5",
+        "fact:smb-mtoah040-1aytq:beat-climax:family_status:R5",
+        "fact:smb-mtoah040-1aytq:beat-climax:identity_clue:R5"
+      ],
+      "sectionStatus": "GENERATED"
+    },
+    "clue:smb-mtoah040-1aytq-confirmation-4": {
+      "sourceClueId": "smb-mtoah040-1aytq-confirmation-4",
+      "sourceBeatIds": [
+        "ob-mtoah042-28mp"
+      ],
+      "sourceClueIds": [
+        "smb-mtoah040-1aytq-confirmation-4"
+      ],
+      "sourceFactIds": [
+        "fact:smb-mtoah040-1aytq:beat-climax:identity_confirmed:R5",
+        "fact:smb-mtoah040-1aytq:beat-climax:family_status:R5",
+        "fact:smb-mtoah040-1aytq:beat-climax:identity_clue:R5"
+      ],
+      "sectionStatus": "GENERATED"
+    },
+    "clue:smb-mtoah040-1aytq-decisive_reveal-5": {
+      "sourceClueId": "smb-mtoah040-1aytq-decisive_reveal-5",
+      "sourceBeatIds": [
+        "ob-mtoah042-28mp"
+      ],
+      "sourceClueIds": [
+        "smb-mtoah040-1aytq-decisive_reveal-5"
+      ],
+      "sourceFactIds": [
+        "fact:smb-mtoah040-1aytq:beat-climax:identity_confirmed:R5",
+        "fact:smb-mtoah040-1aytq:beat-climax:family_status:R5",
+        "fact:smb-mtoah040-1aytq:beat-climax:identity_clue:R5"
+      ],
+      "sectionStatus": "GENERATED"
+    },
+    "clue:fact-interface:ob-mtoah042-9on7": {
+      "sourceClueId": "fact-interface:ob-mtoah042-9on7",
+      "sourceBeatIds": [],
+      "sourceClueIds": [
+        "fact-interface:ob-mtoah042-9on7"
+      ],
+      "sourceFactIds": [],
+      "sectionStatus": "GENERATED"
+    }
+  },
+  "diagnostics": [
+    {
+      "id": "warn-clue-ob-mtoah042-lqix",
+      "type": "MISSING_CLUE_DETAIL",
+      "severity": "info",
+      "message": "该剧情 beat 需要/产生事实接口，但模板尚未绑定具体线索内容。",
+      "stageIds": [
+        "act1"
+      ],
+      "beatIds": [
+        "ob-mtoah042-lqix"
+      ],
+      "lane": "fillable"
+    },
+    {
+      "id": "warn-clue-ob-mtoah042-9on7",
+      "type": "MISSING_CLUE_DETAIL",
+      "severity": "info",
+      "message": "该剧情 beat 需要/产生事实接口，但模板尚未绑定具体线索内容。",
+      "stageIds": [
+        "act3"
+      ],
+      "beatIds": [
+        "ob-mtoah042-9on7"
+      ],
+      "lane": "fillable"
+    }
+  ],
+  "revision": 1,
+  "updatedAt": "2026-09-05T18:00:00.000Z"
+}
