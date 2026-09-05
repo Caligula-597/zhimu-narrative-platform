@@ -387,7 +387,7 @@ function buildConflictReport(state, loadReport) {
       normalizeConflictItem({
         id: newId("cf"),
         type: "ROLE_OVERLOAD",
-        severity: "warn",
+        severity: item.score >= 6 ? "high" : item.score >= 4 ? "warn" : "info",
         characterId: item.characterId,
         summary: `${row?.name || item.characterId} 当前承担：${roles || "多重职责"}（负载 ${item.score ?? row?.totalLoad}）`,
         suggestions: [

@@ -2,12 +2,12 @@
   "case": "H-conditional-public-task",
   "set": "FIDELITY",
   "draft": {
-    "id": "pmd-mod-mtn0omah-v1ae",
-    "version": 1,
+    "id": "pmd-mod-mtny8fqt-bpwx",
+    "version": 2,
     "projectId": "fid-H",
     "sourceStoryStateRevision": 0,
-    "sourceMasterOutlineId": "mod-mtn0omah-v1ae",
-    "sourceMasterOutlineRevision": "v1:mod-mtn0omah-v1ae:act1@0:{ob-mtn0omah-lrnx|smb-mtn0omaf-zzy92|beat-setup,ob-mtn0omah-y1a8|smb-mtn0omag-p3wie|beat-setup,ob-mtn0omah-a9mt|smb-mtn0omag-d4cwv|beat-setup};act2@1:{ob-mtn0omah-wr42|smb-mtn0omaf-zzy92|beat-develop,ob-mtn0omah-01tb|smb-mtn0omag-p3wie|beat-develop,ob-mtn0omah-bssk|smb-mtn0omag-d4cwv|beat-crime,ob-mtn0omah-7z3f|smb-mtn0omag-d4cwv|beat-false,ob-mtn0omah-quiz|smb-mtn0omag-d4cwv|beat-contra};act3@2:{ob-mtn0omah-0hpf|smb-mtn0omaf-zzy92|beat-climax,ob-mtn0omah-4yf2|smb-mtn0omag-p3wie|beat-climax,ob-mtn0omah-1kgz|smb-mtn0omag-d4cwv|beat-climax};act4@3:{ob-mtn0omah-aajx|smb-mtn0omaf-zzy92|beat-res,ob-mtn0omah-qo1h|smb-mtn0omag-p3wie|beat-res,ob-mtn0omah-w3tb|smb-mtn0omag-d4cwv|beat-res}#wl-mtn0omah-0x68:WEAVE_SHARED_SCENE:ob-mtn0omah-0hpf,ob-mtn0omah-4yf2|wl-mtn0omah-1bbj:WEAVE_SHARED_CHARACTER:ob-mtn0omah-wr42,ob-mtn0omah-4yf2|wl-mtn0omah-1lik:WEAVE_SHARED_CHARACTER:ob-mtn0omah-01tb,ob-mtn0omah-1kgz|wl-mtn0omah-3d9f:WEAVE_SHARED_CHARACTER:ob-mtn0omah-y1a8,ob-mtn0omah-bssk|wl-mtn0omah-62di:KEEP_PARALLEL:ob-mtn0omah-01tb,ob-mtn0omah-bssk|wl-mtn0omah-7exf:WEAVE_SHARED_CHARACTER:ob-mtn0omah-wr42,ob-mtn0omah-1kgz|wl-mtn0omah-7jnc:WEAVE_SHARED_SCENE:ob-mtn0omah-wr42,ob-mtn0omah-bssk|wl-mtn0omah-b3dq:WEAVE_SHARED_CHARACTER:ob-mtn0omah-lrnx,ob-mtn0omah-01tb|wl-mtn0omah-cf75:WEAVE_SHARED_SCENE:ob-mtn0omah-lrnx,ob-mtn0omah-y1a8|wl-mtn0omah-cw8m:WEAVE_SHARED_SCENE:ob-mtn0omah-lrnx,ob-mtn0omah-a9mt|wl-mtn0omah-cz98:WEAVE_SHARED_SCENE:ob-mtn0omah-wr42,ob-mtn0omah-01tb|wl-mtn0omah-ed6s:WEAVE_SHARED_SCENE:ob-mtn0omah-y1a8,ob-mtn0omah-a9mt|wl-mtn0omah-fo0l:WEAVE_SHARED_CHARACTER:ob-mtn0omah-lrnx,ob-mtn0omah-bssk|wl-mtn0omah-hx6i:KEEP_PARALLEL:ob-mtn0omah-wr42,ob-mtn0omah-bssk|wl-mtn0omah-il0o:WEAVE_SHARED_CHARACTER:ob-mtn0omah-4yf2,ob-mtn0omah-w3tb|wl-mtn0omah-jfks:WEAVE_SHARED_SCENE:ob-mtn0omah-4yf2,ob-mtn0omah-1kgz|wl-mtn0omah-l07k:WEAVE_SHARED_SCENE:ob-mtn0omah-0hpf,ob-mtn0omah-1kgz|wl-mtn0omah-mv8a:WEAVE_SHARED_CHARACTER:ob-mtn0omah-0hpf,ob-mtn0omah-qo1h|wl-mtn0omah-o58j:WEAVE_SHARED_CHARACTER:ob-mtn0omah-0hpf,ob-mtn0omah-w3tb|wl-mtn0omah-part:WEAVE_SHARED_SCENE:ob-mtn0omah-aajx,ob-mtn0omah-qo1h|wl-mtn0omah-phod:WEAVE_SHARED_SCENE:ob-mtn0omah-01tb,ob-mtn0omah-bssk|wl-mtn0omah-s88i:KEEP_PARALLEL:ob-mtn0omah-wr42,ob-mtn0omah-01tb|wl-mtn0omah-svf2:WEAVE_SHARED_SCENE:ob-mtn0omah-aajx,ob-mtn0omah-w3tb|wl-mtn0omah-to8j:WEAVE_SHARED_SCENE:ob-mtn0omah-qo1h,ob-mtn0omah-w3tb",
+    "sourceMasterOutlineId": "mod-mtny8fqt-bpwx",
+    "sourceMasterOutlineRevision": "v1:mod-mtny8fqt-bpwx:act1@0:{ob-mtny8fqt-skvu|smb-mtny8fqr-najg0|beat-setup,ob-mtny8fqt-mfyp|smb-mtny8fqs-dib2c|beat-setup,ob-mtny8fqt-uc7z|smb-mtny8fqs-877jw|beat-setup};act2@1:{ob-mtny8fqt-90ck|smb-mtny8fqr-najg0|beat-develop,ob-mtny8fqt-yxcl|smb-mtny8fqs-dib2c|beat-develop,ob-mtny8fqt-2gz6|smb-mtny8fqs-877jw|beat-crime,ob-mtny8fqt-rz8b|smb-mtny8fqs-877jw|beat-false,ob-mtny8fqt-dkxf|smb-mtny8fqs-877jw|beat-contra};act3@2:{ob-mtny8fqt-vq87|smb-mtny8fqr-najg0|beat-climax,ob-mtny8fqt-5mhh|smb-mtny8fqs-dib2c|beat-climax,ob-mtny8fqt-iw7f|smb-mtny8fqs-877jw|beat-climax};act4@3:{ob-mtny8fqt-qgqe|smb-mtny8fqr-najg0|beat-res,ob-mtny8fqt-69ru|smb-mtny8fqs-dib2c|beat-res,ob-mtny8fqt-tb0d|smb-mtny8fqs-877jw|beat-res}#wl-mtny8fqt-0txx:WEAVE_SHARED_SCENE:ob-mtny8fqt-vq87,ob-mtny8fqt-iw7f|wl-mtny8fqt-1u0t:WEAVE_SHARED_SCENE:ob-mtny8fqt-qgqe,ob-mtny8fqt-tb0d|wl-mtny8fqt-441t:WEAVE_SHARED_SCENE:ob-mtny8fqt-skvu,ob-mtny8fqt-uc7z|wl-mtny8fqt-7u4t:KEEP_PARALLEL:ob-mtny8fqt-90ck,ob-mtny8fqt-yxcl|wl-mtny8fqt-80f7:WEAVE_SHARED_SCENE:ob-mtny8fqt-skvu,ob-mtny8fqt-mfyp|wl-mtny8fqt-9prf:WEAVE_SHARED_CHARACTER:ob-mtny8fqt-skvu,ob-mtny8fqt-yxcl|wl-mtny8fqt-aebr:WEAVE_SHARED_CHARACTER:ob-mtny8fqt-mfyp,ob-mtny8fqt-2gz6|wl-mtny8fqt-ak4x:WEAVE_SHARED_CHARACTER:ob-mtny8fqt-vq87,ob-mtny8fqt-tb0d|wl-mtny8fqt-bq98:KEEP_PARALLEL:ob-mtny8fqt-yxcl,ob-mtny8fqt-2gz6|wl-mtny8fqt-ct4v:WEAVE_SHARED_SCENE:ob-mtny8fqt-90ck,ob-mtny8fqt-yxcl|wl-mtny8fqt-evem:WEAVE_SHARED_SCENE:ob-mtny8fqt-yxcl,ob-mtny8fqt-2gz6|wl-mtny8fqt-ewt9:WEAVE_SHARED_CHARACTER:ob-mtny8fqt-skvu,ob-mtny8fqt-2gz6|wl-mtny8fqt-jbcj:WEAVE_SHARED_SCENE:ob-mtny8fqt-mfyp,ob-mtny8fqt-uc7z|wl-mtny8fqt-l4ez:WEAVE_SHARED_SCENE:ob-mtny8fqt-90ck,ob-mtny8fqt-2gz6|wl-mtny8fqt-mmwp:WEAVE_SHARED_SCENE:ob-mtny8fqt-5mhh,ob-mtny8fqt-iw7f|wl-mtny8fqt-nrz8:WEAVE_SHARED_SCENE:ob-mtny8fqt-69ru,ob-mtny8fqt-tb0d|wl-mtny8fqt-pcia:WEAVE_SHARED_SCENE:ob-mtny8fqt-qgqe,ob-mtny8fqt-69ru|wl-mtny8fqt-qmpx:WEAVE_SHARED_CHARACTER:ob-mtny8fqt-5mhh,ob-mtny8fqt-tb0d|wl-mtny8fqt-qs3i:KEEP_PARALLEL:ob-mtny8fqt-90ck,ob-mtny8fqt-2gz6|wl-mtny8fqt-rtcp:WEAVE_SHARED_CHARACTER:ob-mtny8fqt-90ck,ob-mtny8fqt-5mhh|wl-mtny8fqt-s76f:WEAVE_SHARED_CHARACTER:ob-mtny8fqt-90ck,ob-mtny8fqt-iw7f|wl-mtny8fqt-uvg2:WEAVE_SHARED_CHARACTER:ob-mtny8fqt-yxcl,ob-mtny8fqt-iw7f|wl-mtny8fqt-vism:WEAVE_SHARED_SCENE:ob-mtny8fqt-vq87,ob-mtny8fqt-5mhh|wl-mtny8fqt-y4eb:WEAVE_SHARED_CHARACTER:ob-mtny8fqt-vq87,ob-mtny8fqt-69ru",
     "title": "生产母稿（详细展开）",
     "premiseSummary": "古风推理 · 架空王朝 · 情感 · 推理",
     "stages": [
@@ -19,11 +19,11 @@
         "purpose": "白斋子：隐藏或维持当前身份表象；莫玄宗：巩固或潜伏阵营结构；沈孤鸿：准备可嫁祸的假象",
         "beats": [
           {
-            "id": "pbeat-ob-mtn0omah-lrnx",
+            "id": "pbeat-ob-mtny8fqt-skvu",
             "sourceBeatId": "beat-setup",
-            "sourceOutlineBeatId": "ob-mtn0omah-lrnx",
-            "sourceBlockId": "smb-mtn0omaf-zzy92",
-            "sourceMechanismId": "smb-mtn0omaf-zzy92",
+            "sourceOutlineBeatId": "ob-mtny8fqt-skvu",
+            "sourceBlockId": "smb-mtny8fqr-najg0",
+            "sourceMechanismId": "smb-mtny8fqr-najg0",
             "templateId": "M07-2",
             "familyId": "M07",
             "actors": [
@@ -35,6 +35,9 @@
                 "id": "B",
                 "name": "沈孤鸿"
               }
+            ],
+            "ownerCharacterIds": [
+              "A"
             ],
             "goal": "隐藏或维持当前身份表象",
             "action": "按伪装/未知状态行动，避免过早暴露",
@@ -53,7 +56,7 @@
             "playerKnowledge": "玩家可见：按伪装/未知状态行动，避免过早暴露（仅同场，不暗示因果）",
             "hostTruth": "主持真相：白斋子为了隐藏或维持当前身份表象，按伪装/未知状态行动，避免过早暴露（目标：身份表象）",
             "clueRefs": [
-              "smb-mtn0omaf-zzy92-foreshadow-0"
+              "smb-mtny8fqr-najg0-foreshadow-0"
             ],
             "relatedCharacterIds": [
               "A",
@@ -61,10 +64,10 @@
             ],
             "relationQuality": "COLOCATED",
             "weaveLinkIds": [
-              "wl-mtn0omah-cf75",
-              "wl-mtn0omah-b3dq",
-              "wl-mtn0omah-cw8m",
-              "wl-mtn0omah-fo0l"
+              "wl-mtny8fqt-80f7",
+              "wl-mtny8fqt-9prf",
+              "wl-mtny8fqt-441t",
+              "wl-mtny8fqt-ewt9"
             ],
             "relationNotes": [
               "【同场并列】同阶段共享角色 B——可同场并列，不算真正交织",
@@ -76,11 +79,11 @@
             "contentConfirmed": false
           },
           {
-            "id": "pbeat-ob-mtn0omah-y1a8",
+            "id": "pbeat-ob-mtny8fqt-mfyp",
             "sourceBeatId": "beat-setup",
-            "sourceOutlineBeatId": "ob-mtn0omah-y1a8",
-            "sourceBlockId": "smb-mtn0omag-p3wie",
-            "sourceMechanismId": "smb-mtn0omag-p3wie",
+            "sourceOutlineBeatId": "ob-mtny8fqt-mfyp",
+            "sourceBlockId": "smb-mtny8fqs-dib2c",
+            "sourceMechanismId": "smb-mtny8fqs-dib2c",
             "templateId": "M08-7",
             "familyId": "M08",
             "actors": [
@@ -92,6 +95,9 @@
                 "id": "B",
                 "name": "沈孤鸿"
               }
+            ],
+            "ownerCharacterIds": [
+              "F"
             ],
             "goal": "巩固或潜伏阵营结构",
             "action": "确认成员知情范围与联络方式",
@@ -110,7 +116,7 @@
             "playerKnowledge": "玩家可见：确认成员知情范围与联络方式（仅同场，不暗示因果）",
             "hostTruth": "主持真相：莫玄宗为了巩固或潜伏阵营结构，确认成员知情范围与联络方式（目标：阵营名单/暗号）",
             "clueRefs": [
-              "smb-mtn0omag-p3wie-faction_foreshadow-0"
+              "smb-mtny8fqs-dib2c-faction_foreshadow-0"
             ],
             "relatedCharacterIds": [
               "F",
@@ -118,9 +124,9 @@
             ],
             "relationQuality": "COLOCATED",
             "weaveLinkIds": [
-              "wl-mtn0omah-cf75",
-              "wl-mtn0omah-ed6s",
-              "wl-mtn0omah-3d9f"
+              "wl-mtny8fqt-80f7",
+              "wl-mtny8fqt-jbcj",
+              "wl-mtny8fqt-aebr"
             ],
             "relationNotes": [
               "【同场并列】同阶段共享角色 B——可同场并列，不算真正交织",
@@ -131,11 +137,11 @@
             "contentConfirmed": false
           },
           {
-            "id": "pbeat-ob-mtn0omah-a9mt",
+            "id": "pbeat-ob-mtny8fqt-uc7z",
             "sourceBeatId": "beat-setup",
-            "sourceOutlineBeatId": "ob-mtn0omah-a9mt",
-            "sourceBlockId": "smb-mtn0omag-d4cwv",
-            "sourceMechanismId": "smb-mtn0omag-d4cwv",
+            "sourceOutlineBeatId": "ob-mtny8fqt-uc7z",
+            "sourceBlockId": "smb-mtny8fqs-877jw",
+            "sourceMechanismId": "smb-mtny8fqs-877jw",
             "templateId": "M01-FRAMING",
             "familyId": "M01",
             "actors": [
@@ -147,6 +153,9 @@
                 "id": "C",
                 "name": "顾清商"
               }
+            ],
+            "ownerCharacterIds": [
+              "B"
             ],
             "goal": "准备可嫁祸的假象",
             "action": "布置与顾清商相关的误导物",
@@ -171,8 +180,8 @@
             ],
             "relationQuality": "COLOCATED",
             "weaveLinkIds": [
-              "wl-mtn0omah-cw8m",
-              "wl-mtn0omah-ed6s"
+              "wl-mtny8fqt-441t",
+              "wl-mtny8fqt-jbcj"
             ],
             "relationNotes": [
               "【同场并列】同阶段共享角色 B——可同场并列，不算真正交织",
@@ -188,14 +197,23 @@
         "stageEndState": "身份仍未公开；阵营结构已成形；误导物已就绪",
         "clueEntries": [
           {
-            "clueId": "smb-mtn0omaf-zzy92-foreshadow-0",
+            "clueId": "smb-mtny8fqr-najg0-foreshadow-0",
             "label": "早期伏笔",
-            "mechanismId": "smb-mtn0omaf-zzy92",
+            "mechanismId": "smb-mtny8fqr-najg0",
             "templateId": "M07-2",
+            "introducedAt": "act1",
+            "availableStages": [
+              "act1",
+              "act2"
+            ],
+            "persists": true,
             "stageId": "act1",
             "possibleFinders": [
               "A",
-              "B"
+              "B",
+              "C",
+              "D",
+              "E"
             ],
             "supportsFact": "早期伏笔",
             "isMisleading": false,
@@ -203,14 +221,24 @@
             "missingDetail": false
           },
           {
-            "clueId": "smb-mtn0omag-p3wie-faction_foreshadow-0",
+            "clueId": "smb-mtny8fqs-dib2c-faction_foreshadow-0",
             "label": "阵营伏笔",
-            "mechanismId": "smb-mtn0omag-p3wie",
+            "mechanismId": "smb-mtny8fqs-dib2c",
             "templateId": "M08-7",
+            "introducedAt": "act1",
+            "availableStages": [
+              "act1",
+              "act2"
+            ],
+            "persists": true,
             "stageId": "act1",
             "possibleFinders": [
               "F",
-              "B"
+              "B",
+              "C",
+              "D",
+              "E",
+              "A"
             ],
             "supportsFact": "阵营伏笔",
             "isMisleading": false,
@@ -218,17 +246,22 @@
             "missingDetail": false
           },
           {
-            "clueId": "fact-interface:ob-mtn0omah-a9mt",
+            "clueId": "fact-interface:ob-mtny8fqt-uc7z",
             "label": "事实接口（尚无线索实体）",
-            "mechanismId": "smb-mtn0omag-d4cwv",
+            "mechanismId": "smb-mtny8fqs-877jw",
             "templateId": "M01-FRAMING",
+            "introducedAt": "act1",
+            "availableStages": [
+              "act1"
+            ],
+            "persists": false,
             "stageId": "act1",
             "possibleFinders": [
               "B",
               "C"
             ],
             "supportsFact": "误导物已就绪",
-            "isMisleading": false,
+            "isMisleading": true,
             "isDecisive": false,
             "missingDetail": true,
             "detailNote": "这个剧情 beat 需要关键线索，但模板尚未提供具体线索内容。"
@@ -268,7 +301,7 @@
             "beatIds": []
           },
           {
-            "id": "warn-clue-ob-mtn0omah-a9mt",
+            "id": "warn-clue-ob-mtny8fqt-uc7z",
             "type": "MISSING_CLUE_DETAIL",
             "severity": "info",
             "message": "该剧情 beat 需要/产生事实接口，但模板尚未绑定具体线索内容。",
@@ -276,7 +309,7 @@
               "act1"
             ],
             "beatIds": [
-              "ob-mtn0omah-a9mt"
+              "ob-mtny8fqt-uc7z"
             ]
           }
         ]
@@ -286,14 +319,14 @@
         "stageRole": "PRESSURE",
         "title": "加压",
         "order": 1,
-        "purpose": "白斋子：用正式动作换取被条件锁住的信息；莫玄宗：让公共任务按本阵营偏好成功、失败或延迟；沈孤鸿：完成犯行并指向顾清商",
+        "purpose": "白斋子：用正式动作换取被条件锁住的信息；莫玄宗：让公共任务按本阵营偏好成功、失败或延迟；沈孤鸿：完成犯行并指向顾清商；莫玄宗：推翻对顾清商的错误判断",
         "beats": [
           {
-            "id": "pbeat-ob-mtn0omah-wr42",
+            "id": "pbeat-ob-mtny8fqt-90ck",
             "sourceBeatId": "beat-develop",
-            "sourceOutlineBeatId": "ob-mtn0omah-wr42",
-            "sourceBlockId": "smb-mtn0omaf-zzy92",
-            "sourceMechanismId": "smb-mtn0omaf-zzy92",
+            "sourceOutlineBeatId": "ob-mtny8fqt-90ck",
+            "sourceBlockId": "smb-mtny8fqr-najg0",
+            "sourceMechanismId": "smb-mtny8fqr-najg0",
             "templateId": "M07-2",
             "familyId": "M07",
             "actors": [
@@ -318,6 +351,9 @@
                 "name": "叶晚晴"
               }
             ],
+            "ownerCharacterIds": [
+              "A"
+            ],
             "goal": "用正式动作换取被条件锁住的信息",
             "action": "完成登记条件以触发内容开放",
             "target": "身份记录",
@@ -341,7 +377,7 @@
             "playerKnowledge": "玩家可见：完成登记条件以触发内容开放（仅同场，不暗示因果）",
             "hostTruth": "主持真相：白斋子为了用正式动作换取被条件锁住的信息，完成登记条件以触发内容开放（目标：身份记录）",
             "clueRefs": [
-              "smb-mtn0omaf-zzy92-foreshadow-0"
+              "smb-mtny8fqr-najg0-foreshadow-0"
             ],
             "relatedCharacterIds": [
               "A",
@@ -352,12 +388,12 @@
             ],
             "relationQuality": "COLOCATED",
             "weaveLinkIds": [
-              "wl-mtn0omah-cz98",
-              "wl-mtn0omah-1bbj",
-              "wl-mtn0omah-7jnc",
-              "wl-mtn0omah-7exf",
-              "wl-mtn0omah-s88i",
-              "wl-mtn0omah-hx6i"
+              "wl-mtny8fqt-ct4v",
+              "wl-mtny8fqt-rtcp",
+              "wl-mtny8fqt-l4ez",
+              "wl-mtny8fqt-s76f",
+              "wl-mtny8fqt-7u4t",
+              "wl-mtny8fqt-qs3i"
             ],
             "relationNotes": [
               "【同场并列】同阶段共享角色 A、B、C、D、E——可同场并列，不算真正交织",
@@ -371,11 +407,11 @@
             "contentConfirmed": false
           },
           {
-            "id": "pbeat-ob-mtn0omah-01tb",
+            "id": "pbeat-ob-mtny8fqt-yxcl",
             "sourceBeatId": "beat-develop",
-            "sourceOutlineBeatId": "ob-mtn0omah-01tb",
-            "sourceBlockId": "smb-mtn0omag-p3wie",
-            "sourceMechanismId": "smb-mtn0omag-p3wie",
+            "sourceOutlineBeatId": "ob-mtny8fqt-yxcl",
+            "sourceBlockId": "smb-mtny8fqs-dib2c",
+            "sourceMechanismId": "smb-mtny8fqs-dib2c",
             "templateId": "M08-7",
             "familyId": "M08",
             "actors": [
@@ -403,6 +439,9 @@
                 "id": "A",
                 "name": "白斋子"
               }
+            ],
+            "ownerCharacterIds": [
+              "F"
             ],
             "goal": "让公共任务按本阵营偏好成功、失败或延迟",
             "action": "对公共任务施加正式破坏或支援",
@@ -432,7 +471,7 @@
             "playerKnowledge": "玩家可见：对公共任务施加正式破坏或支援（仅同场，不暗示因果）",
             "hostTruth": "主持真相：莫玄宗为了让公共任务按本阵营偏好成功、失败或延迟，对公共任务施加正式破坏或支援（目标：公共任务状态）",
             "clueRefs": [
-              "smb-mtn0omag-p3wie-faction_foreshadow-0"
+              "smb-mtny8fqs-dib2c-faction_foreshadow-0"
             ],
             "relatedCharacterIds": [
               "F",
@@ -444,12 +483,12 @@
             ],
             "relationQuality": "COLOCATED",
             "weaveLinkIds": [
-              "wl-mtn0omah-b3dq",
-              "wl-mtn0omah-cz98",
-              "wl-mtn0omah-phod",
-              "wl-mtn0omah-1lik",
-              "wl-mtn0omah-s88i",
-              "wl-mtn0omah-62di"
+              "wl-mtny8fqt-9prf",
+              "wl-mtny8fqt-ct4v",
+              "wl-mtny8fqt-evem",
+              "wl-mtny8fqt-uvg2",
+              "wl-mtny8fqt-7u4t",
+              "wl-mtny8fqt-bq98"
             ],
             "relationNotes": [
               "【同场并列】共享角色 A、B——仅角色重合，保持同场并列而非强制合并",
@@ -463,11 +502,11 @@
             "contentConfirmed": false
           },
           {
-            "id": "pbeat-ob-mtn0omah-bssk",
+            "id": "pbeat-ob-mtny8fqt-2gz6",
             "sourceBeatId": "beat-crime",
-            "sourceOutlineBeatId": "ob-mtn0omah-bssk",
-            "sourceBlockId": "smb-mtn0omag-d4cwv",
-            "sourceMechanismId": "smb-mtn0omag-d4cwv",
+            "sourceOutlineBeatId": "ob-mtny8fqt-2gz6",
+            "sourceBlockId": "smb-mtny8fqs-877jw",
+            "sourceMechanismId": "smb-mtny8fqs-877jw",
             "templateId": "M01-FRAMING",
             "familyId": "M01",
             "actors": [
@@ -483,6 +522,9 @@
                 "id": "F",
                 "name": "莫玄宗"
               }
+            ],
+            "ownerCharacterIds": [
+              "B"
             ],
             "goal": "完成犯行并指向顾清商",
             "action": "实施犯行并留下指向顾清商的痕迹",
@@ -512,7 +554,7 @@
             "playerKnowledge": "玩家可见：实施犯行并留下指向顾清商的痕迹（仅同场，不暗示因果）",
             "hostTruth": "主持真相：沈孤鸿为了完成犯行并指向顾清商，实施犯行并留下指向顾清商的痕迹（目标：被拨慢的座钟记录）",
             "clueRefs": [
-              "smb-mtn0omag-d4cwv-false_lead-0"
+              "smb-mtny8fqs-877jw-false_lead-0"
             ],
             "relatedCharacterIds": [
               "B",
@@ -521,12 +563,12 @@
             ],
             "relationQuality": "COLOCATED",
             "weaveLinkIds": [
-              "wl-mtn0omah-fo0l",
-              "wl-mtn0omah-7jnc",
-              "wl-mtn0omah-3d9f",
-              "wl-mtn0omah-phod",
-              "wl-mtn0omah-hx6i",
-              "wl-mtn0omah-62di"
+              "wl-mtny8fqt-ewt9",
+              "wl-mtny8fqt-l4ez",
+              "wl-mtny8fqt-aebr",
+              "wl-mtny8fqt-evem",
+              "wl-mtny8fqt-qs3i",
+              "wl-mtny8fqt-bq98"
             ],
             "relationNotes": [
               "【同场并列】共享角色 B——仅角色重合，保持同场并列而非强制合并",
@@ -540,11 +582,11 @@
             "contentConfirmed": false
           },
           {
-            "id": "pbeat-ob-mtn0omah-7z3f",
+            "id": "pbeat-ob-mtny8fqt-rz8b",
             "sourceBeatId": "beat-false",
-            "sourceOutlineBeatId": "ob-mtn0omah-7z3f",
-            "sourceBlockId": "smb-mtn0omag-d4cwv",
-            "sourceMechanismId": "smb-mtn0omag-d4cwv",
+            "sourceOutlineBeatId": "ob-mtny8fqt-rz8b",
+            "sourceBlockId": "smb-mtny8fqs-877jw",
+            "sourceMechanismId": "smb-mtny8fqs-877jw",
             "templateId": "M01-FRAMING",
             "familyId": "M01",
             "actors": [
@@ -556,6 +598,9 @@
                 "id": "C",
                 "name": "顾清商"
               }
+            ],
+            "ownerCharacterIds": [
+              "B"
             ],
             "goal": "完成犯行并指向顾清商",
             "action": "实施犯行并留下指向顾清商的痕迹",
@@ -585,7 +630,7 @@
             "playerKnowledge": "玩家可见：实施犯行并留下指向顾清商的痕迹",
             "hostTruth": "主持真相：沈孤鸿为了完成犯行并指向顾清商，实施犯行并留下指向顾清商的痕迹（目标：被拨慢的座钟记录）",
             "clueRefs": [
-              "smb-mtn0omag-d4cwv-false_lead-0"
+              "smb-mtny8fqs-877jw-false_lead-0"
             ],
             "relatedCharacterIds": [
               "B",
@@ -597,11 +642,11 @@
             "contentConfirmed": false
           },
           {
-            "id": "pbeat-ob-mtn0omah-quiz",
+            "id": "pbeat-ob-mtny8fqt-dkxf",
             "sourceBeatId": "beat-contra",
-            "sourceOutlineBeatId": "ob-mtn0omah-quiz",
-            "sourceBlockId": "smb-mtn0omag-d4cwv",
-            "sourceMechanismId": "smb-mtn0omag-d4cwv",
+            "sourceOutlineBeatId": "ob-mtny8fqt-dkxf",
+            "sourceBlockId": "smb-mtny8fqs-877jw",
+            "sourceMechanismId": "smb-mtny8fqs-877jw",
             "templateId": "M01-FRAMING",
             "familyId": "M01",
             "actors": [
@@ -609,6 +654,9 @@
                 "id": "F",
                 "name": "莫玄宗"
               }
+            ],
+            "ownerCharacterIds": [
+              "F"
             ],
             "goal": "推翻对顾清商的错误判断",
             "action": "对照现场与证物寻找矛盾",
@@ -633,7 +681,7 @@
             "playerKnowledge": "玩家可见：对照现场与证物寻找矛盾",
             "hostTruth": "主持真相：莫玄宗为了推翻对顾清商的错误判断，对照现场与证物寻找矛盾（目标：被拨慢的座钟记录）",
             "clueRefs": [
-              "smb-mtn0omag-d4cwv-contradiction-1"
+              "smb-mtny8fqs-877jw-contradiction-1"
             ],
             "relatedCharacterIds": [
               "F"
@@ -645,16 +693,22 @@
           }
         ],
         "playerVisibleSummary": "玩家可见：完成登记条件以触发内容开放（仅同场，不暗示因果） / 玩家可见：对公共任务施加正式破坏或支援（仅同场，不暗示因果） / 玩家可见：实施犯行并留下指向顾清商的痕迹（仅同场，不暗示因果） / 玩家可见：实施犯行并留下指向顾清商的痕迹 / 玩家可见：对照现场与证物寻找矛盾",
-        "hostTruthSummary": "主持真相：白斋子为了用正式动作换取被条件锁住的信息，完成登记条件以触发内容开放（目标：身份记录） / 主持真相：莫玄宗为了让公共任务按本阵营偏好成功、失败或延迟，对公共任务施加正式破坏或支援（目标：公共任务状态） / 主持真相：沈孤鸿为了完成犯行并指向顾清商，实施犯行并留下指向顾清商的痕迹（目标：被拨慢的座钟记录） / 主持真相：沈孤鸿为了完成犯行并指向顾清商，实施犯行并留下指向顾清商的痕迹（目标：被拨慢的座钟记录） / 主持真相：莫玄宗为了推翻对顾清商的错误判断，对照现场与证物寻找矛盾（目标：被拨慢的座钟记录）",
+        "hostTruthSummary": "主持真相：白斋子为了用正式动作换取被条件锁住的信息，完成登记条件以触发内容开放（目标：身份记录） / 主持真相：莫玄宗为了让公共任务按本阵营偏好成功、失败或延迟，对公共任务施加正式破坏或支援（目标：公共任务状态） / 主持真相：沈孤鸿为了完成犯行并指向顾清商，实施犯行并留下指向顾清商的痕迹（目标：被拨慢的座钟记录） / 主持真相：莫玄宗为了推翻对顾清商的错误判断，对照现场与证物寻找矛盾（目标：被拨慢的座钟记录）",
         "stageStartState": "承接上一阶段已声明后果；未声明者标 UNKNOWN",
-        "stageEndState": "条件开放的信息；阵营压力升级；犯行已发生；错误嫌疑成立；犯行已发生；错误嫌疑成立；反证出现",
+        "stageEndState": "条件开放的信息；阵营压力升级；犯行已发生；错误嫌疑成立；反证出现",
         "clueEntries": [
           {
-            "clueId": "smb-mtn0omaf-zzy92-foreshadow-0",
+            "clueId": "smb-mtny8fqr-najg0-foreshadow-0",
             "label": "早期伏笔",
-            "mechanismId": "smb-mtn0omaf-zzy92",
+            "mechanismId": "smb-mtny8fqr-najg0",
             "templateId": "M07-2",
-            "stageId": "act2",
+            "introducedAt": "act1",
+            "availableStages": [
+              "act1",
+              "act2"
+            ],
+            "persists": true,
+            "stageId": "act1",
             "possibleFinders": [
               "A",
               "B",
@@ -668,11 +722,17 @@
             "missingDetail": false
           },
           {
-            "clueId": "smb-mtn0omag-p3wie-faction_foreshadow-0",
+            "clueId": "smb-mtny8fqs-dib2c-faction_foreshadow-0",
             "label": "阵营伏笔",
-            "mechanismId": "smb-mtn0omag-p3wie",
+            "mechanismId": "smb-mtny8fqs-dib2c",
             "templateId": "M08-7",
-            "stageId": "act2",
+            "introducedAt": "act1",
+            "availableStages": [
+              "act1",
+              "act2"
+            ],
+            "persists": true,
+            "stageId": "act1",
             "possibleFinders": [
               "F",
               "B",
@@ -687,26 +747,37 @@
             "missingDetail": false
           },
           {
-            "clueId": "smb-mtn0omag-d4cwv-false_lead-0",
+            "clueId": "smb-mtny8fqs-877jw-false_lead-0",
             "label": "误导",
-            "mechanismId": "smb-mtn0omag-d4cwv",
+            "mechanismId": "smb-mtny8fqs-877jw",
             "templateId": "M01-FRAMING",
+            "introducedAt": "act2",
+            "availableStages": [
+              "act2"
+            ],
+            "persists": false,
             "stageId": "act2",
             "possibleFinders": [
               "B",
               "NPC_LU",
-              "F"
+              "F",
+              "C"
             ],
             "supportsFact": "被拨慢的座钟记录",
-            "isMisleading": false,
+            "isMisleading": true,
             "isDecisive": false,
             "missingDetail": false
           },
           {
-            "clueId": "smb-mtn0omag-d4cwv-contradiction-1",
+            "clueId": "smb-mtny8fqs-877jw-contradiction-1",
             "label": "反证",
-            "mechanismId": "smb-mtn0omag-d4cwv",
+            "mechanismId": "smb-mtny8fqs-877jw",
             "templateId": "M01-FRAMING",
+            "introducedAt": "act2",
+            "availableStages": [
+              "act2"
+            ],
+            "persists": false,
             "stageId": "act2",
             "possibleFinders": [
               "F"
@@ -772,11 +843,11 @@
         "purpose": "白斋子：确认真实身份并决定是否公开；叶晚晴：在暴露风险下改归属或保住秘密；莫玄宗：推翻对顾清商的错误判断",
         "beats": [
           {
-            "id": "pbeat-ob-mtn0omah-0hpf",
+            "id": "pbeat-ob-mtny8fqt-vq87",
             "sourceBeatId": "beat-climax",
-            "sourceOutlineBeatId": "ob-mtn0omah-0hpf",
-            "sourceBlockId": "smb-mtn0omaf-zzy92",
-            "sourceMechanismId": "smb-mtn0omaf-zzy92",
+            "sourceOutlineBeatId": "ob-mtny8fqt-vq87",
+            "sourceBlockId": "smb-mtny8fqr-najg0",
+            "sourceMechanismId": "smb-mtny8fqr-najg0",
             "templateId": "M07-2",
             "familyId": "M07",
             "actors": [
@@ -800,6 +871,9 @@
                 "id": "E",
                 "name": "叶晚晴"
               }
+            ],
+            "ownerCharacterIds": [
+              "A"
             ],
             "goal": "确认真实身份并决定是否公开",
             "action": "核对身份线索并作出公开或隐瞒选择",
@@ -829,11 +903,11 @@
             "playerKnowledge": "玩家可见：核对身份线索并作出公开或隐瞒选择（仅同场，不暗示因果）",
             "hostTruth": "主持真相：白斋子为了确认真实身份并决定是否公开，核对身份线索并作出公开或隐瞒选择（目标：真实身份）",
             "clueRefs": [
-              "smb-mtn0omaf-zzy92-memory_fragment-1",
-              "smb-mtn0omaf-zzy92-identity_hint-2",
-              "smb-mtn0omaf-zzy92-misdirection-3",
-              "smb-mtn0omaf-zzy92-confirmation-4",
-              "smb-mtn0omaf-zzy92-decisive_reveal-5"
+              "smb-mtny8fqr-najg0-memory_fragment-1",
+              "smb-mtny8fqr-najg0-identity_hint-2",
+              "smb-mtny8fqr-najg0-misdirection-3",
+              "smb-mtny8fqr-najg0-confirmation-4",
+              "smb-mtny8fqr-najg0-decisive_reveal-5"
             ],
             "relatedCharacterIds": [
               "A",
@@ -844,10 +918,10 @@
             ],
             "relationQuality": "COLOCATED",
             "weaveLinkIds": [
-              "wl-mtn0omah-0x68",
-              "wl-mtn0omah-mv8a",
-              "wl-mtn0omah-l07k",
-              "wl-mtn0omah-o58j"
+              "wl-mtny8fqt-vism",
+              "wl-mtny8fqt-y4eb",
+              "wl-mtny8fqt-0txx",
+              "wl-mtny8fqt-ak4x"
             ],
             "relationNotes": [
               "【同场并列】同阶段共享角色 A、B、C、D、E——可同场并列，不算真正交织",
@@ -859,11 +933,11 @@
             "contentConfirmed": false
           },
           {
-            "id": "pbeat-ob-mtn0omah-4yf2",
+            "id": "pbeat-ob-mtny8fqt-5mhh",
             "sourceBeatId": "beat-climax",
-            "sourceOutlineBeatId": "ob-mtn0omah-4yf2",
-            "sourceBlockId": "smb-mtn0omag-p3wie",
-            "sourceMechanismId": "smb-mtn0omag-p3wie",
+            "sourceOutlineBeatId": "ob-mtny8fqt-5mhh",
+            "sourceBlockId": "smb-mtny8fqs-dib2c",
+            "sourceMechanismId": "smb-mtny8fqs-dib2c",
             "templateId": "M08-7",
             "familyId": "M08",
             "actors": [
@@ -891,6 +965,9 @@
                 "id": "A",
                 "name": "白斋子"
               }
+            ],
+            "ownerCharacterIds": [
+              "E"
             ],
             "goal": "在暴露风险下改归属或保住秘密",
             "action": "在关键选择点背叛、退出或清洗异己",
@@ -920,15 +997,15 @@
             "playerKnowledge": "玩家可见：在关键选择点背叛、退出或清洗异己（仅同场，不暗示因果）",
             "hostTruth": "主持真相：叶晚晴为了在暴露风险下改归属或保住秘密，在关键选择点背叛、退出或清洗异己（目标：归属状态）",
             "clueRefs": [
-              "smb-mtn0omag-p3wie-membership_hint-1",
-              "smb-mtn0omag-p3wie-secret_signal-2",
-              "smb-mtn0omag-p3wie-recruitment_evidence-3",
-              "smb-mtn0omag-p3wie-loyalty_test-4",
-              "smb-mtn0omag-p3wie-betrayal_hint-5",
-              "smb-mtn0omag-p3wie-internal_conflict-6",
-              "smb-mtn0omag-p3wie-hidden_goal_hint-7",
-              "smb-mtn0omag-p3wie-membership_confirmation-8",
-              "smb-mtn0omag-p3wie-faction_exposure-9"
+              "smb-mtny8fqs-dib2c-membership_hint-1",
+              "smb-mtny8fqs-dib2c-secret_signal-2",
+              "smb-mtny8fqs-dib2c-recruitment_evidence-3",
+              "smb-mtny8fqs-dib2c-loyalty_test-4",
+              "smb-mtny8fqs-dib2c-betrayal_hint-5",
+              "smb-mtny8fqs-dib2c-internal_conflict-6",
+              "smb-mtny8fqs-dib2c-hidden_goal_hint-7",
+              "smb-mtny8fqs-dib2c-membership_confirmation-8",
+              "smb-mtny8fqs-dib2c-faction_exposure-9"
             ],
             "relatedCharacterIds": [
               "E",
@@ -940,10 +1017,10 @@
             ],
             "relationQuality": "COLOCATED",
             "weaveLinkIds": [
-              "wl-mtn0omah-1bbj",
-              "wl-mtn0omah-0x68",
-              "wl-mtn0omah-jfks",
-              "wl-mtn0omah-il0o"
+              "wl-mtny8fqt-rtcp",
+              "wl-mtny8fqt-vism",
+              "wl-mtny8fqt-mmwp",
+              "wl-mtny8fqt-qmpx"
             ],
             "relationNotes": [
               "【同场并列】共享角色 A、B、C、D、E——仅角色重合，保持同场并列而非强制合并",
@@ -955,11 +1032,11 @@
             "contentConfirmed": false
           },
           {
-            "id": "pbeat-ob-mtn0omah-1kgz",
+            "id": "pbeat-ob-mtny8fqt-iw7f",
             "sourceBeatId": "beat-climax",
-            "sourceOutlineBeatId": "ob-mtn0omah-1kgz",
-            "sourceBlockId": "smb-mtn0omag-d4cwv",
-            "sourceMechanismId": "smb-mtn0omag-d4cwv",
+            "sourceOutlineBeatId": "ob-mtny8fqt-iw7f",
+            "sourceBlockId": "smb-mtny8fqs-877jw",
+            "sourceMechanismId": "smb-mtny8fqs-877jw",
             "templateId": "M01-FRAMING",
             "familyId": "M01",
             "actors": [
@@ -975,6 +1052,9 @@
                 "id": "C",
                 "name": "顾清商"
               }
+            ],
+            "ownerCharacterIds": [
+              "F"
             ],
             "goal": "推翻对顾清商的错误判断",
             "action": "对照现场与证物寻找矛盾",
@@ -999,8 +1079,8 @@
             "playerKnowledge": "玩家可见：对照现场与证物寻找矛盾（仅同场，不暗示因果）",
             "hostTruth": "主持真相：莫玄宗为了推翻对顾清商的错误判断，对照现场与证物寻找矛盾（目标：被拨慢的座钟记录）",
             "clueRefs": [
-              "smb-mtn0omag-d4cwv-true_evidence-2",
-              "smb-mtn0omag-d4cwv-decisive_evidence-3"
+              "smb-mtny8fqs-877jw-true_evidence-2",
+              "smb-mtny8fqs-877jw-decisive_evidence-3"
             ],
             "relatedCharacterIds": [
               "F",
@@ -1009,10 +1089,10 @@
             ],
             "relationQuality": "COLOCATED",
             "weaveLinkIds": [
-              "wl-mtn0omah-7exf",
-              "wl-mtn0omah-l07k",
-              "wl-mtn0omah-1lik",
-              "wl-mtn0omah-jfks"
+              "wl-mtny8fqt-s76f",
+              "wl-mtny8fqt-0txx",
+              "wl-mtny8fqt-uvg2",
+              "wl-mtny8fqt-mmwp"
             ],
             "relationNotes": [
               "【同场并列】共享角色 B、C——仅角色重合，保持同场并列而非强制合并",
@@ -1030,10 +1110,15 @@
         "stageEndState": "身份已确认；家族/资格状态；归属已改变；暴露风险上升；反证出现",
         "clueEntries": [
           {
-            "clueId": "smb-mtn0omaf-zzy92-memory_fragment-1",
+            "clueId": "smb-mtny8fqr-najg0-memory_fragment-1",
             "label": "记忆碎片",
-            "mechanismId": "smb-mtn0omaf-zzy92",
+            "mechanismId": "smb-mtny8fqr-najg0",
             "templateId": "M07-2",
+            "introducedAt": "act3",
+            "availableStages": [
+              "act3"
+            ],
+            "persists": false,
             "stageId": "act3",
             "possibleFinders": [
               "A",
@@ -1048,10 +1133,15 @@
             "missingDetail": false
           },
           {
-            "clueId": "smb-mtn0omaf-zzy92-identity_hint-2",
+            "clueId": "smb-mtny8fqr-najg0-identity_hint-2",
             "label": "身份暗示",
-            "mechanismId": "smb-mtn0omaf-zzy92",
+            "mechanismId": "smb-mtny8fqr-najg0",
             "templateId": "M07-2",
+            "introducedAt": "act3",
+            "availableStages": [
+              "act3"
+            ],
+            "persists": false,
             "stageId": "act3",
             "possibleFinders": [
               "A",
@@ -1066,10 +1156,15 @@
             "missingDetail": false
           },
           {
-            "clueId": "smb-mtn0omaf-zzy92-misdirection-3",
+            "clueId": "smb-mtny8fqr-najg0-misdirection-3",
             "label": "误导",
-            "mechanismId": "smb-mtn0omaf-zzy92",
+            "mechanismId": "smb-mtny8fqr-najg0",
             "templateId": "M07-2",
+            "introducedAt": "act3",
+            "availableStages": [
+              "act3"
+            ],
+            "persists": false,
             "stageId": "act3",
             "possibleFinders": [
               "A",
@@ -1079,15 +1174,20 @@
               "E"
             ],
             "supportsFact": "误导",
-            "isMisleading": false,
+            "isMisleading": true,
             "isDecisive": false,
             "missingDetail": false
           },
           {
-            "clueId": "smb-mtn0omaf-zzy92-confirmation-4",
+            "clueId": "smb-mtny8fqr-najg0-confirmation-4",
             "label": "确认",
-            "mechanismId": "smb-mtn0omaf-zzy92",
+            "mechanismId": "smb-mtny8fqr-najg0",
             "templateId": "M07-2",
+            "introducedAt": "act3",
+            "availableStages": [
+              "act3"
+            ],
+            "persists": false,
             "stageId": "act3",
             "possibleFinders": [
               "A",
@@ -1102,10 +1202,15 @@
             "missingDetail": false
           },
           {
-            "clueId": "smb-mtn0omaf-zzy92-decisive_reveal-5",
+            "clueId": "smb-mtny8fqr-najg0-decisive_reveal-5",
             "label": "决定性揭示",
-            "mechanismId": "smb-mtn0omaf-zzy92",
+            "mechanismId": "smb-mtny8fqr-najg0",
             "templateId": "M07-2",
+            "introducedAt": "act3",
+            "availableStages": [
+              "act3"
+            ],
+            "persists": false,
             "stageId": "act3",
             "possibleFinders": [
               "A",
@@ -1120,10 +1225,15 @@
             "missingDetail": false
           },
           {
-            "clueId": "smb-mtn0omag-p3wie-membership_hint-1",
+            "clueId": "smb-mtny8fqs-dib2c-membership_hint-1",
             "label": "成员暗示",
-            "mechanismId": "smb-mtn0omag-p3wie",
+            "mechanismId": "smb-mtny8fqs-dib2c",
             "templateId": "M08-7",
+            "introducedAt": "act3",
+            "availableStages": [
+              "act3"
+            ],
+            "persists": false,
             "stageId": "act3",
             "possibleFinders": [
               "E",
@@ -1139,10 +1249,15 @@
             "missingDetail": false
           },
           {
-            "clueId": "smb-mtn0omag-p3wie-secret_signal-2",
+            "clueId": "smb-mtny8fqs-dib2c-secret_signal-2",
             "label": "秘密信号",
-            "mechanismId": "smb-mtn0omag-p3wie",
+            "mechanismId": "smb-mtny8fqs-dib2c",
             "templateId": "M08-7",
+            "introducedAt": "act3",
+            "availableStages": [
+              "act3"
+            ],
+            "persists": false,
             "stageId": "act3",
             "possibleFinders": [
               "E",
@@ -1158,10 +1273,15 @@
             "missingDetail": false
           },
           {
-            "clueId": "smb-mtn0omag-p3wie-recruitment_evidence-3",
+            "clueId": "smb-mtny8fqs-dib2c-recruitment_evidence-3",
             "label": "招募证据",
-            "mechanismId": "smb-mtn0omag-p3wie",
+            "mechanismId": "smb-mtny8fqs-dib2c",
             "templateId": "M08-7",
+            "introducedAt": "act3",
+            "availableStages": [
+              "act3"
+            ],
+            "persists": false,
             "stageId": "act3",
             "possibleFinders": [
               "E",
@@ -1177,10 +1297,15 @@
             "missingDetail": false
           },
           {
-            "clueId": "smb-mtn0omag-p3wie-loyalty_test-4",
+            "clueId": "smb-mtny8fqs-dib2c-loyalty_test-4",
             "label": "忠诚考验",
-            "mechanismId": "smb-mtn0omag-p3wie",
+            "mechanismId": "smb-mtny8fqs-dib2c",
             "templateId": "M08-7",
+            "introducedAt": "act3",
+            "availableStages": [
+              "act3"
+            ],
+            "persists": false,
             "stageId": "act3",
             "possibleFinders": [
               "E",
@@ -1196,10 +1321,15 @@
             "missingDetail": false
           },
           {
-            "clueId": "smb-mtn0omag-p3wie-betrayal_hint-5",
+            "clueId": "smb-mtny8fqs-dib2c-betrayal_hint-5",
             "label": "背叛暗示",
-            "mechanismId": "smb-mtn0omag-p3wie",
+            "mechanismId": "smb-mtny8fqs-dib2c",
             "templateId": "M08-7",
+            "introducedAt": "act3",
+            "availableStages": [
+              "act3"
+            ],
+            "persists": false,
             "stageId": "act3",
             "possibleFinders": [
               "E",
@@ -1215,10 +1345,15 @@
             "missingDetail": false
           },
           {
-            "clueId": "smb-mtn0omag-p3wie-internal_conflict-6",
+            "clueId": "smb-mtny8fqs-dib2c-internal_conflict-6",
             "label": "内部冲突",
-            "mechanismId": "smb-mtn0omag-p3wie",
+            "mechanismId": "smb-mtny8fqs-dib2c",
             "templateId": "M08-7",
+            "introducedAt": "act3",
+            "availableStages": [
+              "act3"
+            ],
+            "persists": false,
             "stageId": "act3",
             "possibleFinders": [
               "E",
@@ -1234,10 +1369,15 @@
             "missingDetail": false
           },
           {
-            "clueId": "smb-mtn0omag-p3wie-hidden_goal_hint-7",
+            "clueId": "smb-mtny8fqs-dib2c-hidden_goal_hint-7",
             "label": "隐藏目标暗示",
-            "mechanismId": "smb-mtn0omag-p3wie",
+            "mechanismId": "smb-mtny8fqs-dib2c",
             "templateId": "M08-7",
+            "introducedAt": "act3",
+            "availableStages": [
+              "act3"
+            ],
+            "persists": false,
             "stageId": "act3",
             "possibleFinders": [
               "E",
@@ -1253,10 +1393,15 @@
             "missingDetail": false
           },
           {
-            "clueId": "smb-mtn0omag-p3wie-membership_confirmation-8",
+            "clueId": "smb-mtny8fqs-dib2c-membership_confirmation-8",
             "label": "归属确认",
-            "mechanismId": "smb-mtn0omag-p3wie",
+            "mechanismId": "smb-mtny8fqs-dib2c",
             "templateId": "M08-7",
+            "introducedAt": "act3",
+            "availableStages": [
+              "act3"
+            ],
+            "persists": false,
             "stageId": "act3",
             "possibleFinders": [
               "E",
@@ -1272,10 +1417,15 @@
             "missingDetail": false
           },
           {
-            "clueId": "smb-mtn0omag-p3wie-faction_exposure-9",
+            "clueId": "smb-mtny8fqs-dib2c-faction_exposure-9",
             "label": "阵营暴露",
-            "mechanismId": "smb-mtn0omag-p3wie",
+            "mechanismId": "smb-mtny8fqs-dib2c",
             "templateId": "M08-7",
+            "introducedAt": "act3",
+            "availableStages": [
+              "act3"
+            ],
+            "persists": false,
             "stageId": "act3",
             "possibleFinders": [
               "E",
@@ -1291,10 +1441,15 @@
             "missingDetail": false
           },
           {
-            "clueId": "smb-mtn0omag-d4cwv-true_evidence-2",
+            "clueId": "smb-mtny8fqs-877jw-true_evidence-2",
             "label": "真手法",
-            "mechanismId": "smb-mtn0omag-d4cwv",
+            "mechanismId": "smb-mtny8fqs-877jw",
             "templateId": "M01-FRAMING",
+            "introducedAt": "act3",
+            "availableStages": [
+              "act3"
+            ],
+            "persists": false,
             "stageId": "act3",
             "possibleFinders": [
               "F",
@@ -1307,15 +1462,22 @@
             "missingDetail": false
           },
           {
-            "clueId": "smb-mtn0omag-d4cwv-decisive_evidence-3",
+            "clueId": "smb-mtny8fqs-877jw-decisive_evidence-3",
             "label": "突破",
-            "mechanismId": "smb-mtn0omag-d4cwv",
+            "mechanismId": "smb-mtny8fqs-877jw",
             "templateId": "M01-FRAMING",
+            "introducedAt": "act3",
+            "availableStages": [
+              "act3",
+              "act4"
+            ],
+            "persists": true,
             "stageId": "act3",
             "possibleFinders": [
               "F",
               "B",
-              "C"
+              "C",
+              "NPC_LU"
             ],
             "supportsFact": "真凶当晚校准过座钟的证词交叉",
             "isMisleading": false,
@@ -1374,11 +1536,11 @@
         "purpose": "白斋子：承受身份公开后的关系后果；莫玄宗：结算阵营目标并承受公开后果；莫玄宗：锁定真凶沈孤鸿",
         "beats": [
           {
-            "id": "pbeat-ob-mtn0omah-aajx",
+            "id": "pbeat-ob-mtny8fqt-qgqe",
             "sourceBeatId": "beat-res",
-            "sourceOutlineBeatId": "ob-mtn0omah-aajx",
-            "sourceBlockId": "smb-mtn0omaf-zzy92",
-            "sourceMechanismId": "smb-mtn0omaf-zzy92",
+            "sourceOutlineBeatId": "ob-mtny8fqt-qgqe",
+            "sourceBlockId": "smb-mtny8fqr-najg0",
+            "sourceMechanismId": "smb-mtny8fqr-najg0",
             "templateId": "M07-2",
             "familyId": "M07",
             "actors": [
@@ -1402,6 +1564,9 @@
                 "id": "E",
                 "name": "叶晚晴"
               }
+            ],
+            "ownerCharacterIds": [
+              "A"
             ],
             "goal": "承受身份公开后的关系后果",
             "action": "面对知情者与阵营/调查方的反应",
@@ -1435,8 +1600,8 @@
             ],
             "relationQuality": "COLOCATED",
             "weaveLinkIds": [
-              "wl-mtn0omah-part",
-              "wl-mtn0omah-svf2"
+              "wl-mtny8fqt-pcia",
+              "wl-mtny8fqt-1u0t"
             ],
             "relationNotes": [
               "【同场并列】同阶段共享角色 A、B、C、D、E——可同场并列，不算真正交织",
@@ -1446,11 +1611,11 @@
             "contentConfirmed": false
           },
           {
-            "id": "pbeat-ob-mtn0omah-qo1h",
+            "id": "pbeat-ob-mtny8fqt-69ru",
             "sourceBeatId": "beat-res",
-            "sourceOutlineBeatId": "ob-mtn0omah-qo1h",
-            "sourceBlockId": "smb-mtn0omag-p3wie",
-            "sourceMechanismId": "smb-mtn0omag-p3wie",
+            "sourceOutlineBeatId": "ob-mtny8fqt-69ru",
+            "sourceBlockId": "smb-mtny8fqs-dib2c",
+            "sourceMechanismId": "smb-mtny8fqs-dib2c",
             "templateId": "M08-7",
             "familyId": "M08",
             "actors": [
@@ -1478,6 +1643,9 @@
                 "id": "A",
                 "name": "白斋子"
               }
+            ],
+            "ownerCharacterIds": [
+              "F"
             ],
             "goal": "结算阵营目标并承受公开后果",
             "action": "公开站队或接受阵营败露后的关系重排",
@@ -1512,9 +1680,9 @@
             ],
             "relationQuality": "COLOCATED",
             "weaveLinkIds": [
-              "wl-mtn0omah-mv8a",
-              "wl-mtn0omah-part",
-              "wl-mtn0omah-to8j"
+              "wl-mtny8fqt-y4eb",
+              "wl-mtny8fqt-pcia",
+              "wl-mtny8fqt-nrz8"
             ],
             "relationNotes": [
               "【同场并列】共享角色 A、B、C、D、E——仅角色重合，保持同场并列而非强制合并",
@@ -1525,11 +1693,11 @@
             "contentConfirmed": false
           },
           {
-            "id": "pbeat-ob-mtn0omah-w3tb",
+            "id": "pbeat-ob-mtny8fqt-tb0d",
             "sourceBeatId": "beat-res",
-            "sourceOutlineBeatId": "ob-mtn0omah-w3tb",
-            "sourceBlockId": "smb-mtn0omag-d4cwv",
-            "sourceMechanismId": "smb-mtn0omag-d4cwv",
+            "sourceOutlineBeatId": "ob-mtny8fqt-tb0d",
+            "sourceBlockId": "smb-mtny8fqs-877jw",
+            "sourceMechanismId": "smb-mtny8fqs-877jw",
             "templateId": "M01-FRAMING",
             "familyId": "M01",
             "actors": [
@@ -1549,6 +1717,9 @@
                 "id": "C",
                 "name": "顾清商"
               }
+            ],
+            "ownerCharacterIds": [
+              "F"
             ],
             "goal": "锁定真凶沈孤鸿",
             "action": "用决定性证据揭穿嫁祸",
@@ -1573,7 +1744,7 @@
             "playerKnowledge": "玩家可见：用决定性证据揭穿嫁祸（仅同场，不暗示因果）",
             "hostTruth": "主持真相：莫玄宗为了锁定真凶沈孤鸿，用决定性证据揭穿嫁祸（目标：决定性证据）",
             "clueRefs": [
-              "smb-mtn0omag-d4cwv-decisive_evidence-3"
+              "smb-mtny8fqs-877jw-decisive_evidence-3"
             ],
             "relatedCharacterIds": [
               "F",
@@ -1583,10 +1754,10 @@
             ],
             "relationQuality": "COLOCATED",
             "weaveLinkIds": [
-              "wl-mtn0omah-o58j",
-              "wl-mtn0omah-svf2",
-              "wl-mtn0omah-il0o",
-              "wl-mtn0omah-to8j"
+              "wl-mtny8fqt-ak4x",
+              "wl-mtny8fqt-1u0t",
+              "wl-mtny8fqt-qmpx",
+              "wl-mtny8fqt-nrz8"
             ],
             "relationNotes": [
               "【同场并列】共享角色 B、C——仅角色重合，保持同场并列而非强制合并",
@@ -1604,10 +1775,38 @@
         "stageEndState": "身份进入公开层；阵营线结算；真凶锁定",
         "clueEntries": [
           {
-            "clueId": "fact-interface:ob-mtn0omah-aajx",
+            "clueId": "smb-mtny8fqs-877jw-decisive_evidence-3",
+            "label": "突破",
+            "mechanismId": "smb-mtny8fqs-877jw",
+            "templateId": "M01-FRAMING",
+            "introducedAt": "act3",
+            "availableStages": [
+              "act3",
+              "act4"
+            ],
+            "persists": true,
+            "stageId": "act3",
+            "possibleFinders": [
+              "F",
+              "B",
+              "C",
+              "NPC_LU"
+            ],
+            "supportsFact": "真凶当晚校准过座钟的证词交叉",
+            "isMisleading": false,
+            "isDecisive": false,
+            "missingDetail": false
+          },
+          {
+            "clueId": "fact-interface:ob-mtny8fqt-qgqe",
             "label": "事实接口（尚无线索实体）",
-            "mechanismId": "smb-mtn0omaf-zzy92",
+            "mechanismId": "smb-mtny8fqr-najg0",
             "templateId": "M07-2",
+            "introducedAt": "act4",
+            "availableStages": [
+              "act4"
+            ],
+            "persists": false,
             "stageId": "act4",
             "possibleFinders": [
               "A",
@@ -1623,10 +1822,15 @@
             "detailNote": "这个剧情 beat 需要关键线索，但模板尚未提供具体线索内容。"
           },
           {
-            "clueId": "fact-interface:ob-mtn0omah-qo1h",
+            "clueId": "fact-interface:ob-mtny8fqt-69ru",
             "label": "事实接口（尚无线索实体）",
-            "mechanismId": "smb-mtn0omag-p3wie",
+            "mechanismId": "smb-mtny8fqs-dib2c",
             "templateId": "M08-7",
+            "introducedAt": "act4",
+            "availableStages": [
+              "act4"
+            ],
+            "persists": false,
             "stageId": "act4",
             "possibleFinders": [
               "F",
@@ -1641,23 +1845,6 @@
             "isDecisive": false,
             "missingDetail": true,
             "detailNote": "这个剧情 beat 需要关键线索，但模板尚未提供具体线索内容。"
-          },
-          {
-            "clueId": "smb-mtn0omag-d4cwv-decisive_evidence-3",
-            "label": "突破",
-            "mechanismId": "smb-mtn0omag-d4cwv",
-            "templateId": "M01-FRAMING",
-            "stageId": "act4",
-            "possibleFinders": [
-              "F",
-              "NPC_LU",
-              "B",
-              "C"
-            ],
-            "supportsFact": "真凶当晚校准过座钟的证词交叉",
-            "isMisleading": false,
-            "isDecisive": false,
-            "missingDetail": false
           }
         ],
         "characterEntries": [
@@ -1706,7 +1893,7 @@
             "beatIds": []
           },
           {
-            "id": "warn-clue-ob-mtn0omah-aajx",
+            "id": "warn-clue-ob-mtny8fqt-qgqe",
             "type": "MISSING_CLUE_DETAIL",
             "severity": "info",
             "message": "该剧情 beat 需要/产生事实接口，但模板尚未绑定具体线索内容。",
@@ -1714,11 +1901,11 @@
               "act4"
             ],
             "beatIds": [
-              "ob-mtn0omah-aajx"
+              "ob-mtny8fqt-qgqe"
             ]
           },
           {
-            "id": "warn-clue-ob-mtn0omah-qo1h",
+            "id": "warn-clue-ob-mtny8fqt-69ru",
             "type": "MISSING_CLUE_DETAIL",
             "severity": "info",
             "message": "该剧情 beat 需要/产生事实接口，但模板尚未绑定具体线索内容。",
@@ -1726,7 +1913,7 @@
               "act4"
             ],
             "beatIds": [
-              "ob-mtn0omah-qo1h"
+              "ob-mtny8fqt-69ru"
             ]
           }
         ]
@@ -1735,7 +1922,7 @@
     "truthView": {
       "events": [
         {
-          "beatId": "ob-mtn0omah-lrnx",
+          "beatId": "ob-mtny8fqt-skvu",
           "stageId": "act1",
           "whatHappened": "白斋子为了隐藏或维持当前身份表象，按伪装/未知状态行动，避免过早暴露（目标：身份表象）",
           "who": [
@@ -1744,12 +1931,15 @@
           ],
           "why": "隐藏或维持当前身份表象",
           "consequence": "身份仍未公开",
+          "eventOccurred": true,
+          "evidenceEffect": "NEUTRAL",
+          "claimTruth": "UNKNOWN",
           "isMisleading": false,
           "isTruth": true,
           "needsDetail": false
         },
         {
-          "beatId": "ob-mtn0omah-y1a8",
+          "beatId": "ob-mtny8fqt-mfyp",
           "stageId": "act1",
           "whatHappened": "莫玄宗为了巩固或潜伏阵营结构，确认成员知情范围与联络方式（目标：阵营名单/暗号）",
           "who": [
@@ -1758,12 +1948,15 @@
           ],
           "why": "巩固或潜伏阵营结构",
           "consequence": "阵营结构已成形",
+          "eventOccurred": true,
+          "evidenceEffect": "NEUTRAL",
+          "claimTruth": "UNKNOWN",
           "isMisleading": false,
           "isTruth": true,
           "needsDetail": false
         },
         {
-          "beatId": "ob-mtn0omah-a9mt",
+          "beatId": "ob-mtny8fqt-uc7z",
           "stageId": "act1",
           "whatHappened": "沈孤鸿为了准备可嫁祸的假象，布置与顾清商相关的误导物（目标：被拨慢的座钟记录）",
           "who": [
@@ -1772,12 +1965,15 @@
           ],
           "why": "准备可嫁祸的假象",
           "consequence": "误导物已就绪",
+          "eventOccurred": true,
+          "evidenceEffect": "MISLEADING",
+          "claimTruth": "FALSE",
           "isMisleading": true,
-          "isTruth": false,
+          "isTruth": true,
           "needsDetail": false
         },
         {
-          "beatId": "ob-mtn0omah-wr42",
+          "beatId": "ob-mtny8fqt-90ck",
           "stageId": "act2",
           "whatHappened": "白斋子为了用正式动作换取被条件锁住的信息，完成登记条件以触发内容开放（目标：身份记录）",
           "who": [
@@ -1789,12 +1985,15 @@
           ],
           "why": "用正式动作换取被条件锁住的信息",
           "consequence": "条件开放的信息",
+          "eventOccurred": true,
+          "evidenceEffect": "NEUTRAL",
+          "claimTruth": "UNKNOWN",
           "isMisleading": false,
           "isTruth": true,
           "needsDetail": false
         },
         {
-          "beatId": "ob-mtn0omah-01tb",
+          "beatId": "ob-mtny8fqt-yxcl",
           "stageId": "act2",
           "whatHappened": "莫玄宗为了让公共任务按本阵营偏好成功、失败或延迟，对公共任务施加正式破坏或支援（目标：公共任务状态）",
           "who": [
@@ -1807,12 +2006,15 @@
           ],
           "why": "让公共任务按本阵营偏好成功、失败或延迟",
           "consequence": "阵营压力升级",
+          "eventOccurred": true,
+          "evidenceEffect": "NEUTRAL",
+          "claimTruth": "UNKNOWN",
           "isMisleading": false,
           "isTruth": true,
           "needsDetail": false
         },
         {
-          "beatId": "ob-mtn0omah-bssk",
+          "beatId": "ob-mtny8fqt-2gz6",
           "stageId": "act2",
           "whatHappened": "沈孤鸿为了完成犯行并指向顾清商，实施犯行并留下指向顾清商的痕迹（目标：被拨慢的座钟记录）",
           "who": [
@@ -1822,12 +2024,15 @@
           ],
           "why": "完成犯行并指向顾清商",
           "consequence": "犯行已发生；错误嫌疑成立",
+          "eventOccurred": true,
+          "evidenceEffect": "MISLEADING",
+          "claimTruth": "FALSE",
           "isMisleading": true,
-          "isTruth": false,
+          "isTruth": true,
           "needsDetail": false
         },
         {
-          "beatId": "ob-mtn0omah-7z3f",
+          "beatId": "ob-mtny8fqt-rz8b",
           "stageId": "act2",
           "whatHappened": "沈孤鸿为了完成犯行并指向顾清商，实施犯行并留下指向顾清商的痕迹（目标：被拨慢的座钟记录）",
           "who": [
@@ -1836,12 +2041,15 @@
           ],
           "why": "完成犯行并指向顾清商",
           "consequence": "犯行已发生；错误嫌疑成立",
+          "eventOccurred": true,
+          "evidenceEffect": "MISLEADING",
+          "claimTruth": "FALSE",
           "isMisleading": true,
-          "isTruth": false,
+          "isTruth": true,
           "needsDetail": false
         },
         {
-          "beatId": "ob-mtn0omah-quiz",
+          "beatId": "ob-mtny8fqt-dkxf",
           "stageId": "act2",
           "whatHappened": "莫玄宗为了推翻对顾清商的错误判断，对照现场与证物寻找矛盾（目标：被拨慢的座钟记录）",
           "who": [
@@ -1849,12 +2057,15 @@
           ],
           "why": "推翻对顾清商的错误判断",
           "consequence": "反证出现",
+          "eventOccurred": true,
+          "evidenceEffect": "SUPPORTING",
+          "claimTruth": "TRUE",
           "isMisleading": false,
           "isTruth": true,
           "needsDetail": false
         },
         {
-          "beatId": "ob-mtn0omah-0hpf",
+          "beatId": "ob-mtny8fqt-vq87",
           "stageId": "act3",
           "whatHappened": "白斋子为了确认真实身份并决定是否公开，核对身份线索并作出公开或隐瞒选择（目标：真实身份）",
           "who": [
@@ -1866,12 +2077,15 @@
           ],
           "why": "确认真实身份并决定是否公开",
           "consequence": "身份已确认；家族/资格状态",
+          "eventOccurred": true,
+          "evidenceEffect": "SUPPORTING",
+          "claimTruth": "TRUE",
           "isMisleading": false,
           "isTruth": true,
           "needsDetail": false
         },
         {
-          "beatId": "ob-mtn0omah-4yf2",
+          "beatId": "ob-mtny8fqt-5mhh",
           "stageId": "act3",
           "whatHappened": "叶晚晴为了在暴露风险下改归属或保住秘密，在关键选择点背叛、退出或清洗异己（目标：归属状态）",
           "who": [
@@ -1884,12 +2098,15 @@
           ],
           "why": "在暴露风险下改归属或保住秘密",
           "consequence": "归属已改变；暴露风险上升",
+          "eventOccurred": true,
+          "evidenceEffect": "NEUTRAL",
+          "claimTruth": "UNKNOWN",
           "isMisleading": false,
           "isTruth": true,
           "needsDetail": false
         },
         {
-          "beatId": "ob-mtn0omah-1kgz",
+          "beatId": "ob-mtny8fqt-iw7f",
           "stageId": "act3",
           "whatHappened": "莫玄宗为了推翻对顾清商的错误判断，对照现场与证物寻找矛盾（目标：被拨慢的座钟记录）",
           "who": [
@@ -1899,12 +2116,15 @@
           ],
           "why": "推翻对顾清商的错误判断",
           "consequence": "反证出现",
+          "eventOccurred": true,
+          "evidenceEffect": "SUPPORTING",
+          "claimTruth": "TRUE",
           "isMisleading": false,
           "isTruth": true,
           "needsDetail": false
         },
         {
-          "beatId": "ob-mtn0omah-aajx",
+          "beatId": "ob-mtny8fqt-qgqe",
           "stageId": "act4",
           "whatHappened": "白斋子为了承受身份公开后的关系后果，面对知情者与阵营/调查方的反应（目标：关系重组）",
           "who": [
@@ -1916,12 +2136,15 @@
           ],
           "why": "承受身份公开后的关系后果",
           "consequence": "身份进入公开层",
+          "eventOccurred": true,
+          "evidenceEffect": "NEUTRAL",
+          "claimTruth": "UNKNOWN",
           "isMisleading": false,
           "isTruth": true,
           "needsDetail": false
         },
         {
-          "beatId": "ob-mtn0omah-qo1h",
+          "beatId": "ob-mtny8fqt-69ru",
           "stageId": "act4",
           "whatHappened": "莫玄宗为了结算阵营目标并承受公开后果，公开站队或接受阵营败露后的关系重排（目标：阵营胜负条件）",
           "who": [
@@ -1934,12 +2157,15 @@
           ],
           "why": "结算阵营目标并承受公开后果",
           "consequence": "阵营线结算",
+          "eventOccurred": true,
+          "evidenceEffect": "NEUTRAL",
+          "claimTruth": "UNKNOWN",
           "isMisleading": false,
           "isTruth": true,
           "needsDetail": false
         },
         {
-          "beatId": "ob-mtn0omah-w3tb",
+          "beatId": "ob-mtny8fqt-tb0d",
           "stageId": "act4",
           "whatHappened": "莫玄宗为了锁定真凶沈孤鸿，用决定性证据揭穿嫁祸（目标：决定性证据）",
           "who": [
@@ -1950,6 +2176,9 @@
           ],
           "why": "锁定真凶沈孤鸿",
           "consequence": "真凶锁定",
+          "eventOccurred": true,
+          "evidenceEffect": "NEUTRAL",
+          "claimTruth": "UNKNOWN",
           "isMisleading": false,
           "isTruth": true,
           "needsDetail": false
@@ -1964,7 +2193,23 @@
           "stages": [
             {
               "stageId": "act1",
-              "knows": "本阶段可见行动相关：按伪装/未知状态行动，避免过早暴露",
+              "contributions": [
+                {
+                  "sourceBeatId": "beat-setup",
+                  "sourceOutlineBeatId": "ob-mtny8fqt-skvu",
+                  "sourceBlockId": "smb-mtny8fqr-najg0",
+                  "familyId": "M07",
+                  "templateId": "M07-2",
+                  "roleInBeat": "OWNER",
+                  "goal": "隐藏或维持当前身份表象",
+                  "action": "按伪装/未知状态行动，避免过早暴露",
+                  "gainedInfo": "身份仍未公开",
+                  "relationQuality": "COLOCATED",
+                  "needsDetail": false
+                }
+              ],
+              "stageSummary": "隐藏或维持当前身份表象",
+              "knows": "本阶段主导行动：按伪装/未知状态行动，避免过早暴露",
               "goal": "隐藏或维持当前身份表象",
               "action": "按伪装/未知状态行动，避免过早暴露",
               "relationChanges": [
@@ -1977,44 +2222,128 @@
             },
             {
               "stageId": "act2",
-              "knows": "本阶段可见行动相关：对公共任务施加正式破坏或支援",
-              "goal": "让公共任务按本阵营偏好成功、失败或延迟",
-              "action": "对公共任务施加正式破坏或支援",
+              "contributions": [
+                {
+                  "sourceBeatId": "beat-develop",
+                  "sourceOutlineBeatId": "ob-mtny8fqt-90ck",
+                  "sourceBlockId": "smb-mtny8fqr-najg0",
+                  "familyId": "M07",
+                  "templateId": "M07-2",
+                  "roleInBeat": "OWNER",
+                  "goal": "用正式动作换取被条件锁住的信息",
+                  "action": "完成登记条件以触发内容开放",
+                  "gainedInfo": "条件开放的信息",
+                  "relationQuality": "COLOCATED",
+                  "needsDetail": false
+                },
+                {
+                  "sourceBeatId": "beat-develop",
+                  "sourceOutlineBeatId": "ob-mtny8fqt-yxcl",
+                  "sourceBlockId": "smb-mtny8fqs-dib2c",
+                  "familyId": "M08",
+                  "templateId": "M08-7",
+                  "roleInBeat": "PARTICIPANT",
+                  "goal": null,
+                  "action": "参与（非主导）：莫玄宗为了让公共任务按本阵营偏好成功、失败或延迟，对公共任务施加正式破坏或支援（目标：公共任务状态）",
+                  "gainedInfo": null,
+                  "relationQuality": "COLOCATED",
+                  "needsDetail": false
+                }
+              ],
+              "stageSummary": "用正式动作换取被条件锁住的信息",
+              "knows": "本阶段主导行动：完成登记条件以触发内容开放",
+              "goal": "用正式动作换取被条件锁住的信息",
+              "action": "完成登记条件以触发内容开放",
               "relationChanges": [
-                "同场出现（非因果）",
                 "同场出现（非因果）"
               ],
-              "gainedInfo": "阵营压力升级",
+              "gainedInfo": "条件开放的信息",
               "misunderstanding": "NEEDS_DETAIL",
-              "endChange": "阵营压力升级",
+              "endChange": "条件开放的信息",
               "needsDetail": false
             },
             {
               "stageId": "act3",
-              "knows": "本阶段可见行动相关：在关键选择点背叛、退出或清洗异己",
-              "goal": "在暴露风险下改归属或保住秘密",
-              "action": "在关键选择点背叛、退出或清洗异己",
+              "contributions": [
+                {
+                  "sourceBeatId": "beat-climax",
+                  "sourceOutlineBeatId": "ob-mtny8fqt-vq87",
+                  "sourceBlockId": "smb-mtny8fqr-najg0",
+                  "familyId": "M07",
+                  "templateId": "M07-2",
+                  "roleInBeat": "OWNER",
+                  "goal": "确认真实身份并决定是否公开",
+                  "action": "核对身份线索并作出公开或隐瞒选择",
+                  "gainedInfo": "身份已确认；家族/资格状态",
+                  "relationQuality": "COLOCATED",
+                  "needsDetail": false
+                },
+                {
+                  "sourceBeatId": "beat-climax",
+                  "sourceOutlineBeatId": "ob-mtny8fqt-5mhh",
+                  "sourceBlockId": "smb-mtny8fqs-dib2c",
+                  "familyId": "M08",
+                  "templateId": "M08-7",
+                  "roleInBeat": "PARTICIPANT",
+                  "goal": null,
+                  "action": "参与（非主导）：叶晚晴为了在暴露风险下改归属或保住秘密，在关键选择点背叛、退出或清洗异己（目标：归属状态）",
+                  "gainedInfo": null,
+                  "relationQuality": "COLOCATED",
+                  "needsDetail": false
+                }
+              ],
+              "stageSummary": "确认真实身份并决定是否公开",
+              "knows": "本阶段主导行动：核对身份线索并作出公开或隐瞒选择",
+              "goal": "确认真实身份并决定是否公开",
+              "action": "核对身份线索并作出公开或隐瞒选择",
               "relationChanges": [
-                "同场出现（非因果）",
                 "同场出现（非因果）"
               ],
-              "gainedInfo": "归属已改变；暴露风险上升",
+              "gainedInfo": "身份已确认；家族/资格状态",
               "misunderstanding": "NEEDS_DETAIL",
-              "endChange": "归属已改变；暴露风险上升",
+              "endChange": "身份已确认；家族/资格状态",
               "needsDetail": false
             },
             {
               "stageId": "act4",
-              "knows": "本阶段可见行动相关：公开站队或接受阵营败露后的关系重排",
-              "goal": "结算阵营目标并承受公开后果",
-              "action": "公开站队或接受阵营败露后的关系重排",
+              "contributions": [
+                {
+                  "sourceBeatId": "beat-res",
+                  "sourceOutlineBeatId": "ob-mtny8fqt-qgqe",
+                  "sourceBlockId": "smb-mtny8fqr-najg0",
+                  "familyId": "M07",
+                  "templateId": "M07-2",
+                  "roleInBeat": "OWNER",
+                  "goal": "承受身份公开后的关系后果",
+                  "action": "面对知情者与阵营/调查方的反应",
+                  "gainedInfo": "身份进入公开层",
+                  "relationQuality": "COLOCATED",
+                  "needsDetail": false
+                },
+                {
+                  "sourceBeatId": "beat-res",
+                  "sourceOutlineBeatId": "ob-mtny8fqt-69ru",
+                  "sourceBlockId": "smb-mtny8fqs-dib2c",
+                  "familyId": "M08",
+                  "templateId": "M08-7",
+                  "roleInBeat": "PARTICIPANT",
+                  "goal": null,
+                  "action": "参与（非主导）：莫玄宗为了结算阵营目标并承受公开后果，公开站队或接受阵营败露后的关系重排（目标：阵营胜负条件）",
+                  "gainedInfo": null,
+                  "relationQuality": "COLOCATED",
+                  "needsDetail": false
+                }
+              ],
+              "stageSummary": "承受身份公开后的关系后果",
+              "knows": "本阶段主导行动：面对知情者与阵营/调查方的反应",
+              "goal": "承受身份公开后的关系后果",
+              "action": "面对知情者与阵营/调查方的反应",
               "relationChanges": [
-                "同场出现（非因果）",
                 "同场出现（非因果）"
               ],
-              "gainedInfo": "阵营线结算",
+              "gainedInfo": "身份进入公开层",
               "misunderstanding": "NEEDS_DETAIL",
-              "endChange": "阵营线结算",
+              "endChange": "身份进入公开层",
               "needsDetail": false
             }
           ]
@@ -2025,12 +2354,52 @@
           "stages": [
             {
               "stageId": "act1",
-              "knows": "本阶段可见行动相关：布置与顾清商相关的误导物",
+              "contributions": [
+                {
+                  "sourceBeatId": "beat-setup",
+                  "sourceOutlineBeatId": "ob-mtny8fqt-skvu",
+                  "sourceBlockId": "smb-mtny8fqr-najg0",
+                  "familyId": "M07",
+                  "templateId": "M07-2",
+                  "roleInBeat": "PARTICIPANT",
+                  "goal": null,
+                  "action": "参与（非主导）：白斋子为了隐藏或维持当前身份表象，按伪装/未知状态行动，避免过早暴露（目标：身份表象）",
+                  "gainedInfo": null,
+                  "relationQuality": "COLOCATED",
+                  "needsDetail": false
+                },
+                {
+                  "sourceBeatId": "beat-setup",
+                  "sourceOutlineBeatId": "ob-mtny8fqt-mfyp",
+                  "sourceBlockId": "smb-mtny8fqs-dib2c",
+                  "familyId": "M08",
+                  "templateId": "M08-7",
+                  "roleInBeat": "PARTICIPANT",
+                  "goal": null,
+                  "action": "参与（非主导）：莫玄宗为了巩固或潜伏阵营结构，确认成员知情范围与联络方式（目标：阵营名单/暗号）",
+                  "gainedInfo": null,
+                  "relationQuality": "COLOCATED",
+                  "needsDetail": false
+                },
+                {
+                  "sourceBeatId": "beat-setup",
+                  "sourceOutlineBeatId": "ob-mtny8fqt-uc7z",
+                  "sourceBlockId": "smb-mtny8fqs-877jw",
+                  "familyId": "M01",
+                  "templateId": "M01-FRAMING",
+                  "roleInBeat": "OWNER",
+                  "goal": "准备可嫁祸的假象",
+                  "action": "布置与顾清商相关的误导物",
+                  "gainedInfo": "误导物已就绪",
+                  "relationQuality": "COLOCATED",
+                  "needsDetail": false
+                }
+              ],
+              "stageSummary": "准备可嫁祸的假象",
+              "knows": "本阶段主导行动：布置与顾清商相关的误导物",
               "goal": "准备可嫁祸的假象",
               "action": "布置与顾清商相关的误导物",
               "relationChanges": [
-                "同场出现（非因果）",
-                "同场出现（非因果）",
                 "同场出现（非因果）"
               ],
               "gainedInfo": "误导物已就绪",
@@ -2040,12 +2409,64 @@
             },
             {
               "stageId": "act2",
-              "knows": "本阶段可见行动相关：实施犯行并留下指向顾清商的痕迹",
+              "contributions": [
+                {
+                  "sourceBeatId": "beat-develop",
+                  "sourceOutlineBeatId": "ob-mtny8fqt-90ck",
+                  "sourceBlockId": "smb-mtny8fqr-najg0",
+                  "familyId": "M07",
+                  "templateId": "M07-2",
+                  "roleInBeat": "PARTICIPANT",
+                  "goal": null,
+                  "action": "参与（非主导）：白斋子为了用正式动作换取被条件锁住的信息，完成登记条件以触发内容开放（目标：身份记录）",
+                  "gainedInfo": null,
+                  "relationQuality": "COLOCATED",
+                  "needsDetail": false
+                },
+                {
+                  "sourceBeatId": "beat-develop",
+                  "sourceOutlineBeatId": "ob-mtny8fqt-yxcl",
+                  "sourceBlockId": "smb-mtny8fqs-dib2c",
+                  "familyId": "M08",
+                  "templateId": "M08-7",
+                  "roleInBeat": "PARTICIPANT",
+                  "goal": null,
+                  "action": "参与（非主导）：莫玄宗为了让公共任务按本阵营偏好成功、失败或延迟，对公共任务施加正式破坏或支援（目标：公共任务状态）",
+                  "gainedInfo": null,
+                  "relationQuality": "COLOCATED",
+                  "needsDetail": false
+                },
+                {
+                  "sourceBeatId": "beat-crime",
+                  "sourceOutlineBeatId": "ob-mtny8fqt-2gz6",
+                  "sourceBlockId": "smb-mtny8fqs-877jw",
+                  "familyId": "M01",
+                  "templateId": "M01-FRAMING",
+                  "roleInBeat": "OWNER",
+                  "goal": "完成犯行并指向顾清商",
+                  "action": "实施犯行并留下指向顾清商的痕迹",
+                  "gainedInfo": "犯行已发生；错误嫌疑成立",
+                  "relationQuality": "COLOCATED",
+                  "needsDetail": false
+                },
+                {
+                  "sourceBeatId": "beat-false",
+                  "sourceOutlineBeatId": "ob-mtny8fqt-rz8b",
+                  "sourceBlockId": "smb-mtny8fqs-877jw",
+                  "familyId": "M01",
+                  "templateId": "M01-FRAMING",
+                  "roleInBeat": "OWNER",
+                  "goal": "完成犯行并指向顾清商",
+                  "action": "实施犯行并留下指向顾清商的痕迹",
+                  "gainedInfo": "犯行已发生；错误嫌疑成立",
+                  "needsDetail": false
+                }
+              ],
+              "stageSummary": "完成犯行并指向顾清商",
+              "knows": "本阶段主导行动：实施犯行并留下指向顾清商的痕迹",
               "goal": "完成犯行并指向顾清商",
               "action": "实施犯行并留下指向顾清商的痕迹",
               "relationChanges": [
-                "同场出现（非因果）",
-                "同场出现（非因果）",
                 "同场出现（非因果）"
               ],
               "gainedInfo": "犯行已发生；错误嫌疑成立",
@@ -2055,32 +2476,112 @@
             },
             {
               "stageId": "act3",
-              "knows": "本阶段可见行动相关：对照现场与证物寻找矛盾",
-              "goal": "推翻对顾清商的错误判断",
-              "action": "对照现场与证物寻找矛盾",
+              "contributions": [
+                {
+                  "sourceBeatId": "beat-climax",
+                  "sourceOutlineBeatId": "ob-mtny8fqt-vq87",
+                  "sourceBlockId": "smb-mtny8fqr-najg0",
+                  "familyId": "M07",
+                  "templateId": "M07-2",
+                  "roleInBeat": "PARTICIPANT",
+                  "goal": null,
+                  "action": "参与（非主导）：白斋子为了确认真实身份并决定是否公开，核对身份线索并作出公开或隐瞒选择（目标：真实身份）",
+                  "gainedInfo": null,
+                  "relationQuality": "COLOCATED",
+                  "needsDetail": false
+                },
+                {
+                  "sourceBeatId": "beat-climax",
+                  "sourceOutlineBeatId": "ob-mtny8fqt-5mhh",
+                  "sourceBlockId": "smb-mtny8fqs-dib2c",
+                  "familyId": "M08",
+                  "templateId": "M08-7",
+                  "roleInBeat": "PARTICIPANT",
+                  "goal": null,
+                  "action": "参与（非主导）：叶晚晴为了在暴露风险下改归属或保住秘密，在关键选择点背叛、退出或清洗异己（目标：归属状态）",
+                  "gainedInfo": null,
+                  "relationQuality": "COLOCATED",
+                  "needsDetail": false
+                },
+                {
+                  "sourceBeatId": "beat-climax",
+                  "sourceOutlineBeatId": "ob-mtny8fqt-iw7f",
+                  "sourceBlockId": "smb-mtny8fqs-877jw",
+                  "familyId": "M01",
+                  "templateId": "M01-FRAMING",
+                  "roleInBeat": "PARTICIPANT",
+                  "goal": null,
+                  "action": "参与（非主导）：莫玄宗为了推翻对顾清商的错误判断，对照现场与证物寻找矛盾（目标：被拨慢的座钟记录）",
+                  "gainedInfo": null,
+                  "relationQuality": "COLOCATED",
+                  "needsDetail": false
+                }
+              ],
+              "stageSummary": "本阶段无独立主目标（仅参与/对象）",
+              "knows": "本阶段主要为参与/对象，无主导公开行动摘要",
+              "goal": "本阶段无独立主目标（仅参与/对象）",
+              "action": "见 contributions（参与/对象）",
               "relationChanges": [
-                "同场出现（非因果）",
-                "同场出现（非因果）",
                 "同场出现（非因果）"
               ],
-              "gainedInfo": "反证出现",
+              "gainedInfo": "NEEDS_DETAIL",
               "misunderstanding": "NEEDS_DETAIL",
-              "endChange": "反证出现",
+              "endChange": "NEEDS_DETAIL",
               "needsDetail": false
             },
             {
               "stageId": "act4",
-              "knows": "本阶段可见行动相关：用决定性证据揭穿嫁祸",
-              "goal": "锁定真凶沈孤鸿",
-              "action": "用决定性证据揭穿嫁祸",
+              "contributions": [
+                {
+                  "sourceBeatId": "beat-res",
+                  "sourceOutlineBeatId": "ob-mtny8fqt-qgqe",
+                  "sourceBlockId": "smb-mtny8fqr-najg0",
+                  "familyId": "M07",
+                  "templateId": "M07-2",
+                  "roleInBeat": "PARTICIPANT",
+                  "goal": null,
+                  "action": "参与（非主导）：白斋子为了承受身份公开后的关系后果，面对知情者与阵营/调查方的反应（目标：关系重组）",
+                  "gainedInfo": null,
+                  "relationQuality": "COLOCATED",
+                  "needsDetail": false
+                },
+                {
+                  "sourceBeatId": "beat-res",
+                  "sourceOutlineBeatId": "ob-mtny8fqt-69ru",
+                  "sourceBlockId": "smb-mtny8fqs-dib2c",
+                  "familyId": "M08",
+                  "templateId": "M08-7",
+                  "roleInBeat": "PARTICIPANT",
+                  "goal": null,
+                  "action": "参与（非主导）：莫玄宗为了结算阵营目标并承受公开后果，公开站队或接受阵营败露后的关系重排（目标：阵营胜负条件）",
+                  "gainedInfo": null,
+                  "relationQuality": "COLOCATED",
+                  "needsDetail": false
+                },
+                {
+                  "sourceBeatId": "beat-res",
+                  "sourceOutlineBeatId": "ob-mtny8fqt-tb0d",
+                  "sourceBlockId": "smb-mtny8fqs-877jw",
+                  "familyId": "M01",
+                  "templateId": "M01-FRAMING",
+                  "roleInBeat": "TARGET",
+                  "goal": null,
+                  "action": "作为对象卷入：用决定性证据揭穿嫁祸",
+                  "gainedInfo": null,
+                  "relationQuality": "COLOCATED",
+                  "needsDetail": false
+                }
+              ],
+              "stageSummary": "本阶段无独立主目标（仅参与/对象）",
+              "knows": "本阶段主要为参与/对象，无主导公开行动摘要",
+              "goal": "本阶段无独立主目标（仅参与/对象）",
+              "action": "见 contributions（参与/对象）",
               "relationChanges": [
-                "同场出现（非因果）",
-                "同场出现（非因果）",
                 "同场出现（非因果）"
               ],
-              "gainedInfo": "真凶锁定",
+              "gainedInfo": "NEEDS_DETAIL",
               "misunderstanding": "NEEDS_DETAIL",
-              "endChange": "真凶锁定",
+              "endChange": "NEEDS_DETAIL",
               "needsDetail": false
             }
           ]
@@ -2091,7 +2592,23 @@
           "stages": [
             {
               "stageId": "act1",
-              "knows": "本阶段可见行动相关：确认成员知情范围与联络方式",
+              "contributions": [
+                {
+                  "sourceBeatId": "beat-setup",
+                  "sourceOutlineBeatId": "ob-mtny8fqt-mfyp",
+                  "sourceBlockId": "smb-mtny8fqs-dib2c",
+                  "familyId": "M08",
+                  "templateId": "M08-7",
+                  "roleInBeat": "OWNER",
+                  "goal": "巩固或潜伏阵营结构",
+                  "action": "确认成员知情范围与联络方式",
+                  "gainedInfo": "阵营结构已成形",
+                  "relationQuality": "COLOCATED",
+                  "needsDetail": false
+                }
+              ],
+              "stageSummary": "巩固或潜伏阵营结构",
+              "knows": "本阶段主导行动：确认成员知情范围与联络方式",
               "goal": "巩固或潜伏阵营结构",
               "action": "确认成员知情范围与联络方式",
               "relationChanges": [
@@ -2104,25 +2621,93 @@
             },
             {
               "stageId": "act2",
-              "knows": "本阶段可见行动相关：对照现场与证物寻找矛盾",
-              "goal": "推翻对顾清商的错误判断",
-              "action": "对照现场与证物寻找矛盾",
+              "contributions": [
+                {
+                  "sourceBeatId": "beat-develop",
+                  "sourceOutlineBeatId": "ob-mtny8fqt-yxcl",
+                  "sourceBlockId": "smb-mtny8fqs-dib2c",
+                  "familyId": "M08",
+                  "templateId": "M08-7",
+                  "roleInBeat": "OWNER",
+                  "goal": "让公共任务按本阵营偏好成功、失败或延迟",
+                  "action": "对公共任务施加正式破坏或支援",
+                  "gainedInfo": "阵营压力升级",
+                  "relationQuality": "COLOCATED",
+                  "needsDetail": false
+                },
+                {
+                  "sourceBeatId": "beat-crime",
+                  "sourceOutlineBeatId": "ob-mtny8fqt-2gz6",
+                  "sourceBlockId": "smb-mtny8fqs-877jw",
+                  "familyId": "M01",
+                  "templateId": "M01-FRAMING",
+                  "roleInBeat": "PARTICIPANT",
+                  "goal": null,
+                  "action": "参与（非主导）：沈孤鸿为了完成犯行并指向顾清商，实施犯行并留下指向顾清商的痕迹（目标：被拨慢的座钟记录）",
+                  "gainedInfo": null,
+                  "relationQuality": "COLOCATED",
+                  "needsDetail": false
+                },
+                {
+                  "sourceBeatId": "beat-contra",
+                  "sourceOutlineBeatId": "ob-mtny8fqt-dkxf",
+                  "sourceBlockId": "smb-mtny8fqs-877jw",
+                  "familyId": "M01",
+                  "templateId": "M01-FRAMING",
+                  "roleInBeat": "OWNER",
+                  "goal": "推翻对顾清商的错误判断",
+                  "action": "对照现场与证物寻找矛盾",
+                  "gainedInfo": "反证出现",
+                  "needsDetail": false
+                }
+              ],
+              "stageSummary": "让公共任务按本阵营偏好成功、失败或延迟；推翻对顾清商的错误判断",
+              "knows": "本阶段主导行动：对公共任务施加正式破坏或支援；对照现场与证物寻找矛盾",
+              "goal": "让公共任务按本阵营偏好成功、失败或延迟；推翻对顾清商的错误判断",
+              "action": "对公共任务施加正式破坏或支援；对照现场与证物寻找矛盾",
               "relationChanges": [
-                "同场出现（非因果）",
                 "同场出现（非因果）"
               ],
-              "gainedInfo": "反证出现",
+              "gainedInfo": "阵营压力升级；反证出现",
               "misunderstanding": "NEEDS_DETAIL",
-              "endChange": "反证出现",
+              "endChange": "阵营压力升级；反证出现",
               "needsDetail": false
             },
             {
               "stageId": "act3",
-              "knows": "本阶段可见行动相关：对照现场与证物寻找矛盾",
+              "contributions": [
+                {
+                  "sourceBeatId": "beat-climax",
+                  "sourceOutlineBeatId": "ob-mtny8fqt-5mhh",
+                  "sourceBlockId": "smb-mtny8fqs-dib2c",
+                  "familyId": "M08",
+                  "templateId": "M08-7",
+                  "roleInBeat": "PARTICIPANT",
+                  "goal": null,
+                  "action": "参与（非主导）：叶晚晴为了在暴露风险下改归属或保住秘密，在关键选择点背叛、退出或清洗异己（目标：归属状态）",
+                  "gainedInfo": null,
+                  "relationQuality": "COLOCATED",
+                  "needsDetail": false
+                },
+                {
+                  "sourceBeatId": "beat-climax",
+                  "sourceOutlineBeatId": "ob-mtny8fqt-iw7f",
+                  "sourceBlockId": "smb-mtny8fqs-877jw",
+                  "familyId": "M01",
+                  "templateId": "M01-FRAMING",
+                  "roleInBeat": "OWNER",
+                  "goal": "推翻对顾清商的错误判断",
+                  "action": "对照现场与证物寻找矛盾",
+                  "gainedInfo": "反证出现",
+                  "relationQuality": "COLOCATED",
+                  "needsDetail": false
+                }
+              ],
+              "stageSummary": "推翻对顾清商的错误判断",
+              "knows": "本阶段主导行动：对照现场与证物寻找矛盾",
               "goal": "推翻对顾清商的错误判断",
               "action": "对照现场与证物寻找矛盾",
               "relationChanges": [
-                "同场出现（非因果）",
                 "同场出现（非因果）"
               ],
               "gainedInfo": "反证出现",
@@ -2132,16 +2717,44 @@
             },
             {
               "stageId": "act4",
-              "knows": "本阶段可见行动相关：用决定性证据揭穿嫁祸",
-              "goal": "锁定真凶沈孤鸿",
-              "action": "用决定性证据揭穿嫁祸",
+              "contributions": [
+                {
+                  "sourceBeatId": "beat-res",
+                  "sourceOutlineBeatId": "ob-mtny8fqt-69ru",
+                  "sourceBlockId": "smb-mtny8fqs-dib2c",
+                  "familyId": "M08",
+                  "templateId": "M08-7",
+                  "roleInBeat": "OWNER",
+                  "goal": "结算阵营目标并承受公开后果",
+                  "action": "公开站队或接受阵营败露后的关系重排",
+                  "gainedInfo": "阵营线结算",
+                  "relationQuality": "COLOCATED",
+                  "needsDetail": false
+                },
+                {
+                  "sourceBeatId": "beat-res",
+                  "sourceOutlineBeatId": "ob-mtny8fqt-tb0d",
+                  "sourceBlockId": "smb-mtny8fqs-877jw",
+                  "familyId": "M01",
+                  "templateId": "M01-FRAMING",
+                  "roleInBeat": "OWNER",
+                  "goal": "锁定真凶沈孤鸿",
+                  "action": "用决定性证据揭穿嫁祸",
+                  "gainedInfo": "真凶锁定",
+                  "relationQuality": "COLOCATED",
+                  "needsDetail": false
+                }
+              ],
+              "stageSummary": "结算阵营目标并承受公开后果；锁定真凶沈孤鸿",
+              "knows": "本阶段主导行动：公开站队或接受阵营败露后的关系重排；用决定性证据揭穿嫁祸",
+              "goal": "结算阵营目标并承受公开后果；锁定真凶沈孤鸿",
+              "action": "公开站队或接受阵营败露后的关系重排；用决定性证据揭穿嫁祸",
               "relationChanges": [
-                "同场出现（非因果）",
                 "同场出现（非因果）"
               ],
-              "gainedInfo": "真凶锁定",
+              "gainedInfo": "阵营线结算；真凶锁定",
               "misunderstanding": "NEEDS_DETAIL",
-              "endChange": "真凶锁定",
+              "endChange": "阵营线结算；真凶锁定",
               "needsDetail": false
             }
           ]
@@ -2152,59 +2765,195 @@
           "stages": [
             {
               "stageId": "act1",
-              "knows": "本阶段可见行动相关：布置与顾清商相关的误导物",
-              "goal": "准备可嫁祸的假象",
-              "action": "布置与顾清商相关的误导物",
+              "contributions": [
+                {
+                  "sourceBeatId": "beat-setup",
+                  "sourceOutlineBeatId": "ob-mtny8fqt-uc7z",
+                  "sourceBlockId": "smb-mtny8fqs-877jw",
+                  "familyId": "M01",
+                  "templateId": "M01-FRAMING",
+                  "roleInBeat": "TARGET",
+                  "goal": null,
+                  "action": "作为对象卷入：布置与顾清商相关的误导物",
+                  "gainedInfo": null,
+                  "relationQuality": "COLOCATED",
+                  "needsDetail": false
+                }
+              ],
+              "stageSummary": "本阶段无独立主目标（仅参与/对象）",
+              "knows": "本阶段主要为参与/对象，无主导公开行动摘要",
+              "goal": "本阶段无独立主目标（仅参与/对象）",
+              "action": "见 contributions（参与/对象）",
               "relationChanges": [
                 "同场出现（非因果）"
               ],
-              "gainedInfo": "误导物已就绪",
+              "gainedInfo": "NEEDS_DETAIL",
               "misunderstanding": "NEEDS_DETAIL",
-              "endChange": "误导物已就绪",
+              "endChange": "NEEDS_DETAIL",
               "needsDetail": false
             },
             {
               "stageId": "act2",
-              "knows": "本阶段可见行动相关：实施犯行并留下指向顾清商的痕迹",
-              "goal": "完成犯行并指向顾清商",
-              "action": "实施犯行并留下指向顾清商的痕迹",
+              "contributions": [
+                {
+                  "sourceBeatId": "beat-develop",
+                  "sourceOutlineBeatId": "ob-mtny8fqt-90ck",
+                  "sourceBlockId": "smb-mtny8fqr-najg0",
+                  "familyId": "M07",
+                  "templateId": "M07-2",
+                  "roleInBeat": "PARTICIPANT",
+                  "goal": null,
+                  "action": "参与（非主导）：白斋子为了用正式动作换取被条件锁住的信息，完成登记条件以触发内容开放（目标：身份记录）",
+                  "gainedInfo": null,
+                  "relationQuality": "COLOCATED",
+                  "needsDetail": false
+                },
+                {
+                  "sourceBeatId": "beat-develop",
+                  "sourceOutlineBeatId": "ob-mtny8fqt-yxcl",
+                  "sourceBlockId": "smb-mtny8fqs-dib2c",
+                  "familyId": "M08",
+                  "templateId": "M08-7",
+                  "roleInBeat": "PARTICIPANT",
+                  "goal": null,
+                  "action": "参与（非主导）：莫玄宗为了让公共任务按本阵营偏好成功、失败或延迟，对公共任务施加正式破坏或支援（目标：公共任务状态）",
+                  "gainedInfo": null,
+                  "relationQuality": "COLOCATED",
+                  "needsDetail": false
+                },
+                {
+                  "sourceBeatId": "beat-false",
+                  "sourceOutlineBeatId": "ob-mtny8fqt-rz8b",
+                  "sourceBlockId": "smb-mtny8fqs-877jw",
+                  "familyId": "M01",
+                  "templateId": "M01-FRAMING",
+                  "roleInBeat": "TARGET",
+                  "goal": null,
+                  "action": "作为对象卷入：实施犯行并留下指向顾清商的痕迹",
+                  "gainedInfo": null,
+                  "needsDetail": false
+                }
+              ],
+              "stageSummary": "本阶段无独立主目标（仅参与/对象）",
+              "knows": "本阶段主要为参与/对象，无主导公开行动摘要",
+              "goal": "本阶段无独立主目标（仅参与/对象）",
+              "action": "见 contributions（参与/对象）",
               "relationChanges": [
-                "同场出现（非因果）",
                 "同场出现（非因果）"
               ],
-              "gainedInfo": "犯行已发生；错误嫌疑成立",
+              "gainedInfo": "NEEDS_DETAIL",
               "misunderstanding": "NEEDS_DETAIL",
-              "endChange": "犯行已发生；错误嫌疑成立",
+              "endChange": "NEEDS_DETAIL",
               "needsDetail": false
             },
             {
               "stageId": "act3",
-              "knows": "本阶段可见行动相关：对照现场与证物寻找矛盾",
-              "goal": "推翻对顾清商的错误判断",
-              "action": "对照现场与证物寻找矛盾",
+              "contributions": [
+                {
+                  "sourceBeatId": "beat-climax",
+                  "sourceOutlineBeatId": "ob-mtny8fqt-vq87",
+                  "sourceBlockId": "smb-mtny8fqr-najg0",
+                  "familyId": "M07",
+                  "templateId": "M07-2",
+                  "roleInBeat": "PARTICIPANT",
+                  "goal": null,
+                  "action": "参与（非主导）：白斋子为了确认真实身份并决定是否公开，核对身份线索并作出公开或隐瞒选择（目标：真实身份）",
+                  "gainedInfo": null,
+                  "relationQuality": "COLOCATED",
+                  "needsDetail": false
+                },
+                {
+                  "sourceBeatId": "beat-climax",
+                  "sourceOutlineBeatId": "ob-mtny8fqt-5mhh",
+                  "sourceBlockId": "smb-mtny8fqs-dib2c",
+                  "familyId": "M08",
+                  "templateId": "M08-7",
+                  "roleInBeat": "PARTICIPANT",
+                  "goal": null,
+                  "action": "参与（非主导）：叶晚晴为了在暴露风险下改归属或保住秘密，在关键选择点背叛、退出或清洗异己（目标：归属状态）",
+                  "gainedInfo": null,
+                  "relationQuality": "COLOCATED",
+                  "needsDetail": false
+                },
+                {
+                  "sourceBeatId": "beat-climax",
+                  "sourceOutlineBeatId": "ob-mtny8fqt-iw7f",
+                  "sourceBlockId": "smb-mtny8fqs-877jw",
+                  "familyId": "M01",
+                  "templateId": "M01-FRAMING",
+                  "roleInBeat": "PARTICIPANT",
+                  "goal": null,
+                  "action": "参与（非主导）：莫玄宗为了推翻对顾清商的错误判断，对照现场与证物寻找矛盾（目标：被拨慢的座钟记录）",
+                  "gainedInfo": null,
+                  "relationQuality": "COLOCATED",
+                  "needsDetail": false
+                }
+              ],
+              "stageSummary": "本阶段无独立主目标（仅参与/对象）",
+              "knows": "本阶段主要为参与/对象，无主导公开行动摘要",
+              "goal": "本阶段无独立主目标（仅参与/对象）",
+              "action": "见 contributions（参与/对象）",
               "relationChanges": [
-                "同场出现（非因果）",
-                "同场出现（非因果）",
                 "同场出现（非因果）"
               ],
-              "gainedInfo": "反证出现",
+              "gainedInfo": "NEEDS_DETAIL",
               "misunderstanding": "NEEDS_DETAIL",
-              "endChange": "反证出现",
+              "endChange": "NEEDS_DETAIL",
               "needsDetail": false
             },
             {
               "stageId": "act4",
-              "knows": "本阶段可见行动相关：用决定性证据揭穿嫁祸",
-              "goal": "锁定真凶沈孤鸿",
-              "action": "用决定性证据揭穿嫁祸",
+              "contributions": [
+                {
+                  "sourceBeatId": "beat-res",
+                  "sourceOutlineBeatId": "ob-mtny8fqt-qgqe",
+                  "sourceBlockId": "smb-mtny8fqr-najg0",
+                  "familyId": "M07",
+                  "templateId": "M07-2",
+                  "roleInBeat": "PARTICIPANT",
+                  "goal": null,
+                  "action": "参与（非主导）：白斋子为了承受身份公开后的关系后果，面对知情者与阵营/调查方的反应（目标：关系重组）",
+                  "gainedInfo": null,
+                  "relationQuality": "COLOCATED",
+                  "needsDetail": false
+                },
+                {
+                  "sourceBeatId": "beat-res",
+                  "sourceOutlineBeatId": "ob-mtny8fqt-69ru",
+                  "sourceBlockId": "smb-mtny8fqs-dib2c",
+                  "familyId": "M08",
+                  "templateId": "M08-7",
+                  "roleInBeat": "PARTICIPANT",
+                  "goal": null,
+                  "action": "参与（非主导）：莫玄宗为了结算阵营目标并承受公开后果，公开站队或接受阵营败露后的关系重排（目标：阵营胜负条件）",
+                  "gainedInfo": null,
+                  "relationQuality": "COLOCATED",
+                  "needsDetail": false
+                },
+                {
+                  "sourceBeatId": "beat-res",
+                  "sourceOutlineBeatId": "ob-mtny8fqt-tb0d",
+                  "sourceBlockId": "smb-mtny8fqs-877jw",
+                  "familyId": "M01",
+                  "templateId": "M01-FRAMING",
+                  "roleInBeat": "PARTICIPANT",
+                  "goal": null,
+                  "action": "参与（非主导）：莫玄宗为了锁定真凶沈孤鸿，用决定性证据揭穿嫁祸（目标：决定性证据）",
+                  "gainedInfo": null,
+                  "relationQuality": "COLOCATED",
+                  "needsDetail": false
+                }
+              ],
+              "stageSummary": "本阶段无独立主目标（仅参与/对象）",
+              "knows": "本阶段主要为参与/对象，无主导公开行动摘要",
+              "goal": "本阶段无独立主目标（仅参与/对象）",
+              "action": "见 contributions（参与/对象）",
               "relationChanges": [
-                "同场出现（非因果）",
-                "同场出现（非因果）",
                 "同场出现（非因果）"
               ],
-              "gainedInfo": "真凶锁定",
+              "gainedInfo": "NEEDS_DETAIL",
               "misunderstanding": "NEEDS_DETAIL",
-              "endChange": "真凶锁定",
+              "endChange": "NEEDS_DETAIL",
               "needsDetail": false
             }
           ]
@@ -2215,44 +2964,128 @@
           "stages": [
             {
               "stageId": "act2",
-              "knows": "本阶段可见行动相关：对公共任务施加正式破坏或支援",
-              "goal": "让公共任务按本阵营偏好成功、失败或延迟",
-              "action": "对公共任务施加正式破坏或支援",
+              "contributions": [
+                {
+                  "sourceBeatId": "beat-develop",
+                  "sourceOutlineBeatId": "ob-mtny8fqt-90ck",
+                  "sourceBlockId": "smb-mtny8fqr-najg0",
+                  "familyId": "M07",
+                  "templateId": "M07-2",
+                  "roleInBeat": "PARTICIPANT",
+                  "goal": null,
+                  "action": "参与（非主导）：白斋子为了用正式动作换取被条件锁住的信息，完成登记条件以触发内容开放（目标：身份记录）",
+                  "gainedInfo": null,
+                  "relationQuality": "COLOCATED",
+                  "needsDetail": false
+                },
+                {
+                  "sourceBeatId": "beat-develop",
+                  "sourceOutlineBeatId": "ob-mtny8fqt-yxcl",
+                  "sourceBlockId": "smb-mtny8fqs-dib2c",
+                  "familyId": "M08",
+                  "templateId": "M08-7",
+                  "roleInBeat": "PARTICIPANT",
+                  "goal": null,
+                  "action": "参与（非主导）：莫玄宗为了让公共任务按本阵营偏好成功、失败或延迟，对公共任务施加正式破坏或支援（目标：公共任务状态）",
+                  "gainedInfo": null,
+                  "relationQuality": "COLOCATED",
+                  "needsDetail": false
+                }
+              ],
+              "stageSummary": "本阶段无独立主目标（仅参与/对象）",
+              "knows": "本阶段主要为参与/对象，无主导公开行动摘要",
+              "goal": "本阶段无独立主目标（仅参与/对象）",
+              "action": "见 contributions（参与/对象）",
               "relationChanges": [
-                "同场出现（非因果）",
                 "同场出现（非因果）"
               ],
-              "gainedInfo": "阵营压力升级",
+              "gainedInfo": "NEEDS_DETAIL",
               "misunderstanding": "NEEDS_DETAIL",
-              "endChange": "阵营压力升级",
+              "endChange": "NEEDS_DETAIL",
               "needsDetail": false
             },
             {
               "stageId": "act3",
-              "knows": "本阶段可见行动相关：在关键选择点背叛、退出或清洗异己",
-              "goal": "在暴露风险下改归属或保住秘密",
-              "action": "在关键选择点背叛、退出或清洗异己",
+              "contributions": [
+                {
+                  "sourceBeatId": "beat-climax",
+                  "sourceOutlineBeatId": "ob-mtny8fqt-vq87",
+                  "sourceBlockId": "smb-mtny8fqr-najg0",
+                  "familyId": "M07",
+                  "templateId": "M07-2",
+                  "roleInBeat": "PARTICIPANT",
+                  "goal": null,
+                  "action": "参与（非主导）：白斋子为了确认真实身份并决定是否公开，核对身份线索并作出公开或隐瞒选择（目标：真实身份）",
+                  "gainedInfo": null,
+                  "relationQuality": "COLOCATED",
+                  "needsDetail": false
+                },
+                {
+                  "sourceBeatId": "beat-climax",
+                  "sourceOutlineBeatId": "ob-mtny8fqt-5mhh",
+                  "sourceBlockId": "smb-mtny8fqs-dib2c",
+                  "familyId": "M08",
+                  "templateId": "M08-7",
+                  "roleInBeat": "PARTICIPANT",
+                  "goal": null,
+                  "action": "参与（非主导）：叶晚晴为了在暴露风险下改归属或保住秘密，在关键选择点背叛、退出或清洗异己（目标：归属状态）",
+                  "gainedInfo": null,
+                  "relationQuality": "COLOCATED",
+                  "needsDetail": false
+                }
+              ],
+              "stageSummary": "本阶段无独立主目标（仅参与/对象）",
+              "knows": "本阶段主要为参与/对象，无主导公开行动摘要",
+              "goal": "本阶段无独立主目标（仅参与/对象）",
+              "action": "见 contributions（参与/对象）",
               "relationChanges": [
-                "同场出现（非因果）",
                 "同场出现（非因果）"
               ],
-              "gainedInfo": "归属已改变；暴露风险上升",
+              "gainedInfo": "NEEDS_DETAIL",
               "misunderstanding": "NEEDS_DETAIL",
-              "endChange": "归属已改变；暴露风险上升",
+              "endChange": "NEEDS_DETAIL",
               "needsDetail": false
             },
             {
               "stageId": "act4",
-              "knows": "本阶段可见行动相关：公开站队或接受阵营败露后的关系重排",
-              "goal": "结算阵营目标并承受公开后果",
-              "action": "公开站队或接受阵营败露后的关系重排",
+              "contributions": [
+                {
+                  "sourceBeatId": "beat-res",
+                  "sourceOutlineBeatId": "ob-mtny8fqt-qgqe",
+                  "sourceBlockId": "smb-mtny8fqr-najg0",
+                  "familyId": "M07",
+                  "templateId": "M07-2",
+                  "roleInBeat": "PARTICIPANT",
+                  "goal": null,
+                  "action": "参与（非主导）：白斋子为了承受身份公开后的关系后果，面对知情者与阵营/调查方的反应（目标：关系重组）",
+                  "gainedInfo": null,
+                  "relationQuality": "COLOCATED",
+                  "needsDetail": false
+                },
+                {
+                  "sourceBeatId": "beat-res",
+                  "sourceOutlineBeatId": "ob-mtny8fqt-69ru",
+                  "sourceBlockId": "smb-mtny8fqs-dib2c",
+                  "familyId": "M08",
+                  "templateId": "M08-7",
+                  "roleInBeat": "PARTICIPANT",
+                  "goal": null,
+                  "action": "参与（非主导）：莫玄宗为了结算阵营目标并承受公开后果，公开站队或接受阵营败露后的关系重排（目标：阵营胜负条件）",
+                  "gainedInfo": null,
+                  "relationQuality": "COLOCATED",
+                  "needsDetail": false
+                }
+              ],
+              "stageSummary": "本阶段无独立主目标（仅参与/对象）",
+              "knows": "本阶段主要为参与/对象，无主导公开行动摘要",
+              "goal": "本阶段无独立主目标（仅参与/对象）",
+              "action": "见 contributions（参与/对象）",
               "relationChanges": [
-                "同场出现（非因果）",
                 "同场出现（非因果）"
               ],
-              "gainedInfo": "阵营线结算",
+              "gainedInfo": "NEEDS_DETAIL",
               "misunderstanding": "NEEDS_DETAIL",
-              "endChange": "阵营线结算",
+              "endChange": "NEEDS_DETAIL",
               "needsDetail": false
             }
           ]
@@ -2263,25 +3096,81 @@
           "stages": [
             {
               "stageId": "act2",
-              "knows": "本阶段可见行动相关：对公共任务施加正式破坏或支援",
-              "goal": "让公共任务按本阵营偏好成功、失败或延迟",
-              "action": "对公共任务施加正式破坏或支援",
+              "contributions": [
+                {
+                  "sourceBeatId": "beat-develop",
+                  "sourceOutlineBeatId": "ob-mtny8fqt-90ck",
+                  "sourceBlockId": "smb-mtny8fqr-najg0",
+                  "familyId": "M07",
+                  "templateId": "M07-2",
+                  "roleInBeat": "PARTICIPANT",
+                  "goal": null,
+                  "action": "参与（非主导）：白斋子为了用正式动作换取被条件锁住的信息，完成登记条件以触发内容开放（目标：身份记录）",
+                  "gainedInfo": null,
+                  "relationQuality": "COLOCATED",
+                  "needsDetail": false
+                },
+                {
+                  "sourceBeatId": "beat-develop",
+                  "sourceOutlineBeatId": "ob-mtny8fqt-yxcl",
+                  "sourceBlockId": "smb-mtny8fqs-dib2c",
+                  "familyId": "M08",
+                  "templateId": "M08-7",
+                  "roleInBeat": "PARTICIPANT",
+                  "goal": null,
+                  "action": "参与（非主导）：莫玄宗为了让公共任务按本阵营偏好成功、失败或延迟，对公共任务施加正式破坏或支援（目标：公共任务状态）",
+                  "gainedInfo": null,
+                  "relationQuality": "COLOCATED",
+                  "needsDetail": false
+                }
+              ],
+              "stageSummary": "本阶段无独立主目标（仅参与/对象）",
+              "knows": "本阶段主要为参与/对象，无主导公开行动摘要",
+              "goal": "本阶段无独立主目标（仅参与/对象）",
+              "action": "见 contributions（参与/对象）",
               "relationChanges": [
-                "同场出现（非因果）",
                 "同场出现（非因果）"
               ],
-              "gainedInfo": "阵营压力升级",
+              "gainedInfo": "NEEDS_DETAIL",
               "misunderstanding": "NEEDS_DETAIL",
-              "endChange": "阵营压力升级",
+              "endChange": "NEEDS_DETAIL",
               "needsDetail": false
             },
             {
               "stageId": "act3",
-              "knows": "本阶段可见行动相关：在关键选择点背叛、退出或清洗异己",
+              "contributions": [
+                {
+                  "sourceBeatId": "beat-climax",
+                  "sourceOutlineBeatId": "ob-mtny8fqt-vq87",
+                  "sourceBlockId": "smb-mtny8fqr-najg0",
+                  "familyId": "M07",
+                  "templateId": "M07-2",
+                  "roleInBeat": "PARTICIPANT",
+                  "goal": null,
+                  "action": "参与（非主导）：白斋子为了确认真实身份并决定是否公开，核对身份线索并作出公开或隐瞒选择（目标：真实身份）",
+                  "gainedInfo": null,
+                  "relationQuality": "COLOCATED",
+                  "needsDetail": false
+                },
+                {
+                  "sourceBeatId": "beat-climax",
+                  "sourceOutlineBeatId": "ob-mtny8fqt-5mhh",
+                  "sourceBlockId": "smb-mtny8fqs-dib2c",
+                  "familyId": "M08",
+                  "templateId": "M08-7",
+                  "roleInBeat": "OWNER",
+                  "goal": "在暴露风险下改归属或保住秘密",
+                  "action": "在关键选择点背叛、退出或清洗异己",
+                  "gainedInfo": "归属已改变；暴露风险上升",
+                  "relationQuality": "COLOCATED",
+                  "needsDetail": false
+                }
+              ],
+              "stageSummary": "在暴露风险下改归属或保住秘密",
+              "knows": "本阶段主导行动：在关键选择点背叛、退出或清洗异己",
               "goal": "在暴露风险下改归属或保住秘密",
               "action": "在关键选择点背叛、退出或清洗异己",
               "relationChanges": [
-                "同场出现（非因果）",
                 "同场出现（非因果）"
               ],
               "gainedInfo": "归属已改变；暴露风险上升",
@@ -2291,16 +3180,44 @@
             },
             {
               "stageId": "act4",
-              "knows": "本阶段可见行动相关：公开站队或接受阵营败露后的关系重排",
-              "goal": "结算阵营目标并承受公开后果",
-              "action": "公开站队或接受阵营败露后的关系重排",
+              "contributions": [
+                {
+                  "sourceBeatId": "beat-res",
+                  "sourceOutlineBeatId": "ob-mtny8fqt-qgqe",
+                  "sourceBlockId": "smb-mtny8fqr-najg0",
+                  "familyId": "M07",
+                  "templateId": "M07-2",
+                  "roleInBeat": "PARTICIPANT",
+                  "goal": null,
+                  "action": "参与（非主导）：白斋子为了承受身份公开后的关系后果，面对知情者与阵营/调查方的反应（目标：关系重组）",
+                  "gainedInfo": null,
+                  "relationQuality": "COLOCATED",
+                  "needsDetail": false
+                },
+                {
+                  "sourceBeatId": "beat-res",
+                  "sourceOutlineBeatId": "ob-mtny8fqt-69ru",
+                  "sourceBlockId": "smb-mtny8fqs-dib2c",
+                  "familyId": "M08",
+                  "templateId": "M08-7",
+                  "roleInBeat": "PARTICIPANT",
+                  "goal": null,
+                  "action": "参与（非主导）：莫玄宗为了结算阵营目标并承受公开后果，公开站队或接受阵营败露后的关系重排（目标：阵营胜负条件）",
+                  "gainedInfo": null,
+                  "relationQuality": "COLOCATED",
+                  "needsDetail": false
+                }
+              ],
+              "stageSummary": "本阶段无独立主目标（仅参与/对象）",
+              "knows": "本阶段主要为参与/对象，无主导公开行动摘要",
+              "goal": "本阶段无独立主目标（仅参与/对象）",
+              "action": "见 contributions（参与/对象）",
               "relationChanges": [
-                "同场出现（非因果）",
                 "同场出现（非因果）"
               ],
-              "gainedInfo": "阵营线结算",
+              "gainedInfo": "NEEDS_DETAIL",
               "misunderstanding": "NEEDS_DETAIL",
-              "endChange": "阵营线结算",
+              "endChange": "NEEDS_DETAIL",
               "needsDetail": false
             }
           ]
@@ -2311,28 +3228,60 @@
           "stages": [
             {
               "stageId": "act2",
-              "knows": "本阶段可见行动相关：实施犯行并留下指向顾清商的痕迹",
-              "goal": "完成犯行并指向顾清商",
-              "action": "实施犯行并留下指向顾清商的痕迹",
+              "contributions": [
+                {
+                  "sourceBeatId": "beat-crime",
+                  "sourceOutlineBeatId": "ob-mtny8fqt-2gz6",
+                  "sourceBlockId": "smb-mtny8fqs-877jw",
+                  "familyId": "M01",
+                  "templateId": "M01-FRAMING",
+                  "roleInBeat": "PARTICIPANT",
+                  "goal": null,
+                  "action": "参与（非主导）：沈孤鸿为了完成犯行并指向顾清商，实施犯行并留下指向顾清商的痕迹（目标：被拨慢的座钟记录）",
+                  "gainedInfo": null,
+                  "relationQuality": "COLOCATED",
+                  "needsDetail": false
+                }
+              ],
+              "stageSummary": "本阶段无独立主目标（仅参与/对象）",
+              "knows": "本阶段主要为参与/对象，无主导公开行动摘要",
+              "goal": "本阶段无独立主目标（仅参与/对象）",
+              "action": "见 contributions（参与/对象）",
               "relationChanges": [
                 "同场出现（非因果）"
               ],
-              "gainedInfo": "犯行已发生；错误嫌疑成立",
+              "gainedInfo": "NEEDS_DETAIL",
               "misunderstanding": "NEEDS_DETAIL",
-              "endChange": "犯行已发生；错误嫌疑成立",
+              "endChange": "NEEDS_DETAIL",
               "needsDetail": false
             },
             {
               "stageId": "act4",
-              "knows": "本阶段可见行动相关：用决定性证据揭穿嫁祸",
-              "goal": "锁定真凶沈孤鸿",
-              "action": "用决定性证据揭穿嫁祸",
+              "contributions": [
+                {
+                  "sourceBeatId": "beat-res",
+                  "sourceOutlineBeatId": "ob-mtny8fqt-tb0d",
+                  "sourceBlockId": "smb-mtny8fqs-877jw",
+                  "familyId": "M01",
+                  "templateId": "M01-FRAMING",
+                  "roleInBeat": "PARTICIPANT",
+                  "goal": null,
+                  "action": "参与（非主导）：莫玄宗为了锁定真凶沈孤鸿，用决定性证据揭穿嫁祸（目标：决定性证据）",
+                  "gainedInfo": null,
+                  "relationQuality": "COLOCATED",
+                  "needsDetail": false
+                }
+              ],
+              "stageSummary": "本阶段无独立主目标（仅参与/对象）",
+              "knows": "本阶段主要为参与/对象，无主导公开行动摘要",
+              "goal": "本阶段无独立主目标（仅参与/对象）",
+              "action": "见 contributions（参与/对象）",
               "relationChanges": [
                 "同场出现（非因果）"
               ],
-              "gainedInfo": "真凶锁定",
+              "gainedInfo": "NEEDS_DETAIL",
               "misunderstanding": "NEEDS_DETAIL",
-              "endChange": "真凶锁定",
+              "endChange": "NEEDS_DETAIL",
               "needsDetail": false
             }
           ]
@@ -2342,57 +3291,17 @@
     "clueView": {
       "clues": [
         {
-          "clueId": "smb-mtn0omaf-zzy92-foreshadow-0",
+          "clueId": "smb-mtny8fqr-najg0-foreshadow-0",
           "label": "早期伏笔",
-          "mechanismId": "smb-mtn0omaf-zzy92",
+          "mechanismId": "smb-mtny8fqr-najg0",
           "templateId": "M07-2",
-          "stageId": "act1",
-          "possibleFinders": [
-            "A",
-            "B"
+          "introducedAt": "act1",
+          "availableStages": [
+            "act1",
+            "act2"
           ],
-          "supportsFact": "早期伏笔",
-          "isMisleading": false,
-          "isDecisive": false,
-          "missingDetail": false
-        },
-        {
-          "clueId": "smb-mtn0omag-p3wie-faction_foreshadow-0",
-          "label": "阵营伏笔",
-          "mechanismId": "smb-mtn0omag-p3wie",
-          "templateId": "M08-7",
+          "persists": true,
           "stageId": "act1",
-          "possibleFinders": [
-            "F",
-            "B"
-          ],
-          "supportsFact": "阵营伏笔",
-          "isMisleading": false,
-          "isDecisive": false,
-          "missingDetail": false
-        },
-        {
-          "clueId": "fact-interface:ob-mtn0omah-a9mt",
-          "label": "事实接口（尚无线索实体）",
-          "mechanismId": "smb-mtn0omag-d4cwv",
-          "templateId": "M01-FRAMING",
-          "stageId": "act1",
-          "possibleFinders": [
-            "B",
-            "C"
-          ],
-          "supportsFact": "误导物已就绪",
-          "isMisleading": false,
-          "isDecisive": false,
-          "missingDetail": true,
-          "detailNote": "这个剧情 beat 需要关键线索，但模板尚未提供具体线索内容。"
-        },
-        {
-          "clueId": "smb-mtn0omaf-zzy92-foreshadow-0",
-          "label": "早期伏笔",
-          "mechanismId": "smb-mtn0omaf-zzy92",
-          "templateId": "M07-2",
-          "stageId": "act2",
           "possibleFinders": [
             "A",
             "B",
@@ -2406,11 +3315,17 @@
           "missingDetail": false
         },
         {
-          "clueId": "smb-mtn0omag-p3wie-faction_foreshadow-0",
+          "clueId": "smb-mtny8fqs-dib2c-faction_foreshadow-0",
           "label": "阵营伏笔",
-          "mechanismId": "smb-mtn0omag-p3wie",
+          "mechanismId": "smb-mtny8fqs-dib2c",
           "templateId": "M08-7",
-          "stageId": "act2",
+          "introducedAt": "act1",
+          "availableStages": [
+            "act1",
+            "act2"
+          ],
+          "persists": true,
+          "stageId": "act1",
           "possibleFinders": [
             "F",
             "B",
@@ -2425,26 +3340,58 @@
           "missingDetail": false
         },
         {
-          "clueId": "smb-mtn0omag-d4cwv-false_lead-0",
-          "label": "误导",
-          "mechanismId": "smb-mtn0omag-d4cwv",
+          "clueId": "fact-interface:ob-mtny8fqt-uc7z",
+          "label": "事实接口（尚无线索实体）",
+          "mechanismId": "smb-mtny8fqs-877jw",
           "templateId": "M01-FRAMING",
+          "introducedAt": "act1",
+          "availableStages": [
+            "act1"
+          ],
+          "persists": false,
+          "stageId": "act1",
+          "possibleFinders": [
+            "B",
+            "C"
+          ],
+          "supportsFact": "误导物已就绪",
+          "isMisleading": true,
+          "isDecisive": false,
+          "missingDetail": true,
+          "detailNote": "这个剧情 beat 需要关键线索，但模板尚未提供具体线索内容。"
+        },
+        {
+          "clueId": "smb-mtny8fqs-877jw-false_lead-0",
+          "label": "误导",
+          "mechanismId": "smb-mtny8fqs-877jw",
+          "templateId": "M01-FRAMING",
+          "introducedAt": "act2",
+          "availableStages": [
+            "act2"
+          ],
+          "persists": false,
           "stageId": "act2",
           "possibleFinders": [
             "B",
             "NPC_LU",
-            "F"
+            "F",
+            "C"
           ],
           "supportsFact": "被拨慢的座钟记录",
-          "isMisleading": false,
+          "isMisleading": true,
           "isDecisive": false,
           "missingDetail": false
         },
         {
-          "clueId": "smb-mtn0omag-d4cwv-contradiction-1",
+          "clueId": "smb-mtny8fqs-877jw-contradiction-1",
           "label": "反证",
-          "mechanismId": "smb-mtn0omag-d4cwv",
+          "mechanismId": "smb-mtny8fqs-877jw",
           "templateId": "M01-FRAMING",
+          "introducedAt": "act2",
+          "availableStages": [
+            "act2"
+          ],
+          "persists": false,
           "stageId": "act2",
           "possibleFinders": [
             "F"
@@ -2455,10 +3402,15 @@
           "missingDetail": false
         },
         {
-          "clueId": "smb-mtn0omaf-zzy92-memory_fragment-1",
+          "clueId": "smb-mtny8fqr-najg0-memory_fragment-1",
           "label": "记忆碎片",
-          "mechanismId": "smb-mtn0omaf-zzy92",
+          "mechanismId": "smb-mtny8fqr-najg0",
           "templateId": "M07-2",
+          "introducedAt": "act3",
+          "availableStages": [
+            "act3"
+          ],
+          "persists": false,
           "stageId": "act3",
           "possibleFinders": [
             "A",
@@ -2473,10 +3425,15 @@
           "missingDetail": false
         },
         {
-          "clueId": "smb-mtn0omaf-zzy92-identity_hint-2",
+          "clueId": "smb-mtny8fqr-najg0-identity_hint-2",
           "label": "身份暗示",
-          "mechanismId": "smb-mtn0omaf-zzy92",
+          "mechanismId": "smb-mtny8fqr-najg0",
           "templateId": "M07-2",
+          "introducedAt": "act3",
+          "availableStages": [
+            "act3"
+          ],
+          "persists": false,
           "stageId": "act3",
           "possibleFinders": [
             "A",
@@ -2491,10 +3448,15 @@
           "missingDetail": false
         },
         {
-          "clueId": "smb-mtn0omaf-zzy92-misdirection-3",
+          "clueId": "smb-mtny8fqr-najg0-misdirection-3",
           "label": "误导",
-          "mechanismId": "smb-mtn0omaf-zzy92",
+          "mechanismId": "smb-mtny8fqr-najg0",
           "templateId": "M07-2",
+          "introducedAt": "act3",
+          "availableStages": [
+            "act3"
+          ],
+          "persists": false,
           "stageId": "act3",
           "possibleFinders": [
             "A",
@@ -2504,15 +3466,20 @@
             "E"
           ],
           "supportsFact": "误导",
-          "isMisleading": false,
+          "isMisleading": true,
           "isDecisive": false,
           "missingDetail": false
         },
         {
-          "clueId": "smb-mtn0omaf-zzy92-confirmation-4",
+          "clueId": "smb-mtny8fqr-najg0-confirmation-4",
           "label": "确认",
-          "mechanismId": "smb-mtn0omaf-zzy92",
+          "mechanismId": "smb-mtny8fqr-najg0",
           "templateId": "M07-2",
+          "introducedAt": "act3",
+          "availableStages": [
+            "act3"
+          ],
+          "persists": false,
           "stageId": "act3",
           "possibleFinders": [
             "A",
@@ -2527,10 +3494,15 @@
           "missingDetail": false
         },
         {
-          "clueId": "smb-mtn0omaf-zzy92-decisive_reveal-5",
+          "clueId": "smb-mtny8fqr-najg0-decisive_reveal-5",
           "label": "决定性揭示",
-          "mechanismId": "smb-mtn0omaf-zzy92",
+          "mechanismId": "smb-mtny8fqr-najg0",
           "templateId": "M07-2",
+          "introducedAt": "act3",
+          "availableStages": [
+            "act3"
+          ],
+          "persists": false,
           "stageId": "act3",
           "possibleFinders": [
             "A",
@@ -2545,10 +3517,15 @@
           "missingDetail": false
         },
         {
-          "clueId": "smb-mtn0omag-p3wie-membership_hint-1",
+          "clueId": "smb-mtny8fqs-dib2c-membership_hint-1",
           "label": "成员暗示",
-          "mechanismId": "smb-mtn0omag-p3wie",
+          "mechanismId": "smb-mtny8fqs-dib2c",
           "templateId": "M08-7",
+          "introducedAt": "act3",
+          "availableStages": [
+            "act3"
+          ],
+          "persists": false,
           "stageId": "act3",
           "possibleFinders": [
             "E",
@@ -2564,10 +3541,15 @@
           "missingDetail": false
         },
         {
-          "clueId": "smb-mtn0omag-p3wie-secret_signal-2",
+          "clueId": "smb-mtny8fqs-dib2c-secret_signal-2",
           "label": "秘密信号",
-          "mechanismId": "smb-mtn0omag-p3wie",
+          "mechanismId": "smb-mtny8fqs-dib2c",
           "templateId": "M08-7",
+          "introducedAt": "act3",
+          "availableStages": [
+            "act3"
+          ],
+          "persists": false,
           "stageId": "act3",
           "possibleFinders": [
             "E",
@@ -2583,10 +3565,15 @@
           "missingDetail": false
         },
         {
-          "clueId": "smb-mtn0omag-p3wie-recruitment_evidence-3",
+          "clueId": "smb-mtny8fqs-dib2c-recruitment_evidence-3",
           "label": "招募证据",
-          "mechanismId": "smb-mtn0omag-p3wie",
+          "mechanismId": "smb-mtny8fqs-dib2c",
           "templateId": "M08-7",
+          "introducedAt": "act3",
+          "availableStages": [
+            "act3"
+          ],
+          "persists": false,
           "stageId": "act3",
           "possibleFinders": [
             "E",
@@ -2602,10 +3589,15 @@
           "missingDetail": false
         },
         {
-          "clueId": "smb-mtn0omag-p3wie-loyalty_test-4",
+          "clueId": "smb-mtny8fqs-dib2c-loyalty_test-4",
           "label": "忠诚考验",
-          "mechanismId": "smb-mtn0omag-p3wie",
+          "mechanismId": "smb-mtny8fqs-dib2c",
           "templateId": "M08-7",
+          "introducedAt": "act3",
+          "availableStages": [
+            "act3"
+          ],
+          "persists": false,
           "stageId": "act3",
           "possibleFinders": [
             "E",
@@ -2621,10 +3613,15 @@
           "missingDetail": false
         },
         {
-          "clueId": "smb-mtn0omag-p3wie-betrayal_hint-5",
+          "clueId": "smb-mtny8fqs-dib2c-betrayal_hint-5",
           "label": "背叛暗示",
-          "mechanismId": "smb-mtn0omag-p3wie",
+          "mechanismId": "smb-mtny8fqs-dib2c",
           "templateId": "M08-7",
+          "introducedAt": "act3",
+          "availableStages": [
+            "act3"
+          ],
+          "persists": false,
           "stageId": "act3",
           "possibleFinders": [
             "E",
@@ -2640,10 +3637,15 @@
           "missingDetail": false
         },
         {
-          "clueId": "smb-mtn0omag-p3wie-internal_conflict-6",
+          "clueId": "smb-mtny8fqs-dib2c-internal_conflict-6",
           "label": "内部冲突",
-          "mechanismId": "smb-mtn0omag-p3wie",
+          "mechanismId": "smb-mtny8fqs-dib2c",
           "templateId": "M08-7",
+          "introducedAt": "act3",
+          "availableStages": [
+            "act3"
+          ],
+          "persists": false,
           "stageId": "act3",
           "possibleFinders": [
             "E",
@@ -2659,10 +3661,15 @@
           "missingDetail": false
         },
         {
-          "clueId": "smb-mtn0omag-p3wie-hidden_goal_hint-7",
+          "clueId": "smb-mtny8fqs-dib2c-hidden_goal_hint-7",
           "label": "隐藏目标暗示",
-          "mechanismId": "smb-mtn0omag-p3wie",
+          "mechanismId": "smb-mtny8fqs-dib2c",
           "templateId": "M08-7",
+          "introducedAt": "act3",
+          "availableStages": [
+            "act3"
+          ],
+          "persists": false,
           "stageId": "act3",
           "possibleFinders": [
             "E",
@@ -2678,10 +3685,15 @@
           "missingDetail": false
         },
         {
-          "clueId": "smb-mtn0omag-p3wie-membership_confirmation-8",
+          "clueId": "smb-mtny8fqs-dib2c-membership_confirmation-8",
           "label": "归属确认",
-          "mechanismId": "smb-mtn0omag-p3wie",
+          "mechanismId": "smb-mtny8fqs-dib2c",
           "templateId": "M08-7",
+          "introducedAt": "act3",
+          "availableStages": [
+            "act3"
+          ],
+          "persists": false,
           "stageId": "act3",
           "possibleFinders": [
             "E",
@@ -2697,10 +3709,15 @@
           "missingDetail": false
         },
         {
-          "clueId": "smb-mtn0omag-p3wie-faction_exposure-9",
+          "clueId": "smb-mtny8fqs-dib2c-faction_exposure-9",
           "label": "阵营暴露",
-          "mechanismId": "smb-mtn0omag-p3wie",
+          "mechanismId": "smb-mtny8fqs-dib2c",
           "templateId": "M08-7",
+          "introducedAt": "act3",
+          "availableStages": [
+            "act3"
+          ],
+          "persists": false,
           "stageId": "act3",
           "possibleFinders": [
             "E",
@@ -2716,10 +3733,15 @@
           "missingDetail": false
         },
         {
-          "clueId": "smb-mtn0omag-d4cwv-true_evidence-2",
+          "clueId": "smb-mtny8fqs-877jw-true_evidence-2",
           "label": "真手法",
-          "mechanismId": "smb-mtn0omag-d4cwv",
+          "mechanismId": "smb-mtny8fqs-877jw",
           "templateId": "M01-FRAMING",
+          "introducedAt": "act3",
+          "availableStages": [
+            "act3"
+          ],
+          "persists": false,
           "stageId": "act3",
           "possibleFinders": [
             "F",
@@ -2732,15 +3754,22 @@
           "missingDetail": false
         },
         {
-          "clueId": "smb-mtn0omag-d4cwv-decisive_evidence-3",
+          "clueId": "smb-mtny8fqs-877jw-decisive_evidence-3",
           "label": "突破",
-          "mechanismId": "smb-mtn0omag-d4cwv",
+          "mechanismId": "smb-mtny8fqs-877jw",
           "templateId": "M01-FRAMING",
+          "introducedAt": "act3",
+          "availableStages": [
+            "act3",
+            "act4"
+          ],
+          "persists": true,
           "stageId": "act3",
           "possibleFinders": [
             "F",
             "B",
-            "C"
+            "C",
+            "NPC_LU"
           ],
           "supportsFact": "真凶当晚校准过座钟的证词交叉",
           "isMisleading": false,
@@ -2748,10 +3777,15 @@
           "missingDetail": false
         },
         {
-          "clueId": "fact-interface:ob-mtn0omah-aajx",
+          "clueId": "fact-interface:ob-mtny8fqt-qgqe",
           "label": "事实接口（尚无线索实体）",
-          "mechanismId": "smb-mtn0omaf-zzy92",
+          "mechanismId": "smb-mtny8fqr-najg0",
           "templateId": "M07-2",
+          "introducedAt": "act4",
+          "availableStages": [
+            "act4"
+          ],
+          "persists": false,
           "stageId": "act4",
           "possibleFinders": [
             "A",
@@ -2767,10 +3801,15 @@
           "detailNote": "这个剧情 beat 需要关键线索，但模板尚未提供具体线索内容。"
         },
         {
-          "clueId": "fact-interface:ob-mtn0omah-qo1h",
+          "clueId": "fact-interface:ob-mtny8fqt-69ru",
           "label": "事实接口（尚无线索实体）",
-          "mechanismId": "smb-mtn0omag-p3wie",
+          "mechanismId": "smb-mtny8fqs-dib2c",
           "templateId": "M08-7",
+          "introducedAt": "act4",
+          "availableStages": [
+            "act4"
+          ],
+          "persists": false,
           "stageId": "act4",
           "possibleFinders": [
             "F",
@@ -2785,23 +3824,6 @@
           "isDecisive": false,
           "missingDetail": true,
           "detailNote": "这个剧情 beat 需要关键线索，但模板尚未提供具体线索内容。"
-        },
-        {
-          "clueId": "smb-mtn0omag-d4cwv-decisive_evidence-3",
-          "label": "突破",
-          "mechanismId": "smb-mtn0omag-d4cwv",
-          "templateId": "M01-FRAMING",
-          "stageId": "act4",
-          "possibleFinders": [
-            "F",
-            "NPC_LU",
-            "B",
-            "C"
-          ],
-          "supportsFact": "真凶当晚校准过座钟的证词交叉",
-          "isMisleading": false,
-          "isDecisive": false,
-          "missingDetail": false
         }
       ]
     },
@@ -2812,14 +3834,14 @@
           "openingState": "开局：各线按积木 setup 状态进入（不新增前提）",
           "stageGoal": "白斋子：隐藏或维持当前身份表象；莫玄宗：巩固或潜伏阵营结构；沈孤鸿：准备可嫁祸的假象",
           "beatsToAdvance": [
-            "ob-mtn0omah-lrnx",
-            "ob-mtn0omah-y1a8",
-            "ob-mtn0omah-a9mt"
+            "ob-mtny8fqt-skvu",
+            "ob-mtny8fqt-mfyp",
+            "ob-mtny8fqt-uc7z"
           ],
           "cluesAvailable": [
-            "smb-mtn0omaf-zzy92-foreshadow-0",
-            "smb-mtn0omag-p3wie-faction_foreshadow-0",
-            "fact-interface:ob-mtn0omah-a9mt"
+            "smb-mtny8fqr-najg0-foreshadow-0",
+            "smb-mtny8fqs-dib2c-faction_foreshadow-0",
+            "fact-interface:ob-mtny8fqt-uc7z"
           ],
           "charactersInPlay": [
             "A",
@@ -2827,21 +3849,38 @@
             "F",
             "C"
           ],
+          "candidateGameInsertionPoints": [
+            {
+              "placementId": "game-candidate-ob-mtny8fqt-skvu",
+              "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+              "afterBeatId": "ob-mtny8fqt-skvu"
+            },
+            {
+              "placementId": "game-candidate-ob-mtny8fqt-mfyp",
+              "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+              "afterBeatId": "ob-mtny8fqt-mfyp"
+            },
+            {
+              "placementId": "game-candidate-ob-mtny8fqt-uc7z",
+              "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+              "afterBeatId": "ob-mtny8fqt-uc7z"
+            }
+          ],
           "gameMechanismSlots": [
             {
-              "placementId": "game-slot-ob-mtn0omah-lrnx",
-              "hint": "预留：可在此 beat 后插入 GAME mechanism（本轮不接 runtime）",
-              "afterBeatId": "ob-mtn0omah-lrnx"
+              "placementId": "game-candidate-ob-mtny8fqt-skvu",
+              "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+              "afterBeatId": "ob-mtny8fqt-skvu"
             },
             {
-              "placementId": "game-slot-ob-mtn0omah-y1a8",
-              "hint": "预留：可在此 beat 后插入 GAME mechanism（本轮不接 runtime）",
-              "afterBeatId": "ob-mtn0omah-y1a8"
+              "placementId": "game-candidate-ob-mtny8fqt-mfyp",
+              "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+              "afterBeatId": "ob-mtny8fqt-mfyp"
             },
             {
-              "placementId": "game-slot-ob-mtn0omah-a9mt",
-              "hint": "预留：可在此 beat 后插入 GAME mechanism（本轮不接 runtime）",
-              "afterBeatId": "ob-mtn0omah-a9mt"
+              "placementId": "game-candidate-ob-mtny8fqt-uc7z",
+              "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+              "afterBeatId": "ob-mtny8fqt-uc7z"
             }
           ],
           "requiredStateBeforeNext": "身份仍未公开；阵营结构已成形；误导物已就绪"
@@ -2849,19 +3888,19 @@
         {
           "stageId": "act2",
           "openingState": "承接上一阶段已声明后果；未声明者标 UNKNOWN",
-          "stageGoal": "白斋子：用正式动作换取被条件锁住的信息；莫玄宗：让公共任务按本阵营偏好成功、失败或延迟；沈孤鸿：完成犯行并指向顾清商",
+          "stageGoal": "白斋子：用正式动作换取被条件锁住的信息；莫玄宗：让公共任务按本阵营偏好成功、失败或延迟；沈孤鸿：完成犯行并指向顾清商；莫玄宗：推翻对顾清商的错误判断",
           "beatsToAdvance": [
-            "ob-mtn0omah-wr42",
-            "ob-mtn0omah-01tb",
-            "ob-mtn0omah-bssk",
-            "ob-mtn0omah-7z3f",
-            "ob-mtn0omah-quiz"
+            "ob-mtny8fqt-90ck",
+            "ob-mtny8fqt-yxcl",
+            "ob-mtny8fqt-2gz6",
+            "ob-mtny8fqt-rz8b",
+            "ob-mtny8fqt-dkxf"
           ],
           "cluesAvailable": [
-            "smb-mtn0omaf-zzy92-foreshadow-0",
-            "smb-mtn0omag-p3wie-faction_foreshadow-0",
-            "smb-mtn0omag-d4cwv-false_lead-0",
-            "smb-mtn0omag-d4cwv-contradiction-1"
+            "smb-mtny8fqr-najg0-foreshadow-0",
+            "smb-mtny8fqs-dib2c-faction_foreshadow-0",
+            "smb-mtny8fqs-877jw-false_lead-0",
+            "smb-mtny8fqs-877jw-contradiction-1"
           ],
           "charactersInPlay": [
             "A",
@@ -2872,61 +3911,88 @@
             "F",
             "NPC_LU"
           ],
-          "gameMechanismSlots": [
+          "candidateGameInsertionPoints": [
             {
-              "placementId": "game-slot-ob-mtn0omah-wr42",
-              "hint": "预留：可在此 beat 后插入 GAME mechanism（本轮不接 runtime）",
-              "afterBeatId": "ob-mtn0omah-wr42"
+              "placementId": "game-candidate-ob-mtny8fqt-90ck",
+              "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+              "afterBeatId": "ob-mtny8fqt-90ck"
             },
             {
-              "placementId": "game-slot-ob-mtn0omah-01tb",
-              "hint": "预留：可在此 beat 后插入 GAME mechanism（本轮不接 runtime）",
-              "afterBeatId": "ob-mtn0omah-01tb"
+              "placementId": "game-candidate-ob-mtny8fqt-yxcl",
+              "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+              "afterBeatId": "ob-mtny8fqt-yxcl"
             },
             {
-              "placementId": "game-slot-ob-mtn0omah-bssk",
-              "hint": "预留：可在此 beat 后插入 GAME mechanism（本轮不接 runtime）",
-              "afterBeatId": "ob-mtn0omah-bssk"
+              "placementId": "game-candidate-ob-mtny8fqt-2gz6",
+              "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+              "afterBeatId": "ob-mtny8fqt-2gz6"
             },
             {
-              "placementId": "game-slot-ob-mtn0omah-7z3f",
-              "hint": "预留：可在此 beat 后插入 GAME mechanism（本轮不接 runtime）",
-              "afterBeatId": "ob-mtn0omah-7z3f"
+              "placementId": "game-candidate-ob-mtny8fqt-rz8b",
+              "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+              "afterBeatId": "ob-mtny8fqt-rz8b"
             },
             {
-              "placementId": "game-slot-ob-mtn0omah-quiz",
-              "hint": "预留：可在此 beat 后插入 GAME mechanism（本轮不接 runtime）",
-              "afterBeatId": "ob-mtn0omah-quiz"
+              "placementId": "game-candidate-ob-mtny8fqt-dkxf",
+              "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+              "afterBeatId": "ob-mtny8fqt-dkxf"
             }
           ],
-          "requiredStateBeforeNext": "条件开放的信息；阵营压力升级；犯行已发生；错误嫌疑成立；犯行已发生；错误嫌疑成立；反证出现"
+          "gameMechanismSlots": [
+            {
+              "placementId": "game-candidate-ob-mtny8fqt-90ck",
+              "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+              "afterBeatId": "ob-mtny8fqt-90ck"
+            },
+            {
+              "placementId": "game-candidate-ob-mtny8fqt-yxcl",
+              "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+              "afterBeatId": "ob-mtny8fqt-yxcl"
+            },
+            {
+              "placementId": "game-candidate-ob-mtny8fqt-2gz6",
+              "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+              "afterBeatId": "ob-mtny8fqt-2gz6"
+            },
+            {
+              "placementId": "game-candidate-ob-mtny8fqt-rz8b",
+              "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+              "afterBeatId": "ob-mtny8fqt-rz8b"
+            },
+            {
+              "placementId": "game-candidate-ob-mtny8fqt-dkxf",
+              "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+              "afterBeatId": "ob-mtny8fqt-dkxf"
+            }
+          ],
+          "requiredStateBeforeNext": "条件开放的信息；阵营压力升级；犯行已发生；错误嫌疑成立；反证出现"
         },
         {
           "stageId": "act3",
           "openingState": "承接上一阶段已声明后果；未声明者标 UNKNOWN",
           "stageGoal": "白斋子：确认真实身份并决定是否公开；叶晚晴：在暴露风险下改归属或保住秘密；莫玄宗：推翻对顾清商的错误判断",
           "beatsToAdvance": [
-            "ob-mtn0omah-0hpf",
-            "ob-mtn0omah-4yf2",
-            "ob-mtn0omah-1kgz"
+            "ob-mtny8fqt-vq87",
+            "ob-mtny8fqt-5mhh",
+            "ob-mtny8fqt-iw7f"
           ],
           "cluesAvailable": [
-            "smb-mtn0omaf-zzy92-memory_fragment-1",
-            "smb-mtn0omaf-zzy92-identity_hint-2",
-            "smb-mtn0omaf-zzy92-misdirection-3",
-            "smb-mtn0omaf-zzy92-confirmation-4",
-            "smb-mtn0omaf-zzy92-decisive_reveal-5",
-            "smb-mtn0omag-p3wie-membership_hint-1",
-            "smb-mtn0omag-p3wie-secret_signal-2",
-            "smb-mtn0omag-p3wie-recruitment_evidence-3",
-            "smb-mtn0omag-p3wie-loyalty_test-4",
-            "smb-mtn0omag-p3wie-betrayal_hint-5",
-            "smb-mtn0omag-p3wie-internal_conflict-6",
-            "smb-mtn0omag-p3wie-hidden_goal_hint-7",
-            "smb-mtn0omag-p3wie-membership_confirmation-8",
-            "smb-mtn0omag-p3wie-faction_exposure-9",
-            "smb-mtn0omag-d4cwv-true_evidence-2",
-            "smb-mtn0omag-d4cwv-decisive_evidence-3"
+            "smb-mtny8fqr-najg0-memory_fragment-1",
+            "smb-mtny8fqr-najg0-identity_hint-2",
+            "smb-mtny8fqr-najg0-misdirection-3",
+            "smb-mtny8fqr-najg0-confirmation-4",
+            "smb-mtny8fqr-najg0-decisive_reveal-5",
+            "smb-mtny8fqs-dib2c-membership_hint-1",
+            "smb-mtny8fqs-dib2c-secret_signal-2",
+            "smb-mtny8fqs-dib2c-recruitment_evidence-3",
+            "smb-mtny8fqs-dib2c-loyalty_test-4",
+            "smb-mtny8fqs-dib2c-betrayal_hint-5",
+            "smb-mtny8fqs-dib2c-internal_conflict-6",
+            "smb-mtny8fqs-dib2c-hidden_goal_hint-7",
+            "smb-mtny8fqs-dib2c-membership_confirmation-8",
+            "smb-mtny8fqs-dib2c-faction_exposure-9",
+            "smb-mtny8fqs-877jw-true_evidence-2",
+            "smb-mtny8fqs-877jw-decisive_evidence-3"
           ],
           "charactersInPlay": [
             "A",
@@ -2936,21 +4002,38 @@
             "E",
             "F"
           ],
+          "candidateGameInsertionPoints": [
+            {
+              "placementId": "game-candidate-ob-mtny8fqt-vq87",
+              "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+              "afterBeatId": "ob-mtny8fqt-vq87"
+            },
+            {
+              "placementId": "game-candidate-ob-mtny8fqt-5mhh",
+              "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+              "afterBeatId": "ob-mtny8fqt-5mhh"
+            },
+            {
+              "placementId": "game-candidate-ob-mtny8fqt-iw7f",
+              "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+              "afterBeatId": "ob-mtny8fqt-iw7f"
+            }
+          ],
           "gameMechanismSlots": [
             {
-              "placementId": "game-slot-ob-mtn0omah-0hpf",
-              "hint": "预留：可在此 beat 后插入 GAME mechanism（本轮不接 runtime）",
-              "afterBeatId": "ob-mtn0omah-0hpf"
+              "placementId": "game-candidate-ob-mtny8fqt-vq87",
+              "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+              "afterBeatId": "ob-mtny8fqt-vq87"
             },
             {
-              "placementId": "game-slot-ob-mtn0omah-4yf2",
-              "hint": "预留：可在此 beat 后插入 GAME mechanism（本轮不接 runtime）",
-              "afterBeatId": "ob-mtn0omah-4yf2"
+              "placementId": "game-candidate-ob-mtny8fqt-5mhh",
+              "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+              "afterBeatId": "ob-mtny8fqt-5mhh"
             },
             {
-              "placementId": "game-slot-ob-mtn0omah-1kgz",
-              "hint": "预留：可在此 beat 后插入 GAME mechanism（本轮不接 runtime）",
-              "afterBeatId": "ob-mtn0omah-1kgz"
+              "placementId": "game-candidate-ob-mtny8fqt-iw7f",
+              "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+              "afterBeatId": "ob-mtny8fqt-iw7f"
             }
           ],
           "requiredStateBeforeNext": "身份已确认；家族/资格状态；归属已改变；暴露风险上升；反证出现"
@@ -2960,14 +4043,14 @@
           "openingState": "承接上一阶段已声明后果；未声明者标 UNKNOWN",
           "stageGoal": "白斋子：承受身份公开后的关系后果；莫玄宗：结算阵营目标并承受公开后果；莫玄宗：锁定真凶沈孤鸿",
           "beatsToAdvance": [
-            "ob-mtn0omah-aajx",
-            "ob-mtn0omah-qo1h",
-            "ob-mtn0omah-w3tb"
+            "ob-mtny8fqt-qgqe",
+            "ob-mtny8fqt-69ru",
+            "ob-mtny8fqt-tb0d"
           ],
           "cluesAvailable": [
-            "fact-interface:ob-mtn0omah-aajx",
-            "fact-interface:ob-mtn0omah-qo1h",
-            "smb-mtn0omag-d4cwv-decisive_evidence-3"
+            "smb-mtny8fqs-877jw-decisive_evidence-3",
+            "fact-interface:ob-mtny8fqt-qgqe",
+            "fact-interface:ob-mtny8fqt-69ru"
           ],
           "charactersInPlay": [
             "A",
@@ -2978,21 +4061,38 @@
             "F",
             "NPC_LU"
           ],
+          "candidateGameInsertionPoints": [
+            {
+              "placementId": "game-candidate-ob-mtny8fqt-qgqe",
+              "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+              "afterBeatId": "ob-mtny8fqt-qgqe"
+            },
+            {
+              "placementId": "game-candidate-ob-mtny8fqt-69ru",
+              "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+              "afterBeatId": "ob-mtny8fqt-69ru"
+            },
+            {
+              "placementId": "game-candidate-ob-mtny8fqt-tb0d",
+              "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+              "afterBeatId": "ob-mtny8fqt-tb0d"
+            }
+          ],
           "gameMechanismSlots": [
             {
-              "placementId": "game-slot-ob-mtn0omah-aajx",
-              "hint": "预留：可在此 beat 后插入 GAME mechanism（本轮不接 runtime）",
-              "afterBeatId": "ob-mtn0omah-aajx"
+              "placementId": "game-candidate-ob-mtny8fqt-qgqe",
+              "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+              "afterBeatId": "ob-mtny8fqt-qgqe"
             },
             {
-              "placementId": "game-slot-ob-mtn0omah-qo1h",
-              "hint": "预留：可在此 beat 后插入 GAME mechanism（本轮不接 runtime）",
-              "afterBeatId": "ob-mtn0omah-qo1h"
+              "placementId": "game-candidate-ob-mtny8fqt-69ru",
+              "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+              "afterBeatId": "ob-mtny8fqt-69ru"
             },
             {
-              "placementId": "game-slot-ob-mtn0omah-w3tb",
-              "hint": "预留：可在此 beat 后插入 GAME mechanism（本轮不接 runtime）",
-              "afterBeatId": "ob-mtn0omah-w3tb"
+              "placementId": "game-candidate-ob-mtny8fqt-tb0d",
+              "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+              "afterBeatId": "ob-mtny8fqt-tb0d"
             }
           ],
           "requiredStateBeforeNext": "终幕：无强制下一阶段"
@@ -3022,7 +4122,7 @@
         "beatIds": []
       },
       {
-        "id": "warn-clue-ob-mtn0omah-a9mt",
+        "id": "warn-clue-ob-mtny8fqt-uc7z",
         "type": "MISSING_CLUE_DETAIL",
         "severity": "info",
         "message": "该剧情 beat 需要/产生事实接口，但模板尚未绑定具体线索内容。",
@@ -3030,11 +4130,11 @@
           "act1"
         ],
         "beatIds": [
-          "ob-mtn0omah-a9mt"
+          "ob-mtny8fqt-uc7z"
         ]
       },
       {
-        "id": "warn-clue-ob-mtn0omah-aajx",
+        "id": "warn-clue-ob-mtny8fqt-qgqe",
         "type": "MISSING_CLUE_DETAIL",
         "severity": "info",
         "message": "该剧情 beat 需要/产生事实接口，但模板尚未绑定具体线索内容。",
@@ -3042,11 +4142,11 @@
           "act4"
         ],
         "beatIds": [
-          "ob-mtn0omah-aajx"
+          "ob-mtny8fqt-qgqe"
         ]
       },
       {
-        "id": "warn-clue-ob-mtn0omah-qo1h",
+        "id": "warn-clue-ob-mtny8fqt-69ru",
         "type": "MISSING_CLUE_DETAIL",
         "severity": "info",
         "message": "该剧情 beat 需要/产生事实接口，但模板尚未绑定具体线索内容。",
@@ -3054,19 +4154,19 @@
           "act4"
         ],
         "beatIds": [
-          "ob-mtn0omah-qo1h"
+          "ob-mtny8fqt-69ru"
         ]
       },
       {
-        "id": "warn-conflict-cf-mtn0omah-sv9h",
+        "id": "warn-conflict-cf-mtny8fqt-5swu",
         "type": "ROLE_OVERLOAD",
-        "severity": "warn",
+        "severity": "info",
         "message": "白斋子 当前承担：identity_bearer HIGH、outsider（负载 3）",
         "stageIds": [],
         "beatIds": []
       },
       {
-        "id": "warn-conflict-cf-mtn0omah-y10h",
+        "id": "warn-conflict-cf-mtny8fqt-9o0g",
         "type": "ROLE_OVERLOAD",
         "severity": "warn",
         "message": "沈孤鸿 当前承担：witness、member、killer HIGH（负载 5）",
@@ -3074,7 +4174,7 @@
         "beatIds": []
       },
       {
-        "id": "warn-conflict-cf-mtn0omah-qwav",
+        "id": "warn-conflict-cf-mtny8fqt-fq6u",
         "type": "ROLE_OVERLOAD",
         "severity": "warn",
         "message": "顾清商 当前承担：misled、member、framed HIGH（负载 4）",
@@ -3082,25 +4182,25 @@
         "beatIds": []
       },
       {
-        "id": "warn-conflict-cf-mtn0omah-3b74",
+        "id": "warn-conflict-cf-mtny8fqt-5blu",
         "type": "ROLE_OVERLOAD",
-        "severity": "warn",
+        "severity": "info",
         "message": "杜霄元 当前承担：discoverer、rival_lead HIGH（负载 3）",
         "stageIds": [],
         "beatIds": []
       },
       {
-        "id": "warn-conflict-cf-mtn0omah-d4iv",
+        "id": "warn-conflict-cf-mtny8fqt-vyqs",
         "type": "ROLE_OVERLOAD",
-        "severity": "warn",
+        "severity": "info",
         "message": "叶晚晴 当前承担：support、defector HIGH（负载 3）",
         "stageIds": [],
         "beatIds": []
       },
       {
-        "id": "warn-conflict-cf-mtn0omah-m5h1",
+        "id": "warn-conflict-cf-mtny8fqt-p8ms",
         "type": "ROLE_OVERLOAD",
-        "severity": "warn",
+        "severity": "info",
         "message": "莫玄宗 当前承担：faction_lead HIGH、discoverer（负载 3）",
         "stageIds": [],
         "beatIds": []
@@ -3111,5 +4211,5 @@
     "revision": 0,
     "updatedAt": "2026-09-04T12:00:00.000Z"
   },
-  "outlineId": "mod-mtn0omah-v1ae"
+  "outlineId": "mod-mtny8fqt-bpwx"
 }

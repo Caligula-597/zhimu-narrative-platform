@@ -19,7 +19,19 @@ function cleanId(value) {
   return cleanText(value, 120);
 }
 
-export const PRODUCTION_MASTER_DRAFT_VERSION = 1;
+/** P6.x Projection Correctness bumps contract shape (contributions / clue lifecycle / truth flags). */
+export const PRODUCTION_MASTER_DRAFT_VERSION = 2;
+
+export const CHARACTER_BEAT_ROLES = Object.freeze([
+  "OWNER",
+  "PARTICIPANT",
+  "TARGET",
+  "WITNESS",
+  "AFFECTED",
+]);
+
+export const EVIDENCE_EFFECTS = Object.freeze(["MISLEADING", "SUPPORTING", "NEUTRAL"]);
+export const CLAIM_TRUTH_VALUES = Object.freeze(["TRUE", "FALSE", "UNKNOWN"]);
 
 export const PRODUCTION_DRAFT_STATUSES = Object.freeze([
   "DRAFT",
@@ -124,6 +136,7 @@ export function normalizeProductionBeatDraft(value = {}) {
         name: cleanText(row.name, 80) || cleanId(row.id),
       };
     }),
+    ownerCharacterIds: asArray(src.ownerCharacterIds).map(String).filter(Boolean),
     goal: cleanText(src.goal, 200) || undefined,
     action: cleanText(src.action, 200) || undefined,
     target: cleanText(src.target, 160) || undefined,
@@ -165,11 +178,42 @@ export function normalizeProductionStageDraft(value = {}) {
   };
 }
 
+export function normalizeCharacterContribution(value = {}) {
+  const src = record(value);
+  const roleInBeat = CHARACTER_BEAT_ROLES.includes(src.roleInBeat) ? src.roleInBeat : "PARTICIPANT";
+  return {
+    sourceBeatId: cleanId(src.sourceBeatId),
+    sourceOutlineBeatId: cleanId(src.sourceOutlineBeatId),
+    sourceBlockId: cleanId(src.sourceBlockId),
+    familyId: cleanId(src.familyId) || undefined,
+    templateId: cleanId(src.templateId) || undefined,
+    roleInBeat,
+    goal: src.goal != null ? cleanText(src.goal, 200) : null,
+    action: src.action != null ? cleanText(src.action, 200) : null,
+    gainedInfo: src.gainedInfo != null ? cleanText(src.gainedInfo, 300) : null,
+    relationQuality: cleanText(src.relationQuality, 40) || undefined,
+    needsDetail: Boolean(src.needsDetail),
+  };
+}
+
 export function normalizeTruthView(value = {}) {
   const src = record(value);
   return {
     events: asArray(src.events).map((e) => {
       const row = record(e);
+      const evidenceEffect = EVIDENCE_EFFECTS.includes(row.evidenceEffect)
+        ? row.evidenceEffect
+        : row.isMisleading
+          ? "MISLEADING"
+          : "NEUTRAL";
+      const claimTruth = CLAIM_TRUTH_VALUES.includes(row.claimTruth)
+        ? row.claimTruth
+        : evidenceEffect === "MISLEADING"
+          ? "FALSE"
+          : evidenceEffect === "SUPPORTING"
+            ? "TRUE"
+            : "UNKNOWN";
+      const eventOccurred = row.eventOccurred !== false;
       return {
         beatId: cleanId(row.beatId),
         stageId: cleanId(row.stageId),
@@ -177,12 +221,29 @@ export function normalizeTruthView(value = {}) {
         who: asArray(row.who).map(String),
         why: cleanText(row.why, 300) || "UNKNOWN",
         consequence: cleanText(row.consequence, 300) || "UNKNOWN",
-        isMisleading: Boolean(row.isMisleading),
-        isTruth: row.isTruth !== false,
+        eventOccurred,
+        evidenceEffect,
+        claimTruth,
+        /** @deprecated use evidenceEffect === MISLEADING */
+        isMisleading: evidenceEffect === "MISLEADING" || Boolean(row.isMisleading),
+        /** @deprecated use eventOccurred — true means the event happened, not that the claim is true */
+        isTruth: eventOccurred,
         needsDetail: Boolean(row.needsDetail),
       };
     }),
   };
+}
+
+function uniqueJoin(values, separator = "；") {
+  const out = [];
+  const seen = new Set();
+  for (const raw of values || []) {
+    const text = String(raw || "").trim();
+    if (!text || seen.has(text)) continue;
+    seen.add(text);
+    out.push(text);
+  }
+  return out.join(separator);
 }
 
 export function normalizeCharacterViews(value = {}) {
@@ -195,16 +256,29 @@ export function normalizeCharacterViews(value = {}) {
         name: cleanText(row.name, 80),
         stages: asArray(row.stages).map((s) => {
           const st = record(s);
+          const contributions = asArray(st.contributions).map(normalizeCharacterContribution);
+          const owners = contributions.filter((x) => x.roleInBeat === "OWNER");
+          const derivedGoal =
+            uniqueJoin(owners.map((x) => x.goal)) ||
+            cleanText(st.goal, 400) ||
+            (contributions.length ? "本阶段无独立主目标（参与/对象）" : "NEEDS_DETAIL");
+          const derivedAction =
+            uniqueJoin(owners.map((x) => x.action)) ||
+            cleanText(st.action, 400) ||
+            (contributions.length ? "见 contributions" : "NEEDS_DETAIL");
           return {
             stageId: cleanId(st.stageId),
+            contributions,
+            stageSummary: cleanText(st.stageSummary, 600) || derivedGoal,
             knows: cleanText(st.knows, 400) || "NEEDS_DETAIL",
-            goal: cleanText(st.goal, 200) || "NEEDS_DETAIL",
-            action: cleanText(st.action, 200) || "NEEDS_DETAIL",
+            /** Derived from OWNER contributions only — not a single overwritten beat */
+            goal: derivedGoal,
+            action: derivedAction,
             relationChanges: asArray(st.relationChanges).map((t) => cleanText(t, 200)).filter(Boolean),
-            gainedInfo: cleanText(st.gainedInfo, 300) || "NEEDS_DETAIL",
+            gainedInfo: cleanText(st.gainedInfo, 400) || "NEEDS_DETAIL",
             misunderstanding: cleanText(st.misunderstanding, 300) || "NEEDS_DETAIL",
             endChange: cleanText(st.endChange, 300) || "NEEDS_DETAIL",
-            needsDetail: Boolean(st.needsDetail),
+            needsDetail: Boolean(st.needsDetail) || contributions.some((x) => x.needsDetail),
           };
         }),
       };
@@ -217,12 +291,19 @@ export function normalizeClueView(value = {}) {
   return {
     clues: asArray(src.clues).map((c) => {
       const row = record(c);
+      const availableStages = asArray(row.availableStages).map(String);
+      const introducedAt = cleanId(row.introducedAt) || availableStages[0] || cleanId(row.stageId);
+      const stages = availableStages.length ? availableStages : introducedAt ? [introducedAt] : [];
       return {
         clueId: cleanId(row.clueId) || cleanText(row.label, 80) || "unknown-clue",
         label: cleanText(row.label, 160),
         mechanismId: cleanId(row.mechanismId),
         templateId: cleanId(row.templateId),
-        stageId: cleanId(row.stageId),
+        introducedAt,
+        availableStages: stages,
+        persists: row.persists != null ? Boolean(row.persists) : stages.length > 1,
+        /** @deprecated prefer introducedAt / availableStages — first stage for legacy readers */
+        stageId: cleanId(row.stageId) || introducedAt,
         possibleFinders: asArray(row.possibleFinders).map(String),
         supportsFact: cleanText(row.supportsFact, 200) || "NEEDS_DETAIL",
         isMisleading: Boolean(row.isMisleading),
@@ -234,11 +315,25 @@ export function normalizeClueView(value = {}) {
   };
 }
 
+function normalizeGameInsertionPoint(value = {}) {
+  const slot = record(value);
+  return {
+    placementId: cleanId(slot.placementId) || `slot-${Math.random().toString(36).slice(2, 6)}`,
+    hint: cleanText(slot.hint, 200),
+    afterBeatId: cleanId(slot.afterBeatId) || undefined,
+  };
+}
+
 export function normalizeExecutionView(value = {}) {
   const src = record(value);
   return {
     stages: asArray(src.stages).map((s) => {
       const row = record(s);
+      const points = asArray(
+        row.candidateGameInsertionPoints?.length
+          ? row.candidateGameInsertionPoints
+          : row.gameMechanismSlots,
+      ).map(normalizeGameInsertionPoint);
       return {
         stageId: cleanId(row.stageId),
         openingState: cleanText(row.openingState, 400),
@@ -246,14 +341,9 @@ export function normalizeExecutionView(value = {}) {
         beatsToAdvance: asArray(row.beatsToAdvance).map(String),
         cluesAvailable: asArray(row.cluesAvailable).map(String),
         charactersInPlay: asArray(row.charactersInPlay).map(String),
-        gameMechanismSlots: asArray(row.gameMechanismSlots).map((g) => {
-          const slot = record(g);
-          return {
-            placementId: cleanId(slot.placementId) || `slot-${Math.random().toString(36).slice(2, 6)}`,
-            hint: cleanText(slot.hint, 200),
-            afterBeatId: cleanId(slot.afterBeatId) || undefined,
-          };
-        }),
+        candidateGameInsertionPoints: points,
+        /** @deprecated alias — product meaning is candidate insertion points, not required GAME slots */
+        gameMechanismSlots: points,
         requiredStateBeforeNext: cleanText(row.requiredStateBeforeNext, 400),
       };
     }),

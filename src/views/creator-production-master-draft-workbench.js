@@ -174,7 +174,9 @@ function render(root) {
       .filter((e) => e.stageId === active?.stageId)
       .map(
         (e) =>
-          `<li><strong>${escapeHtml(e.whatHappened)}</strong><br/>为何：${escapeHtml(e.why)} · 后果：${escapeHtml(e.consequence)}${e.isMisleading ? " · 误导" : ""}</li>`,
+          `<li><strong>${escapeHtml(e.whatHappened)}</strong><br/>为何：${escapeHtml(e.why)} · 后果：${escapeHtml(e.consequence)}${
+            e.evidenceEffect === "MISLEADING" || e.isMisleading ? " · 证据效果：误导" : ""
+          }${e.eventOccurred === false ? " · 事件未发生" : ""}</li>`,
       )
       .join("")}</ul>`;
   } else if (ui.view === "chars") {
@@ -182,27 +184,47 @@ function render(root) {
       .map((c) => {
         const st = c.stages.find((s) => s.stageId === active?.stageId);
         if (!st) return "";
-        return `<li><strong>${escapeHtml(c.name)}</strong><br/>目标：${escapeHtml(st.goal)} · 行动：${escapeHtml(st.action)} · 知道：${escapeHtml(st.knows)}</li>`;
+        return `<li><strong>${escapeHtml(c.name)}</strong><br/>${
+          st.contributions?.length
+            ? `贡献：${escapeHtml(
+                st.contributions
+                  .map((x) => {
+                    const role = x.roleInBeat === "OWNER" ? "主导" : x.roleInBeat === "TARGET" ? "对象" : "参与";
+                    const body = x.roleInBeat === "OWNER"
+                      ? `${x.goal || ""} · ${x.action || ""}`
+                      : x.action || "";
+                    return `[${role}] ${body}`.trim();
+                  })
+                  .join(" / "),
+              )}<br/>摘要：${escapeHtml(st.stageSummary || st.goal)}`
+            : `目标：${escapeHtml(st.goal)} · 行动：${escapeHtml(st.action)}`
+        } · 知道：${escapeHtml(st.knows)}${st.needsDetail ? " · 缺细节" : ""}</li>`;
       })
       .filter(Boolean)
       .join("")}</ul>`;
   } else if (ui.view === "clues") {
     mainBody = `<ul class="pmd-list">${(draft.clueView?.clues || [])
-      .filter((c) => c.stageId === active?.stageId)
+      .filter(
+        (c) =>
+          c.stageId === active?.stageId ||
+          c.introducedAt === active?.stageId ||
+          (c.availableStages || []).includes(active?.stageId),
+      )
       .map(
         (c) =>
-          `<li>${escapeHtml(c.label)} · 支持：${escapeHtml(c.supportsFact)}${c.detailNote ? `<br/><em>${escapeHtml(c.detailNote)}</em>` : ""}</li>`,
+          `<li>${escapeHtml(c.label)}${c.isMisleading ? " · 误导" : ""}${c.persists ? " · 跨幕可用" : ""} · 支持：${escapeHtml(c.supportsFact)}${c.detailNote ? `<br/><em>${escapeHtml(c.detailNote)}</em>` : ""}</li>`,
       )
       .join("")}</ul>`;
   } else if (ui.view === "exec") {
     const ex = (draft.executionView?.stages || []).find((s) => s.stageId === active?.stageId);
+    const candidates = ex?.candidateGameInsertionPoints || ex?.gameMechanismSlots || [];
     mainBody = ex
       ? `<div class="pmd-exec">
           <p><strong>开场状态</strong> ${escapeHtml(ex.openingState)}</p>
           <p><strong>本幕目标</strong> ${escapeHtml(ex.stageGoal)}</p>
           <p><strong>推进节点</strong> ${escapeHtml((ex.beatsToAdvance || []).join("、"))}</p>
           <p><strong>下场前应变</strong> ${escapeHtml(ex.requiredStateBeforeNext)}</p>
-          <p class="pmd-meta">GAME 插槽预留 ${(ex.gameMechanismSlots || []).length} 处（本轮不接 runtime）</p>
+          <p class="pmd-meta">GAME 候选插入点 ${candidates.length} 处（非强制每 beat 都放）</p>
         </div>`
       : `<p class="pmd-empty">—</p>`;
   } else {
