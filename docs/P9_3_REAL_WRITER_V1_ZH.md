@@ -9,8 +9,8 @@
 P9.0 Semantic Fidelity             ✅ FROZEN
 P9.1 Context Instantiation         ✅ FROZEN
 P9.2 GAME Narrative Binding        ✅ FROZEN @ 57c83a0
-P9.3 Real Writer V1                ← 本刀
-P9.4 Content Quality Gate          → next
+P9.3 Real Writer V1                ✅ FROZEN @ 2c5994e
+P9.4 Content Quality Gate V1       → next（见 P9_4_CONTENT_QUALITY_GATE_ZH.md）
 ```
 
 ## 链
@@ -102,4 +102,4 @@ npm run verify:playable
 
 ## 下一步
 
-**P9.4 Content Quality Gate** — 评「写得够不够好 / 值不值得卖」，不回头扩架构。
+**P9.4 Content Quality Gate V1** — Hard Gate + 七维 rubric + GOOD/MEDIOCRE/BROKEN 校准；只读、不自动重写。见 [`P9_4_CONTENT_QUALITY_GATE_ZH.md`](./P9_4_CONTENT_QUALITY_GATE_ZH.md)。

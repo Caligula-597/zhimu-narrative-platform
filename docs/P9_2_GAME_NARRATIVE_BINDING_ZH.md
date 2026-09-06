@@ -11,8 +11,12 @@ P8 Infrastructure                  ✅ FROZEN
 P9.0 Semantic Fidelity             ✅ FROZEN
 P9.1 Context Instantiation         ✅ FROZEN @ b5dbd2a
 P9.2 GAME Narrative Binding        ← 本刀
-P9.3 Real Writer V1                → next
-P9.4 Content Quality Gate
+```text
+P9.0 Semantic Fidelity             ✅ FROZEN
+P9.1 Context Instantiation         ✅ FROZEN
+P9.2 GAME Narrative Binding        ✅ FROZEN（本刀）
+P9.3 Real Writer V1                ✅ FROZEN @ 2c5994e
+P9.4 Content Quality Gate V1       → next
 ```
 
 ## 目标链
@@ -109,5 +113,4 @@ npm run verify:playable
 
 ## 下一步
 
-**P9.3 Real Writer V1** ✅ 见 `docs/P9_3_REAL_WRITER_V1_ZH.md`  
-再下一刀：**P9.4 Content Quality Gate**。
+**P9.4 Content Quality Gate V1** — 见 [`P9_4_CONTENT_QUALITY_GATE_ZH.md`](./P9_4_CONTENT_QUALITY_GATE_ZH.md)。
