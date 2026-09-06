@@ -57,6 +57,8 @@ node scripts/real-production-trial-1.mjs --mode=real --input=trials/rpt-1-closed
 | SYSTEM | PARTIAL · 65.5 · HOST | **PARTIAL · 69 · HOST**（预期） |
 | 救火 | 0 | **0** |
 | 模型 | deepseek-v4-flash · 36 | deepseek-v4-flash · **23** |
-| CHANGE | — | **待人工**（见 HUMAN_REVIEW_PACKET） |
+| CHANGE | — | **PARTIAL_PASS**（人工；FULL ❌） |
 
-给人读：同目录 `HUMAN_REVIEW_PACKET.md` + `readable-scripts.md` + `m12-fidelity-survival-probe.json`
+给人读：同目录 `HUMAN_REVIEW_PACKET.md` + `readable-scripts.md` + `m12-fidelity-survival-probe.json`  
+结案：[`RPT1B_HUMAN_ADJUDICATION_ZH.md`](./RPT1B_HUMAN_ADJUDICATION_ZH.md)  
+下一刀：[`P10_4_PRODUCTION_PROJECTION_FIDELITY_ZH.md`](./P10_4_PRODUCTION_PROJECTION_FIDELITY_ZH.md)

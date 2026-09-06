@@ -40,8 +40,8 @@
     "5. 换手后是否改变后续选择/权限/关系？"
   ],
   "changeVerdictSlots": {
-    "SYSTEM_VERDICT": null,
-    "CHANGE_VERDICT": null,
-    "P10_3_CHANGE_PASS": null
+    "SYSTEM_VERDICT": "TRIAL_PARTIAL",
+    "CHANGE_VERDICT": "PARTIAL_PASS",
+    "P10_3_CHANGE_PASS": false
   }
 }

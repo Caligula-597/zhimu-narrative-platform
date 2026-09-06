@@ -3,8 +3,29 @@
   "title": "闭馆之后",
   "trialVerdict": "TRIAL_PARTIAL",
   "systemVerdict": "TRIAL_PARTIAL",
-  "changeVerdict": null,
-  "changeVerdictNote": "留给人工：P10.3 CHANGE PASS/FAIL；SYSTEM PARTIAL 不自动否定 CHANGE",
+  "changeVerdict": "PARTIAL_PASS",
+  "p103ChangePass": false,
+  "humanAdjudication": {
+    "status": "CLOSED",
+    "doc": "docs/RPT1B_HUMAN_ADJUDICATION_ZH.md",
+    "lenses": {
+      "first20Desire": { "a": 2, "b": 2.5 },
+      "interactionGrammarShift": { "a": 2, "b": 3 },
+      "sixVoiceBlind": { "a": 1, "b": 1 },
+      "gameConsequence": null,
+      "endingPayoff": { "a": 2, "b": 2.5 },
+      "m12Survival": { "score": 2.5, "of": 5 }
+    },
+    "m12SurvivalDetail": {
+      "concreteStake": false,
+      "initialOwnerClear": false,
+      "motivation": false,
+      "playerNegotiation": "partial",
+      "aftermathFromTransfer": "structural_yes_content_thin"
+    },
+    "coreFinding": "M12 structural intent survived production; concrete player bargain experience only half-survived (slot leak, abstract stake, thin terms)",
+    "nextKnife": "P10.4 Production Projection Fidelity (not Writer V2)"
+  },
   "comparison": {
     "rpt1aRun": "2026-09-06T04-19-32-742Z",
     "rpt1aBundle": ["M01-FRAMING", "M07-1", "M08-1"],

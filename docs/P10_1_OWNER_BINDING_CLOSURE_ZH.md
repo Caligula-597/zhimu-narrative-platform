@@ -14,9 +14,9 @@ P10.0 Re-audit                       → 确认 ≥7/8 可生产
 ★ Real Production Trial #1           ✅ CLOSED · TRIAL_PARTIAL
 ★ P10.2 Creation Intent Fidelity V1  ✅ FROZEN @ db0b390
 ★ P10.3 STORY Experience Coverage    ✅ @ 2b6c761
-★ RPT #1B Full Real-Model Rerun      ✅ 已跑 · 待人工 CHANGE_VERDICT
-  run: trials/.../runs/2026-09-06T08-03-37-863Z
-Writer V2 / Context / Host           🚫 未动（隔离变量）
+★ RPT #1B Full Real-Model Rerun      ✅ CLOSED · SYSTEM PARTIAL / CHANGE PARTIAL_PASS
+★ P10.4 Production Projection Fidelity ← NEXT（见 P10_4_PRODUCTION_PROJECTION_FIDELITY_ZH.md）
+Writer V2 / Context / Host           🚫 未动
 ```
 
 ## 根因

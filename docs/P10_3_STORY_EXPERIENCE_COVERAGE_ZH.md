@@ -64,6 +64,6 @@ node --test scripts/creation-intent-fidelity.test.mjs
 
 ## 下一步
 
-Gate 已通过 → **RPT #1B Full Real-Model Rerun**（同 CreationSpec A/B）。  
-见 [`RPT1B_POST_P10_3_REAL_RERUN_ZH.md`](./RPT1B_POST_P10_3_REAL_RERUN_ZH.md)。  
-Writer V2 / Context Domain：**仍 NOT NOW。**
+**P10.3 CHANGE = PARTIAL_PASS**（非 FULL）。结案：[`RPT1B_HUMAN_ADJUDICATION_ZH.md`](./RPT1B_HUMAN_ADJUDICATION_ZH.md)。  
+下一刀：[`P10_4_PRODUCTION_PROJECTION_FIDELITY_ZH.md`](./P10_4_PRODUCTION_PROJECTION_FIDELITY_ZH.md) — Packet Probe 先于真模型。  
+Writer V2：**仍 NOT NOW。**
