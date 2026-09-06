@@ -8,6 +8,7 @@
 import { M01_FRAMING_VARIANTS, M01_PLOT_CANDIDATES } from "./story-mechanism-m01-framing-data.js";
 import { buildM07CompleteTemplates } from "./story-mechanism-m07-pack.js";
 import { buildM08CompleteTemplates } from "./story-mechanism-m08-pack.js";
+import { buildM12CompleteTemplates } from "./story-mechanism-m12-pack.js";
 import { semanticsBridgeForTemplate } from "./complete-beat-semantics-data.js";
 import { attachCreationMetadata } from "./creation-catalog-metadata.js";
 
@@ -569,7 +570,14 @@ function attachSemanticsBridge(template) {
 export function buildAllStoryTemplates() {
   const m07 = buildM07CompleteTemplates().map(attachSemanticsBridge);
   const m08 = buildM08CompleteTemplates().map(attachSemanticsBridge);
-  const completeIds = new Set([...m07, ...m08].map((t) => t.id));
+  const m12 = buildM12CompleteTemplates().map(attachSemanticsBridge);
+  const completeIds = new Set([...m07, ...m08, ...m12].map((t) => t.id));
   const foundations = buildCatalogFoundationTemplates().filter((t) => !completeIds.has(t.id));
-  return Object.freeze([attachSemanticsBridge(buildM01FramingTemplate()), ...m07, ...m08, ...foundations]);
+  return Object.freeze([
+    attachSemanticsBridge(buildM01FramingTemplate()),
+    ...m07,
+    ...m08,
+    ...m12,
+    ...foundations,
+  ]);
 }

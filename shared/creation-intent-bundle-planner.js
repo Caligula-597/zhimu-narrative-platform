@@ -278,17 +278,14 @@ function scoreBundle(blockIds, byId, intent) {
   }
 
   // Prefer fewer blocks when fidelity similar — applied at sort via size tie-break after score
-  // Resolution capture
+  // Resolution capture: FLEXIBLE_RESOLUTION + culprit-centric crime framing in the same bundle
   const hasCrime = commitUnion.has("CRIME_FRAMING");
   const hasFlex = hasConfirmedAnchor(intent, "FLEXIBLE_RESOLUTION");
-  const pressures = profiles.map((p) => p.resolutionPressure);
+  const hasCulpritPressure = profiles.some((p) => p.resolutionPressure === "CULPRIT_CENTRIC_HIGH");
   let resolutionWarning = null;
-  if (hasCrime && hasFlex && pressures.every((p) => p === "CULPRIT_CENTRIC_HIGH" || p === "IDENTITY_REVEAL" || p === "FACTION_SETTLE")) {
-    // M01 alone or M01+others all closing hard → capture risk if crime is sole strong commitment
-    if (commitUnion.size <= 2 && hasCrime) {
-      fidelityScore -= 0.15;
-      resolutionWarning = "RESOLUTION_MODE_CAPTURE";
-    }
+  if (hasCrime && hasFlex && hasCulpritPressure) {
+    fidelityScore -= 0.28;
+    resolutionWarning = "RESOLUTION_MODE_CAPTURE";
   }
 
   const reasons = [
@@ -405,8 +402,14 @@ export function planCreationIntentStoryBundles(specInput, templates = [], opts =
   const byId = new Map(pool.map((c) => [c.templateId, c]));
 
   const bundleRows = [];
-  for (const size of [2, 3]) {
+  for (const size of [1, 2, 3]) {
     if (pool.length < size) continue;
+    if (size === 1) {
+      for (const id of pool.map((c) => c.templateId)) {
+        bundleRows.push(scoreBundle([id], byId, intent));
+      }
+      continue;
+    }
     for (const combo of combinations(pool.map((c) => c.templateId), size)) {
       bundleRows.push(scoreBundle(combo, byId, intent));
     }
@@ -429,7 +432,11 @@ export function planCreationIntentStoryBundles(specInput, templates = [], opts =
   if (!best) recommendationStatus = "REVIEW_REQUIRED";
   else if (best.fidelityScore < 0.42 || best.unwantedCommitments.length >= 2) {
     recommendationStatus = "REVIEW_REQUIRED";
-  } else if (best.missingInteractionModes.length || best.anchorStates.some((s) => s.status === "UNCOVERED")) {
+  } else if (
+    best.missingInteractionModes.length ||
+    best.anchorStates.some((s) => s.status === "UNCOVERED") ||
+    best.warnings.includes("RESOLUTION_MODE_CAPTURE")
+  ) {
     recommendationStatus = "REVIEW_REQUIRED";
   }
 

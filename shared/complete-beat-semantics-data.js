@@ -1,5 +1,5 @@
 /**
- * COMPLETE 家族 BeatSemantics 桥接数据（M01-FRAMING + M07×8 + M08×8）
+ * COMPLETE 家族 BeatSemantics 桥接数据（M01-FRAMING + M07×8 + M08×8 + M12-1）
  * 只做数据；Integrator / Engine 不得 if (familyId===...) 硬编码目标。
  * P8.0.5: every require declares sourceKind (never defaulted at runtime).
  */
@@ -311,6 +311,83 @@ function m08Bridge(extra = {}) {
   });
 }
 
+function m12Bridge(extra = {}) {
+  return bridge({
+    defaultActorRole: "bargainA",
+    defaultLocation: "{ctx.bargainVenue}",
+    phaseNames: Object.freeze({
+      0: "setup",
+      1: "progression",
+      2: "climax",
+      3: "resolution",
+    }),
+    contextSlots: Object.freeze({
+      contestedStake: Object.freeze({ kind: "OBJECT", fallbackLabel: "可交换标的", required: true }),
+      bargainVenue: Object.freeze({ kind: "LOCATION", fallbackLabel: "可私下谈判的场所", required: true }),
+      accessProof: Object.freeze({ kind: "CREDENTIAL", fallbackLabel: "换手凭证" }),
+      ...(extra.contextSlots || {}),
+    }),
+    roleGoals: {
+      bargainA: "通过试探与交换取得{ctx.contestedStake}",
+      bargainB: "在可接受代价下决定是否转让{ctx.contestedStake}",
+      stakeholder: "影响交换条件或事后追责",
+      witness: "见证换手并保留可公开的痕迹",
+      ...(extra.roleGoals || {}),
+    },
+    phases: {
+      0: {
+        primaryRole: "bargainA",
+        goal: "试探 bargainB 对{ctx.contestedStake}的底线",
+        action: "在{ctx.bargainVenue}试探对方掌握范围与要价",
+        target: "{ctx.contestedStake}",
+        actionKind: "PROBE",
+        locationHint: "{ctx.bargainVenue}",
+        produces: [fact("bargain_terms_visible", "对方条件开始可见")],
+        independence: "INDEPENDENT",
+        ...(extra.p0 || {}),
+      },
+      1: {
+        primaryRole: "bargainB",
+        goal: "隐瞒真正底线并开出可谈判条件",
+        action: "提出交换代价，同时隐瞒不可让步项",
+        target: "交换条件",
+        actionKind: "NEGOTIATE",
+        locationHint: "{ctx.bargainVenue}",
+        requires: [storyReq("bargain_terms_visible", "条件已可见")],
+        produces: [fact("bargain_offer", "一份可回应的交换要约")],
+        independence: "SHAREABLE",
+        ...(extra.p1 || {}),
+      },
+      2: {
+        primaryRole: "bargainA",
+        goal: "以玩家行动完成{ctx.contestedStake}换手",
+        action: "接受或改写要约，完成交接并取得{ctx.accessProof}",
+        target: "{ctx.contestedStake}",
+        actionKind: "EXCHANGE",
+        locationHint: "{ctx.bargainVenue}",
+        requires: [storyReq("bargain_offer", "交换要约")],
+        produces: [
+          fact("stake_transferred", "{ctx.contestedStake}所有权/权限已变化"),
+          fact("access_proof", "{ctx.accessProof}已交付"),
+        ],
+        independence: "DEPENDENT",
+        ...(extra.p2 || {}),
+      },
+      3: {
+        primaryRole: "bargainB",
+        goal: "面对换手后的关系重谈（开放收束）",
+        action: "决定是否公开交换、继续合作或撕毁承诺",
+        target: "关系选择",
+        actionKind: "CONSEQUENCE",
+        requires: [storyReq("stake_transferred", "标的已换手")],
+        produces: [fact("bargain_aftermath", "换手后的关系状态")],
+        independence: "DEPENDENT",
+        ...(extra.p3 || {}),
+      },
+    },
+  });
+}
+
 export const COMPLETE_BEAT_SEMANTICS = Object.freeze({
   "M01-FRAMING": M01,
   "M07-1": m07Bridge({
@@ -435,6 +512,7 @@ export const COMPLETE_BEAT_SEMANTICS = Object.freeze({
       action: "利用两营冲突抽取第三方利益",
     },
   }),
+  "M12-1": m12Bridge(),
 });
 
 export function semanticsBridgeForTemplate(templateId) {

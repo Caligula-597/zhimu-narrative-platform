@@ -11,7 +11,9 @@ P9 Content Factory Foundation        ✅ CLOSED
 P10.0 Quality Audit                  ✅
 P10.1 Owner Binding Closure          ✅
 ★ Real Production Trial #1           ✅ CLOSED（TRIAL_PARTIAL）
-★ P10.2 Creation Intent Fidelity V1  ← NOW
+★ P10.2 Creation Intent Fidelity V1  ✅ FROZEN
+★ P10.3 STORY Experience Coverage    ← NOW
+Full Real-Model Rerun                ⏸ WAIT
 Writer V2                            🚫 NOT NOW
 ```
 

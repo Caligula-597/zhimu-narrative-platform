@@ -118,8 +118,7 @@ const M08_MECH = profile({
 
 /**
  * COMPLETE templates only. Missing id → INCOMPLETE.
- * Intentionally: no COMPLETE template claims EXCHANGE + RELATIONSHIP_BARGAIN as primary —
- * planner must report coverage gaps instead of inventing fidelity.
+ * M12-1 is the first COMPLETE that claims EXCHANGE + RELATIONSHIP_BARGAIN as structural primary.
  */
 export const STORY_EXPERIENCE_PROFILES = Object.freeze({
   "M01-FRAMING": M01_FRAMING,
@@ -139,6 +138,23 @@ export const STORY_EXPERIENCE_PROFILES = Object.freeze({
   "M08-6": M08_NEGOTIATE,
   "M08-7": M08_MECH,
   "M08-8": M08_BASE,
+  "M12-1": profile({
+    primaryAxes: ["ROLEPLAY"],
+    secondaryAxes: ["EMOTIONAL", "SUSPICION", "MECHANISM"],
+    structuralCommitments: ["RELATIONSHIP_BARGAIN"],
+    interactionModes: ["NEGOTIATE", "EXCHANGE", "PROBE", "CONCEAL", "PUBLIC_CHOICE"],
+    experienceMoments: [
+      { kind: "EARLY_AGENCY", strength: "STRONG", note: "bargainA probe + bargainB negotiate" },
+      {
+        kind: "OWNERSHIP_SHIFT",
+        strength: "STRONG",
+        playerCaused: true,
+        note: "EXCHANGE phase: before owner → player action → after owner",
+      },
+    ],
+    resolutionPressure: "OPEN",
+    supportedAnchors: ["EARLY_AGENCY", "OWNERSHIP_SHIFT", "FLEXIBLE_RESOLUTION"],
+  }),
 });
 
 export function lookupStoryExperienceProfile(templateId) {

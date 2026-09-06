@@ -12,7 +12,9 @@ P10.0 Generated Script Quality Audit ✅ 首报（3/8 可写）
 P10.1 Owner Binding Closure          ← 本刀
 P10.0 Re-audit                       → 确认 ≥7/8 可生产
 ★ Real Production Trial #1           ✅ CLOSED · TRIAL_PARTIAL
-★ P10.2 Creation Intent Fidelity V1  ← NOW（见 P10_2_CREATION_INTENT_FIDELITY_ZH.md）
+★ P10.2 Creation Intent Fidelity V1  ✅ FROZEN @ db0b390
+★ P10.3 STORY Experience Coverage    ← NOW（见 P10_3_STORY_EXPERIENCE_COVERAGE_ZH.md）
+Full Real-Model Rerun                ⏸ WAIT
 Writer V2                            🚫 NOT NOW
 ```
 
@@ -63,5 +65,5 @@ npm run test:p8-generalization
 
 ## 下一步
 
-**P10.2 Creation Intent Fidelity V1** — [`P10_2_CREATION_INTENT_FIDELITY_ZH.md`](./P10_2_CREATION_INTENT_FIDELITY_ZH.md)。  
-Writer V2 / Context Domain：**NOT NOW**。
+**P10.3** — [`P10_3_STORY_EXPERIENCE_COVERAGE_ZH.md`](./P10_3_STORY_EXPERIENCE_COVERAGE_ZH.md)。  
+P10.2 已冻结：[`P10_2_CREATION_INTENT_FIDELITY_ZH.md`](./P10_2_CREATION_INTENT_FIDELITY_ZH.md)。

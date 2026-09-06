@@ -95,4 +95,6 @@ export const STRONG_AGENCY_ACTION_KINDS = Object.freeze([
   "CONFIRM",
   "REVEAL",
   "SHIFT",
+  "NEGOTIATE",
+  "EXCHANGE",
 ]);

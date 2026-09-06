@@ -1,18 +1,16 @@
 {
   "trialId": "RPT-1",
   "title": "闭馆之后",
-  "recommendationStatus": "REVIEW_REQUIRED",
+  "recommendationStatus": "OK",
   "recommendedBundle": {
     "blockTemplateIds": [
-      "M01-FRAMING",
+      "M12-1",
       "M07-1"
     ],
-    "fidelityScore": 0.163,
-    "interactionCoverage": 0,
+    "fidelityScore": 0.767,
+    "interactionCoverage": 1,
     "unwantedCommitments": [],
-    "missingInteractionModes": [
-      "NEGOTIATE"
-    ],
+    "missingInteractionModes": [],
     "anchorStates": [
       {
         "anchor": "EARLY_AGENCY",
@@ -20,7 +18,7 @@
       },
       {
         "anchor": "OWNERSHIP_SHIFT",
-        "status": "UNCOVERED"
+        "status": "COVERED_BY_PROFILE"
       },
       {
         "anchor": "LATE_REINTERPRETATION",
@@ -28,37 +26,26 @@
       },
       {
         "anchor": "FLEXIBLE_RESOLUTION",
-        "status": "UNCOVERED"
+        "status": "COVERED_BY_PROFILE"
       }
     ],
-    "warnings": [
-      "BUNDLE_COVERAGE_GAP:NEGOTIATE",
-      "ANCHOR_UNCOVERED:OWNERSHIP_SHIFT",
-      "ANCHOR_UNCOVERED:FLEXIBLE_RESOLUTION",
-      "RESOLUTION_MODE_CAPTURE"
-    ],
+    "warnings": [],
     "reasons": [
       "主轴严格覆盖 0.333",
-      "互动覆盖 0",
-      "锚点覆盖 0.5",
+      "互动覆盖 1",
+      "锚点覆盖 1",
       "2-block bundle（允许）",
-      "引入承诺 CRIME_FRAMING",
-      "引入承诺 HIDDEN_IDENTITY",
-      "缺失互动 NEGOTIATE"
+      "引入承诺 RELATIONSHIP_BARGAIN",
+      "引入承诺 HIDDEN_IDENTITY"
     ]
   },
   "coverageGaps": {
-    "missingInteractionModes": [
-      "NEGOTIATE"
-    ],
-    "uncoveredAnchors": [
-      "OWNERSHIP_SHIFT",
-      "FLEXIBLE_RESOLUTION"
-    ],
+    "missingInteractionModes": [],
+    "uncoveredAnchors": [],
     "unwantedCommitments": []
   },
   "authorWouldAccept": [
-    "M01-FRAMING",
+    "M12-1",
     "M07-1"
   ],
   "m08RejectSample": [

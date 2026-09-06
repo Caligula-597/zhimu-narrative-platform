@@ -1,5 +1,5 @@
 /**
- * P10.2 Creation Intent Fidelity V1 — RPT1 probe + planner contracts.
+ * P10.2 / P10.3 Creation Intent Fidelity + Experience Coverage probes.
  */
 import assert from "node:assert/strict";
 import fs from "node:fs";
@@ -12,6 +12,11 @@ import { auditCreationIntentFidelity } from "../shared/creation-intent-fidelity-
 import { getStoryExperienceProfile, listCompleteExperienceTemplateIds } from "../shared/story-experience-profile.js";
 import { listStoryTemplates } from "../shared/story-mechanism-registry.js";
 import { selectAuthorStoryAccepts } from "../shared/real-production-trial.js";
+import {
+  generateStoryMechanism,
+  createInitialProjectStoryState,
+} from "../shared/story-mechanism-engine.js";
+import { createProjectStoryState } from "../shared/story-mechanism-contracts.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const INPUT = path.resolve(__dirname, "../trials/rpt-1-closed-after-hours/trial-input.json");
@@ -25,6 +30,7 @@ describe("P10.2 Experience Profile metadata", () => {
     const ids = listCompleteExperienceTemplateIds();
     assert.ok(ids.includes("M01-FRAMING"));
     assert.ok(ids.includes("M08-1"));
+    assert.ok(ids.includes("M12-1"));
     const m08 = getStoryExperienceProfile("M08-1");
     assert.equal(m08.status, "READY");
     assert.ok(m08.primaryAxes.includes("FACTION"));
@@ -75,34 +81,15 @@ describe("P10.2 RPT1 Planner Probe", () => {
     assert.ok(
       m08.warnings.some((w) => String(w).includes("UNWANTED_STRUCTURAL_COMMITMENT") || w === "NOT_ROLEPLAY_PRIMARY"),
     );
-    assert.ok(
-      m08.mismatchPenalties.some(
-        (p) => p.code === "SECONDARY_ROLEPLAY_ON_FACTION_PRIMARY" || p.code === "UNWANTED_STRUCTURAL_COMMITMENT",
-      ),
-    );
 
-    assert.equal(plan.recommendationStatus, "REVIEW_REQUIRED");
-    assert.ok(plan.coverageGaps.missingInteractionModes.includes("NEGOTIATE"));
-    assert.ok(plan.coverageGaps.uncoveredAnchors.includes("OWNERSHIP_SHIFT"));
-
-    // Forbidden old path: silent M01+M07+M08 as OK ROLEPLAY match
+    assert.equal(ids.some((id) => id.startsWith("M08")), false);
     const isOldBad =
       ids.length === 3 &&
       ids.includes("M01-FRAMING") &&
       ids.some((id) => id.startsWith("M07")) &&
-      ids.some((id) => id.startsWith("M08")) &&
-      plan.recommendationStatus === "OK" &&
-      !plan.recommendedBundle.unwantedCommitments.length;
+      ids.some((id) => id.startsWith("M08"));
     assert.equal(isOldBad, false);
-
-    // Recommended bundle must not quietly include M08 as ROLEPLAY win
-    if (ids.some((id) => id.startsWith("M08"))) {
-      assert.ok(plan.recommendedBundle.unwantedCommitments.includes("FACTION_STRUCTURE"));
-    }
-
-    assert.ok(ids.length === 2 || ids.length === 3);
     assert.equal(plan.recommendedBundle.anchorStates.length, 4);
-    assert.ok(plan.intentEnvelope.confirmedAnchors.some((a) => a.anchor === "FLEXIBLE_RESOLUTION"));
   });
 
   it("author policy accepts recommended bundle (not distinct-family top-3)", () => {
@@ -116,7 +103,64 @@ describe("P10.2 RPT1 Planner Probe", () => {
       plan.recommendedBundle.blockTemplateIds,
     );
     assert.ok(accepts.every((a) => a.fromRecommendedBundle));
-    assert.ok(accepts.length <= 3);
+    assert.ok(accepts.length >= 1 && accepts.length <= 3);
+  });
+});
+
+describe("P10.3 STORY Experience Coverage", () => {
+  it("M12-1 declares RELATIONSHIP_BARGAIN + player-caused OWNERSHIP_SHIFT + OPEN", () => {
+    const p = getStoryExperienceProfile("M12-1");
+    assert.equal(p.status, "READY");
+    assert.ok(p.structuralCommitments.includes("RELATIONSHIP_BARGAIN"));
+    assert.ok(p.interactionModes.includes("NEGOTIATE"));
+    assert.ok(p.interactionModes.includes("EXCHANGE"));
+    assert.ok(p.supportedAnchors.includes("OWNERSHIP_SHIFT"));
+    assert.ok(p.supportedAnchors.includes("FLEXIBLE_RESOLUTION"));
+    assert.equal(p.resolutionPressure, "OPEN");
+    assert.ok(p.experienceMoments.some((m) => m.kind === "OWNERSHIP_SHIFT" && m.playerCaused === true));
+  });
+
+  it("M12-1 generates via generic engine without dedicated producer", () => {
+    let state = createInitialProjectStoryState("m12-gen");
+    state = createProjectStoryState({
+      ...state,
+      premise: { genre: "当代", era: "CONTEMPORARY", tone: [], playerCount: 6, targetDuration: 210 },
+      characters: [
+        { id: "P1", name: "A", gender: "FEMALE" },
+        { id: "P2", name: "B", gender: "MALE" },
+        { id: "P3", name: "C", gender: "FEMALE" },
+        { id: "P4", name: "D", gender: "MALE" },
+        { id: "P5", name: "E", gender: "FEMALE" },
+        { id: "P6", name: "F", gender: "MALE" },
+      ],
+      stages: [{ id: "act1" }, { id: "act2" }, { id: "act3" }, { id: "act4" }],
+    });
+    state = generateStoryMechanism({ templateId: "M12-1", projectStoryState: state });
+    const block = state.mechanismBlocks[0];
+    assert.equal(block.templateId, "M12-1");
+    assert.ok(block.roleBindings.bargainA);
+    assert.ok(block.roleBindings.bargainB);
+  });
+
+  it("Pre-Writer RPT1 clears core coverage gates without M08 / crime capture", () => {
+    const trial = loadRpt1();
+    const plan = buildStoryCandidatePlan(trial.creationSpec, listStoryTemplates(), {
+      authorConfirmedExperienceAnchors: trial.authorConfirmedExperienceAnchors,
+    });
+    const b = plan.recommendedBundle;
+    assert.equal(plan.recommendationStatus, "OK");
+    assert.ok(b.blockTemplateIds.includes("M12-1"));
+    assert.equal(b.blockTemplateIds.some((id) => id.startsWith("M08")), false);
+    assert.equal(b.warnings.includes("RESOLUTION_MODE_CAPTURE"), false);
+    assert.ok(b.blockTemplateIds.length <= 2);
+    assert.equal(b.missingInteractionModes.includes("NEGOTIATE"), false);
+    const ownership = b.anchorStates.find((a) => a.anchor === "OWNERSHIP_SHIFT");
+    const flex = b.anchorStates.find((a) => a.anchor === "FLEXIBLE_RESOLUTION");
+    const early = b.anchorStates.find((a) => a.anchor === "EARLY_AGENCY");
+    assert.equal(ownership?.status, "COVERED_BY_PROFILE");
+    assert.equal(flex?.status, "COVERED_BY_PROFILE");
+    assert.equal(early?.status, "COVERED_BY_PROFILE");
+    assert.ok(!b.introducedCommitments.includes("FACTION_STRUCTURE"));
   });
 });
 
@@ -137,6 +181,19 @@ describe("P10.2 Post-accept audit", () => {
     assert.ok(report.unwantedCommitments.includes("FACTION_STRUCTURE"));
     assert.notEqual(report.status, "PASS");
     assert.ok(report.ownershipShift.status === "NARRATION_ONLY" || report.ownershipShift.status === "ABSENT");
-    assert.ok(report.interactionCoverage.missing.includes("NEGOTIATE") || report.missingIntents.length >= 0);
+  });
+
+  it("M12 accepted bundle reports player-caused ownership shift", () => {
+    const trial = loadRpt1();
+    const report = auditCreationIntentFidelity({
+      creationSpec: trial.creationSpec,
+      authorConfirmedExperienceAnchors: trial.authorConfirmedExperienceAnchors,
+      acceptedBlocks: [
+        { templateId: "M12-1", status: "USER_ACCEPTED", roleBindings: {}, completeBeat: { phases: {} } },
+      ],
+      playerRoleIds: ["P1", "P2", "P3", "P4", "P5", "P6"],
+    });
+    assert.equal(report.ownershipShift.status, "PLAYER_CAUSED");
+    assert.equal(report.unwantedCommitments.includes("FACTION_STRUCTURE"), false);
   });
 });

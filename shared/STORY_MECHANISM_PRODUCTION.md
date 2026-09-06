@@ -33,9 +33,10 @@ Registry 自动可生成 / UI 自动可展示 / swap·edit 自动可用
 | 文件 | 内容 |
 |---|---|
 | `story-mechanism-contracts.js` | Block / ProjectStoryState / roleAssignments |
-| `story-mechanism-templates-data.js` | Registry 组装：M01-FRAMING + M07/M08 pack + 其余 FOUNDATION |
+| `story-mechanism-templates-data.js` | Registry 组装：M01-FRAMING + M07/M08/M12 pack + 其余 FOUNDATION |
 | `story-mechanism-m07-pack.js` | M07-1…8 COMPLETE 内容包 |
 | `story-mechanism-m08-pack.js` | M08-1…8 COMPLETE 内容包 |
+| `story-mechanism-m12-pack.js` | M12-1 关系议价 COMPLETE（P10.3） |
 | `M07_CONTENT_COVERAGE.md` | M07 Coverage Matrix |
 | `story-mechanism-registry.js` | Registry 与校验 |
 | `story-mechanism-engine.js` | 通用引擎 API |

@@ -42,6 +42,12 @@ const BY_FAMILY = Object.freeze({
     experienceProfile: { deduction: 0.15, roleplay: 0.7, faction: 0.05, mechanism: 0.05, emotional: 0.85 },
     softSettingTags: ["MODERN", "CONTEMPORARY"],
   }),
+  M12: meta({
+    familyId: "M12",
+    intentTags: ["ROLEPLAY", "NEGOTIATION", "EXCHANGE"],
+    experienceProfile: { deduction: 0.25, roleplay: 0.9, faction: 0.1, mechanism: 0.35, emotional: 0.55 },
+    softSettingTags: ["MODERN", "CONTEMPORARY", "ANCIENT", "SCI_FI", "FANTASY"],
+  }),
 });
 
 const BY_TEMPLATE = Object.freeze({
@@ -72,6 +78,7 @@ const BY_TEMPLATE = Object.freeze({
     experienceProfile: { deduction: 0.2, roleplay: 0.4, faction: 0.7, mechanism: 0.55, emotional: 0.2 },
     softSettingTags: ["MODERN", "CONTEMPORARY"],
   }),
+  "M12-1": BY_FAMILY.M12,
 });
 
 export function creationMetadataForTemplate(templateId, familyId) {
