@@ -11,6 +11,9 @@ P9.1 Context Instantiation         ✅ FROZEN
 P9.2 GAME Narrative Binding        ✅ FROZEN @ 57c83a0
 P9.3 Real Writer V1                ✅ FROZEN @ 2c5994e
 P9.4 Content Quality Gate V1       ✅ FROZEN @ a78d8fd
+
+P9 Content Factory Foundation      ✅ CLOSED
+P10.0 Generated Script Quality Audit → next
 ```
 
 ## 链
@@ -121,4 +124,6 @@ npm run verify:playable
 | MEDIOCRE | 无 hard block，但非 PASS；AI pattern 可检出 |
 | BROKEN | `QUALITY_BLOCKED` |
 
-P9.4 通过后可以说：**Real Content Rendering ✅** 且 **Content Quality Protocol ✅**；仍不宣称每一本自动生成稿都已达商品级——那是持续用本 Gate 打磨的过程。
+P9.4 通过后可以说：**Real Content Rendering ✅** 且 **Content Quality Protocol ✅**；仍不宣称每一本自动生成稿都已达商品级。
+
+**P9 Content Factory Foundation ✅ CLOSED。** 下一阶段见 [`P10_0_GENERATED_SCRIPT_QUALITY_AUDIT_ZH.md`](./P10_0_GENERATED_SCRIPT_QUALITY_AUDIT_ZH.md)。
