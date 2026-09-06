@@ -10,7 +10,7 @@ P9.0 Semantic Fidelity             ✅ FROZEN
 P9.1 Context Instantiation         ✅ FROZEN
 P9.2 GAME Narrative Binding        ✅ FROZEN @ 57c83a0
 P9.3 Real Writer V1                ✅ FROZEN @ 2c5994e
-P9.4 Content Quality Gate V1       ✅ FROZEN（本刀）
+P9.4 Content Quality Gate V1       ✅ FROZEN @ a78d8fd
 ```
 
 ## 链
