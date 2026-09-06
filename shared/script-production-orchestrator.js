@@ -6,6 +6,13 @@ import { evaluateScriptProductionReadiness } from "./script-production-gate.js";
 import { buildScriptProductionPacketSet } from "./script-production-packets.js";
 import { enrichPacketSetWithNarrativeContext } from "./script-writer-packet-enrichment.js";
 import {
+  attachGroundedProjectionsToPacketSet,
+  auditProductionProjection,
+} from "./production-projection-audit.js";
+import { buildGroundedExperienceProjection } from "./production-projection-grounding.js";
+import { semanticsBridgeForTemplate } from "./complete-beat-semantics-data.js";
+import { listAcceptedStoryBlocks } from "./master-outline-integrator.js";
+import {
   buildScriptWriterRequest,
   normalizeScriptWriterResult,
 } from "./script-writer-result-contracts.js";
@@ -388,6 +395,8 @@ export async function regenerateScriptProductionJob({
  *   now?: Function,
  *   contextProfile?: object|null,
  *   gameNarrativePlan?: object|null,
+ *   storyState?: object|null,
+ *   skipProjectionGate?: boolean,
  * }} args
  */
 export async function runScriptProduction({
@@ -397,6 +406,8 @@ export async function runScriptProduction({
   now = () => new Date().toISOString(),
   contextProfile = null,
   gameNarrativePlan = null,
+  storyState = null,
+  skipProjectionGate = false,
 } = {}) {
   const gate = evaluateScriptProductionReadiness(pmd);
   if (gate.status === "BLOCKED") {
@@ -420,13 +431,59 @@ export async function runScriptProduction({
   }
 
   const basePacketSet = buildScriptProductionPacketSet(pmd);
-  const packetSet =
+  let packetSet =
     contextProfile || gameNarrativePlan
       ? enrichPacketSetWithNarrativeContext(basePacketSet, {
           contextProfile,
           gameNarrativePlan,
         })
       : basePacketSet;
+
+  const blocks = storyState ? listAcceptedStoryBlocks(storyState) : [];
+  const groundedProjections = blocks
+    .map((block) =>
+      buildGroundedExperienceProjection({
+        block,
+        contextProfile,
+        bridge: semanticsBridgeForTemplate(block.templateId),
+      }),
+    )
+    .filter(Boolean);
+  packetSet = attachGroundedProjectionsToPacketSet(packetSet, groundedProjections);
+
+  const projectionAudit = auditProductionProjection({
+    storyState,
+    productionMasterDraft: pmd,
+    packetSet,
+    contextProfile,
+    groundedProjections,
+  });
+
+  if (!skipProjectionGate && storyState && !projectionAudit.ok) {
+    return {
+      gate,
+      pmd,
+      packetSet,
+      projectionAudit,
+      sectionStates: [],
+      package: normalizeCompleteScriptPackage({
+        id: `csp-projection-blocked-${projectId}`,
+        projectId,
+        status: "BLOCKED",
+        diagnostics: projectionAudit.issues,
+        roles: [{ id: "role_host", name: "主持人", type: "HOST" }],
+        stages: [],
+        hostScript: { sections: [] },
+        roleScripts: {},
+      }),
+      validation: {
+        ok: false,
+        errors: projectionAudit.issues,
+        warnings: [],
+        code: "PROJECTION_GROUNDING_BLOCKED",
+      },
+    };
+  }
 
   const jobs = buildProductionJobs(packetSet);
   const sectionStates = [];
@@ -461,6 +518,7 @@ export async function runScriptProduction({
     gate,
     pmd,
     packetSet,
+    projectionAudit,
     sectionStates,
     package: pkg,
     validation,

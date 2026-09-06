@@ -27,6 +27,7 @@ import {
   labelMapFromBindings,
   resolveContextBindingsForSlots,
 } from "./project-context-profile.js";
+import { buildContextLabelMapForBridge } from "./production-projection-grounding.js";
 
 /** Soft slot defs for OWNER closure when template.roleSlots omitted a primaryRole. */
 const OWNER_CLOSURE_SLOT_DEFAULTS = Object.freeze({
@@ -266,6 +267,19 @@ function enrichBeat(beat, {
       contextSlots: bridge.contextSlots,
     });
     contextLabelMap = labelMapFromBindings(bindings);
+    // P10.4: plot + Context aliases override template fallbacks (no Context schema change)
+    const grounded = buildContextLabelMapForBridge({
+      bridge,
+      contextProfile,
+      plot,
+    });
+    contextLabelMap = { ...contextLabelMap, ...grounded.labelMap };
+  } else if (plot && Object.keys(plot).length) {
+    contextLabelMap = buildContextLabelMapForBridge({
+      bridge: { contextSlots: {} },
+      contextProfile,
+      plot,
+    }).labelMap;
   }
   const semantics = resolveBeatSemantics({
     bridge,

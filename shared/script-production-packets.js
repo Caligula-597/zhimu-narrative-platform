@@ -153,6 +153,8 @@ export function buildRoleScriptPacket(pmd, characterId) {
         familyId: c.familyId,
         templateId: c.templateId,
         roleInBeat: c.roleInBeat,
+        semanticRole: c.semanticRole || null,
+        visibility: c.visibility || null,
         goal: c.goal,
         action: c.action,
         gainedInfo: c.gainedInfo,

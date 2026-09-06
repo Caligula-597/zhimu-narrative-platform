@@ -1,110 +1,114 @@
-# P10.4 — Experience Realization / Production Projection Fidelity
+# P10.4 — Production Projection Fidelity V1
 
 > 来源：RPT #1B 人工结案（[`RPT1B_HUMAN_ADJUDICATION_ZH.md`](./RPT1B_HUMAN_ADJUDICATION_ZH.md)）  
-> 基线：P10.3 @ `2b6c761` · RPT #1B run `1426a6e`  
-> **不开 Writer V2。不扩 STORY 库。先 Packet Probe，再真模型。**
+> 基线：P10.3 @ `2b6c761` · RPT #1B run `2026-09-06T08-03-37-863Z`  
+> **不开 Writer V2。不扩 STORY 库。先 Packet Probe，再真模型（RPT #1C）。**
+
+## 正式状态
+
+```text
+P10.2 Creation Intent Fidelity       ✅ FROZEN
+P10.3 STORY Experience Coverage      ✅ FROZEN
+RPT #1B                              ✅ CLOSED · PARTIAL_PASS
+
+★ P10.4 Production Projection Fidelity ← Packet Probe PASS（离线）
+
+Writer V2                            🚫
+Context Domain Coherence             ⏸
+Host Rendering                       ⏸
+Full Real-Model Rerun (#1C)          ⏸ Packet Gate 后
+```
 
 ## 一句话
 
 ```text
-正确的 STORY 语义（slots / stakes / roles / terms）
-必须完整穿过 PMD → Packet → Final Text，
-变成具体、角色正确、可执行的玩家内容。
+Semantic Source
+→ Grounded Production Projection
+→ Writer Packet
+→ Final Text
 ```
 
-## 问题已不是
+Writer 开口前，生产系统必须把「谁 / 什么东西 / 什么条件 / 什么行为 / 什么后果」具体到可演。
 
-```text
-有没有 M12？
+## P10.4.0 Trace（第一次丢失层）
+
+| 症状 | 第一次丢失层 | 修复点 |
+|---|---|---|
+| `bargainB` 泄漏 | `m12Bridge` 裸 slot + `fill()` 只替换 `{key}` → MasterOutline 已脏 | `complete-beat-semantics-data.js` + `groundSurfaceText` |
+| `可交换标的` | StoryState `plotBindings.contestedStake` 已具体，但 enrich 只用 template fallback；Context `core_object` 未映射 | `buildContextLabelMapForBridge`（plot + PROJECT_EXPLICIT aliases） |
+| 顾清/方序 M07 重复 | PMD `characterViews`：PARTICIPANT 复制完整 OWNER `eventSummary` | `projectCharacterViews` → `在场可观察：{action}`，不继承目标 |
+
+入口：
+
+```bash
+node scripts/p10-4-rpt1b-packet-probe.mjs
+# → captures/p10-4-rpt1b-packet-probe.json
 ```
 
-## 问题是
+## 责任边界（薄）
 
 ```text
-M12 的具体交易能否送到玩家手上？
+PMD
+↓
+Grounding / Projection Validation   ← 本刀
+↓
+existing Packet Builder
+↓
+Writer（未改 prompt/profile）
 ```
 
-## 只盯四件事
+实现：
 
-### 1. Symbolic Slot Grounding
+| 文件 | 职责 |
+|---|---|
+| `shared/production-projection-grounding.js` | GroundedValue / ExperienceProjection / slot ground |
+| `shared/production-projection-audit.js` | Trace + Packet Probe hard gate |
+| `shared/story-beat-semantics.js` | 解析时替换裸 symbolic slots |
+| `shared/production-master-draft-expander.js` | expand 时 re-ground + PARTICIPANT scope |
+| `shared/script-production-orchestrator.js` | Writer 前 projectionAudit；失败则 BLOCK |
 
-```text
-bargainA / bargainB / stakeholder …
-→ Writer 前必须全部 concrete
-→ Writer 永远看不到裸 slotId
-```
+**不**新增 Projection Runtime / Semantic Production Engine V3。
 
-应只见：
-
-```text
-holder: { characterId: P2, displayName: 梁赫 }
-```
-
-### 2. Concrete Stake Grounding
+## Packet Probe PASS Gate（已钉死）
 
 ```text
-contestedStake / holderPrice / seekerNeed / exchangeTerms
-→ Production Packet 前实例化为具体内容
-→ 禁止落到正文仍是「可交换标的」
-```
+Boundary
+✅ 不新增 STORY / 不改 Writer prompt / 不改 Context 语义规则
+✅ 不改 Host / P9.4 / Runtime / PMD V2 schema
 
-### 3. Role Contribution Scope
+Trace
+✅ bargainB / contestedStake / M07 P5·P6 第一次丢失层可证明
 
-```text
-OWNER / PRIMARY 内容只能进入正确角色本
-顾清的 M07 不得完整复制给方序
-```
+Slot / Concrete / Role / Action
+✅ Writer packet 0 裸 roleSlot/plotSlot identifier
+✅ contestedStake 等有 provenance；缺源 → REVIEW/BLOCK，不让 Writer 补
+✅ M07 OWNER 线不完整复制给方序
+✅ NEGOTIATE 有 actor/counterpart/wants/controls/offer/≥2 counters
+✅ EXCHANGE before→after；AFTERMATH 有 delta
 
-### 4. Action Realization
-
-```text
-NEGOTIATE / EXCHANGE
-≠ 「你们进行了谈判 / 完成了交换」
-
-Packet 必须携带：
-谁要什么、谁有什么、代价是什么、
-可选条件是什么、不同结果改变什么
-```
-
-## Packet-Level Probe（真模型前必过）
-
-示例必须看见：
-
-```text
-M12 packet
-seeker: 沈岚
-holder: 梁赫
-stake: 未公开预展目录册的库房访问权（或等价具体物）
-seekerNeed: …
-holderNeed: …
-offer: …
-counterOptions: …
-```
-
-禁止仍见：
-
-```text
-actor = bargainA
-target = bargainB
-stake = 可交换标的
+Probe
+✅ unresolvedSymbolicSlots = 0
+✅ abstractRequiredFields = 0
+✅ roleScopeLeaks = 0
+✅ underspecifiedActions = 0
+✅ 不调用真实模型即可 PASS
 ```
 
 ## 明确不在本刀
 
-- Writer literary prompt / Voice V2  
-- Context Domain Coherence（可下一刀）  
-- Host operational rendering  
-- 再新增 STORY family  
+- Writer literary / Voice V2  
+- Context Domain Coherence（物业档案室污染仍允许）  
+- 全 cast EARLY_AGENCY balancing  
+- 新增 STORY family  
 - 放宽 P9.4  
 
-## 成功标准（草案）
+## 下一步
 
 ```text
-✅ Writer 输入中无裸 slotId
-✅ contestedStake 等在 packet 已 concrete
-✅ PRIMARY 体验不跨角色完整复制
-✅ NEGOTIATE/EXCHANGE packet 含 terms / options / aftermath deltas
-✅ Packet Probe PASS 后再开真模型重跑
+RPT #1C — Post-P10.4 Projection Rerun
+同题 · 同模型 · 同 Writer · 同 Context · 同 Host
 ```
 
-正式开刀时再锁 ticket 切片与测试入口。
+只问：Packet 已写清「沈岚为什么要和梁赫谈什么条件」后，正文是否变成真正的玩家谈判。
+
+若 grounding 全绿而文风仍 SAME_VOICE —— 那时才有资格开 **Writer Quality**。

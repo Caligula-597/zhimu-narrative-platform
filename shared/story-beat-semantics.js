@@ -10,6 +10,11 @@ import {
   normalizeSemanticFactRef,
   normalizeTargetRef,
 } from "./semantic-fact.js";
+import {
+  collectSymbolicSlotIds,
+  groundSurfaceText,
+  roleFillContext,
+} from "./production-projection-grounding.js";
 
 function record(value) {
   return value && typeof value === "object" && !Array.isArray(value) ? value : {};
@@ -152,7 +157,14 @@ export function resolveBeatSemantics({
     contextLabelMap?.recordLocation ||
     contextLabelMap?.crimeScene ||
     contextLabelMap?.factionMeetingPlace;
+  const slotIds = collectSymbolicSlotIds({ roleBindings });
+  const groundOpts = {
+    roleBindings,
+    labelMap: contextLabelMap || {},
+    slotIds,
+  };
   const ctx = {
+    ...roleFillContext(roleBindings),
     actor: actorName,
     culprit: nameOf(roleBindings, "culprit"),
     framed: nameOf(roleBindings, "framedCharacter"),
@@ -176,10 +188,13 @@ export function resolveBeatSemantics({
       "关键物证",
   };
 
-  const goal = fill(phase.goal || goalFromRole || bridge.defaultGoal, ctx);
-  const action = fill(phase.action || bridge.defaultAction, ctx);
-  const target = fill(phase.target || bridge.defaultTarget, ctx);
-  const locationHint = fill(phase.locationHint || bridge.defaultLocation, ctx);
+  const goal = groundSurfaceText(fill(phase.goal || goalFromRole || bridge.defaultGoal, ctx), groundOpts);
+  const action = groundSurfaceText(fill(phase.action || bridge.defaultAction, ctx), groundOpts);
+  const target = groundSurfaceText(fill(phase.target || bridge.defaultTarget, ctx), groundOpts);
+  const locationHint = groundSurfaceText(
+    fill(phase.locationHint || bridge.defaultLocation, ctx),
+    groundOpts,
+  );
 
   const factCtx = {
     sourceBlockId,
@@ -191,7 +206,7 @@ export function resolveBeatSemantics({
     asArray(list).map((f) => {
       if (typeof f === "string") {
         return normalizeSemanticFactRef(
-          { factType: f, kind: f, summary: fill(f, ctx) },
+          { factType: f, kind: f, summary: groundSurfaceText(fill(f, ctx), groundOpts) },
           factCtx,
         );
       }
@@ -199,7 +214,7 @@ export function resolveBeatSemantics({
         {
           ...f,
           factType: f.factType || f.kind || f.id,
-          summary: fill(f.summary || f.id || f.factType, ctx),
+          summary: groundSurfaceText(fill(f.summary || f.id || f.factType, ctx), groundOpts),
         },
         factCtx,
       );

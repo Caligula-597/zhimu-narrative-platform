@@ -1,0 +1,257 @@
+{
+  "runDir": "D:\\长剧情\\trials\\rpt-1-closed-after-hours\\runs\\2026-09-06T08-03-37-863Z",
+  "baselineTrace": {
+    "issues": [
+      {
+        "code": "SYMBOLIC_SLOT_LEAK",
+        "message": "first seen in MasterOutline: bargainB",
+        "layer": "MasterOutline",
+        "slots": [
+          "bargainB"
+        ]
+      },
+      {
+        "code": "ABSTRACT_REQUIRED_FIELD",
+        "message": "contestedStake concrete on StoryState but abstract in outline/semantics",
+        "layer": "enrichBeat/resolveBeatSemantics",
+        "field": "contestedStake",
+        "storyValue": "一份未公开的名录或通行权限"
+      },
+      {
+        "code": "ROLE_SCOPE_LEAK",
+        "message": "沈岚 inherits OWNER M07 agency via PARTICIPANT action",
+        "layer": "PMD.characterViews",
+        "characterId": "P1",
+        "sourceOutlineBeatId": "ob-mtpiyzom-65mb"
+      },
+      {
+        "code": "ROLE_SCOPE_LEAK",
+        "message": "沈岚 inherits OWNER M07 agency via PARTICIPANT action",
+        "layer": "PMD.characterViews",
+        "characterId": "P1",
+        "sourceOutlineBeatId": "ob-mtpiyzom-qtrm"
+      },
+      {
+        "code": "ROLE_SCOPE_LEAK",
+        "message": "沈岚 inherits OWNER M07 agency via PARTICIPANT action",
+        "layer": "PMD.characterViews",
+        "characterId": "P1",
+        "sourceOutlineBeatId": "ob-mtpiyzom-njbm"
+      },
+      {
+        "code": "ROLE_SCOPE_LEAK",
+        "message": "方序 inherits OWNER M07 agency via PARTICIPANT action",
+        "layer": "PMD.characterViews",
+        "characterId": "P6",
+        "sourceOutlineBeatId": "ob-mtpiyzom-fadl"
+      },
+      {
+        "code": "ROLE_SCOPE_LEAK",
+        "message": "方序 inherits OWNER M07 agency via PARTICIPANT action",
+        "layer": "PMD.characterViews",
+        "characterId": "P6",
+        "sourceOutlineBeatId": "ob-mtpiyzom-65mb"
+      },
+      {
+        "code": "ROLE_SCOPE_LEAK",
+        "message": "方序 inherits OWNER M07 agency via PARTICIPANT action",
+        "layer": "PMD.characterViews",
+        "characterId": "P6",
+        "sourceOutlineBeatId": "ob-mtpiyzom-qtrm"
+      },
+      {
+        "code": "ROLE_SCOPE_LEAK",
+        "message": "方序 inherits OWNER M07 agency via PARTICIPANT action",
+        "layer": "PMD.characterViews",
+        "characterId": "P6",
+        "sourceOutlineBeatId": "ob-mtpiyzom-njbm"
+      },
+      {
+        "code": "ROLE_SCOPE_LEAK",
+        "message": "白绫 inherits OWNER M07 agency via PARTICIPANT action",
+        "layer": "PMD.characterViews",
+        "characterId": "P3",
+        "sourceOutlineBeatId": "ob-mtpiyzom-65mb"
+      },
+      {
+        "code": "ROLE_SCOPE_LEAK",
+        "message": "白绫 inherits OWNER M07 agency via PARTICIPANT action",
+        "layer": "PMD.characterViews",
+        "characterId": "P3",
+        "sourceOutlineBeatId": "ob-mtpiyzom-qtrm"
+      },
+      {
+        "code": "ROLE_SCOPE_LEAK",
+        "message": "白绫 inherits OWNER M07 agency via PARTICIPANT action",
+        "layer": "PMD.characterViews",
+        "characterId": "P3",
+        "sourceOutlineBeatId": "ob-mtpiyzom-njbm"
+      },
+      {
+        "code": "ROLE_SCOPE_LEAK",
+        "message": "周祁 inherits OWNER M07 agency via PARTICIPANT action",
+        "layer": "PMD.characterViews",
+        "characterId": "P4",
+        "sourceOutlineBeatId": "ob-mtpiyzom-65mb"
+      },
+      {
+        "code": "ROLE_SCOPE_LEAK",
+        "message": "周祁 inherits OWNER M07 agency via PARTICIPANT action",
+        "layer": "PMD.characterViews",
+        "characterId": "P4",
+        "sourceOutlineBeatId": "ob-mtpiyzom-qtrm"
+      },
+      {
+        "code": "ROLE_SCOPE_LEAK",
+        "message": "周祁 inherits OWNER M07 agency via PARTICIPANT action",
+        "layer": "PMD.characterViews",
+        "characterId": "P4",
+        "sourceOutlineBeatId": "ob-mtpiyzom-njbm"
+      }
+    ],
+    "sampleStoryStake": "一份未公开的名录或通行权限",
+    "samplePacket": {
+      "templateId": "M12-1",
+      "roles": {
+        "seeker": "沈岚",
+        "holder": "梁赫"
+      },
+      "stake": "未公开的预展目录册",
+      "seekerNeed": "保护自己或盟友",
+      "holderPrice": "公开一个秘密",
+      "openingOffer": "公开一个秘密",
+      "counterOptions": [
+        "接受：公开一个秘密",
+        "改写条件：围绕「信息换物件」提出替代方案"
+      ],
+      "exchange": {
+        "beforeOwner": "梁赫",
+        "afterOwner": "沈岚 独占"
+      },
+      "aftermath": [
+        {
+          "choice": "是否公开交换事实",
+          "delta": "知情扩散 / 关系重谈"
+        },
+        {
+          "choice": "继续合作",
+          "delta": "合作关系维持"
+        },
+        {
+          "choice": "撕毁承诺",
+          "delta": "关系 = HOSTILE"
+        }
+      ]
+    }
+  },
+  "afterFixTrace": {
+    "issues": [
+      {
+        "code": "SYMBOLIC_SLOT_LEAK",
+        "message": "first seen in MasterOutline: bargainB",
+        "layer": "MasterOutline",
+        "slots": [
+          "bargainB"
+        ]
+      },
+      {
+        "code": "ABSTRACT_REQUIRED_FIELD",
+        "message": "contestedStake concrete on StoryState but abstract in outline/semantics",
+        "layer": "enrichBeat/resolveBeatSemantics",
+        "field": "contestedStake",
+        "storyValue": "一份未公开的名录或通行权限"
+      }
+    ],
+    "pmdSampleGoals": [
+      "试探 梁赫 对未公开的预展目录册的底线",
+      "隐瞒真正底线并开出可谈判条件",
+      "以玩家行动完成未公开的预展目录册换手"
+    ]
+  },
+  "audit": {
+    "status": "PASS",
+    "ok": true,
+    "unresolvedSymbolicSlots": [],
+    "abstractRequiredFields": [],
+    "roleScopeLeaks": [],
+    "underspecifiedActions": [],
+    "issues": []
+  },
+  "packetCaptures": [
+    {
+      "templateId": "M12-1",
+      "roles": {
+        "seeker": "沈岚",
+        "holder": "梁赫"
+      },
+      "stake": "未公开的预展目录册",
+      "seekerNeed": "保护自己或盟友",
+      "holderPrice": "公开一个秘密",
+      "openingOffer": "公开一个秘密",
+      "counterOptions": [
+        "接受：公开一个秘密",
+        "改写条件：围绕「信息换物件」提出替代方案"
+      ],
+      "exchange": {
+        "beforeOwner": "梁赫",
+        "afterOwner": "沈岚 独占"
+      },
+      "aftermath": [
+        {
+          "choice": "是否公开交换事实",
+          "delta": "知情扩散 / 关系重谈"
+        },
+        {
+          "choice": "继续合作",
+          "delta": "合作关系维持"
+        },
+        {
+          "choice": "撕毁承诺",
+          "delta": "关系 = HOSTILE"
+        }
+      ]
+    }
+  ],
+  "writerWouldSee": {
+    "m12": {
+      "templateId": "M12-1",
+      "roles": {
+        "seeker": "沈岚",
+        "holder": "梁赫"
+      },
+      "stake": "未公开的预展目录册",
+      "seekerNeed": "保护自己或盟友",
+      "holderPrice": "公开一个秘密",
+      "openingOffer": "公开一个秘密",
+      "counterOptions": [
+        "接受：公开一个秘密",
+        "改写条件：围绕「信息换物件」提出替代方案"
+      ],
+      "exchange": {
+        "beforeOwner": "梁赫",
+        "afterOwner": "沈岚 独占"
+      },
+      "aftermath": [
+        {
+          "choice": "是否公开交换事实",
+          "delta": "知情扩散 / 关系重谈"
+        },
+        {
+          "choice": "继续合作",
+          "delta": "合作关系维持"
+        },
+        {
+          "choice": "撕毁承诺",
+          "delta": "关系 = HOSTILE"
+        }
+      ]
+    },
+    "roleP6ParticipantSample": {
+      "roleInBeat": "PARTICIPANT",
+      "semanticRole": null,
+      "visibility": null,
+      "action": "在场可观察：按伪装/未知状态行动，避免过早暴露",
+      "goal": null
+    }
+  }
+}

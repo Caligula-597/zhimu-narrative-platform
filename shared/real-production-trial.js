@@ -338,9 +338,26 @@ export async function runRealProductionTrial(opts) {
   state = createProjectStoryState({ ...state, masterOutlineDraft: draft });
   writeJson(path.join(outDir, "master-outline.json"), state.masterOutlineDraft);
 
+  const contextProfile = buildProjectContextProfile({
+    creationSpec: {
+      setting: { era: spec.setting?.era },
+      genreTags: spec.genreTags,
+    },
+    premise: state.premise,
+    explicitBindings: trialInput.authorPolicy?.explicitContextBindings || {},
+    preferredPresetId: "CONTEMPORARY_URBAN",
+    now: opts.now || nowIso,
+  });
+  log.author("confirm_context_bindings", {
+    presetId: contextProfile.presetId,
+    explicitKeys: contextProfile.explicitBindingKeys,
+  });
+  writeJson(path.join(outDir, "context-profile.json"), contextProfile);
+
   const pmd = expandProductionMasterDraft(state, {
     now: opts.now || nowIso,
     title: trialInput.title || "完整剧本",
+    contextProfile,
   });
   writeJson(path.join(outDir, "pmd.json"), pmd);
   const gate = evaluateScriptProductionReadiness(pmd);
@@ -359,22 +376,6 @@ export async function runRealProductionTrial(opts) {
     writeJson(path.join(outDir, "author-decisions.json"), log.rows);
     return { ...summary, outDir, log: log.rows };
   }
-
-  const contextProfile = buildProjectContextProfile({
-    creationSpec: {
-      setting: { era: spec.setting?.era },
-      genreTags: spec.genreTags,
-    },
-    premise: state.premise,
-    explicitBindings: trialInput.authorPolicy?.explicitContextBindings || {},
-    preferredPresetId: "CONTEMPORARY_URBAN",
-    now: opts.now || nowIso,
-  });
-  log.author("confirm_context_bindings", {
-    presetId: contextProfile.presetId,
-    explicitKeys: contextProfile.explicitBindingKeys,
-  });
-  writeJson(path.join(outDir, "context-profile.json"), contextProfile);
 
   // GAME: only if author preferred gameplay intents exist — record intent; V1 may skip full plan
   // unless a product placement flow is present. We do NOT invent M03 just to have GAME.
@@ -433,7 +434,23 @@ export async function runRealProductionTrial(opts) {
     now: opts.now || nowIso,
     contextProfile,
     gameNarrativePlan,
+    storyState: state,
   });
+  if (production.projectionAudit) {
+    writeJson(path.join(outDir, "projection-audit.json"), production.projectionAudit);
+  }
+  if (production.validation?.code === "PROJECTION_GROUNDING_BLOCKED") {
+    const summary = {
+      trialVerdict: "TRIAL_FAIL",
+      reason: "projection_grounding_blocked",
+      projectionAudit: production.projectionAudit,
+      humanIntervention: log.counts(),
+      elapsedMs: Date.now() - started,
+    };
+    writeJson(path.join(outDir, "trial-summary.json"), summary);
+    writeJson(path.join(outDir, "author-decisions.json"), log.rows);
+    return { ...summary, outDir, log: log.rows, production };
+  }
   writeJson(path.join(outDir, "complete-script-package.json"), production.package);
   writeJson(path.join(outDir, "writer-section-states.json"), production.sectionStates);
   writeJson(

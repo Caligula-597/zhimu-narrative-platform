@@ -401,7 +401,7 @@ if (files.some((f) =>
 }
 
 if (files.some((f) =>
-  /^shared\/(context-|project-context|story-beat-semantics|story-semantic-fidelity|complete-beat-semantics|story-mechanism-(engine|contracts|m07|m08|m12)|game-narrative|real-script-writer|script-writer-|script-production-|content-quality-|generated-script-quality|production-master-draft|real-production-trial|deepseek-script-writer|creation-intent-|story-experience-|creation-candidate-planner|creation-catalog-metadata)/.test(f)
+  /^shared\/(context-|project-context|story-beat-semantics|story-semantic-fidelity|complete-beat-semantics|story-mechanism-(engine|contracts|m07|m08|m12)|game-narrative|real-script-writer|script-writer-|script-production-|content-quality-|generated-script-quality|production-master-draft|production-projection-|real-production-trial|deepseek-script-writer|creation-intent-|story-experience-|creation-candidate-planner|creation-catalog-metadata)/.test(f)
   || f === "scripts/context-instantiation.test.mjs"
   || f === "scripts/story-semantic-fidelity.test.mjs"
   || f === "scripts/game-narrative-binding.test.mjs"
@@ -413,12 +413,15 @@ if (files.some((f) =>
   || f === "scripts/creation-intent-fidelity.test.mjs"
   || f === "scripts/real-production-trial-1.test.mjs"
   || f === "scripts/real-production-trial-1.mjs"
+  || f === "scripts/p10-4-production-projection.test.mjs"
+  || f === "scripts/p10-4-rpt1b-packet-probe.mjs"
   || /^trials\/rpt-1-/.test(f)
 )) {
   run(
     "P9/P10 content factory + trial harness",
-    "node --test scripts/context-instantiation.test.mjs scripts/story-semantic-fidelity.test.mjs scripts/game-narrative-binding.test.mjs scripts/real-script-writer.test.mjs scripts/content-quality-gate.test.mjs scripts/generated-script-quality-audit.test.mjs scripts/owner-binding-closure.test.mjs scripts/creation-intent-fidelity.test.mjs scripts/real-production-trial-1.test.mjs",
+    "node --test scripts/context-instantiation.test.mjs scripts/story-semantic-fidelity.test.mjs scripts/game-narrative-binding.test.mjs scripts/real-script-writer.test.mjs scripts/content-quality-gate.test.mjs scripts/generated-script-quality-audit.test.mjs scripts/owner-binding-closure.test.mjs scripts/creation-intent-fidelity.test.mjs scripts/real-production-trial-1.test.mjs scripts/p10-4-production-projection.test.mjs",
   );
+  run("P10.4 RPT1B packet probe", "node scripts/p10-4-rpt1b-packet-probe.mjs");
   run("P8 GEN machine regression", "npm run test:p8-generalization");
 }
 

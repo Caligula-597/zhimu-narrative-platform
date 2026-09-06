@@ -16,6 +16,15 @@ import {
   refreshProductionDraftStaleStatus,
 } from "./production-master-draft-contracts.js";
 import { resolveBeatOwnerRefs, applyOwnerResolution } from "./beat-owner-authority.js";
+import { resolveBeatSemantics } from "./story-beat-semantics.js";
+import { semanticsBridgeForTemplate } from "./complete-beat-semantics-data.js";
+import {
+  ABSTRACT_FALLBACK_LABELS,
+  buildContextLabelMapForBridge,
+  collectSymbolicSlotIds,
+  findUnresolvedSymbolicSlots,
+  groundSurfaceText,
+} from "./production-projection-grounding.js";
 
 export class ProductionMasterDraftError extends Error {
   constructor(code, message, details = {}) {
@@ -124,9 +133,61 @@ export function relationNotesForBeat(links) {
   return notes;
 }
 
-function expandOneBeat(outlineBeat, outline, state, blocks, stageId) {
+function surfaceNeedsGrounding(outlineBeat, block) {
+  const texts = [
+    outlineBeat?.semantics?.goal,
+    outlineBeat?.semantics?.action,
+    outlineBeat?.semantics?.target,
+    outlineBeat?.summary,
+  ]
+    .filter(Boolean)
+    .join("\n");
+  if (!texts) return true;
+  const slotIds = collectSymbolicSlotIds({ roleBindings: block?.roleBindings });
+  if (findUnresolvedSymbolicSlots(texts, slotIds).length) return true;
+  for (const label of ABSTRACT_FALLBACK_LABELS) {
+    if (texts.includes(label)) return true;
+  }
+  return false;
+}
+
+function regroundOutlineBeatSemantics(outlineBeat, block, contextProfile = null) {
+  if (!block?.templateId) return outlineBeat?.semantics || null;
+  // Preserve existing outline semantics unless Context is supplied or surfaces leak
+  // (avoids rewriting healthy P8 TARGET classifications when no projection work is needed).
+  if (!contextProfile && !surfaceNeedsGrounding(outlineBeat, block)) {
+    return outlineBeat?.semantics || null;
+  }
+  const bridge = block.semanticsBridge || semanticsBridgeForTemplate(block.templateId);
+  if (!bridge) return outlineBeat?.semantics || null;
+  const { labelMap } = buildContextLabelMapForBridge({
+    bridge,
+    contextProfile,
+    plot: block.plotBindings,
+  });
+  const resolved = resolveBeatSemantics({
+    bridge,
+    phaseBand: outlineBeat?.phaseBand ?? 0,
+    roleBindings: block.roleBindings || {},
+    plot: block.plotBindings || {},
+    involvedRoleKeys: Object.keys(block.roleBindings || {}),
+    variant: null,
+    contextLabelMap: labelMap,
+    sourceBlockId: block.id,
+    sourceBeatId: outlineBeat?.sourceBeatId,
+  });
+  return resolved || outlineBeat?.semantics || null;
+}
+
+function publicParticipantAction(beat) {
+  const action = String(beat?.action || "").trim();
+  if (action) return `在场可观察：${action}`.slice(0, 160);
+  return "在场可观察公开后果（不继承主导目标/心理/决策）";
+}
+
+function expandOneBeat(outlineBeat, outline, state, blocks, stageId, contextProfile = null) {
   const block = blockById(blocks, outlineBeat.sourceBlockId);
-  let sem = outlineBeat.semantics || null;
+  let sem = regroundOutlineBeatSemantics(outlineBeat, block, contextProfile);
   const blockAssignments = (state.roleAssignments || []).filter(
     (r) =>
       r.mechanismBlockId === outlineBeat.sourceBlockId ||
@@ -161,7 +222,14 @@ function expandOneBeat(outlineBeat, outline, state, blocks, stageId) {
     goal: sem?.goal,
     action: sem?.action,
     target: sem?.target,
-    fallbackSummary: outlineBeat.summary,
+    fallbackSummary: groundSurfaceText(outlineBeat.summary, {
+      roleBindings: block?.roleBindings || {},
+      labelMap: buildContextLabelMapForBridge({
+        bridge: block?.semanticsBridge || semanticsBridgeForTemplate(block?.templateId),
+        contextProfile,
+        plot: block?.plotBindings,
+      }).labelMap,
+    }),
     needsDetail,
   });
   const setupContext =
@@ -519,12 +587,14 @@ function projectCharacterViews(stages) {
           familyId: b.familyId,
           templateId: b.templateId,
           roleInBeat,
+          semanticRole: isOwner ? "OWNER" : roleInBeat === "TARGET" ? "TARGET" : "OBSERVER",
+          visibility: isOwner ? "OWNER_ONLY" : "PARTICIPANTS",
           goal: isOwner ? b.goal || null : null,
           action: isOwner
             ? b.action || null
             : roleInBeat === "TARGET"
-              ? `作为对象卷入：${b.action || b.goal || b.eventSummary || "相关剧情"}`
-              : `参与（非主导）：${b.eventSummary || b.action || "相关剧情"}`,
+              ? `作为对象卷入：${b.action || b.target || "相关剧情"}`
+              : publicParticipantAction(b),
           gainedInfo: gained,
           relationQuality: b.relationQuality,
           needsDetail: Boolean(b.needsDetail) && isOwner,
@@ -687,11 +757,12 @@ export function expandProductionMasterDraft(projectStoryState, options = {}) {
     fail("EXPAND_NO_OUTLINE", "需要先有交织骨架（MasterOutlineDraft）才能展开详细母稿");
   }
   const blocks = listAcceptedStoryBlocks(state);
+  const contextProfile = options.contextProfile || null;
   const sortedStages = [...(outline.stages || [])].sort((a, b) => a.order - b.order);
 
   const productionStages = sortedStages.map((st, index) => {
     const beats = (st.beats || []).map((ob) =>
-      expandOneBeat(ob, outline, state, blocks, st.id),
+      expandOneBeat(ob, outline, state, blocks, st.id, contextProfile),
     );
     const unresolvedDetails = beats.filter((b) => b.needsDetail).map((b) => b.detailReason || b.eventSummary);
     const characterEntries = [

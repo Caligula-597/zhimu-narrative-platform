@@ -337,7 +337,7 @@ function m12Bridge(extra = {}) {
     phases: {
       0: {
         primaryRole: "bargainA",
-        goal: "试探 bargainB 对{ctx.contestedStake}的底线",
+        goal: "试探 {bargainB} 对{ctx.contestedStake}的底线",
         action: "在{ctx.bargainVenue}试探对方掌握范围与要价",
         target: "{ctx.contestedStake}",
         actionKind: "PROBE",
