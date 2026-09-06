@@ -1,0 +1,142 @@
+[
+  {
+    "at": "2026-09-06T09:32:02.166Z",
+    "kind": "SYSTEM_AUTO",
+    "action": "resolve_stage_count",
+    "count": 4,
+    "source": "SYSTEM_RECOMMENDATION"
+  },
+  {
+    "at": "2026-09-06T09:32:02.167Z",
+    "kind": "AUTHOR_CONFIRMATION",
+    "action": "set_premise_characters_stages_from_creation_spec",
+    "playerCount": 6,
+    "stages": [
+      "act1",
+      "act2",
+      "act3",
+      "act4"
+    ]
+  },
+  {
+    "at": "2026-09-06T09:32:02.177Z",
+    "kind": "SYSTEM_AUTO",
+    "action": "creation_intent_recommendation",
+    "status": "OK",
+    "bundle": [
+      "M12-1",
+      "M07-1"
+    ],
+    "fidelityScore": 0.767,
+    "coverageGaps": {
+      "missingInteractionModes": [],
+      "uncoveredAnchors": [],
+      "unwantedCommitments": []
+    }
+  },
+  {
+    "at": "2026-09-06T09:32:02.177Z",
+    "kind": "AUTHOR_CONFIRMATION",
+    "action": "accept_recommended_story_blocks",
+    "accepts": [
+      {
+        "templateId": "M12-1",
+        "intentionalOverlap": false,
+        "score": 1.02,
+        "fromRecommendedBundle": true
+      },
+      {
+        "templateId": "M07-1",
+        "intentionalOverlap": true,
+        "score": 0.51,
+        "fromRecommendedBundle": true
+      }
+    ]
+  },
+  {
+    "at": "2026-09-06T09:32:02.182Z",
+    "kind": "AUTHOR_CONFIRMATION",
+    "action": "accept_story_block",
+    "blockId": "smb-mtpm4ohu-zsy11",
+    "templateId": "M12-1"
+  },
+  {
+    "at": "2026-09-06T09:32:02.183Z",
+    "kind": "AUTHOR_CONFIRMATION",
+    "action": "accept_story_block",
+    "blockId": "smb-mtpm4ohy-lb65s",
+    "templateId": "M07-1"
+  },
+  {
+    "at": "2026-09-06T09:32:02.185Z",
+    "kind": "SYSTEM_AUTO",
+    "action": "creation_intent_fidelity_audit",
+    "status": "REVIEW_REQUIRED",
+    "unwantedCommitments": [],
+    "missingIntents": []
+  },
+  {
+    "at": "2026-09-06T09:32:02.191Z",
+    "kind": "AUTHOR_CONFIRMATION",
+    "action": "accept_conflict_keep",
+    "conflictId": "cf-mtpm4oi7-v4t4",
+    "type": "ROLE_OVERLOAD"
+  },
+  {
+    "at": "2026-09-06T09:32:02.193Z",
+    "kind": "AUTHOR_CONFIRMATION",
+    "action": "confirm_context_bindings",
+    "presetId": "CONTEMPORARY_URBAN",
+    "explicitKeys": [
+      "venue",
+      "core_object",
+      "access_record",
+      "credential"
+    ]
+  },
+  {
+    "at": "2026-09-06T09:32:02.202Z",
+    "kind": "SYSTEM_AUTO",
+    "action": "production_gate",
+    "status": "READY_WITH_WARNINGS",
+    "blockers": []
+  },
+  {
+    "at": "2026-09-06T09:32:02.202Z",
+    "kind": "AUTHOR_CONFIRMATION",
+    "action": "acknowledge_gameplay_intent_candidates",
+    "intents": [
+      "NEGOTIATION"
+    ],
+    "note": "P8.1 gameplay candidates are hints only; Trial #1 does not force M03/M09 placement without product placement UI"
+  },
+  {
+    "at": "2026-09-06T09:34:40.368Z",
+    "kind": "SYSTEM_AUTO",
+    "action": "writer_production_complete",
+    "packageStatus": "INVALID",
+    "sectionCount": 23
+  },
+  {
+    "at": "2026-09-06T09:34:40.378Z",
+    "kind": "SYSTEM_AUTO",
+    "action": "quality_gate",
+    "status": "QUALITY_BLOCKED",
+    "totalScore": 73
+  },
+  {
+    "at": "2026-09-06T09:34:40.379Z",
+    "kind": "SYSTEM_AUTO",
+    "action": "approve_deferred",
+    "reason": "invalid_sections"
+  },
+  {
+    "at": "2026-09-06T09:34:40.385Z",
+    "kind": "SYSTEM_AUTO",
+    "action": "runtime_smoke_skipped",
+    "ok": null,
+    "skipped": true,
+    "reason": "package_not_approved",
+    "playableStatus": "INVALID"
+  }
+]

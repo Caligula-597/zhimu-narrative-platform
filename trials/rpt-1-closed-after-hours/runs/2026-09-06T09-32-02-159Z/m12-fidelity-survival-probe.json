@@ -1,0 +1,47 @@
+{
+  "version": 1,
+  "readOnly": true,
+  "note": "启发式探针，非正式 CHANGE_VERDICT；人工须完成五项 + Survival 五问",
+  "preWriter": {
+    "recommendationStatus": "OK",
+    "recommendedBundle": [
+      "M12-1",
+      "M07-1"
+    ]
+  },
+  "acceptedBlocks": [
+    "M12-1",
+    "M07-1"
+  ],
+  "hasM12": true,
+  "plotStakeHint": "一份未公开的名录或通行权限",
+  "heuristics": {
+    "abstractStakeHits": [
+      "筹码",
+      "筹码",
+      "一切",
+      "一切",
+      "秘密",
+      "一切",
+      "一切",
+      "一切"
+    ],
+    "negotiateLexicon": true,
+    "ownershipLexicon": true,
+    "narrationTransferSmell": false,
+    "crimeCaptureSmell": true,
+    "factionSmell": true
+  },
+  "survivalChecklistForHuman": [
+    "1. contestedStake 是否具体？",
+    "2. 开场谁掌握？",
+    "3. 谁为何想得到？",
+    "4. 玩家间谈判/交换（非旁白）？",
+    "5. 换手后是否改变后续选择/权限/关系？"
+  ],
+  "changeVerdictSlots": {
+    "SYSTEM_VERDICT": null,
+    "CHANGE_VERDICT": null,
+    "P10_3_CHANGE_PASS": null
+  }
+}

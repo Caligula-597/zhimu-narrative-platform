@@ -1,0 +1,36 @@
+{
+  "trialId": "RPT-1C",
+  "title": "闭馆之后",
+  "trialVerdict": "TRIAL_PARTIAL",
+  "writerMode": {
+    "mode": "real",
+    "adapterId": "deepseek-script-writer",
+    "modelId": "deepseek-v4-flash"
+  },
+  "quality": {
+    "status": "QUALITY_BLOCKED",
+    "totalScore": 73,
+    "hardBlockers": 1,
+    "lowestDimensions": [
+      {
+        "id": "D_GAME_NARRATIVE_FUSION",
+        "score": 3
+      },
+      {
+        "id": "E_AESTHETIC_VOICE",
+        "score": 3
+      },
+      {
+        "id": "F_ENDING_PAYOFF",
+        "score": 3
+      }
+    ]
+  },
+  "humanIntervention": {
+    "authorConfirmations": 7,
+    "systemAuto": 8,
+    "developerFirefighting": 0
+  },
+  "elapsedMs": 158223,
+  "artifactDir": "D:\\长剧情\\trials\\rpt-1-closed-after-hours\\runs\\2026-09-06T09-32-02-159Z"
+}

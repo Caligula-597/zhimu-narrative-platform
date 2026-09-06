@@ -1,0 +1,300 @@
+{
+  "ok": true,
+  "status": "PASS",
+  "unresolvedSymbolicSlots": [],
+  "abstractRequiredFields": [],
+  "roleScopeLeaks": [],
+  "underspecifiedActions": [],
+  "issues": [],
+  "groundedProjections": [
+    {
+      "blockId": "smb-mtpm4ohu-zsy11",
+      "templateId": "M12-1",
+      "familyId": "M12",
+      "participants": {
+        "bargainA": {
+          "characterId": "P1",
+          "displayName": "沈岚",
+          "authority": "SEEKER",
+          "unresolved": false
+        },
+        "bargainB": {
+          "characterId": "P2",
+          "displayName": "梁赫",
+          "authority": "HOLDER",
+          "unresolved": false
+        },
+        "stakeholder": {
+          "characterId": "P3",
+          "displayName": "白绫",
+          "authority": "OTHER",
+          "unresolved": false
+        },
+        "witness": {
+          "characterId": "P4",
+          "displayName": "周祁",
+          "authority": "OTHER",
+          "unresolved": false
+        }
+      },
+      "entities": {
+        "contestedStake": {
+          "value": "未公开的预展目录册",
+          "kind": "OBJECT",
+          "origin": "PROJECT_CONTEXT",
+          "sourceRef": "core_object"
+        },
+        "seekerNeed": {
+          "value": "保护自己或盟友",
+          "kind": "CONDITION",
+          "origin": "STORY_SLOT",
+          "sourceRef": "plot.seekerNeed"
+        },
+        "holderPrice": {
+          "value": "公开一个秘密",
+          "kind": "CONDITION",
+          "origin": "STORY_SLOT",
+          "sourceRef": "plot.holderPrice"
+        },
+        "exchangeTerms": {
+          "value": "信息换物件",
+          "kind": "CONDITION",
+          "origin": "STORY_SLOT",
+          "sourceRef": "plot.exchangeTerms"
+        },
+        "afterOwner": {
+          "value": "沈岚 独占",
+          "kind": "RELATIONSHIP_STATE",
+          "origin": "STORY_SLOT",
+          "sourceRef": "plot.afterOwner"
+        },
+        "aftermathChoice": {
+          "value": "是否公开交换事实",
+          "kind": "CONDITION",
+          "origin": "STORY_SLOT",
+          "sourceRef": "plot.aftermathChoice"
+        }
+      },
+      "actions": [
+        {
+          "kind": "NEGOTIATE",
+          "actor": {
+            "characterId": "P1",
+            "displayName": "沈岚"
+          },
+          "counterpart": {
+            "characterId": "P2",
+            "displayName": "梁赫"
+          },
+          "wants": "未公开的预展目录册",
+          "controls": "未公开的预展目录册",
+          "openingOffer": "公开一个秘密",
+          "hiddenConstraint": "需求方动机：保护自己或盟友",
+          "acceptableTerms": [
+            "信息换物件"
+          ],
+          "counterOptions": [
+            "接受：公开一个秘密",
+            "改写条件：围绕「信息换物件」提出替代方案"
+          ],
+          "onAgreement": "沈岚 独占",
+          "onRefusal": "掌握方继续独占；需求方失去该项信息/权限优势"
+        },
+        {
+          "kind": "EXCHANGE",
+          "beforeOwner": "梁赫",
+          "action": "完成换手并交付凭证",
+          "afterOwner": "沈岚 独占",
+          "stake": "未公开的预展目录册",
+          "proof": "私人预展邀请腕带"
+        }
+      ],
+      "aftermath": [
+        {
+          "choiceId": "PUBLICIZE",
+          "choice": "是否公开交换事实",
+          "delta": {
+            "ownershipChanges": [
+              "未公开的预展目录册 → 沈岚 独占"
+            ],
+            "accessChanges": [
+              "交付 私人预展邀请腕带"
+            ],
+            "knowledgeChanges": [
+              "相关在场者可获知交换曾发生"
+            ],
+            "relationshipChanges": [
+              "双方关系进入换手后重谈"
+            ],
+            "downstreamBeatEffects": []
+          }
+        },
+        {
+          "choiceId": "CONTINUE",
+          "choice": "继续合作",
+          "delta": {
+            "ownershipChanges": [],
+            "accessChanges": [],
+            "knowledgeChanges": [],
+            "relationshipChanges": [
+              "沈岚/梁赫保持合作"
+            ],
+            "downstreamBeatEffects": []
+          }
+        },
+        {
+          "choiceId": "BREAK",
+          "choice": "撕毁承诺",
+          "delta": {
+            "ownershipChanges": [],
+            "accessChanges": [],
+            "knowledgeChanges": [],
+            "relationshipChanges": [
+              "双方关系状态 = HOSTILE"
+            ],
+            "downstreamBeatEffects": []
+          }
+        }
+      ],
+      "audienceScopes": [
+        {
+          "visibility": "OWNER_ONLY",
+          "ownerCharacterIds": [
+            "P1",
+            "P2"
+          ],
+          "note": "议价动机与底线仅进入当事人角色本"
+        },
+        {
+          "visibility": "PARTICIPANTS",
+          "participantCharacterIds": [
+            "P1",
+            "P2",
+            "P3",
+            "P4"
+          ],
+          "note": "同场者可见公开换手事实，不继承 OWNER 目标"
+        }
+      ],
+      "provenance": {
+        "labelMap": {
+          "contestedStake": "未公开的预展目录册",
+          "bargainVenue": "城市美术馆夜间展厅",
+          "accessProof": "私人预展邀请腕带",
+          "initialOwner": "bargainB 独占",
+          "seekerNeed": "保护自己或盟友",
+          "holderPrice": "公开一个秘密",
+          "exchangeTerms": "信息换物件",
+          "afterOwner": "bargainA 独占",
+          "aftermathChoice": "是否公开交换事实"
+        },
+        "fieldProvenance": {
+          "contestedStake": {
+            "origin": "PROJECT_CONTEXT",
+            "sourceRef": "core_object"
+          },
+          "bargainVenue": {
+            "origin": "PROJECT_CONTEXT",
+            "sourceRef": "venue"
+          },
+          "accessProof": {
+            "origin": "PROJECT_CONTEXT",
+            "sourceRef": "credential"
+          },
+          "initialOwner": {
+            "origin": "STORY_SLOT",
+            "sourceRef": "plot.initialOwner"
+          },
+          "seekerNeed": {
+            "origin": "STORY_SLOT",
+            "sourceRef": "plot.seekerNeed"
+          },
+          "holderPrice": {
+            "origin": "STORY_SLOT",
+            "sourceRef": "plot.holderPrice"
+          },
+          "exchangeTerms": {
+            "origin": "STORY_SLOT",
+            "sourceRef": "plot.exchangeTerms"
+          },
+          "afterOwner": {
+            "origin": "STORY_SLOT",
+            "sourceRef": "plot.afterOwner"
+          },
+          "aftermathChoice": {
+            "origin": "STORY_SLOT",
+            "sourceRef": "plot.aftermathChoice"
+          }
+        }
+      },
+      "packetCapture": {
+        "templateId": "M12-1",
+        "roles": {
+          "seeker": "沈岚",
+          "holder": "梁赫"
+        },
+        "stake": "未公开的预展目录册",
+        "seekerNeed": "保护自己或盟友",
+        "holderPrice": "公开一个秘密",
+        "openingOffer": "公开一个秘密",
+        "counterOptions": [
+          "接受：公开一个秘密",
+          "改写条件：围绕「信息换物件」提出替代方案"
+        ],
+        "exchange": {
+          "beforeOwner": "梁赫",
+          "afterOwner": "沈岚 独占"
+        },
+        "aftermath": [
+          {
+            "choice": "是否公开交换事实",
+            "delta": "知情扩散 / 关系重谈"
+          },
+          {
+            "choice": "继续合作",
+            "delta": "合作关系维持"
+          },
+          {
+            "choice": "撕毁承诺",
+            "delta": "关系 = HOSTILE"
+          }
+        ]
+      }
+    }
+  ],
+  "packetCaptures": [
+    {
+      "templateId": "M12-1",
+      "roles": {
+        "seeker": "沈岚",
+        "holder": "梁赫"
+      },
+      "stake": "未公开的预展目录册",
+      "seekerNeed": "保护自己或盟友",
+      "holderPrice": "公开一个秘密",
+      "openingOffer": "公开一个秘密",
+      "counterOptions": [
+        "接受：公开一个秘密",
+        "改写条件：围绕「信息换物件」提出替代方案"
+      ],
+      "exchange": {
+        "beforeOwner": "梁赫",
+        "afterOwner": "沈岚 独占"
+      },
+      "aftermath": [
+        {
+          "choice": "是否公开交换事实",
+          "delta": "知情扩散 / 关系重谈"
+        },
+        {
+          "choice": "继续合作",
+          "delta": "合作关系维持"
+        },
+        {
+          "choice": "撕毁承诺",
+          "delta": "关系 = HOSTILE"
+        }
+      ]
+    }
+  ]
+}

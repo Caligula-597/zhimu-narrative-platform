@@ -415,6 +415,8 @@ if (files.some((f) =>
   || f === "scripts/real-production-trial-1.mjs"
   || f === "scripts/p10-4-production-projection.test.mjs"
   || f === "scripts/p10-4-rpt1b-packet-probe.mjs"
+  || f === "shared/rpt1c-p104-survival-probe.js"
+  || f === "shared/rpt1b-m12-survival-probe.js"
   || /^trials\/rpt-1-/.test(f)
 )) {
   run(

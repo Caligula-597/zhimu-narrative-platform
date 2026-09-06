@@ -1,0 +1,200 @@
+{
+  "version": 1,
+  "status": "REVIEW_REQUIRED",
+  "readOnly": true,
+  "templateIds": [
+    "M12-1",
+    "M07-1"
+  ],
+  "primaryIntentCoverage": {
+    "desired": [
+      "ROLEPLAY",
+      "DEDUCTION",
+      "EMOTIONAL"
+    ],
+    "coveredPrimary": [
+      "ROLEPLAY"
+    ],
+    "coveredSecondaryOnly": [
+      "DEDUCTION",
+      "EMOTIONAL"
+    ],
+    "missing": []
+  },
+  "interactionCoverage": {
+    "desired": [
+      "NEGOTIATE"
+    ],
+    "covered": [
+      "NEGOTIATE"
+    ],
+    "missing": []
+  },
+  "anchorCoverage": [
+    {
+      "anchor": "EARLY_AGENCY",
+      "status": "FAIL",
+      "detail": {
+        "totalPlayerRoles": 6,
+        "strongAgencyRoles": 0,
+        "ratio": 0,
+        "meetsRpt1Bar": false,
+        "byRole": {
+          "P1": {
+            "strong": false,
+            "weak": false,
+            "actions": []
+          },
+          "P2": {
+            "strong": false,
+            "weak": false,
+            "actions": []
+          },
+          "P3": {
+            "strong": false,
+            "weak": false,
+            "actions": []
+          },
+          "P4": {
+            "strong": false,
+            "weak": false,
+            "actions": []
+          },
+          "P5": {
+            "strong": false,
+            "weak": false,
+            "actions": []
+          },
+          "P6": {
+            "strong": false,
+            "weak": false,
+            "actions": []
+          }
+        }
+      }
+    },
+    {
+      "anchor": "OWNERSHIP_SHIFT",
+      "status": "PASS",
+      "detail": {
+        "declared": true,
+        "playerCaused": true,
+        "narratedOnly": false,
+        "moments": [
+          {
+            "kind": "OWNERSHIP_SHIFT",
+            "strength": "STRONG",
+            "playerCaused": true,
+            "note": "EXCHANGE phase: before owner → player action → after owner"
+          }
+        ],
+        "status": "PLAYER_CAUSED"
+      }
+    },
+    {
+      "anchor": "LATE_REINTERPRETATION",
+      "status": "PASS",
+      "detail": {
+        "declared": true,
+        "status": "REFRAMES_PRIOR",
+        "moments": [
+          {
+            "kind": "LATE_REINTERPRETATION",
+            "strength": "PARTIAL",
+            "note": "identity confirm reframes prior acts"
+          }
+        ]
+      }
+    },
+    {
+      "anchor": "FLEXIBLE_RESOLUTION",
+      "status": "REVIEW",
+      "code": null,
+      "detail": {
+        "commitments": [
+          "RELATIONSHIP_BARGAIN",
+          "HIDDEN_IDENTITY"
+        ],
+        "pressures": [
+          "OPEN",
+          "IDENTITY_REVEAL"
+        ]
+      }
+    }
+  ],
+  "structuralCommitments": [
+    "RELATIONSHIP_BARGAIN",
+    "HIDDEN_IDENTITY"
+  ],
+  "unwantedCommitments": [],
+  "missingIntents": [],
+  "earlyAgency": {
+    "totalPlayerRoles": 6,
+    "strongAgencyRoles": 0,
+    "ratio": 0,
+    "meetsRpt1Bar": false,
+    "byRole": {
+      "P1": {
+        "strong": false,
+        "weak": false,
+        "actions": []
+      },
+      "P2": {
+        "strong": false,
+        "weak": false,
+        "actions": []
+      },
+      "P3": {
+        "strong": false,
+        "weak": false,
+        "actions": []
+      },
+      "P4": {
+        "strong": false,
+        "weak": false,
+        "actions": []
+      },
+      "P5": {
+        "strong": false,
+        "weak": false,
+        "actions": []
+      },
+      "P6": {
+        "strong": false,
+        "weak": false,
+        "actions": []
+      }
+    }
+  },
+  "ownershipShift": {
+    "declared": true,
+    "playerCaused": true,
+    "narratedOnly": false,
+    "moments": [
+      {
+        "kind": "OWNERSHIP_SHIFT",
+        "strength": "STRONG",
+        "playerCaused": true,
+        "note": "EXCHANGE phase: before owner → player action → after owner"
+      }
+    ],
+    "status": "PLAYER_CAUSED"
+  },
+  "lateReinterpretation": {
+    "declared": true,
+    "status": "REFRAMES_PRIOR",
+    "moments": [
+      {
+        "kind": "LATE_REINTERPRETATION",
+        "strength": "PARTIAL",
+        "note": "identity confirm reframes prior acts"
+      }
+    ]
+  },
+  "unresolvedExplicitIntents": [],
+  "notes": [
+    "audit 只读：不改 block / variant / Writer",
+    "OWNERSHIP_SHIFT 旁白不算；须 playerCaused",
+    "LATE_REINTERPRETATION 须 reframes prior，而非仅后知"
+  ]
+}

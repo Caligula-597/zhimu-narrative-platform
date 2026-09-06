@@ -11,12 +11,12 @@ P10.2 Creation Intent Fidelity       ✅ FROZEN
 P10.3 STORY Experience Coverage      ✅ FROZEN
 RPT #1B                              ✅ CLOSED · PARTIAL_PASS
 
-★ P10.4 Production Projection Fidelity ← Packet Probe PASS（离线）
+★ P10.4 Production Projection Fidelity ← Packet Probe PASS @ e469598
+★ RPT #1C Post-P10.4 Projection Rerun ← RAN · 机器草案 PARTIAL_PASS（待人工）
 
-Writer V2                            🚫
+Writer V2 / Rendering Specificity   ⏸ 等 #1C 人工结案后决定
 Context Domain Coherence             ⏸
 Host Rendering                       ⏸
-Full Real-Model Rerun (#1C)          ⏸ Packet Gate 后
 ```
 
 ## 一句话

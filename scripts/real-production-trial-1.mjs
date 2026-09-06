@@ -52,7 +52,12 @@ async function main() {
     path.join(root, "trials/rpt-1-closed-after-hours/runs", new Date().toISOString().replace(/[:.]/g, "-"));
 
   const trialInput = JSON.parse(fs.readFileSync(inputPath, "utf8"));
-  const label = trialInput.trialId === "RPT-1B" ? "RPT #1B Post-P10.3 Real Rerun" : "Real Production Trial #1";
+  const label =
+    trialInput.trialId === "RPT-1C"
+      ? "RPT #1C Post-P10.4 Projection Rerun"
+      : trialInput.trialId === "RPT-1B"
+        ? "RPT #1B Post-P10.3 Real Rerun"
+        : "Real Production Trial #1";
   console.log(label);
   console.log(`  mode=${mode}`);
   console.log(`  input=${inputPath}`);
@@ -64,14 +69,19 @@ async function main() {
     writerMode: mode,
   });
 
-  if (trialInput.trialId === "RPT-1B") {
-    const { writeM12SurvivalPacket } = await import("../shared/rpt1b-m12-survival-probe.js");
-    const probe = writeM12SurvivalPacket(outDir, {
-      package: JSON.parse(fs.readFileSync(path.join(outDir, "complete-script-package.json"), "utf8")),
-      storyState: JSON.parse(fs.readFileSync(path.join(outDir, "story-state.json"), "utf8")),
-      candidatePlan: JSON.parse(fs.readFileSync(path.join(outDir, "story-candidate-plan.json"), "utf8")),
-    });
-    const packet = `# RPT #1B — 人工审看包
+  if (trialInput.trialId === "RPT-1B" || trialInput.trialId === "RPT-1C") {
+    const pkg = JSON.parse(fs.readFileSync(path.join(outDir, "complete-script-package.json"), "utf8"));
+    const storyState = JSON.parse(fs.readFileSync(path.join(outDir, "story-state.json"), "utf8"));
+    const candidatePlan = JSON.parse(fs.readFileSync(path.join(outDir, "story-candidate-plan.json"), "utf8"));
+    const projectionAuditPath = path.join(outDir, "projection-audit.json");
+    const projectionAudit = fs.existsSync(projectionAuditPath)
+      ? JSON.parse(fs.readFileSync(projectionAuditPath, "utf8"))
+      : null;
+
+    if (trialInput.trialId === "RPT-1B") {
+      const { writeM12SurvivalPacket } = await import("../shared/rpt1b-m12-survival-probe.js");
+      const probe = writeM12SurvivalPacket(outDir, { package: pkg, storyState, candidatePlan });
+      const packet = `# RPT #1B — 人工审看包
 
 > 对照 #1A：\`trials/rpt-1-closed-after-hours/runs/2026-09-06T04-19-32-742Z/\`
 > 协议：\`docs/RPT1B_POST_P10_3_REAL_RERUN_ZH.md\`
@@ -115,8 +125,82 @@ ${probe.survivalChecklistForHuman.map((q) => `- [ ] ${q}`).join("\n")}
 | 终局兑现 | 2/5 | |
 | M12 Survival | — | |
 `;
-    fs.writeFileSync(path.join(outDir, "HUMAN_REVIEW_PACKET.md"), packet, "utf8");
-    console.log(`  m12Survival hasM12=${probe.hasM12} crimeSmell=${probe.heuristics.crimeCaptureSmell}`);
+      fs.writeFileSync(path.join(outDir, "HUMAN_REVIEW_PACKET.md"), packet, "utf8");
+      console.log(`  m12Survival hasM12=${probe.hasM12} crimeSmell=${probe.heuristics.crimeCaptureSmell}`);
+    } else {
+      const { writeP104SurvivalPacket } = await import("../shared/rpt1c-p104-survival-probe.js");
+      const { writeM12SurvivalPacket } = await import("../shared/rpt1b-m12-survival-probe.js");
+      writeM12SurvivalPacket(outDir, { package: pkg, storyState, candidatePlan });
+      const probe = writeP104SurvivalPacket(outDir, {
+        package: pkg,
+        storyState,
+        candidatePlan,
+        projectionAudit,
+      });
+      const six = probe.sixChecks;
+      const packet = `# RPT #1C — 人工审看包
+
+> 对照 #1B：\`trials/rpt-1-closed-after-hours/runs/2026-09-06T08-03-37-863Z/\`
+> 协议：\`docs/RPT1C_POST_P10_4_PROJECTION_RERUN_ZH.md\`
+> P10.4 Packet Gate：\`e469598\`
+
+## 机器 SYSTEM 摘要
+
+| 项 | 值 |
+|---|---|
+| trialVerdict | ${result.trialVerdict} |
+| Quality | ${result.quality?.status} · ${result.quality?.totalScore} |
+| Hard blockers | ${result.quality?.hardBlockers ?? "?"} |
+| 作者确认 / 救火 | ${result.humanIntervention?.authorConfirmations} / ${result.humanIntervention?.developerFirefighting} |
+| Projection audit | ${probe.preWriter.projectionAuditStatus ?? "n/a"} |
+| 推荐 bundle | ${(probe.preWriter.recommendedBundle || []).join(" + ")} |
+| 接受 blocks | ${probe.acceptedBlocks.join(" + ")} |
+
+## 机器六项启发式（非正式裁决）
+
+| 检查 | heuristicPass |
+|---|---|
+| Slot | ${six.slotSurvival.heuristicPass} (leaks=${six.slotSurvival.leakCount}) |
+| Stake | ${six.stakeSurvival.heuristicPass} |
+| Motivation | ${six.motivationSurvival.heuristicPass} |
+| Terms | ${six.termsSurvival.heuristicPass} (templateSmell=${six.termsSurvival.stillTemplateSmell}) |
+| Exchange | ${six.exchangeSurvival.heuristicPass} (narrationSmell=${six.exchangeSurvival.narrationSmell}) |
+| Aftermath | ${six.aftermathSurvival.heuristicPass} |
+| Role scope 方序 | ${probe.roleScope.heuristicPass} (fangXuOwnerHits=${probe.roleScope.fangXuOwnerArcHits}) |
+
+## 请先读
+
+1. [\`readable-scripts.md\`](./readable-scripts.md)
+2. [\`complete-script-package.json\`](./complete-script-package.json)
+3. [\`p10-4-projection-survival-probe.json\`](./p10-4-projection-survival-probe.json)
+4. [\`projection-audit.json\`](./projection-audit.json)（若有）
+
+## 双 verdict（留给你填）
+
+| Verdict | 裁决 |
+|---|---|
+| SYSTEM_VERDICT | |
+| P10_4_CHANGE_VERDICT | |
+
+## P10.4 Survival 清单
+
+${probe.survivalChecklistForHuman.map((q) => `- [ ] ${q}`).join("\n")}
+
+## 透镜（记录，非主判据）
+
+| 项 | #1A | #1B | #1C |
+|---|---:|---:|---|
+| 前20分钟欲望 | 2 | 2.5 | |
+| 幕间换挡 | 2 | 3 | |
+| 六人声音 | 1 | 1 | |
+| GAME | N/A | N/A | |
+| 终局兑现 | 2 | 2.5 | |
+`;
+      fs.writeFileSync(path.join(outDir, "HUMAN_REVIEW_PACKET.md"), packet, "utf8");
+      console.log(
+        `  p104Survival slots=${six.slotSurvival.leakCount} stake=${six.stakeSurvival.heuristicPass} fangXuOwner=${probe.roleScope.fangXuOwnerArcHits}`,
+      );
+    }
   }
   console.log(`  verdict=${result.trialVerdict}`);
   console.log(`  quality=${result.quality?.status} score=${result.quality?.totalScore}`);

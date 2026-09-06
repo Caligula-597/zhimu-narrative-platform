@@ -1,0 +1,142 @@
+{
+  "trialId": "RPT-1C",
+  "title": "闭馆之后",
+  "version": 1,
+  "createdFor": "RPT #1C — Post-P10.4 Projection Rerun (A/B vs RPT #1B)",
+  "baseline": {
+    "rpt1aRun": "trials/rpt-1-closed-after-hours/runs/2026-09-06T04-19-32-742Z",
+    "rpt1bRun": "trials/rpt-1-closed-after-hours/runs/2026-09-06T08-03-37-863Z",
+    "p104Commit": "e469598",
+    "p103Commit": "2b6c761",
+    "p102Commit": "db0b390",
+    "packetProbe": "captures/p10-4-rpt1b-packet-probe.json",
+    "isolation": [
+      "same CreationSpec as #1B",
+      "same DeepSeek model (deepseek-v4-flash)",
+      "same Writer / Context / Host / P9.4",
+      "same M12-1 + M07-1 intent path",
+      "sole variable: Grounded Projection before Writer"
+    ]
+  },
+  "rules": {
+    "forbidDeveloperFirefighting": true,
+    "allowAuthorConfirmationsOnly": true,
+    "noGenFixture": true,
+    "noQinglouClone": true,
+    "noWriterV2": true,
+    "noContextFix": true,
+    "noHostFix": true
+  },
+  "creationSpec": {
+    "playerCount": 6,
+    "roleConfiguration": {
+      "genderPolicy": "FIXED_COUNTS",
+      "fixedCounts": {
+        "male": 3,
+        "female": 3
+      }
+    },
+    "setting": {
+      "era": "CONTEMPORARY"
+    },
+    "genreTags": [
+      "关系博弈",
+      "推理",
+      "美术馆",
+      "当代"
+    ],
+    "durationMinutes": 210,
+    "stagePreference": {
+      "mode": "AUTO"
+    },
+    "experience": {
+      "deduction": 0.65,
+      "roleplay": 0.75,
+      "faction": 0.35,
+      "mechanism": 0.25,
+      "emotional": 0.55
+    },
+    "gameplayPreferences": {
+      "preferred": [
+        "NEGOTIATION"
+      ],
+      "avoid": []
+    },
+    "premise": {
+      "shortIdea": "城市美术馆闭馆后的私人预展夜：关系博弈 + 推理；不要求传统唯一凶手。",
+      "mustKeep": [
+        "前20分钟玩家就有事情想做",
+        "中途至少一次资源或信息所有权变化",
+        "后半段需要重新理解前面发生过的一件事"
+      ],
+      "avoid": [
+        "照抄青楼流程",
+        "为塞机制而塞 GAME",
+        "必须唯一凶手"
+      ]
+    }
+  },
+  "authorConfirmedExperienceAnchors": [
+    {
+      "sourceText": "前20分钟玩家就有事情想做",
+      "anchor": "EARLY_AGENCY"
+    },
+    {
+      "sourceText": "中途至少一次资源或信息所有权变化",
+      "anchor": "OWNERSHIP_SHIFT"
+    },
+    {
+      "sourceText": "后半段需要重新理解前面发生过的一件事",
+      "anchor": "LATE_REINTERPRETATION"
+    },
+    {
+      "sourceText": "不要求传统唯一凶手",
+      "anchor": "FLEXIBLE_RESOLUTION"
+    }
+  ],
+  "authorPolicy": {
+    "acceptRecommendedBundle": true,
+    "intentionalOverlapFromSecondBlock": true,
+    "acceptIntentionalOverlapConflicts": true,
+    "acceptGameplayPlacementIfPreferred": true,
+    "characterNameSet": "CONTEMPORARY_GALLERY",
+    "explicitContextBindings": {
+      "venue": {
+        "kind": "LOCATION",
+        "label": "城市美术馆夜间展厅"
+      },
+      "core_object": {
+        "kind": "OBJECT",
+        "label": "未公开的预展目录册"
+      },
+      "access_record": {
+        "kind": "RECORD",
+        "label": "闭馆门禁与库房授权日志"
+      },
+      "credential": {
+        "kind": "CREDENTIAL",
+        "label": "私人预展邀请腕带"
+      }
+    }
+  },
+  "judgment": {
+    "SYSTEM_VERDICT": "原 P9.4 / Trial three-tier (PASS_CANDIDATE / PARTIAL / FAIL)",
+    "P10_4_CHANGE_VERDICT": "P10.4 projection survival into Final Text (see HUMAN_REVIEW_PACKET)",
+    "P10_4_CHANGE_PASS": [
+      "0 symbolic slot leak in final prose (bargainA/bargainB/...)",
+      "stake 全程具体（争的是哪一个具体东西）",
+      "seeker/holder 明确（沈岚 / 梁赫）",
+      "need/price 有剧情内具体含义（不单停留在模板词）",
+      "negotiation 有真实可回应条件",
+      "exchange 不再只是完成换手摘要",
+      "aftermath 至少有一个具体后果",
+      "M07 OWNER 不再完整复制给方序"
+    ],
+    "notRequired": [
+      "Context 干净",
+      "Host 可跑",
+      "六人声音优秀",
+      "P9.4 ≥80"
+    ]
+  }
+}

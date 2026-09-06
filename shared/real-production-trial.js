@@ -440,6 +440,11 @@ export async function runRealProductionTrial(opts) {
     writeJson(path.join(outDir, "projection-audit.json"), production.projectionAudit);
   }
   if (production.validation?.code === "PROJECTION_GROUNDING_BLOCKED") {
+    writeJson(path.join(outDir, "complete-script-package.json"), production.package);
+    writeJson(path.join(outDir, "writer-section-states.json"), production.sectionStates || []);
+    if (production.packetSet) {
+      writeJson(path.join(outDir, "packet-set.json"), production.packetSet);
+    }
     const summary = {
       trialVerdict: "TRIAL_FAIL",
       reason: "projection_grounding_blocked",

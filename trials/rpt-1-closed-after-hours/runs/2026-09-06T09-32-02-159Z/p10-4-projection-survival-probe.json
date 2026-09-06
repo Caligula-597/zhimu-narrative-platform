@@ -1,0 +1,72 @@
+{
+  "version": 1,
+  "trialId": "RPT-1C",
+  "readOnly": true,
+  "note": "启发式探针，非正式 P10_4_CHANGE_VERDICT；人工须完成六项 Survival",
+  "preWriter": {
+    "recommendationStatus": "OK",
+    "recommendedBundle": [
+      "M12-1",
+      "M07-1"
+    ],
+    "projectionAuditStatus": "PASS",
+    "projectionAuditOk": true
+  },
+  "acceptedBlocks": [
+    "M12-1",
+    "M07-1"
+  ],
+  "hasM12": true,
+  "sixChecks": {
+    "slotSurvival": {
+      "leakCount": 0,
+      "samples": [],
+      "heuristicPass": true
+    },
+    "stakeSurvival": {
+      "concreteStakeLexicon": true,
+      "heuristicPass": true
+    },
+    "motivationSurvival": {
+      "lexicon": true,
+      "heuristicPass": true,
+      "note": "机器只查动机词面；剧情内具体化须人工（库房/承认昨晚等）"
+    },
+    "termsSurvival": {
+      "lexicon": true,
+      "stillTemplateSmell": true,
+      "heuristicPass": true,
+      "note": "区分模板摘要 vs 美术馆实例化须人工"
+    },
+    "exchangeSurvival": {
+      "playerAgencyLexicon": true,
+      "narrationSmell": true,
+      "heuristicPass": true
+    },
+    "aftermathSurvival": {
+      "lexicon": true,
+      "heuristicPass": true
+    }
+  },
+  "roleScope": {
+    "guQingOwnerArcHits": 1,
+    "fangXuOwnerArcHits": 1,
+    "fangXuLikelyInheritedOwnerArc": false,
+    "heuristicPass": true,
+    "note": "方序若仍出现完整隐藏→等待→核对→公开链，视为 ROLE_SCOPE 未穿到正文"
+  },
+  "survivalChecklistForHuman": [
+    "1. Slot survival：正文 0 个 bargainA/bargainB/…",
+    "2. Stake survival：核心谈判始终知道争的是哪一个具体东西",
+    "3. Motivation survival：沈岚为何要、梁赫为何不愿给，玩家读得出来（是否实例化到本馆）",
+    "4. Terms survival：具体开价 + 可接受/反提（非「提出交换条件」）",
+    "5. Exchange survival：玩家真能响应，非旁白宣布成交",
+    "6. Aftermath survival：不同选择至少改变一个关系/信息/权限状态",
+    "7. Role scope：方序不再复制顾清完整 M07 OWNER 线"
+  ],
+  "changeVerdictSlots": {
+    "SYSTEM_VERDICT": null,
+    "P10_4_CHANGE_VERDICT": null,
+    "P10_4_CHANGE_PASS": null
+  }
+}
