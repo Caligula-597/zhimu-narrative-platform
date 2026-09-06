@@ -299,12 +299,17 @@ function buildWarnings(outline, stages, state) {
   for (const c of outline.conflictReport || []) {
     if (c.decision) continue;
     let severity = c.severity || "warn";
-    let type = c.type === "ROLE_OVERLOAD" ? "ROLE_OVERLOAD" : "UNRESOLVED_CONFLICT";
+    let type = "UNRESOLVED_CONFLICT";
     if (c.type === "ROLE_OVERLOAD") {
+      type = "ROLE_OVERLOAD";
       const loadMatch = String(c.summary || "").match(/负载\s*(\d+(?:\.\d+)?)/);
       const load = loadMatch ? Number(loadMatch[1]) : Number(c.score) || 3;
       // load 3 → INFO；4–5 → WARN；≥6 → HIGH
       severity = load >= 6 ? "high" : load >= 4 ? "warn" : "info";
+    } else if (c.type === "INTENTIONAL_OVERLAP_CANDIDATE") {
+      // P10.1: strong-weave candidate is author choice, not production blocker.
+      type = "INTENTIONAL_OVERLAP_CANDIDATE";
+      severity = "info";
     }
     warnings.push({
       id: stableId("warn", "conflict", c.id || c.type),

@@ -440,3 +440,22 @@ export const COMPLETE_BEAT_SEMANTICS = Object.freeze({
 export function semanticsBridgeForTemplate(templateId) {
   return COMPLETE_BEAT_SEMANTICS[String(templateId)] || null;
 }
+
+/**
+ * P10.1 — slots that Complete Beat Semantics declare as primaryRole (OWNER).
+ * These must be bound before production; preferred-only omission causes OWNER_UNRESOLVED.
+ */
+export function listPrimaryOwnerSlots(templateId) {
+  const bridge = semanticsBridgeForTemplate(templateId);
+  const phases = bridge?.phases;
+  if (!phases || typeof phases !== "object") return [];
+  const out = [];
+  const seen = new Set();
+  for (const phase of Object.values(phases)) {
+    const role = String(phase?.primaryRole || "").trim();
+    if (!role || seen.has(role)) continue;
+    seen.add(role);
+    out.push(role);
+  }
+  return out;
+}

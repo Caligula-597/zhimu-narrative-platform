@@ -137,22 +137,118 @@
         "M07"
       ],
       "contextPresetId": "ANCIENT_COURT",
-      "productionGateStatus": "BLOCKED",
-      "productionBlocked": true,
-      "productionBlockers": [
-        {
-          "type": "OWNER_UNRESOLVED",
-          "message": "「defector为了在暴露风险下改归属或保住秘密，在关键选择点背叛、退出或清洗异己（目标：归属状态）」需要主导角色，但当前没有明确角色绑定；未推断 OWNER。"
-        },
-        {
-          "type": "OWNER_UNRESOLVED",
-          "message": "「defector为了在暴露风险下改归属或保住秘密，在关键选择点背叛、退出或清洗异己（目标：归属状态）」需要主导角色，但当前没有明确角色绑定；未推断 OWNER。"
-        }
-      ],
-      "packageStatus": "BLOCKED",
+      "productionGateStatus": "READY_WITH_WARNINGS",
+      "productionBlocked": false,
+      "productionBlockers": [],
+      "packageStatus": "READY_FOR_REVIEW",
       "writerAdapterId": "RealScriptWriter/literary-mock-v1",
-      "quality": null,
-      "notes": "Production Gate BLOCKED — 未进入 Real Writer 成品质量评分（诚实记录，不绕过 OWNER/结构阻断）。"
+      "quality": {
+        "status": "QUALITY_REVIEW_REQUIRED",
+        "totalScore": 66,
+        "hardBlockers": [],
+        "dimensions": [
+          {
+            "id": "A_CHARACTER_AGENCY",
+            "label": "人物成立与玩家能动性",
+            "score": 4,
+            "weightedScore": 16,
+            "weaknesses": [
+              "人物声音区分不足"
+            ]
+          },
+          {
+            "id": "B_INFORMATION_FAIRNESS",
+            "label": "信息设计、线索与公平推理",
+            "score": 4,
+            "weightedScore": 16,
+            "weaknesses": []
+          },
+          {
+            "id": "C_STAGE_PROGRESSION",
+            "label": "剧情推进与幕间节奏",
+            "score": 4,
+            "weightedScore": 12,
+            "weaknesses": []
+          },
+          {
+            "id": "D_GAME_NARRATIVE_FUSION",
+            "label": "GAME 与剧情融合",
+            "score": 3.5,
+            "weightedScore": 7,
+            "weaknesses": []
+          },
+          {
+            "id": "E_AESTHETIC_VOICE",
+            "label": "文本审美、人物声音与世界质感",
+            "score": 1,
+            "weightedScore": 3,
+            "weaknesses": [
+              "ABSTRACT_STAKES: 抽象 stake 词密度过高",
+              "SAME_VOICE: 多角色句式/措辞高度雷同"
+            ]
+          },
+          {
+            "id": "F_ENDING_PAYOFF",
+            "label": "终局兑现与主题收束",
+            "score": 2.5,
+            "weightedScore": 5,
+            "weaknesses": []
+          },
+          {
+            "id": "G_HOST_RUNNABILITY",
+            "label": "主持可运行性与成品效率",
+            "score": 3.5,
+            "weightedScore": 7,
+            "weaknesses": []
+          }
+        ],
+        "aiPatterns": [
+          {
+            "type": "ABSTRACT_STAKES",
+            "count": 6
+          },
+          {
+            "type": "SAME_VOICE",
+            "count": 1
+          }
+        ],
+        "topProblems": [
+          "文本审美、人物声音与世界质感: ABSTRACT_STAKES: 抽象 stake 词密度过高",
+          "AI_PATTERN ABSTRACT_STAKES",
+          "AI_PATTERN SAME_VOICE"
+        ],
+        "revisionPriorities": [
+          {
+            "priority": 1,
+            "summary": "ABSTRACT_STAKES: 抽象 stake 词密度过高",
+            "impacts": [
+              "文本审美、人物声音与世界质感"
+            ],
+            "target": {
+              "sectionId": "host_act1",
+              "stageId": "act1"
+            }
+          },
+          {
+            "priority": 2,
+            "summary": "终局兑现与主题收束 需上修至合格以上",
+            "impacts": [
+              "终局兑现与主题收束"
+            ],
+            "target": {
+              "sectionId": "ending_final"
+            }
+          },
+          {
+            "priority": 3,
+            "summary": "GAME 与剧情融合 需上修至合格以上",
+            "impacts": [
+              "GAME 与剧情融合"
+            ],
+            "target": {}
+          }
+        ]
+      }
     },
     {
       "caseId": "GEN-03",
@@ -287,18 +383,118 @@
         "M07"
       ],
       "contextPresetId": "CAMPUS_REALISTIC",
-      "productionGateStatus": "BLOCKED",
-      "productionBlocked": true,
-      "productionBlockers": [
-        {
-          "type": "OWNER_UNRESOLVED",
-          "message": "「defector为了在暴露风险下改归属或保住秘密，在关键选择点背叛、退出或清洗异己（目标：归属状态）」需要主导角色，但当前没有明确角色绑定；未推断 OWNER。"
-        }
-      ],
-      "packageStatus": "BLOCKED",
+      "productionGateStatus": "READY_WITH_WARNINGS",
+      "productionBlocked": false,
+      "productionBlockers": [],
+      "packageStatus": "READY_FOR_REVIEW",
       "writerAdapterId": "RealScriptWriter/literary-mock-v1",
-      "quality": null,
-      "notes": "Production Gate BLOCKED — 未进入 Real Writer 成品质量评分（诚实记录，不绕过 OWNER/结构阻断）。"
+      "quality": {
+        "status": "QUALITY_REVIEW_REQUIRED",
+        "totalScore": 66,
+        "hardBlockers": [],
+        "dimensions": [
+          {
+            "id": "A_CHARACTER_AGENCY",
+            "label": "人物成立与玩家能动性",
+            "score": 4,
+            "weightedScore": 16,
+            "weaknesses": [
+              "人物声音区分不足"
+            ]
+          },
+          {
+            "id": "B_INFORMATION_FAIRNESS",
+            "label": "信息设计、线索与公平推理",
+            "score": 4,
+            "weightedScore": 16,
+            "weaknesses": []
+          },
+          {
+            "id": "C_STAGE_PROGRESSION",
+            "label": "剧情推进与幕间节奏",
+            "score": 4,
+            "weightedScore": 12,
+            "weaknesses": []
+          },
+          {
+            "id": "D_GAME_NARRATIVE_FUSION",
+            "label": "GAME 与剧情融合",
+            "score": 3.5,
+            "weightedScore": 7,
+            "weaknesses": []
+          },
+          {
+            "id": "E_AESTHETIC_VOICE",
+            "label": "文本审美、人物声音与世界质感",
+            "score": 1,
+            "weightedScore": 3,
+            "weaknesses": [
+              "ABSTRACT_STAKES: 抽象 stake 词密度过高",
+              "SAME_VOICE: 多角色句式/措辞高度雷同"
+            ]
+          },
+          {
+            "id": "F_ENDING_PAYOFF",
+            "label": "终局兑现与主题收束",
+            "score": 2.5,
+            "weightedScore": 5,
+            "weaknesses": []
+          },
+          {
+            "id": "G_HOST_RUNNABILITY",
+            "label": "主持可运行性与成品效率",
+            "score": 3.5,
+            "weightedScore": 7,
+            "weaknesses": []
+          }
+        ],
+        "aiPatterns": [
+          {
+            "type": "ABSTRACT_STAKES",
+            "count": 6
+          },
+          {
+            "type": "SAME_VOICE",
+            "count": 1
+          }
+        ],
+        "topProblems": [
+          "文本审美、人物声音与世界质感: ABSTRACT_STAKES: 抽象 stake 词密度过高",
+          "AI_PATTERN ABSTRACT_STAKES",
+          "AI_PATTERN SAME_VOICE"
+        ],
+        "revisionPriorities": [
+          {
+            "priority": 1,
+            "summary": "ABSTRACT_STAKES: 抽象 stake 词密度过高",
+            "impacts": [
+              "文本审美、人物声音与世界质感"
+            ],
+            "target": {
+              "sectionId": "host_act1",
+              "stageId": "act1"
+            }
+          },
+          {
+            "priority": 2,
+            "summary": "终局兑现与主题收束 需上修至合格以上",
+            "impacts": [
+              "终局兑现与主题收束"
+            ],
+            "target": {
+              "sectionId": "ending_final"
+            }
+          },
+          {
+            "priority": 3,
+            "summary": "GAME 与剧情融合 需上修至合格以上",
+            "impacts": [
+              "GAME 与剧情融合"
+            ],
+            "target": {}
+          }
+        ]
+      }
     },
     {
       "caseId": "GEN-05",
@@ -310,18 +506,120 @@
         "M07"
       ],
       "contextPresetId": "CONTEMPORARY_URBAN",
-      "productionGateStatus": "BLOCKED",
-      "productionBlocked": true,
-      "productionBlockers": [
-        {
-          "type": "OWNER_UNRESOLVED",
-          "message": "「defector为了在暴露风险下改归属或保住秘密，在关键选择点背叛、退出或清洗异己（目标：归属状态）」需要主导角色，但当前没有明确角色绑定；未推断 OWNER。"
-        }
-      ],
-      "packageStatus": "BLOCKED",
+      "productionGateStatus": "READY_WITH_WARNINGS",
+      "productionBlocked": false,
+      "productionBlockers": [],
+      "packageStatus": "READY_FOR_REVIEW",
       "writerAdapterId": "RealScriptWriter/literary-mock-v1",
-      "quality": null,
-      "notes": "Production Gate BLOCKED — 未进入 Real Writer 成品质量评分（诚实记录，不绕过 OWNER/结构阻断）。"
+      "quality": {
+        "status": "QUALITY_REVIEW_REQUIRED",
+        "totalScore": 69.5,
+        "hardBlockers": [],
+        "dimensions": [
+          {
+            "id": "A_CHARACTER_AGENCY",
+            "label": "人物成立与玩家能动性",
+            "score": 4,
+            "weightedScore": 16,
+            "weaknesses": [
+              "人物声音区分不足"
+            ]
+          },
+          {
+            "id": "B_INFORMATION_FAIRNESS",
+            "label": "信息设计、线索与公平推理",
+            "score": 4,
+            "weightedScore": 16,
+            "weaknesses": []
+          },
+          {
+            "id": "C_STAGE_PROGRESSION",
+            "label": "剧情推进与幕间节奏",
+            "score": 4,
+            "weightedScore": 12,
+            "weaknesses": []
+          },
+          {
+            "id": "D_GAME_NARRATIVE_FUSION",
+            "label": "GAME 与剧情融合",
+            "score": 4,
+            "weightedScore": 8,
+            "weaknesses": []
+          },
+          {
+            "id": "E_AESTHETIC_VOICE",
+            "label": "文本审美、人物声音与世界质感",
+            "score": 1.5,
+            "weightedScore": 4.5,
+            "weaknesses": [
+              "ABSTRACT_STAKES: 抽象 stake 词密度过高",
+              "SAME_VOICE: 多角色句式/措辞高度雷同"
+            ]
+          },
+          {
+            "id": "F_ENDING_PAYOFF",
+            "label": "终局兑现与主题收束",
+            "score": 3,
+            "weightedScore": 6,
+            "weaknesses": []
+          },
+          {
+            "id": "G_HOST_RUNNABILITY",
+            "label": "主持可运行性与成品效率",
+            "score": 3.5,
+            "weightedScore": 7,
+            "weaknesses": []
+          }
+        ],
+        "aiPatterns": [
+          {
+            "type": "ABSTRACT_STAKES",
+            "count": 5
+          },
+          {
+            "type": "SAME_VOICE",
+            "count": 1
+          }
+        ],
+        "topProblems": [
+          "文本审美、人物声音与世界质感: ABSTRACT_STAKES: 抽象 stake 词密度过高",
+          "AI_PATTERN ABSTRACT_STAKES",
+          "AI_PATTERN SAME_VOICE"
+        ],
+        "revisionPriorities": [
+          {
+            "priority": 1,
+            "summary": "ABSTRACT_STAKES: 抽象 stake 词密度过高",
+            "impacts": [
+              "文本审美、人物声音与世界质感"
+            ],
+            "target": {
+              "sectionId": "host_act1",
+              "stageId": "act1"
+            }
+          },
+          {
+            "priority": 2,
+            "summary": "终局兑现与主题收束 需上修至合格以上",
+            "impacts": [
+              "终局兑现与主题收束"
+            ],
+            "target": {
+              "sectionId": "ending_final"
+            }
+          },
+          {
+            "priority": 3,
+            "summary": "主持可运行性与成品效率 需上修至合格以上",
+            "impacts": [
+              "主持可运行性与成品效率"
+            ],
+            "target": {
+              "sectionId": "host_act1"
+            }
+          }
+        ]
+      }
     },
     {
       "caseId": "GEN-06",
@@ -333,18 +631,118 @@
         "M07"
       ],
       "contextPresetId": "CONTEMPORARY_URBAN",
-      "productionGateStatus": "BLOCKED",
-      "productionBlocked": true,
-      "productionBlockers": [
-        {
-          "type": "OWNER_UNRESOLVED",
-          "message": "「defector为了在暴露风险下改归属或保住秘密，在关键选择点背叛、退出或清洗异己（目标：归属状态）」需要主导角色，但当前没有明确角色绑定；未推断 OWNER。"
-        }
-      ],
-      "packageStatus": "BLOCKED",
+      "productionGateStatus": "READY_WITH_WARNINGS",
+      "productionBlocked": false,
+      "productionBlockers": [],
+      "packageStatus": "READY_FOR_REVIEW",
       "writerAdapterId": "RealScriptWriter/literary-mock-v1",
-      "quality": null,
-      "notes": "Production Gate BLOCKED — 未进入 Real Writer 成品质量评分（诚实记录，不绕过 OWNER/结构阻断）。"
+      "quality": {
+        "status": "QUALITY_REVIEW_REQUIRED",
+        "totalScore": 68.5,
+        "hardBlockers": [],
+        "dimensions": [
+          {
+            "id": "A_CHARACTER_AGENCY",
+            "label": "人物成立与玩家能动性",
+            "score": 4,
+            "weightedScore": 16,
+            "weaknesses": [
+              "人物声音区分不足"
+            ]
+          },
+          {
+            "id": "B_INFORMATION_FAIRNESS",
+            "label": "信息设计、线索与公平推理",
+            "score": 4,
+            "weightedScore": 16,
+            "weaknesses": []
+          },
+          {
+            "id": "C_STAGE_PROGRESSION",
+            "label": "剧情推进与幕间节奏",
+            "score": 4,
+            "weightedScore": 12,
+            "weaknesses": []
+          },
+          {
+            "id": "D_GAME_NARRATIVE_FUSION",
+            "label": "GAME 与剧情融合",
+            "score": 3.5,
+            "weightedScore": 7,
+            "weaknesses": []
+          },
+          {
+            "id": "E_AESTHETIC_VOICE",
+            "label": "文本审美、人物声音与世界质感",
+            "score": 1.5,
+            "weightedScore": 4.5,
+            "weaknesses": [
+              "ABSTRACT_STAKES: 抽象 stake 词密度过高",
+              "SAME_VOICE: 多角色句式/措辞高度雷同"
+            ]
+          },
+          {
+            "id": "F_ENDING_PAYOFF",
+            "label": "终局兑现与主题收束",
+            "score": 3,
+            "weightedScore": 6,
+            "weaknesses": []
+          },
+          {
+            "id": "G_HOST_RUNNABILITY",
+            "label": "主持可运行性与成品效率",
+            "score": 3.5,
+            "weightedScore": 7,
+            "weaknesses": []
+          }
+        ],
+        "aiPatterns": [
+          {
+            "type": "ABSTRACT_STAKES",
+            "count": 5
+          },
+          {
+            "type": "SAME_VOICE",
+            "count": 1
+          }
+        ],
+        "topProblems": [
+          "文本审美、人物声音与世界质感: ABSTRACT_STAKES: 抽象 stake 词密度过高",
+          "AI_PATTERN ABSTRACT_STAKES",
+          "AI_PATTERN SAME_VOICE"
+        ],
+        "revisionPriorities": [
+          {
+            "priority": 1,
+            "summary": "ABSTRACT_STAKES: 抽象 stake 词密度过高",
+            "impacts": [
+              "文本审美、人物声音与世界质感"
+            ],
+            "target": {
+              "sectionId": "host_act1",
+              "stageId": "act1"
+            }
+          },
+          {
+            "priority": 2,
+            "summary": "终局兑现与主题收束 需上修至合格以上",
+            "impacts": [
+              "终局兑现与主题收束"
+            ],
+            "target": {
+              "sectionId": "ending_final"
+            }
+          },
+          {
+            "priority": 3,
+            "summary": "GAME 与剧情融合 需上修至合格以上",
+            "impacts": [
+              "GAME 与剧情融合"
+            ],
+            "target": {}
+          }
+        ]
+      }
     },
     {
       "caseId": "GEN-07",
@@ -357,22 +755,121 @@
         "M08"
       ],
       "contextPresetId": "ANCIENT_COURT",
-      "productionGateStatus": "BLOCKED",
-      "productionBlocked": true,
-      "productionBlockers": [
-        {
-          "type": "UNRESOLVED_CONFLICT",
-          "message": "裴烬 同时是真凶与阵营领袖——可保留为强交织，或拆开降负载。"
-        },
-        {
-          "type": "OWNER_UNRESOLVED",
-          "message": "「defector为了在暴露风险下改归属或保住秘密，在关键选择点背叛、退出或清洗异己（目标：归属状态）」需要主导角色，但当前没有明确角色绑定；未推断 OWNER。"
-        }
-      ],
-      "packageStatus": "BLOCKED",
+      "productionGateStatus": "READY_WITH_WARNINGS",
+      "productionBlocked": false,
+      "productionBlockers": [],
+      "packageStatus": "READY_FOR_REVIEW",
       "writerAdapterId": "RealScriptWriter/literary-mock-v1",
-      "quality": null,
-      "notes": "Production Gate BLOCKED — 未进入 Real Writer 成品质量评分（诚实记录，不绕过 OWNER/结构阻断）。"
+      "quality": {
+        "status": "QUALITY_REVIEW_REQUIRED",
+        "totalScore": 66,
+        "hardBlockers": [],
+        "dimensions": [
+          {
+            "id": "A_CHARACTER_AGENCY",
+            "label": "人物成立与玩家能动性",
+            "score": 3.5,
+            "weightedScore": 14,
+            "weaknesses": [
+              "人物声音区分不足"
+            ]
+          },
+          {
+            "id": "B_INFORMATION_FAIRNESS",
+            "label": "信息设计、线索与公平推理",
+            "score": 4.5,
+            "weightedScore": 18,
+            "weaknesses": []
+          },
+          {
+            "id": "C_STAGE_PROGRESSION",
+            "label": "剧情推进与幕间节奏",
+            "score": 4,
+            "weightedScore": 12,
+            "weaknesses": []
+          },
+          {
+            "id": "D_GAME_NARRATIVE_FUSION",
+            "label": "GAME 与剧情融合",
+            "score": 3.5,
+            "weightedScore": 7,
+            "weaknesses": []
+          },
+          {
+            "id": "E_AESTHETIC_VOICE",
+            "label": "文本审美、人物声音与世界质感",
+            "score": 1,
+            "weightedScore": 3,
+            "weaknesses": [
+              "ABSTRACT_STAKES: 抽象 stake 词密度过高",
+              "SAME_VOICE: 多角色句式/措辞高度雷同"
+            ]
+          },
+          {
+            "id": "F_ENDING_PAYOFF",
+            "label": "终局兑现与主题收束",
+            "score": 2.5,
+            "weightedScore": 5,
+            "weaknesses": []
+          },
+          {
+            "id": "G_HOST_RUNNABILITY",
+            "label": "主持可运行性与成品效率",
+            "score": 3.5,
+            "weightedScore": 7,
+            "weaknesses": []
+          }
+        ],
+        "aiPatterns": [
+          {
+            "type": "ABSTRACT_STAKES",
+            "count": 6
+          },
+          {
+            "type": "SAME_VOICE",
+            "count": 1
+          }
+        ],
+        "topProblems": [
+          "文本审美、人物声音与世界质感: ABSTRACT_STAKES: 抽象 stake 词密度过高",
+          "人物成立与玩家能动性: 人物声音区分不足",
+          "AI_PATTERN ABSTRACT_STAKES",
+          "AI_PATTERN SAME_VOICE"
+        ],
+        "revisionPriorities": [
+          {
+            "priority": 1,
+            "summary": "ABSTRACT_STAKES: 抽象 stake 词密度过高",
+            "impacts": [
+              "文本审美、人物声音与世界质感"
+            ],
+            "target": {
+              "sectionId": "host_act1",
+              "stageId": "act1"
+            }
+          },
+          {
+            "priority": 2,
+            "summary": "终局兑现与主题收束 需上修至合格以上",
+            "impacts": [
+              "终局兑现与主题收束"
+            ],
+            "target": {
+              "sectionId": "ending_final"
+            }
+          },
+          {
+            "priority": 3,
+            "summary": "人物声音区分不足",
+            "impacts": [
+              "人物成立与玩家能动性"
+            ],
+            "target": {
+              "roleId": "role_T1"
+            }
+          }
+        ]
+      }
     },
     {
       "caseId": "GEN-08",
@@ -502,67 +999,67 @@
   "aggregate": {
     "version": 1,
     "corpusSize": 8,
-    "scoredSize": 3,
-    "productionBlockedSize": 5,
+    "scoredSize": 8,
+    "productionBlockedSize": 0,
     "bandCounts": {
-      "production_blocked": 5,
+      "production_blocked": 0,
       "quality_blocked": 0,
       "below_65": 0,
-      "band_65_74": 3,
+      "band_65_74": 8,
       "band_75_79": 0,
       "band_80_plus": 0
     },
     "statusCounts": {
       "QUALITY_BLOCKED": 0,
       "REWRITE_REQUIRED": 0,
-      "QUALITY_REVIEW_REQUIRED": 3,
+      "QUALITY_REVIEW_REQUIRED": 8,
       "BORDERLINE": 0,
       "QUALITY_PASS": 0,
       "EXCEPTIONAL_CANDIDATE": 0,
-      "PRODUCTION_BLOCKED": 5
+      "PRODUCTION_BLOCKED": 0
     },
     "dimensionAverages": {
       "A_CHARACTER_AGENCY": {
         "label": "人物成立与玩家能动性",
-        "average": 4,
-        "sampleSize": 3
+        "average": 3.9,
+        "sampleSize": 8
       },
       "B_INFORMATION_FAIRNESS": {
         "label": "信息设计、线索与公平推理",
-        "average": 4.3,
-        "sampleSize": 3
+        "average": 4.2,
+        "sampleSize": 8
       },
       "C_STAGE_PROGRESSION": {
         "label": "剧情推进与幕间节奏",
         "average": 4,
-        "sampleSize": 3
+        "sampleSize": 8
       },
       "D_GAME_NARRATIVE_FUSION": {
         "label": "GAME 与剧情融合",
-        "average": 3.5,
-        "sampleSize": 3
+        "average": 3.6,
+        "sampleSize": 8
       },
       "E_AESTHETIC_VOICE": {
         "label": "文本审美、人物声音与世界质感",
-        "average": 1.8,
-        "sampleSize": 3
+        "average": 1.4,
+        "sampleSize": 8
       },
       "F_ENDING_PAYOFF": {
         "label": "终局兑现与主题收束",
         "average": 2.7,
-        "sampleSize": 3
+        "sampleSize": 8
       },
       "G_HOST_RUNNABILITY": {
         "label": "主持可运行性与成品效率",
         "average": 3.5,
-        "sampleSize": 3
+        "sampleSize": 8
       }
     },
     "lowestDimensions": [
       {
         "id": "E_AESTHETIC_VOICE",
         "label": "文本审美、人物声音与世界质感",
-        "average": 1.8
+        "average": 1.4
       },
       {
         "id": "F_ENDING_PAYOFF",
@@ -570,50 +1067,67 @@
         "average": 2.7
       },
       {
-        "id": "D_GAME_NARRATIVE_FUSION",
-        "label": "GAME 与剧情融合",
+        "id": "G_HOST_RUNNABILITY",
+        "label": "主持可运行性与成品效率",
         "average": 3.5
       }
     ],
     "topAiPatterns": [
       {
         "type": "ABSTRACT_STAKES",
-        "count": 3,
-        "ofScored": 3
+        "count": 8,
+        "ofScored": 8
       },
       {
         "type": "SAME_VOICE",
-        "count": 3,
-        "ofScored": 3
+        "count": 8,
+        "ofScored": 8
       }
     ],
     "topWeaknesses": [
       {
         "text": "人物声音区分不足",
-        "count": 3
+        "count": 8
       },
       {
         "text": "ABSTRACT_STAKES: 抽象 stake 词密度过高",
-        "count": 3
+        "count": 8
       },
       {
         "text": "SAME_VOICE: 多角色句式/措辞高度雷同",
-        "count": 3
+        "count": 8
       }
     ],
-    "productionBlockerHits": {
-      "OWNER_UNRESOLVED": 6,
-      "UNRESOLVED_CONFLICT": 1
-    },
+    "productionBlockerHits": {},
     "hardBlockerHits": {},
     "byGenre": {
       "现代封闭推理": {
         "sampleSize": 1,
         "averageTotal": 71
       },
+      "古风阵营": {
+        "sampleSize": 1,
+        "averageTotal": 66
+      },
       "科幻身份权限": {
         "sampleSize": 1,
         "averageTotal": 68.5
+      },
+      "校园现实群像": {
+        "sampleSize": 1,
+        "averageTotal": 66
+      },
+      "利益竞价悬疑": {
+        "sampleSize": 1,
+        "averageTotal": 69.5
+      },
+      "双线低亲和平行": {
+        "sampleSize": 1,
+        "averageTotal": 68.5
+      },
+      "古风高交织": {
+        "sampleSize": 1,
+        "averageTotal": 66
       },
       "现实公共任务": {
         "sampleSize": 1,
@@ -622,27 +1136,27 @@
     },
     "byStoryFamily": {
       "M01": {
-        "sampleSize": 2,
-        "averageTotal": 71,
+        "sampleSize": 3,
+        "averageTotal": 69.3,
         "weakestDim": {
           "id": "E_AESTHETIC_VOICE",
-          "average": 2
+          "average": 1.7
         }
       },
       "M07": {
-        "sampleSize": 3,
-        "averageTotal": 70.2,
+        "sampleSize": 8,
+        "averageTotal": 68.3,
         "weakestDim": {
           "id": "E_AESTHETIC_VOICE",
-          "average": 1.8
+          "average": 1.4
         }
       },
       "M08": {
-        "sampleSize": 2,
-        "averageTotal": 69.8,
+        "sampleSize": 7,
+        "averageTotal": 67.9,
         "weakestDim": {
           "id": "E_AESTHETIC_VOICE",
-          "average": 1.8
+          "average": 1.4
         }
       }
     }

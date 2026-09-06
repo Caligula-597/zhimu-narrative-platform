@@ -20,11 +20,70 @@ import {
   isInternalCompletionSummary,
   resolveBeatSemantics,
 } from "./story-beat-semantics.js";
-import { semanticsBridgeForTemplate } from "./complete-beat-semantics-data.js";
+import {
+  listPrimaryOwnerSlots,
+} from "./complete-beat-semantics-data.js";
 import {
   labelMapFromBindings,
   resolveContextBindingsForSlots,
 } from "./project-context-profile.js";
+
+/** Soft slot defs for OWNER closure when template.roleSlots omitted a primaryRole. */
+const OWNER_CLOSURE_SLOT_DEFAULTS = Object.freeze({
+  defector: Object.freeze({
+    required: true,
+    label: "叛离/摇摆者",
+    allowNpc: false,
+    mustDifferFrom: [],
+    intensity: 2,
+    narrativeRole: "defector",
+  }),
+  mediator: Object.freeze({
+    required: true,
+    label: "调停者",
+    allowNpc: false,
+    mustDifferFrom: ["factionLead", "rivalLead"],
+    intensity: 1,
+    narrativeRole: "mediator",
+  }),
+  thirdLead: Object.freeze({
+    required: true,
+    label: "第三方阵营领袖",
+    allowNpc: false,
+    mustDifferFrom: ["factionLead", "rivalLead", "memberA"],
+    intensity: 2,
+    narrativeRole: "faction_lead",
+  }),
+  witness: Object.freeze({
+    required: true,
+    label: "知情见证者",
+    allowNpc: true,
+    mustDifferFrom: [],
+    intensity: 1,
+    narrativeRole: "witness",
+  }),
+  hiddenMember: Object.freeze({
+    required: true,
+    label: "隐藏成员",
+    allowNpc: false,
+    mustDifferFrom: [],
+    intensity: 2,
+    narrativeRole: "hidden_member",
+  }),
+});
+
+function softOwnerSlot(slotId) {
+  return (
+    OWNER_CLOSURE_SLOT_DEFAULTS[slotId] || {
+      required: true,
+      label: slotId,
+      allowNpc: false,
+      mustDifferFrom: [],
+      intensity: 1,
+      narrativeRole: slotId,
+    }
+  );
+}
 
 export class StoryMechanismEngineError extends Error {
   constructor(code, message, details = undefined) {
@@ -75,7 +134,30 @@ function bindRoles(state, template, { intentionalOverlap = false, preserve = nul
     maxLoad: intentionalOverlap ? 99 : 3,
   }).sort((a, b) => characterLoadScore(state, a.id) - characterLoadScore(state, b.id));
 
-  for (const [key, slot] of Object.entries(template.roleSlots || {})) {
+  // P10.1 Owner Binding Closure: Complete Beat primaryRoles must be bindable.
+  const ownerClosureSlots = listPrimaryOwnerSlots(template.id);
+  const ownerClosureSet = new Set(ownerClosureSlots);
+  const slotEntries = { ...(template.roleSlots || {}) };
+  for (const slotId of ownerClosureSlots) {
+    if (!slotEntries[slotId]) {
+      slotEntries[slotId] = softOwnerSlot(slotId);
+    } else {
+      // Promote declared OWNER slots to required for this bind pass.
+      slotEntries[slotId] = { ...slotEntries[slotId], required: true };
+    }
+  }
+
+  // Bind required / OWNER-closure slots before optional preferred slots so pool isn't drained.
+  const slotKeys = Object.keys(slotEntries).sort((a, b) => {
+    const rank = (k) => {
+      if (slotEntries[k]?.required || ownerClosureSet.has(k)) return 0;
+      return 1;
+    };
+    return rank(a) - rank(b) || a.localeCompare(b);
+  });
+
+  for (const key of slotKeys) {
+    const slot = slotEntries[key];
     if (roleBindings[key] !== undefined && (preserve?.[key] !== undefined || roleBindings[key])) {
       continue;
     }
@@ -95,6 +177,23 @@ function bindRoles(state, template, { intentionalOverlap = false, preserve = nul
       if (!slot.required) {
         roleBindings[key] = null;
         continue;
+      }
+      // Owner-closure fallback: reuse a related bound role (e.g. member who defects).
+      if (ownerClosureSet.has(key)) {
+        const reuseOrder = ["memberA", "memberB", "outsider", "hiddenMember", "factionLead", "rivalLead"];
+        let reused = null;
+        for (const other of reuseOrder) {
+          if (other === key) continue;
+          const ref = roleBindings[other];
+          if (ref?.id && !forbidden.has(ref.id)) {
+            reused = ref;
+            break;
+          }
+        }
+        if (reused) {
+          roleBindings[key] = { id: reused.id, name: reused.name };
+          continue;
+        }
       }
       fail("STORY_ROLE_CONFLICT", `Cannot bind role ${key}`, { key, templateId: template.id });
     }

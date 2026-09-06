@@ -486,7 +486,7 @@ const M08_1 = pack(
     variant({"id":"V10","title":"公开阵营服务追凶节奏","description":"公开阵营立场影响谁被优先怀疑。","beatPattern":{"setup":"阵营关系进入可观察状态","develop":"压力与信息差推动成员选择","resolve":"归属或目标变化产生剧情后果"},"requiredSlots":["factionLead","memberA"],"preferredSlots":["memberB","outsider"],"incompatibilities":[],"recommendedCluePattern":["FACTION_FORESHADOW","MEMBERSHIP_HINT","HIDDEN_GOAL_HINT","FACTION_EXPOSURE"],"revealPattern":"staged_exposure","consequencePattern":"allegiance_shift","membershipPattern":"PRIVATE","informationPattern":"MEMBERS_MUTUAL","pressurePattern":"loyalty_test","defaults":{"formationReason":"共同敌人"}})
   ],
   {},
-  ["outsider", "rivalLead"],
+  ["outsider", "rivalLead", "defector"],
   {"canPrecede":["M01"],"weaveIntent":"公开阵营为调查提供可见对立面与掩护结构"},
 );
 
@@ -531,7 +531,7 @@ const M08_3 = pack(
     variant({"id":"V10","title":"身份门槛接口","description":"某接口需要特定身份资格。","beatPattern":{"setup":"阵营关系进入可观察状态","develop":"压力与信息差推动成员选择","resolve":"归属或目标变化产生剧情后果"},"requiredSlots":["factionLead","memberA"],"preferredSlots":["memberB","outsider"],"incompatibilities":[],"recommendedCluePattern":["FACTION_FORESHADOW","MEMBERSHIP_HINT","FACTION_EXPOSURE"],"revealPattern":"staged_exposure","consequencePattern":"allegiance_shift","membershipPattern":"PRIVATE","informationPattern":"MEMBERS_MUTUAL","pressurePattern":"loyalty_test","defaults":{"joiningCondition":"完成考验","betrayalTrigger":"身份揭露"}})
   ],
   {"rivalGoal":{"id":"rivalGoal","label":"对立阵营目标","type":"TEXT_OR_PRESET","required":true,"presets":["夺取关键资源","公开真相","阻止保全"]},"asymmetricInterface":{"id":"asymmetricInterface","label":"非对称接口差异","type":"TEXT_OR_PRESET","required":true,"presets":["信息接口","行动接口","否决接口"]}},
-  ["rivalLead", "outsider", "recruiter", "mediator"],
+  ["rivalLead", "outsider", "recruiter", "mediator", "defector"],
   {},
 );
 
@@ -597,7 +597,7 @@ const M08_6 = pack(
     variant({"id":"V10","title":"同盟服务共同任务","description":"先共同任务后各自算账。","beatPattern":{"setup":"阵营关系进入可观察状态","develop":"压力与信息差推动成员选择","resolve":"归属或目标变化产生剧情后果"},"requiredSlots":["factionLead","memberA"],"preferredSlots":["memberB","outsider"],"incompatibilities":[],"recommendedCluePattern":["FACTION_FORESHADOW","MEMBERSHIP_HINT","FACTION_EXPOSURE"],"revealPattern":"staged_exposure","consequencePattern":"allegiance_shift","membershipPattern":"PRIVATE","informationPattern":"MEMBERS_MUTUAL","pressurePattern":"loyalty_test","defaults":{"publicGoal":"共同自保","factionGoal":"保全共同秘密"}})
   ],
   {"allianceDuration":{"id":"allianceDuration","label":"联盟持续时间","type":"TEXT_OR_PRESET","required":true,"presets":["一阶段","至危机解除","至任务完成","固定回合"]},"shareScope":{"id":"shareScope","label":"共享范围","type":"TEXT_OR_PRESET","required":true,"presets":["仅资源","仅行动结果","有限情报","不含私人内容"]},"exitCost":{"id":"exitCost","label":"退出成本","type":"TEXT_OR_PRESET","required":true,"presets":["失去资源","暴露部分归属","关系惩罚","任务减益"]}},
-  ["rivalLead", "mediator", "outsider"],
+  ["rivalLead", "mediator", "outsider", "defector"],
   {},
 );
 

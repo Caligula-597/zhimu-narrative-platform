@@ -96,4 +96,4 @@ node --test scripts/generated-script-quality-audit.test.mjs
 
 ## 下一刀
 
-**只在报告出来之后决定。** 谁均分最低、谁频次最高，就砍谁。
+**P10.1 Owner Binding Closure ✅** 后：进入 **Real Production Trial #1**（真模型 + 新题目 + 全链路 + 不手修），不再凭 mock 猜 P10.2。见 [`P10_1_OWNER_BINDING_CLOSURE_ZH.md`](./P10_1_OWNER_BINDING_CLOSURE_ZH.md)。

@@ -19,6 +19,8 @@ const ADVISORY_TYPES = new Set([
   "LOW_WEAVE_DENSITY",
   "PARALLEL_HEAVY",
   "ROLE_OVERLOAD",
+  // P10.1: culprit∩factionLead etc. is a weave choice prompt, not a hard block
+  "INTENTIONAL_OVERLAP_CANDIDATE",
 ]);
 
 function asArray(value) {

@@ -401,7 +401,7 @@ if (files.some((f) =>
 }
 
 if (files.some((f) =>
-  /^shared\/(context-|project-context|story-beat-semantics|story-semantic-fidelity|complete-beat-semantics|story-mechanism-(engine|contracts|m07|m08)|game-narrative|real-script-writer|script-writer-|script-production-|content-quality-|generated-script-quality)/.test(f)
+  /^shared\/(context-|project-context|story-beat-semantics|story-semantic-fidelity|complete-beat-semantics|story-mechanism-(engine|contracts|m07|m08)|game-narrative|real-script-writer|script-writer-|script-production-|content-quality-|generated-script-quality|production-master-draft)/.test(f)
   || f === "scripts/context-instantiation.test.mjs"
   || f === "scripts/story-semantic-fidelity.test.mjs"
   || f === "scripts/game-narrative-binding.test.mjs"
@@ -409,10 +409,11 @@ if (files.some((f) =>
   || f === "scripts/content-quality-gate.test.mjs"
   || f === "scripts/generated-script-quality-audit.test.mjs"
   || f === "scripts/generated-script-quality-audit.mjs"
+  || f === "scripts/owner-binding-closure.test.mjs"
 )) {
   run(
-    "P9/P10 content factory + quality audit",
-    "node --test scripts/context-instantiation.test.mjs scripts/story-semantic-fidelity.test.mjs scripts/game-narrative-binding.test.mjs scripts/real-script-writer.test.mjs scripts/content-quality-gate.test.mjs scripts/generated-script-quality-audit.test.mjs",
+    "P9/P10 content factory + quality audit + owner closure",
+    "node --test scripts/context-instantiation.test.mjs scripts/story-semantic-fidelity.test.mjs scripts/game-narrative-binding.test.mjs scripts/real-script-writer.test.mjs scripts/content-quality-gate.test.mjs scripts/generated-script-quality-audit.test.mjs scripts/owner-binding-closure.test.mjs",
   );
   run("P8 GEN machine regression", "npm run test:p8-generalization");
 }

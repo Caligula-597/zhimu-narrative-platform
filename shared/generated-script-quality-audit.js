@@ -408,10 +408,15 @@ export function formatQualityAuditMarkdown(audit) {
   lines.push("```text");
   lines.push("P8 Infrastructure Era                ✅ CLOSED");
   lines.push("P9 Content Factory Foundation        ✅ CLOSED");
-  lines.push("P10.0 Generated Script Quality Audit ← 本报告");
-  lines.push("P10.1                                → 待本报告决定下一刀");
+  lines.push("P10.0 Generated Script Quality Audit ← 本报告（含 P10.1 后 Re-audit）");
+  lines.push("P10.1 Owner Binding Closure          ✅（清 OWNER 吞吐量债）");
+  lines.push("★ Real Production Trial #1           → 下一阶段（真模型 + 新题目）");
   lines.push("```");
   lines.push("");
+  if (agg.scoredSize >= 7) {
+    lines.push("> Re-audit 注：P10.1 后 Production BLOCKED 已清除或接近清除；下方分数仍来自 `literary-mock-v1`，**不能**当作真模型商品级证明。");
+    lines.push("");
+  }
   lines.push("## 先看结论（不是平均分）");
   lines.push("");
   lines.push("| 桶 | 数量 |");
@@ -516,6 +521,11 @@ export function formatQualityAuditMarkdown(audit) {
   if (agg.productionBlockedSize >= 4) {
     lines.push(
       `${step}. **主瓶颈是「写不出来」不是「写不好」**：${agg.productionBlockedSize}/8 因 \`${Object.keys(agg.productionBlockerHits).join("/")}\` 卡在 Production Gate。下一刀若只改 Writer/文风，对多数 GEN 零收益。优先清 OWNER/冲突债，扩大可评分样本。`,
+    );
+    step += 1;
+  } else if (agg.productionBlockedSize === 0 && agg.scoredSize >= 7) {
+    lines.push(
+      `${step}. **吞吐量债已清（${agg.scoredSize}/8 可评分）**。下一刀不要继续猜 P10.2 合同；应进入 **Real Production Trial #1**（真模型、真正新题目、全链路、不手修），用五件事验收：完整生成 / 前 20 分钟欲望 / 幕间变化 / 六人声音 / 终局兑现。`,
     );
     step += 1;
   }

@@ -28,20 +28,28 @@ describe("P10.0 Generated Script Quality Audit", () => {
     assert.ok(row.storyFamilies.length >= 1);
   });
 
-  it("records production-blocked cases honestly (no Writer quality fake)", async () => {
+  it("records production-blocked cases honestly when still blocked", async () => {
+    // After P10.1 most GEN cases should produce; keep the honesty invariant:
+    // if blocked, quality must be null and notes must say so.
+    const { auditGeneratedScriptCase } = await import("../shared/generated-script-quality-audit.js");
     const row = await auditGeneratedScriptCase("GEN-05");
-    assert.equal(row.productionBlocked, true);
-    assert.equal(row.quality, null);
-    assert.ok(row.productionBlockers.some((b) => b.type === "OWNER_UNRESOLVED"));
-    assert.match(row.notes || "", /未进入 Real Writer/);
+    if (row.productionBlocked) {
+      assert.equal(row.quality, null);
+      assert.match(row.notes || "", /未进入 Real Writer/);
+    } else {
+      assert.ok(row.quality);
+      assert.notEqual(row.productionGateStatus, "BLOCKED");
+    }
   });
 
   it("full corpus aggregate has failure distribution fields", async () => {
     const audit = await runGeneratedScriptQualityAudit();
     assert.equal(audit.cases.length, 8);
     assert.ok(audit.aggregate.corpusSize === 8);
-    assert.ok(audit.aggregate.productionBlockedSize >= 1);
+    assert.ok(audit.aggregate.productionBlockedSize >= 0);
     assert.ok(audit.aggregate.scoredSize >= 1);
+    // P10.1 goal: majority of GEN corpus reachable by Writer
+    assert.ok(audit.aggregate.scoredSize >= 7, `expected >=7 scored, got ${audit.aggregate.scoredSize}`);
     assert.ok(audit.aggregate.bandCounts);
     assert.ok(audit.aggregate.dimensionAverages.A_CHARACTER_AGENCY);
     const md = formatQualityAuditMarkdown(audit);
