@@ -22,6 +22,9 @@ import {
   diffPackageRenderingAgainstGrounded,
   foldRenderingAdherenceIntoStatus,
 } from "./script-writer-rendering-adherence-diff.js";
+import { runSectionScopedAdherenceRepair } from "./script-writer-rendering-repair.js";
+
+export { runSectionScopedAdherenceRepair };
 import { normalizeCompleteScriptPackage } from "./complete-script-package-contracts.js";
 import { validateCompleteScriptPackage } from "./complete-script-validator.js";
 import { DeterministicTestScriptWriter } from "./deterministic-test-script-writer.js";
@@ -274,11 +277,13 @@ async function runOneWriterJob({
   gameNarrativeRevision = null,
   regeneration = false,
   groundedExperience = null,
+  repairBrief = null,
 }) {
   const request = buildScriptWriterRequest({
-    requestId: `req-${job.key}${regeneration ? "-regen" : ""}`,
+    requestId: `req-${job.key}${regeneration ? "-regen" : ""}${repairBrief ? "-repair" : ""}`,
     packetKind: job.packetKind,
     packet: job.packet,
+    repairBrief,
   });
   const profile = getWriterProfile(job.packetKind);
   const expectedFingerprint = buildWriterInputFingerprint({
@@ -290,7 +295,7 @@ async function runOneWriterJob({
   });
   const raw =
     typeof writer.write === "function"
-      ? await writer.write(request, { regeneration })
+      ? await writer.write(request, { regeneration: regeneration || Boolean(repairBrief) })
       : await writer.write(request);
   const result = normalizeScriptWriterResult({
     ...raw,
@@ -321,6 +326,7 @@ async function runOneWriterJob({
     result,
     diff,
     renderingAdherence,
+    repairBrief: repairBrief || null,
     packet: job.packet,
     packetKind: job.packetKind,
     characterId: job.characterId,
@@ -361,6 +367,7 @@ export function markWriterSectionsStale({
 
 /**
  * Regenerate a single job key (e.g. role:B). Does not auto-approve.
+ * Optional repairBrief = P10.5.1 semantic repair contract (one-shot).
  */
 export async function regenerateScriptProductionJob({
   production,
@@ -368,6 +375,8 @@ export async function regenerateScriptProductionJob({
   writer = new DeterministicTestScriptWriter(),
   contextProfile = null,
   gameNarrativePlan = null,
+  repairBrief = null,
+  groundedExperience = null,
   now = () => new Date().toISOString(),
 } = {}) {
   const pmd = production.pmd;
@@ -386,6 +395,8 @@ export async function regenerateScriptProductionJob({
     contextRevision: contextProfile?.revision ?? production.contextRevision ?? null,
     gameNarrativeRevision: gameNarrativePlan?.revision ?? production.gameNarrativeRevision ?? null,
     regeneration: true,
+    groundedExperience: groundedExperience || packetSet.groundedExperience || null,
+    repairBrief,
   });
   const sectionStates = asArray(production.sectionStates).map((s) =>
     s.sectionId === jobKey ? next : s,
@@ -421,6 +432,7 @@ export async function regenerateScriptProductionJob({
  *   gameNarrativePlan?: object|null,
  *   storyState?: object|null,
  *   skipProjectionGate?: boolean,
+ *   skipRenderingRepair?: boolean,
  * }} args
  */
 export async function runScriptProduction({
@@ -432,6 +444,7 @@ export async function runScriptProduction({
   gameNarrativePlan = null,
   storyState = null,
   skipProjectionGate = false,
+  skipRenderingRepair = false,
 } = {}) {
   const gate = evaluateScriptProductionReadiness(pmd);
   if (gate.status === "BLOCKED") {
@@ -588,14 +601,7 @@ export async function runScriptProduction({
     }
   }
 
-  // Real Writer never auto-approves — stay READY_FOR_REVIEW even when clean.
-  const validation = validateCompleteScriptPackage({
-    pmd,
-    packetSet,
-    package: pkg,
-  });
-
-  return {
+  let production = {
     gate,
     pmd,
     packetSet,
@@ -603,8 +609,45 @@ export async function runScriptProduction({
     renderingAdherence,
     sectionStates,
     package: pkg,
-    validation,
     contextRevision: contextProfile?.revision ?? null,
     gameNarrativeRevision: gameNarrativePlan?.revision ?? null,
+  };
+
+  // P10.5.1: one-shot section-scoped repair (max 1 regen / failed job). Not Voice V2.
+  let renderingRepair = { attempted: false, skipped: true, reason: "clean_or_disabled" };
+  if (hasGroundedCapture && !renderingAdherence.ok && !skipRenderingRepair) {
+    const repaired = await runSectionScopedAdherenceRepair({
+      production,
+      writer,
+      regenerateJob: regenerateScriptProductionJob,
+      issues: renderingAdherence.issues,
+      contextProfile,
+      gameNarrativePlan,
+      maxRepairsPerSection: 1,
+      now,
+    });
+    production = repaired.production;
+    renderingRepair = {
+      attempted: true,
+      skipped: false,
+      status: repaired.status,
+      log: repaired.repairLog,
+      beforeSummary: repaired.adherenceBefore?.summary || null,
+      afterSummary: repaired.adherenceAfter?.summary || null,
+    };
+  }
+
+  // Real Writer never auto-approves — stay READY_FOR_REVIEW even when clean.
+  const validation = validateCompleteScriptPackage({
+    pmd: production.pmd,
+    packetSet: production.packetSet,
+    package: production.package,
+  });
+
+  return {
+    ...production,
+    validation,
+    renderingRepair,
+    renderingAdherence: production.renderingAdherence || renderingAdherence,
   };
 }

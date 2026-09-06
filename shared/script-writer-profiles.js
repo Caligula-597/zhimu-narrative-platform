@@ -119,7 +119,7 @@ export function buildWriterSystemPrompt(profile) {
 
 export function buildWriterUserPrompt({ request, profile }) {
   const packet = request?.packet || {};
-  return [
+  const parts = [
     `requestId=${request?.requestId}`,
     `packetKind=${request?.packetKind || profile?.packetKind}`,
     "Write sections for this packet only. Use provenance ids from allow-lists.",
@@ -129,7 +129,21 @@ export function buildWriterUserPrompt({ request, profile }) {
     "<<<SCHEMA_HINT>>>",
     JSON.stringify(profile?.outputSchemaHint || SCHEMA_HINT),
     "<<<END_SCHEMA_HINT>>>",
-  ].join("\n");
+  ];
+  if (request?.repairBrief) {
+    parts.push(
+      "<<<RENDERING_REPAIR_BRIEF>>>",
+      "SEMANTIC REPAIR ONLY — Packet fidelity, not literary Voice.",
+      "Rewrite full section(s). Do not silent-delete instruction prefixes.",
+      "Do not change Grounded ownership / role scope / stake facts.",
+      request.repairBrief.prose || JSON.stringify(request.repairBrief),
+      request.repairBrief.previousParagraphs?.length
+        ? `Previous paragraphs to rewrite:\n${JSON.stringify(request.repairBrief.previousParagraphs)}`
+        : "",
+      "<<<END_RENDERING_REPAIR_BRIEF>>>",
+    );
+  }
+  return parts.filter(Boolean).join("\n");
 }
 
 export function buildFormatRepairPrompt({ previousRaw, parseError, profile }) {

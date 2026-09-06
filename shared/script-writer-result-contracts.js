@@ -101,11 +101,12 @@ export function normalizeScriptWriterResult(value = {}) {
   };
 }
 
-export function buildScriptWriterRequest({ requestId, packetKind, packet }) {
+export function buildScriptWriterRequest({ requestId, packetKind, packet, repairBrief = null }) {
   return {
     requestId: cleanId(requestId) || `req-${Date.now().toString(36)}`,
     packetKind: packetKind || packet?.kind,
     packet,
     constraints: { ...WRITER_CONSTRAINTS },
+    repairBrief: repairBrief || null,
   };
 }

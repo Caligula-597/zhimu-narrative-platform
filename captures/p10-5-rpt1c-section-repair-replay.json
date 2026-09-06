@@ -1,0 +1,144 @@
+{
+  "mode": "mock",
+  "runDir": "D:\\长剧情\\trials\\rpt-1-closed-after-hours\\runs\\2026-09-06T09-32-02-159Z",
+  "before": {
+    "status": "RENDERING_REVIEW_REQUIRED",
+    "summary": {
+      "relationInverted": 1,
+      "roleScopeInvented": 2,
+      "choicePreResolved": 5,
+      "instructionLeak": 7
+    },
+    "codes": [
+      "RELATION_INVERTED",
+      "CHOICE_PRE_RESOLVED",
+      "INTERNAL_INSTRUCTION_LEAK",
+      "ROLE_SCOPE_INVENTED"
+    ]
+  },
+  "after": {
+    "status": "RENDERING_PASS",
+    "summary": {
+      "relationInverted": 0,
+      "roleScopeInvented": 0,
+      "choicePreResolved": 0,
+      "instructionLeak": 0
+    },
+    "codes": [],
+    "ok": true
+  },
+  "repairLog": [
+    {
+      "jobKey": "role:P1",
+      "codes": [
+        "RELATION_INVERTED"
+      ],
+      "characterName": "沈岚",
+      "repairAttempt": 1,
+      "maxAttempts": 1,
+      "sectionStatus": "GENERATED",
+      "briefIssueCodes": [
+        "RELATION_INVERTED"
+      ]
+    },
+    {
+      "jobKey": "role:P2",
+      "codes": [
+        "CHOICE_PRE_RESOLVED"
+      ],
+      "characterName": "梁赫",
+      "repairAttempt": 1,
+      "maxAttempts": 1,
+      "sectionStatus": "GENERATED",
+      "briefIssueCodes": [
+        "CHOICE_PRE_RESOLVED"
+      ]
+    },
+    {
+      "jobKey": "role:P6",
+      "codes": [
+        "INTERNAL_INSTRUCTION_LEAK"
+      ],
+      "characterName": "方序",
+      "repairAttempt": 1,
+      "maxAttempts": 1,
+      "sectionStatus": "GENERATED",
+      "briefIssueCodes": [
+        "INTERNAL_INSTRUCTION_LEAK"
+      ]
+    },
+    {
+      "jobKey": "role:P3",
+      "codes": [
+        "ROLE_SCOPE_INVENTED"
+      ],
+      "characterName": "白绫",
+      "repairAttempt": 1,
+      "maxAttempts": 1,
+      "sectionStatus": "GENERATED",
+      "briefIssueCodes": [
+        "ROLE_SCOPE_INVENTED"
+      ]
+    },
+    {
+      "jobKey": "role:P4",
+      "codes": [
+        "ROLE_SCOPE_INVENTED"
+      ],
+      "characterName": "周祁",
+      "repairAttempt": 1,
+      "maxAttempts": 1,
+      "sectionStatus": "GENERATED",
+      "briefIssueCodes": [
+        "ROLE_SCOPE_INVENTED"
+      ]
+    },
+    {
+      "jobKey": "public:act1",
+      "codes": [
+        "INTERNAL_INSTRUCTION_LEAK"
+      ],
+      "characterName": null,
+      "repairAttempt": 1,
+      "maxAttempts": 1,
+      "sectionStatus": "GENERATED",
+      "briefIssueCodes": [
+        "INTERNAL_INSTRUCTION_LEAK"
+      ]
+    },
+    {
+      "jobKey": "public:act3",
+      "codes": [
+        "INTERNAL_INSTRUCTION_LEAK",
+        "CHOICE_PRE_RESOLVED"
+      ],
+      "characterName": null,
+      "repairAttempt": 1,
+      "maxAttempts": 1,
+      "sectionStatus": "GENERATED",
+      "briefIssueCodes": [
+        "INTERNAL_INSTRUCTION_LEAK",
+        "CHOICE_PRE_RESOLVED"
+      ]
+    }
+  ],
+  "deltas": {
+    "relationInverted": [
+      1,
+      0
+    ],
+    "roleScopeInvented": [
+      2,
+      0
+    ],
+    "choicePreResolved": [
+      5,
+      0
+    ],
+    "instructionLeak": [
+      7,
+      0
+    ]
+  },
+  "status": "RENDERING_PASS"
+}

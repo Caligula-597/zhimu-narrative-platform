@@ -416,17 +416,21 @@ if (files.some((f) =>
   || f === "scripts/p10-4-production-projection.test.mjs"
   || f === "scripts/p10-4-rpt1b-packet-probe.mjs"
   || f === "scripts/p10-5-writer-rendering-adherence.test.mjs"
+  || f === "scripts/p10-5-writer-rendering-repair.test.mjs"
   || f === "scripts/p10-5-rpt1c-adherence-probe.mjs"
+  || f === "scripts/p10-5-rpt1c-section-repair-replay.mjs"
+  || f === "shared/script-writer-rendering-repair.js"
   || f === "shared/rpt1c-p104-survival-probe.js"
   || f === "shared/rpt1b-m12-survival-probe.js"
   || /^trials\/rpt-1-/.test(f)
 )) {
   run(
     "P9/P10 content factory + trial harness",
-    "node --test scripts/context-instantiation.test.mjs scripts/story-semantic-fidelity.test.mjs scripts/game-narrative-binding.test.mjs scripts/real-script-writer.test.mjs scripts/content-quality-gate.test.mjs scripts/generated-script-quality-audit.test.mjs scripts/owner-binding-closure.test.mjs scripts/creation-intent-fidelity.test.mjs scripts/real-production-trial-1.test.mjs scripts/p10-4-production-projection.test.mjs scripts/p10-5-writer-rendering-adherence.test.mjs",
+    "node --test scripts/context-instantiation.test.mjs scripts/story-semantic-fidelity.test.mjs scripts/game-narrative-binding.test.mjs scripts/real-script-writer.test.mjs scripts/content-quality-gate.test.mjs scripts/generated-script-quality-audit.test.mjs scripts/owner-binding-closure.test.mjs scripts/creation-intent-fidelity.test.mjs scripts/real-production-trial-1.test.mjs scripts/p10-4-production-projection.test.mjs scripts/p10-5-writer-rendering-adherence.test.mjs scripts/p10-5-writer-rendering-repair.test.mjs",
   );
   run("P10.4 RPT1B packet probe", "node scripts/p10-4-rpt1b-packet-probe.mjs");
   run("P10.5 RPT1C adherence probe", "node scripts/p10-5-rpt1c-adherence-probe.mjs");
+  run("P10.5.1 RPT1C section repair replay (mock)", "node scripts/p10-5-rpt1c-section-repair-replay.mjs --mode=mock");
   run("P8 GEN machine regression", "npm run test:p8-generalization");
 }
 
