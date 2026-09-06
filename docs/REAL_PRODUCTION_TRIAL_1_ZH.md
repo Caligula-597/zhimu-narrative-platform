@@ -1,16 +1,17 @@
 # Real Production Trial #1 — 《闭馆之后》
 
 > 基线：P10.1 Owner Binding Closure ✅ @ `f5a4a02`  
-> **不开 P10.2。** 真模型 · 新题目 · 全链路 · 无开发者手修。
+> 首跑 commit：`de06364` · **人工结案：TRIAL_PARTIAL**  
+> 见 [`RPT1_HUMAN_ADJUDICATION_ZH.md`](./RPT1_HUMAN_ADJUDICATION_ZH.md)
 
 ## 时代位置
 
 ```text
 P9 Content Factory Foundation        ✅ CLOSED
-P10.0 Quality Audit                  ✅（8/8 可生产）
+P10.0 Quality Audit                  ✅
 P10.1 Owner Binding Closure          ✅
-★ Real Production Trial #1           ← NOW
-P10.2                                → 由 Trial 真实弱点决定（不预锁）
+★ Real Production Trial #1           ✅ CLOSED（TRIAL_PARTIAL）
+下一刀                               → Creation Intent Fidelity（不开 Writer V2）
 ```
 
 ## 题目（仅此输入）
@@ -24,88 +25,43 @@ P10.2                                → 由 Trial 真实弱点决定（不预�
 不要求传统唯一凶手；GAME 可选，不为塞而塞
 ```
 
-**禁止**再补凶手、关系表、幕表、强制 M03、终局剧本。
-
-## 作者确认 vs 开发者救火
-
-| 允许（AUTHOR） | 禁止（FIREFIGHT） |
-|---|---|
-| 接受推荐 STORY / Variant | 直接改 JSON / DB |
-| 角色槽位与 Owner 确认 | 手填 factId / ownerCharacterIds |
-| 确认 Context 绑定 | 改 PMD 中间产物 |
-| Quality 后 regenerate section | ignore warning 刷过 Gate |
-| `approveCompleteScriptPackage` | 人工塞坏段落 / 改 Runtime |
-
-> 凡普通创作者在产品 UI/正式 API 做不到的，试验一律不做。
-
-## 产物目录
-
-```text
-trials/rpt-1-closed-after-hours/runs/<timestamp>/
-  trial-input.json
-  author-decisions.json
-  story-candidate-plan.json
-  story-state.json
-  master-outline.json
-  pmd.json
-  production-gate.json
-  context-profile.json
-  game-narrative-plan.json
-  writer-run-metadata.json
-  complete-script-package.json
-  quality-report.json
-  playable-project.json
-  runtime-smoke-trace.json
-  readable-scripts.md
-  trial-summary.json
-```
-
-## 运行
-
-```bash
-# CI / 无密钥：mock Writer（仍走真实生产链）
-node scripts/real-production-trial-1.mjs --mode=mock
-
-# 真模型（读取 backend/.env 的 DEEPSEEK_*）
-node scripts/real-production-trial-1.mjs --mode=real
-```
-
-## 判定（三档）
-
-| 档 | 条件 |
-|---|---|
-| `TRIAL_PASS` | 无救火 + Quality≥75 + 无 Hard Blocker + **五项人工审看≥4**（机器只能给 `TRIAL_PASS_CANDIDATE`） |
-| `TRIAL_PARTIAL` | 全链路能跑，1–2 个系统性内容弱点 |
-| `TRIAL_FAIL` | 需要开发者手修，或中途崩 |
-
-> Quality Gate 拦住 → 不 approve → Runtime 跳过 = **产品路径**，不计开发者救火。
-
-## 首跑结果（真模型）
+## 首跑机器结果
 
 目录：`trials/rpt-1-closed-after-hours/runs/2026-09-06T04-19-32-742Z/`
 
 | 项 | 结果 |
 |---|---|
-| 机器 verdict | **`TRIAL_PARTIAL`** |
-| Quality | BLOCKED · 65.5 · `HOST_CANNOT_RUN` ×1 |
-| 作者确认 / 救火 | 13 / **0** |
+| 技术链 | CreationSpec→…→Package→Quality ✅；救火 **0** |
+| Quality | BLOCKED · 65.5 · `HOST_CANNOT_RUN` |
+| 作者确认 | 13 |
 | 模型调用 / 耗时 | 36 / ~219s |
-| 给人读 | [`HUMAN_REVIEW_PACKET.md`](../trials/rpt-1-closed-after-hours/runs/2026-09-06T04-19-32-742Z/HUMAN_REVIEW_PACKET.md) + `readable-scripts.md` |
+| 机器 verdict | `TRIAL_PARTIAL` |
 
-### 五项人工审看
+## 人工结案（权威）
 
-1. 前 20 分钟欲望  
-2. 幕间互动语法换挡  
-3. 六人声音可盲辨  
-4. GAME 后果（若有）  
-5. 终局兑现表  
+| 项 | 裁决 |
+|---|---|
+| TECHNICAL PRODUCTION | ✅ PASS |
+| CONTENT PRODUCT | ❌ 不批准进真实玩家房 |
+| Overall | **TRIAL_PARTIAL** / 非 TRIAL_PASS |
 
-## 与《青楼》对照（人工）
+| 透镜 | 分 |
+|---|---:|
+| 前 20 分钟欲望 | 2/5 ❌ |
+| 幕间互动语法换挡 | 2/5 ❌ |
+| 六人声音盲辨 | 1/5 ❌ |
+| GAME 后果 | N/A |
+| 终局兑现 | 2/5 ❌ |
 
-不比反转/字数；比对：主动做事速度、资源制造关系、机制改状态、阶段换挡、声音辨识、事实可追溯。
+**核心结论：** 最大问题不是文笔，而是 Creation Intent 在 STORY 选择后被模板语义吞掉。
 
-## 交付给审查者
+## 下一刀
 
-1. `complete-script-package.json`  
-2. `quality-report.json`  
-3. `readable-scripts.md`（主持本 + 六角色本 + 线索）
+[`RPT1_NEXT_CREATION_INTENT_FIDELITY_ZH.md`](./RPT1_NEXT_CREATION_INTENT_FIDELITY_ZH.md) — **Creation Intent Fidelity / Experience Preservation**。禁止先开 Writer V2。
+
+## 运行（复现）
+
+```bash
+node scripts/real-production-trial-1.mjs --mode=mock
+node scripts/real-production-trial-1.mjs --mode=real
+```

@@ -2,6 +2,23 @@
   "trialId": "RPT-1",
   "title": "闭馆之后",
   "trialVerdict": "TRIAL_PARTIAL",
+  "humanAdjudication": {
+    "status": "CLOSED",
+    "technicalProduction": "PASS",
+    "developerFirefighting": 0,
+    "contentProduct": "NOT_PASS",
+    "trialPass": false,
+    "lenses": {
+      "first20Desire": { "score": 2, "of": 5, "pass": false },
+      "interactionGrammarShift": { "score": 2, "of": 5, "pass": false },
+      "sixVoiceBlind": { "score": 1, "of": 5, "pass": false },
+      "gameConsequence": { "score": null, "pass": null, "note": "N/A hasGame=false" },
+      "endingPayoff": { "score": 2, "of": 5, "pass": false }
+    },
+    "coreFinding": "Creation Intent swallowed by STORY template semantics after selection; not primarily a prose problem",
+    "doc": "docs/RPT1_HUMAN_ADJUDICATION_ZH.md",
+    "nextKnife": "Creation Intent Fidelity / Experience Preservation (not Writer V2)"
+  },
   "writerMode": {
     "mode": "real",
     "adapterId": "deepseek-script-writer",
@@ -12,18 +29,9 @@
     "totalScore": 65.5,
     "hardBlockers": 1,
     "lowestDimensions": [
-      {
-        "id": "E_AESTHETIC_VOICE",
-        "score": 1.5
-      },
-      {
-        "id": "C_STAGE_PROGRESSION",
-        "score": 3
-      },
-      {
-        "id": "D_GAME_NARRATIVE_FUSION",
-        "score": 3
-      }
+      { "id": "E_AESTHETIC_VOICE", "score": 1.5 },
+      { "id": "C_STAGE_PROGRESSION", "score": 3 },
+      { "id": "D_GAME_NARRATIVE_FUSION", "score": 3 }
     ]
   },
   "humanIntervention": {
@@ -32,9 +40,9 @@
     "developerFirefighting": 0
   },
   "elapsedMs": 218658,
-  "artifactDir": "D:\\长剧情\\trials\\rpt-1-closed-after-hours\\runs\\2026-09-06T04-19-32-742Z",
-  "note": "全链路无开发者救火；Quality Gate HARD BLOCK（HOST_CANNOT_RUN）+ score 65.5 → 机器判 PARTIAL。正式 TRIAL_PASS 仍须五项人工审看。Runtime smoke 因 package 未 approve 按产品路径跳过（非救火）。",
+  "modelCalls": 36,
+  "artifactDir": "trials/rpt-1-closed-after-hours/runs/2026-09-06T04-19-32-742Z",
+  "note": "Machine PARTIAL confirmed by human. Content not room-ready. Next: Creation Intent Fidelity.",
   "reclassifiedAt": "2026-09-06T04:24:34.838Z",
-  "reclassifyReason": "runtime_smoke_failed on INVALID playable was mislabeled FIREFIGHT",
-  "modelCalls": 36
+  "reclassifyReason": "runtime_smoke_failed on INVALID playable was mislabeled FIREFIGHT"
 }
