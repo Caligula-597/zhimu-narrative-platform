@@ -1,0 +1,286 @@
+{
+  "version": 1,
+  "packageId": "csp-writer-pmd-mod-mtpaytcv-gzre",
+  "packageRevision": 1,
+  "evaluatorVersion": "content-quality-v1",
+  "rubricAdapterId": "heuristic-v1",
+  "hasGame": false,
+  "hardBlockers": [
+    {
+      "type": "HOST_CANNOT_RUN",
+      "message": "主持本缺少发线索/推进时机或保密边界，主持人无法直接跑场",
+      "sectionId": "act1-host",
+      "evidence": [
+        {
+          "sectionId": "act1-host",
+          "excerpt": "欢迎各位来到这场牌局。今夜的城市美术馆闭馆之后，仍有暗影在展廊与库房间游走。你们各自带着未说出口的目的，而命运的齿轮已经开始转动。\n本幕是铺垫之幕。你们将各自行动，为后续的风暴埋下伏笔。你们可以自由探",
+          "observation": "缺少可执行的发线索/推进/保密指引"
+        }
+      ]
+    }
+  ],
+  "deterministicFindings": [
+    {
+      "code": "ROLE_STAGE_GAP",
+      "severity": "warn",
+      "message": "角色 role_P4 缺少 stage act1",
+      "evidence": [
+        {
+          "roleId": "role_P4",
+          "stageId": "act1",
+          "observation": "role coverage gap"
+        }
+      ]
+    }
+  ],
+  "aiPatterns": [
+    {
+      "type": "ABSTRACT_STAKES",
+      "count": 4,
+      "message": "抽象 stake 词密度过高",
+      "evidence": [
+        {
+          "sectionId": "act4-host",
+          "stageId": "act4",
+          "excerpt": "真相/命运/真相",
+          "observation": "抽象 stake 词密度过高"
+        },
+        {
+          "sectionId": "act4-resolution",
+          "roleId": "role_P1",
+          "stageId": "act4",
+          "excerpt": "一切/一切/真相",
+          "observation": "抽象 stake 词密度过高"
+        },
+        {
+          "sectionId": "situation",
+          "roleId": "role_P5",
+          "stageId": "act1",
+          "excerpt": "秘密/秘密/命运",
+          "observation": "抽象 stake 词密度过高"
+        }
+      ]
+    },
+    {
+      "type": "GENERIC_EMOTION_EXPLANATION",
+      "count": 1,
+      "message": "重复解释人物情绪",
+      "evidence": [
+        {
+          "sectionId": "memory",
+          "roleId": "role_P5",
+          "stageId": "act4",
+          "excerpt": "感到一种",
+          "observation": "重复解释人物情绪"
+        }
+      ]
+    },
+    {
+      "type": "SIGNIFICANCE_RESTATEMENT",
+      "count": 1,
+      "message": "事件后立即解释意义",
+      "evidence": [
+        {
+          "sectionId": "P4-act2",
+          "roleId": "role_P4",
+          "stageId": "act2",
+          "excerpt": "这意味着",
+          "observation": "事件后立即解释意义"
+        }
+      ]
+    },
+    {
+      "type": "FALSE_INTENSITY",
+      "count": 1,
+      "message": "局势未变却堆叠强度词",
+      "evidence": [
+        {
+          "sectionId": "P4-act2",
+          "roleId": "role_P4",
+          "stageId": "act2",
+          "excerpt": "更大的秘密",
+          "observation": "局势未变却堆叠强度词"
+        }
+      ]
+    }
+  ],
+  "dimensions": [
+    {
+      "id": "A_CHARACTER_AGENCY",
+      "label": "人物成立与玩家能动性",
+      "weight": 20,
+      "score": 4,
+      "weightedScore": 16,
+      "rationale": "【人物成立与玩家能动性】4/5。达到或接近「欲望/恐惧/信息冲突；存在真选择；行为会改变别人；目标随新信息转向。」一侧。优势：目标能产生询问/交易/阻挠等行动。",
+      "whyNotHigher": "未到 5：欲望/恐惧/信息冲突；存在真选择；行为会改变别人；目标随新信息转向。",
+      "evidence": [
+        {
+          "roleId": "role_P1",
+          "excerpt": "你站在案发现场周边，夜风掠过衣角。手中那条与白绫同色的布帛已被你精心处理过，边角特意磨损成自然断裂的样子。你将它搭在不起眼的窗棂上，又用指尖拂去可能留下的指纹。",
+          "observation": "存在可执行目标/行动语言"
+        }
+      ],
+      "strengths": [
+        "目标能产生询问/交易/阻挠等行动"
+      ],
+      "weaknesses": []
+    },
+    {
+      "id": "B_INFORMATION_FAIRNESS",
+      "label": "信息设计、线索与公平推理",
+      "weight": 20,
+      "score": 4.5,
+      "weightedScore": 18,
+      "rationale": "【信息设计、线索与公平推理】4.5/5。达到或接近「信息多阶段可再解释；早期线索后期重解；误导公平；组合多源得结论。」一侧。优势：同时存在误导与决定性证据。",
+      "whyNotHigher": "未到 5：信息多阶段可再解释；早期线索后期重解；误导公平；组合多源得结论。",
+      "evidence": [
+        {
+          "clueId": "fact-interface:ob-mtpaytcs-gzbg",
+          "excerpt": "在物业档案室的铁皮柜中，P1 和 P3 找到了一份泛黄的住户登记档案，纸张边缘有被水渍浸过的痕迹，但关键信息仍清晰可读。",
+          "observation": "含误导线索"
+        }
+      ],
+      "strengths": [
+        "同时存在误导与决定性证据"
+      ],
+      "weaknesses": []
+    },
+    {
+      "id": "C_STAGE_PROGRESSION",
+      "label": "剧情推进与幕间节奏",
+      "weight": 15,
+      "score": 3,
+      "weightedScore": 9,
+      "rationale": "【剧情推进与幕间节奏】3/5。达到或接近「每幕有新信息与阶段目的；终局前存在递进。」一侧。",
+      "whyNotHigher": "未到 4：尚未稳定达到「商业好水平」的取舍/具体性/可记忆点。锚点 4 要求高于合格线。",
+      "evidence": [
+        {
+          "stageId": "act2",
+          "excerpt": "事件骤然升级。凶案已经发生，现场留有诸多痕迹。你们必须迅速行动，在混乱中寻找真相。\n沈岚，你的犯行已经完成，并留下了指向白绫的误导证物。梁赫，你需要根据当前证据",
+          "observation": "推进偏信息堆叠或假强度"
+        }
+      ],
+      "strengths": [],
+      "weaknesses": []
+    },
+    {
+      "id": "D_GAME_NARRATIVE_FUSION",
+      "label": "GAME 与剧情融合",
+      "weight": 10,
+      "score": 3,
+      "weightedScore": 6,
+      "rationale": "【GAME 与剧情融合】3/5。达到或接近「有清晰 stake；结果改变内容访问或结算。」一侧。",
+      "whyNotHigher": "未到 4：尚未稳定达到「商业好水平」的取舍/具体性/可记忆点。锚点 4 要求高于合格线。",
+      "evidence": [],
+      "strengths": [],
+      "weaknesses": []
+    },
+    {
+      "id": "E_AESTHETIC_VOICE",
+      "label": "文本审美、人物声音与世界质感",
+      "weight": 15,
+      "score": 1.5,
+      "weightedScore": 4.5,
+      "rationale": "【文本审美、人物声音与世界质感】1.5/5。低于合格线：抽象情绪堆叠、同声腔、假强度、意义复述；可删除废话率高。问题：ABSTRACT_STAKES: 抽象 stake 词密度过高。",
+      "whyNotHigher": "未到 2：该功能基本没有成立。",
+      "evidence": [
+        {
+          "sectionId": "act4-host",
+          "stageId": "act4",
+          "excerpt": "真相/命运/真相",
+          "observation": "抽象 stake 词密度过高"
+        },
+        {
+          "sectionId": "memory",
+          "roleId": "role_P5",
+          "stageId": "act4",
+          "excerpt": "感到一种",
+          "observation": "重复解释人物情绪"
+        },
+        {
+          "sectionId": "P4-act2",
+          "roleId": "role_P4",
+          "stageId": "act2",
+          "excerpt": "这意味着",
+          "observation": "事件后立即解释意义"
+        },
+        {
+          "sectionId": "P4-act2",
+          "roleId": "role_P4",
+          "stageId": "act2",
+          "excerpt": "更大的秘密",
+          "observation": "局势未变却堆叠强度词"
+        }
+      ],
+      "strengths": [],
+      "weaknesses": [
+        "ABSTRACT_STAKES: 抽象 stake 词密度过高",
+        "GENERIC_EMOTION_EXPLANATION: 重复解释人物情绪",
+        "SIGNIFICANCE_RESTATEMENT: 事件后立即解释意义",
+        "FALSE_INTENSITY: 局势未变却堆叠强度词"
+      ],
+      "highestPriorityFix": "ABSTRACT_STAKES: 抽象 stake 词密度过高"
+    },
+    {
+      "id": "F_ENDING_PAYOFF",
+      "label": "终局兑现与主题收束",
+      "weight": 10,
+      "score": 3,
+      "weightedScore": 6,
+      "rationale": "【终局兑现与主题收束】3/5。达到或接近「主要悬念回答；关键线索回收；角色能理解结局。」一侧。",
+      "whyNotHigher": "未到 4：尚未稳定达到「商业好水平」的取舍/具体性/可记忆点。锚点 4 要求高于合格线。",
+      "evidence": [
+        {
+          "sectionId": "ending-vote-result",
+          "excerpt": "夜幕低垂，城市美术馆的库房灯光惨白。梁赫将决定性证据——那份被篡改的物业核验码与库房授权日志——摊在众人面前。他冷静地陈述：沈岚在案发前后多次以私人预展邀请腕带进入闭馆后的展厅，并利用门禁权限布置了指",
+          "observation": "终局有正文"
+        }
+      ],
+      "strengths": [],
+      "weaknesses": []
+    },
+    {
+      "id": "G_HOST_RUNNABILITY",
+      "label": "主持可运行性与成品效率",
+      "weight": 10,
+      "score": 3,
+      "weightedScore": 6,
+      "rationale": "【主持可运行性与成品效率】3/5。达到或接近「按主持本可稳定完成正常场次。」一侧。",
+      "whyNotHigher": "未到 4：尚未稳定达到「商业好水平」的取舍/具体性/可记忆点。锚点 4 要求高于合格线。",
+      "evidence": [
+        {
+          "sectionId": "act1-host",
+          "excerpt": "欢迎各位来到这场牌局。今夜的城市美术馆闭馆之后，仍有暗影在展廊与库房间游走。你们各自带着未说出口的目的，而命运的齿轮已经开始转动。\n本幕是铺垫之幕。你们将各自行动，为后续的风暴埋下伏笔。你们可以自由探",
+          "observation": "主持可执行性不足"
+        }
+      ],
+      "strengths": [],
+      "weaknesses": []
+    }
+  ],
+  "totalScore": 65.5,
+  "status": "QUALITY_BLOCKED",
+  "topStrengths": [
+    "人物成立与玩家能动性: 目标能产生询问/交易/阻挠等行动",
+    "信息设计、线索与公平推理: 同时存在误导与决定性证据"
+  ],
+  "topProblems": [
+    "HOST_CANNOT_RUN: 主持本缺少发线索/推进时机或保密边界，主持人无法直接跑场",
+    "文本审美、人物声音与世界质感: ABSTRACT_STAKES: 抽象 stake 词密度过高",
+    "AI_PATTERN ABSTRACT_STAKES",
+    "AI_PATTERN GENERIC_EMOTION_EXPLANATION"
+  ],
+  "revisionPriorities": [
+    {
+      "priority": 1,
+      "summary": "HOST_CANNOT_RUN: 主持本缺少发线索/推进时机或保密边界，主持人无法直接跑场",
+      "impacts": [
+        "Hard Gate"
+      ],
+      "target": {
+        "sectionId": "act1-host"
+      }
+    }
+  ],
+  "evaluatedAt": "2026-09-06T04:23:11.387Z"
+}

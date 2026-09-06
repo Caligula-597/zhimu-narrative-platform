@@ -11,7 +11,7 @@ P9 Content Factory Foundation        ✅ CLOSED
 P10.0 Generated Script Quality Audit ✅ 首报（3/8 可写）
 P10.1 Owner Binding Closure          ← 本刀
 P10.0 Re-audit                       → 确认 ≥7/8 可生产
-★ Real Production Trial #1           → 下一阶段（真模型 + 新题目）
+★ Real Production Trial #1           ← NOW（见 REAL_PRODUCTION_TRIAL_1_ZH.md）
 ```
 
 ## 根因
@@ -61,5 +61,4 @@ npm run test:p8-generalization
 
 ## 下一步
 
-**不凭 mock 猜 P10.2。**  
-Re-audit 通过后进入 **Real Production Trial #1**（真模型、新题目、全链路、不手修），再决定 Writer / Ending / GAME / 人物具体化。
+**Real Production Trial #1** — 见 [`REAL_PRODUCTION_TRIAL_1_ZH.md`](./REAL_PRODUCTION_TRIAL_1_ZH.md)。不开 P10.2。

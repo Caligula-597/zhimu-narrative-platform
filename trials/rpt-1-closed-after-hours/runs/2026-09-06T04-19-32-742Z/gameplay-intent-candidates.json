@@ -1,0 +1,15 @@
+[
+  {
+    "intentTag": "NEGOTIATION",
+    "internalFamilyHints": [
+      "M04",
+      "M06"
+    ],
+    "reasons": [
+      "用户偏好「NEGOTIATION」→ 内部候选族 M04/M06"
+    ],
+    "warnings": [
+      "P8.1 仅保留意图与候选提示；不做 stage placement / OutcomeBinding / Runtime"
+    ]
+  }
+]

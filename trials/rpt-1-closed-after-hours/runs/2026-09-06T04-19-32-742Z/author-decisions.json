@@ -1,0 +1,164 @@
+[
+  {
+    "at": "2026-09-06T04:19:32.747Z",
+    "kind": "SYSTEM_AUTO",
+    "action": "resolve_stage_count",
+    "count": 4,
+    "source": "SYSTEM_RECOMMENDATION"
+  },
+  {
+    "at": "2026-09-06T04:19:32.748Z",
+    "kind": "AUTHOR_CONFIRMATION",
+    "action": "set_premise_characters_stages_from_creation_spec",
+    "playerCount": 6,
+    "stages": [
+      "act1",
+      "act2",
+      "act3",
+      "act4"
+    ]
+  },
+  {
+    "at": "2026-09-06T04:19:32.756Z",
+    "kind": "AUTHOR_CONFIRMATION",
+    "action": "accept_recommended_story_blocks",
+    "accepts": [
+      {
+        "templateId": "M01-FRAMING",
+        "intentionalOverlap": false,
+        "score": 0.675
+      },
+      {
+        "templateId": "M07-1",
+        "intentionalOverlap": true,
+        "score": 0.652
+      },
+      {
+        "templateId": "M08-1",
+        "intentionalOverlap": true,
+        "score": 0.633
+      }
+    ]
+  },
+  {
+    "at": "2026-09-06T04:19:32.760Z",
+    "kind": "AUTHOR_CONFIRMATION",
+    "action": "accept_story_block",
+    "blockId": "smb-mtpaytck-l1bny",
+    "templateId": "M01-FRAMING"
+  },
+  {
+    "at": "2026-09-06T04:19:32.761Z",
+    "kind": "AUTHOR_CONFIRMATION",
+    "action": "accept_story_block",
+    "blockId": "smb-mtpaytco-5tnaz",
+    "templateId": "M07-1"
+  },
+  {
+    "at": "2026-09-06T04:19:32.762Z",
+    "kind": "AUTHOR_CONFIRMATION",
+    "action": "accept_story_block",
+    "blockId": "smb-mtpaytcp-5lvas",
+    "templateId": "M08-1"
+  },
+  {
+    "at": "2026-09-06T04:19:32.768Z",
+    "kind": "AUTHOR_CONFIRMATION",
+    "action": "accept_conflict_keep",
+    "conflictId": "cf-mtpaytcv-wgw7",
+    "type": "ROLE_OVERLOAD"
+  },
+  {
+    "at": "2026-09-06T04:19:32.768Z",
+    "kind": "AUTHOR_CONFIRMATION",
+    "action": "accept_conflict_keep",
+    "conflictId": "cf-mtpaytcv-833k",
+    "type": "ROLE_OVERLOAD"
+  },
+  {
+    "at": "2026-09-06T04:19:32.768Z",
+    "kind": "AUTHOR_CONFIRMATION",
+    "action": "accept_conflict_keep",
+    "conflictId": "cf-mtpaytcv-flpl",
+    "type": "ROLE_OVERLOAD"
+  },
+  {
+    "at": "2026-09-06T04:19:32.768Z",
+    "kind": "AUTHOR_CONFIRMATION",
+    "action": "accept_conflict_keep",
+    "conflictId": "cf-mtpaytcv-kyos",
+    "type": "ROLE_OVERLOAD"
+  },
+  {
+    "at": "2026-09-06T04:19:32.768Z",
+    "kind": "AUTHOR_CONFIRMATION",
+    "action": "accept_conflict_keep",
+    "conflictId": "cf-mtpaytcv-gcqa",
+    "type": "ROLE_OVERLOAD"
+  },
+  {
+    "at": "2026-09-06T04:19:32.768Z",
+    "kind": "AUTHOR_CONFIRMATION",
+    "action": "accept_conflict_keep",
+    "conflictId": "cf-mtpaytcv-x6c1",
+    "type": "ROLE_OVERLOAD"
+  },
+  {
+    "at": "2026-09-06T04:19:32.776Z",
+    "kind": "SYSTEM_AUTO",
+    "action": "production_gate",
+    "status": "READY_WITH_WARNINGS",
+    "blockers": []
+  },
+  {
+    "at": "2026-09-06T04:19:32.777Z",
+    "kind": "AUTHOR_CONFIRMATION",
+    "action": "confirm_context_bindings",
+    "presetId": "CONTEMPORARY_URBAN",
+    "explicitKeys": [
+      "venue",
+      "core_object",
+      "access_record",
+      "credential"
+    ]
+  },
+  {
+    "at": "2026-09-06T04:19:32.777Z",
+    "kind": "AUTHOR_CONFIRMATION",
+    "action": "acknowledge_gameplay_intent_candidates",
+    "intents": [
+      "NEGOTIATION"
+    ],
+    "note": "P8.1 gameplay candidates are hints only; Trial #1 does not force M03/M09 placement without product placement UI"
+  },
+  {
+    "at": "2026-09-06T04:23:11.378Z",
+    "kind": "SYSTEM_AUTO",
+    "action": "writer_production_complete",
+    "packageStatus": "INVALID",
+    "sectionCount": 35
+  },
+  {
+    "at": "2026-09-06T04:23:11.389Z",
+    "kind": "SYSTEM_AUTO",
+    "action": "quality_gate",
+    "status": "QUALITY_BLOCKED",
+    "totalScore": 65.5
+  },
+  {
+    "at": "2026-09-06T04:23:11.391Z",
+    "kind": "SYSTEM_AUTO",
+    "action": "approve_deferred",
+    "reason": "invalid_sections"
+  },
+  {
+    "at": "2026-09-06T04:23:11.391Z",
+    "kind": "SYSTEM_AUTO",
+    "action": "runtime_smoke_skipped",
+    "ok": null,
+    "skipped": true,
+    "reason": "package_not_approved",
+    "playableStatus": "INVALID",
+    "note": "reclassified: Quality Gate deferral is product path, not developer firefighting"
+  }
+]

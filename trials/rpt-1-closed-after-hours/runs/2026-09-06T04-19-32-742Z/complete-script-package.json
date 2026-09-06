@@ -1,0 +1,3102 @@
+{
+  "version": 1,
+  "id": "csp-writer-pmd-mod-mtpaytcv-gzre",
+  "projectId": "rpt1-RPT-1",
+  "source": {
+    "productionMasterDraftId": "pmd-mod-mtpaytcv-gzre",
+    "productionMasterDraftRevision": "v1:mod-mtpaytcv-gzre:act1@0:{ob-mtpaytcs-gzbg|smb-mtpaytck-l1bny|beat-setup,ob-mtpaytct-o066|smb-mtpaytco-5tnaz|beat-set",
+    "sourceStoryStateRevision": 0,
+    "sourceMasterOutlineRevision": "v1:mod-mtpaytcv-gzre:act1@0:{ob-mtpaytcs-gzbg|smb-mtpaytck-l1bny|beat-setup,ob-mtpaytct-o066|smb-mtpaytco-5tnaz|beat-set"
+  },
+  "status": "INVALID",
+  "metadata": {
+    "title": "闭馆之后",
+    "premiseSummary": "关系博弈·推理·美术馆·当代 · CONTEMPORARY · 关系博弈 · 推理 · 美术馆 · 当代",
+    "revision": 1
+  },
+  "roles": [
+    {
+      "id": "role_host",
+      "name": "主持人",
+      "type": "HOST",
+      "playerAssignable": false
+    },
+    {
+      "id": "role_P1",
+      "name": "沈岚",
+      "type": "PLAYER",
+      "characterId": "P1",
+      "playerAssignable": true
+    },
+    {
+      "id": "role_P3",
+      "name": "白绫",
+      "type": "PLAYER",
+      "characterId": "P3",
+      "playerAssignable": true
+    },
+    {
+      "id": "role_P5",
+      "name": "顾清",
+      "type": "PLAYER",
+      "characterId": "P5",
+      "playerAssignable": true
+    },
+    {
+      "id": "role_P6",
+      "name": "方序",
+      "type": "PLAYER",
+      "characterId": "P6",
+      "playerAssignable": true
+    },
+    {
+      "id": "role_P2",
+      "name": "梁赫",
+      "type": "PLAYER",
+      "characterId": "P2",
+      "playerAssignable": true
+    },
+    {
+      "id": "role_P4",
+      "name": "周祁",
+      "type": "PLAYER",
+      "characterId": "P4",
+      "playerAssignable": true
+    }
+  ],
+  "stages": [
+    {
+      "id": "act1",
+      "order": 0,
+      "title": "铺垫",
+      "stageRole": "SETUP",
+      "enterCondition": {
+        "type": "HOST_START"
+      },
+      "exitCondition": {
+        "type": "HOST_ADVANCE"
+      },
+      "mechanismAnnotationIds": []
+    },
+    {
+      "id": "act2",
+      "order": 1,
+      "title": "加压",
+      "stageRole": "PRESSURE",
+      "enterCondition": {
+        "type": "HOST_ADVANCE"
+      },
+      "exitCondition": {
+        "type": "HOST_ADVANCE"
+      },
+      "mechanismAnnotationIds": []
+    },
+    {
+      "id": "act3",
+      "order": 2,
+      "title": "升级",
+      "stageRole": "ESCALATION",
+      "enterCondition": {
+        "type": "HOST_ADVANCE"
+      },
+      "exitCondition": {
+        "type": "HOST_ADVANCE"
+      },
+      "mechanismAnnotationIds": []
+    },
+    {
+      "id": "act4",
+      "order": 3,
+      "title": "收束",
+      "stageRole": "PAYOFF",
+      "enterCondition": {
+        "type": "HOST_ADVANCE"
+      },
+      "exitCondition": {
+        "type": "HOST_ADVANCE"
+      },
+      "mechanismAnnotationIds": []
+    }
+  ],
+  "hostScript": {
+    "documentId": "doc_host_manual",
+    "sections": [
+      {
+        "id": "act1-host",
+        "stageId": "act1",
+        "title": "第一幕 · 铺垫：暗流初动",
+        "paragraphs": [
+          "欢迎各位来到这场牌局。今夜的城市美术馆闭馆之后，仍有暗影在展廊与库房间游走。你们各自带着未说出口的目的，而命运的齿轮已经开始转动。",
+          "本幕是铺垫之幕。你们将各自行动，为后续的风暴埋下伏笔。你们可以自由探索、试探、结盟或伪装，但请记住：你们所知有限，而真相往往藏在误导之下。",
+          "沈岚，你需要在案发现场周边布置可嫁祸的假象。顾清，你须隐藏或维持当前身份表象，避免过早暴露。梁赫，你则要公开亮明阵营归属与目标，确认成员知情范围与阵营名单/暗号。",
+          "此刻，你们尚未直面凶案，但误导证物、身份表象、阵营结构已在暗中成形。请开始你们的行动。"
+        ],
+        "roleIds": [],
+        "provenance": {
+          "sourceBeatIds": [
+            "ob-mtpaytcs-gzbg",
+            "ob-mtpaytct-o066",
+            "ob-mtpaytct-w3qi"
+          ],
+          "sourceClueIds": [
+            "fact-interface:ob-mtpaytcs-gzbg",
+            "smb-mtpaytco-5tnaz-foreshadow-0",
+            "smb-mtpaytcp-5lvas-faction_foreshadow-0"
+          ],
+          "sourceFactIds": [
+            "fact:smb-mtpaytck-l1bny:beat-setup:false_lead:P1",
+            "fact:smb-mtpaytco-5tnaz:beat-setup:identity_latent:P5",
+            "fact:smb-mtpaytcp-5lvas:beat-setup:faction_latent:P2"
+          ]
+        }
+      },
+      {
+        "id": "act2-host",
+        "stageId": "act2",
+        "title": "第二幕 · 加压：血案惊现",
+        "paragraphs": [
+          "事件骤然升级。凶案已经发生，现场留有诸多痕迹。你们必须迅速行动，在混乱中寻找真相。",
+          "沈岚，你的犯行已经完成，并留下了指向白绫的误导证物。梁赫，你需要根据当前证据判断案情，形成对白绫的主要嫌疑；随后，你必须对照现场与证物，寻找错误嫌疑的矛盾，推翻错误判断。",
+          "顾清，你等待的约定阶段已到，是时候领取被封存的事实碎片。梁赫，你还要组织成员夺取或销毁关键账册或信物，让阵营压力升级。",
+          "调查已经开始，误导与反证交织。请谨慎选择你们的行动。"
+        ],
+        "roleIds": [],
+        "provenance": {
+          "sourceBeatIds": [
+            "ob-mtpaytct-nerp",
+            "ob-mtpaytct-yba9",
+            "ob-mtpaytct-8zcz",
+            "ob-mtpaytct-sgls",
+            "ob-mtpaytct-mmws"
+          ],
+          "sourceClueIds": [
+            "smb-mtpaytco-5tnaz-foreshadow-0",
+            "smb-mtpaytcp-5lvas-faction_foreshadow-0",
+            "smb-mtpaytck-l1bny-false_lead-0",
+            "smb-mtpaytck-l1bny-contradiction-1"
+          ],
+          "sourceFactIds": [
+            "fact:smb-mtpaytck-l1bny:beat-crime:crime_done:P1",
+            "fact:smb-mtpaytck-l1bny:beat-crime:planted_evidence_available:P1",
+            "fact:smb-mtpaytck-l1bny:beat-crime:false_lead:P1",
+            "fact:smb-mtpaytck-l1bny:beat-false:false_suspicion:P2",
+            "fact:smb-mtpaytck-l1bny:beat-false:planted_evidence_available:P2",
+            "fact:smb-mtpaytck-l1bny:beat-contra:contradiction:P2",
+            "fact:smb-mtpaytck-l1bny:beat-contra:false_suspicion:P2",
+            "fact:smb-mtpaytco-5tnaz:beat-develop:identity_clue:P5",
+            "fact:smb-mtpaytco-5tnaz:beat-develop:site_accessible:P5",
+            "fact:smb-mtpaytcp-5lvas:beat-develop:faction_pressure:P2",
+            "fact:smb-mtpaytcp-5lvas:beat-develop:site_accessible:P2",
+            "fact:smb-mtpaytcp-5lvas:beat-develop:faction_latent:P2"
+          ]
+        }
+      },
+      {
+        "id": "act3-host",
+        "stageId": "act3",
+        "title": "第三幕 · 升级：真相浮现",
+        "paragraphs": [
+          "局势进入白热化。关键线索浮出水面，真凶的面纱即将被揭开。",
+          "梁赫，你已掌握反证，是时候用决定性证据揭穿嫁祸，锁定真凶沈岚。顾清，你需要核对身份记录，确认真实身份并决定是否公开。方序，你面临暴露风险，必须在关键选择点背叛、退出或清洗异己，改变归属或保住秘密。",
+          "此幕将决定人物命运与阵营走向。请审慎抉择。"
+        ],
+        "roleIds": [],
+        "provenance": {
+          "sourceBeatIds": [
+            "ob-mtpaytct-j895",
+            "ob-mtpaytct-90on",
+            "ob-mtpaytct-9c3m"
+          ],
+          "sourceClueIds": [
+            "smb-mtpaytck-l1bny-true_evidence-2",
+            "smb-mtpaytck-l1bny-decisive_evidence-3",
+            "smb-mtpaytco-5tnaz-memory_fragment-1",
+            "smb-mtpaytco-5tnaz-identity_hint-2",
+            "smb-mtpaytco-5tnaz-misdirection-3",
+            "smb-mtpaytco-5tnaz-confirmation-4",
+            "smb-mtpaytco-5tnaz-decisive_reveal-5",
+            "smb-mtpaytcp-5lvas-membership_hint-1",
+            "smb-mtpaytcp-5lvas-secret_signal-2",
+            "smb-mtpaytcp-5lvas-recruitment_evidence-3",
+            "smb-mtpaytcp-5lvas-loyalty_test-4",
+            "smb-mtpaytcp-5lvas-betrayal_hint-5",
+            "smb-mtpaytcp-5lvas-internal_conflict-6",
+            "smb-mtpaytcp-5lvas-hidden_goal_hint-7",
+            "smb-mtpaytcp-5lvas-membership_confirmation-8",
+            "smb-mtpaytcp-5lvas-faction_exposure-9"
+          ],
+          "sourceFactIds": [
+            "fact:smb-mtpaytck-l1bny:beat-climax:truth_locked:P2",
+            "fact:smb-mtpaytck-l1bny:beat-climax:contradiction:P2",
+            "fact:smb-mtpaytco-5tnaz:beat-climax:identity_confirmed:P5",
+            "fact:smb-mtpaytco-5tnaz:beat-climax:family_status:P5",
+            "fact:smb-mtpaytco-5tnaz:beat-climax:identity_clue:P5",
+            "fact:smb-mtpaytcp-5lvas:beat-climax:allegiance_changed:P6",
+            "fact:smb-mtpaytcp-5lvas:beat-climax:faction_exposure_risk:P6",
+            "fact:smb-mtpaytcp-5lvas:beat-climax:faction_pressure:P6"
+          ]
+        }
+      },
+      {
+        "id": "act4-host",
+        "stageId": "act4",
+        "title": "第四幕 · 收束：尘埃落定",
+        "paragraphs": [
+          "终幕已至。所有线索汇合，真相必须大白，各人的命运将迎来最终审判。",
+          "梁赫，你需要再次用决定性证据锁定真凶沈岚，确保真相昭然。顾清，你已确认身份，现在必须承受身份公开后的关系后果，面对知情者与阵营/调查方的反应。梁赫，你还要结算阵营目标并承受公开后果，公开站队或接受阵营败露后的关系重排。",
+          "至此，一切尘埃落定。无论结果如何，今夜的故事都将成为历史。感谢各位的参与。"
+        ],
+        "roleIds": [],
+        "provenance": {
+          "sourceBeatIds": [
+            "ob-mtpaytct-iptk",
+            "ob-mtpaytct-xu4a",
+            "ob-mtpaytct-9jwq"
+          ],
+          "sourceClueIds": [
+            "smb-mtpaytck-l1bny-decisive_evidence-3",
+            "fact-interface:ob-mtpaytct-xu4a",
+            "fact-interface:ob-mtpaytct-9jwq"
+          ],
+          "sourceFactIds": [
+            "fact:smb-mtpaytck-l1bny:beat-res:truth_locked:P2",
+            "fact:smb-mtpaytck-l1bny:beat-res:contradiction:P2",
+            "fact:smb-mtpaytco-5tnaz:beat-res:identity_public:P5",
+            "fact:smb-mtpaytco-5tnaz:beat-res:identity_confirmed:P5",
+            "fact:smb-mtpaytcp-5lvas:beat-res:faction_settled:P2",
+            "fact:smb-mtpaytcp-5lvas:beat-res:allegiance_changed:P2"
+          ]
+        }
+      }
+    ]
+  },
+  "roleScripts": {
+    "role_P1": [
+      {
+        "id": "act1-intro",
+        "stageId": "act1",
+        "title": "沈岚：布置嫁祸现场",
+        "paragraphs": [
+          "你站在案发现场周边，夜风掠过衣角。手中那条与白绫同色的布帛已被你精心处理过，边角特意磨损成自然断裂的样子。你将它搭在不起眼的窗棂上，又用指尖拂去可能留下的指纹。",
+          "你清楚自己要做什么：让所有指向都落在白绫身上。她太过干净，干净得让人起疑——而你需要的，恰好是这份‘可疑’。你低声对自己说：‘只要证据足够像，真相就会变成多余的东西。’",
+          "你环顾四周，确认没有目击者。远处传来更夫的梆子声，你退入阴影，嘴角浮起一丝冷笑。嫁祸的棋子已经落下，接下来，只需等待。"
+        ],
+        "roleIds": [],
+        "provenance": {
+          "sourceBeatIds": [
+            "ob-mtpaytcs-gzbg"
+          ],
+          "sourceClueIds": [
+            "fact-interface:ob-mtpaytcs-gzbg",
+            "smb-mtpaytck-l1bny-false_lead-0"
+          ],
+          "sourceFactIds": [
+            "fact:smb-mtpaytck-l1bny:beat-setup:false_lead:P1"
+          ]
+        }
+      },
+      {
+        "id": "act2-crime",
+        "stageId": "act2",
+        "title": "沈岚：犯行与嫁祸",
+        "paragraphs": [
+          "你实施了那场犯行。动作干净利落，没有多余的犹豫。你特意将那块玉佩遗落在现场——那是你从白绫处悄悄取来的。你知道，这枚玉佩会像一枚钉子，将嫌疑牢牢钉在她身上。",
+          "你低头看着自己的手，指尖残留着红蜡的痕迹。那是库房特有的蜡油，你故意让玉佩沾上——这样，当有人发现时，会以为她曾去过库房。你冷笑一声：‘证据，从来不需要真实，只需要可信。’",
+          "犯行结束后，你迅速离开现场。途经廊下时，你瞥见梁赫的人影在暗处晃动，似乎正在处理什么账册。你并未停留，只当那是组织内部的事务。你的目标只有一个：让白绫成为替罪羊。"
+        ],
+        "roleIds": [],
+        "provenance": {
+          "sourceBeatIds": [
+            "ob-mtpaytct-nerp",
+            "ob-mtpaytct-mmws"
+          ],
+          "sourceClueIds": [
+            "fact-interface:ob-mtpaytcs-gzbg",
+            "smb-mtpaytck-l1bny-false_lead-0",
+            "smb-mtpaytck-l1bny-true_evidence-2",
+            "smb-mtpaytck-l1bny-decisive_evidence-3"
+          ],
+          "sourceFactIds": [
+            "fact:smb-mtpaytck-l1bny:beat-crime:crime_done:P1",
+            "fact:smb-mtpaytck-l1bny:beat-crime:planted_evidence_available:P1",
+            "fact:smb-mtpaytck-l1bny:beat-crime:false_lead:P1"
+          ]
+        }
+      },
+      {
+        "id": "act3-confrontation",
+        "stageId": "act3",
+        "title": "沈岚：被揭穿的边缘",
+        "paragraphs": [
+          "你没想到，白绫竟然找到了那枚玉佩。她将它举到你面前，眼中带着决绝的冷意：‘沈岚，你还要演到什么时候？这玉佩上的红蜡，只有库房才有。你忘了，那晚我也在库房外。’",
+          "你的心跳漏了一拍，但脸上仍维持着镇定：‘你在说什么？我根本不知道什么玉佩。’然而，她身后的方序却缓缓开口：‘沈岚，那晚我看见你从库房出来。你还要抵赖到什么时候？’",
+          "你意识到，你的嫁祸出现了裂缝。白绫的坚定、方序的证词，像两面墙向你压来。你感到喉咙发紧，但你知道，此刻绝不能承认。你冷冷扫视众人：‘证据呢？就凭一块玉佩？’——可你心里清楚，那玉佩上的红蜡，确实是你亲手留下的。"
+        ],
+        "roleIds": [],
+        "provenance": {
+          "sourceBeatIds": [
+            "ob-mtpaytct-j895",
+            "ob-mtpaytct-9c3m"
+          ],
+          "sourceClueIds": [
+            "smb-mtpaytck-l1bny-true_evidence-2",
+            "smb-mtpaytck-l1bny-decisive_evidence-3",
+            "smb-mtpaytck-l1bny-contradiction-1",
+            "smb-mtpaytcp-5lvas-betrayal_hint-5"
+          ],
+          "sourceFactIds": [
+            "fact:smb-mtpaytck-l1bny:beat-climax:truth_locked:P2",
+            "fact:smb-mtpaytck-l1bny:beat-climax:contradiction:P2",
+            "fact:smb-mtpaytcp-5lvas:beat-climax:allegiance_changed:P6"
+          ]
+        }
+      },
+      {
+        "id": "act4-resolution",
+        "stageId": "act4",
+        "title": "沈岚：真相大白",
+        "paragraphs": [
+          "最终，决定性证据被摆在了所有人面前。白绫的玉佩、库房的记录、以及你那晚留下的细微痕迹——一切都指向你。你听见梁赫冷漠地宣布：‘沈岚，你还有什么话说？’",
+          "你终于笑了，笑得有些凄凉：‘我输了。但我只想知道，你们是怎么看穿的？’白绫直视你：‘因为你不懂，真正的清白，不需要嫁祸。’",
+          "你低下头，不再辩解。你知道，一切已经结束。你将被带走，而这场嫁祸的戏码，最终以你的败露收场。你忽然想起那些被你精心布置的假象，它们曾如此完美，却在真相面前不堪一击。"
+        ],
+        "roleIds": [],
+        "provenance": {
+          "sourceBeatIds": [
+            "ob-mtpaytct-iptk",
+            "ob-mtpaytct-9jwq"
+          ],
+          "sourceClueIds": [
+            "smb-mtpaytck-l1bny-decisive_evidence-3",
+            "smb-mtpaytcp-5lvas-faction_exposure-9",
+            "fact-interface:ob-mtpaytct-xu4a"
+          ],
+          "sourceFactIds": [
+            "fact:smb-mtpaytck-l1bny:beat-res:truth_locked:P2",
+            "fact:smb-mtpaytck-l1bny:beat-res:contradiction:P2",
+            "fact:smb-mtpaytcp-5lvas:beat-res:faction_settled:P2"
+          ]
+        }
+      }
+    ],
+    "role_P3": [
+      {
+        "id": "act1",
+        "stageId": "act1",
+        "title": "白绫的角色开局：被卷入的现场",
+        "paragraphs": [
+          "你叫白绫，此刻站在案发现场附近。你并不清楚这里发生了什么，但你知道自己成了某种目光的焦点——有人在你周围放置了与白绫相关的物件，像是刻意要把你和这起事件联系起来。你感到一阵不安：这些物件显然不是你的，但它们的出现让你无法置身事外。",
+          "你环顾四周，注意到现场有一件被嫁祸者遗失的玉佩，它的存在让你意识到有人正在制造误导。你隐约感到这是针对你的陷阱，但眼下你还没有足够的信息去分辨真伪。你只能先观察，记住现场每一个细节，以免被他人牵着鼻子走。",
+          "你现在身处案发现场，周围有早期伏笔和阵营伏笔的痕迹。你注意到库房钥匙记录证明真凶曾移动过某物——这或许是关键，但你暂时无法确认它的指向。你决定保持警惕，不轻易表露自己的怀疑。"
+        ],
+        "roleIds": [],
+        "provenance": {
+          "sourceBeatIds": [
+            "ob-mtpaytcs-gzbg"
+          ],
+          "sourceClueIds": [
+            "fact-interface:ob-mtpaytcs-gzbg",
+            "smb-mtpaytco-5tnaz-foreshadow-0",
+            "smb-mtpaytcp-5lvas-faction_foreshadow-0",
+            "smb-mtpaytck-l1bny-false_lead-0",
+            "smb-mtpaytck-l1bny-true_evidence-2",
+            "smb-mtpaytck-l1bny-decisive_evidence-3"
+          ],
+          "sourceFactIds": [
+            "fact:smb-mtpaytck-l1bny:beat-setup:false_lead:P1"
+          ]
+        }
+      },
+      {
+        "id": "act2",
+        "stageId": "act2",
+        "title": "白绫的困境：被误解的嫌疑人",
+        "paragraphs": [
+          "随着调查推进，你发现那些误导证物已经被他人发现并解读，他们将你视为主要嫌疑人。你感到愤怒和无奈——你明明没有做过任何事，却要承受这样的怀疑。你决定主动澄清，但你知道空口无凭，必须找到能证明自己清白的证据。",
+          "你注意到顾清似乎在等待某个约定阶段，他提到要领取被封存的事实，目标指向身份记录。你并不清楚他的真实意图，但你觉得这或许与你的身份有关。你保持距离，观察他的动向。",
+          "与此同时，梁赫似乎正组织成员夺取或销毁关键账册或信物。你感到这场事件背后有更复杂的势力在博弈，而你被卷入了其中。你意识到，如果不尽快找到真相，你可能会成为牺牲品。"
+        ],
+        "roleIds": [],
+        "provenance": {
+          "sourceBeatIds": [
+            "ob-mtpaytct-yba9",
+            "ob-mtpaytct-sgls",
+            "ob-mtpaytct-mmws"
+          ],
+          "sourceClueIds": [
+            "smb-mtpaytck-l1bny-contradiction-1",
+            "smb-mtpaytco-5tnaz-memory_fragment-1",
+            "smb-mtpaytco-5tnaz-identity_hint-2",
+            "smb-mtpaytco-5tnaz-misdirection-3",
+            "smb-mtpaytcp-5lvas-membership_hint-1",
+            "smb-mtpaytcp-5lvas-secret_signal-2"
+          ],
+          "sourceFactIds": [
+            "fact:smb-mtpaytck-l1bny:beat-false:false_suspicion:P2",
+            "fact:smb-mtpaytck-l1bny:beat-false:planted_evidence_available:P2",
+            "fact:smb-mtpaytco-5tnaz:beat-develop:identity_clue:P5",
+            "fact:smb-mtpaytcp-5lvas:beat-develop:faction_pressure:P2"
+          ]
+        }
+      },
+      {
+        "id": "act3",
+        "stageId": "act3",
+        "title": "白绫的转折：真相浮现",
+        "paragraphs": [
+          "就在你几乎要被冤枉定罪时，梁赫突然拿出了决定性证据，揭穿了嫁祸——真凶是沈岚。你松了一口气，但同时也感到后怕：如果不是这关键证据，你或许无法洗清嫌疑。你开始重新审视周围的人，思考谁在暗中帮你，谁又在设计你。",
+          "顾清在核对身份记录后，似乎面临是否公开的选择。你意识到你的身份可能并不简单，这让你更加警惕。你不想成为别人棋局中的一枚棋子，因此决定主动了解更多。",
+          "方序则在暴露风险下做出了关键选择，他可能背叛、退出或清洗异己。你感到阵营之间的斗争已经白热化，而你不得不选择站队或保持中立。你明白，稍有不慎，你可能会被卷入更深的漩涡。"
+        ],
+        "roleIds": [],
+        "provenance": {
+          "sourceBeatIds": [
+            "ob-mtpaytct-j895",
+            "ob-mtpaytct-90on",
+            "ob-mtpaytct-9c3m"
+          ],
+          "sourceClueIds": [
+            "smb-mtpaytck-l1bny-true_evidence-2",
+            "smb-mtpaytck-l1bny-decisive_evidence-3",
+            "smb-mtpaytco-5tnaz-confirmation-4",
+            "smb-mtpaytco-5tnaz-decisive_reveal-5",
+            "smb-mtpaytcp-5lvas-betrayal_hint-5",
+            "smb-mtpaytcp-5lvas-internal_conflict-6",
+            "smb-mtpaytcp-5lvas-hidden_goal_hint-7"
+          ],
+          "sourceFactIds": [
+            "fact:smb-mtpaytck-l1bny:beat-climax:truth_locked:P2",
+            "fact:smb-mtpaytck-l1bny:beat-climax:contradiction:P2",
+            "fact:smb-mtpaytco-5tnaz:beat-climax:identity_confirmed:P5",
+            "fact:smb-mtpaytcp-5lvas:beat-climax:allegiance_changed:P6"
+          ]
+        }
+      },
+      {
+        "id": "act4",
+        "stageId": "act4",
+        "title": "白绫的结局：尘埃落定",
+        "paragraphs": [
+          "最终，梁赫用决定性证据锁定了真凶沈岚，真相大白。你终于洗清了嫌疑，但这场风波让你看清了人心。你意识到，在这个复杂的世界里，信任是多么脆弱。",
+          "顾清的身份被公开，他不得不面对知情者与阵营的反应。你看着他的处境，心中生出几分同情——你也曾经历过被误解的时刻。你决定在适当的时候给予他支持。",
+          "梁赫公开站队，接受阵营败露后的关系重排。你明白一切都要尘埃落定，但你也清楚，有些伤痕不会轻易愈合。你决定重新审视自己的立场，思考接下来的道路。"
+        ],
+        "roleIds": [],
+        "provenance": {
+          "sourceBeatIds": [
+            "ob-mtpaytct-iptk",
+            "ob-mtpaytct-xu4a",
+            "ob-mtpaytct-9jwq"
+          ],
+          "sourceClueIds": [
+            "smb-mtpaytck-l1bny-true_evidence-2",
+            "smb-mtpaytck-l1bny-decisive_evidence-3",
+            "smb-mtpaytco-5tnaz-confirmation-4",
+            "smb-mtpaytco-5tnaz-decisive_reveal-5",
+            "smb-mtpaytcp-5lvas-membership_confirmation-8",
+            "smb-mtpaytcp-5lvas-faction_exposure-9"
+          ],
+          "sourceFactIds": [
+            "fact:smb-mtpaytck-l1bny:beat-res:truth_locked:P2",
+            "fact:smb-mtpaytck-l1bny:beat-res:contradiction:P2",
+            "fact:smb-mtpaytco-5tnaz:beat-res:identity_public:P5",
+            "fact:smb-mtpaytcp-5lvas:beat-res:faction_settled:P2"
+          ]
+        }
+      }
+    ],
+    "role_P5": [
+      {
+        "id": "situation",
+        "stageId": "act1",
+        "title": "处境与目标",
+        "paragraphs": [
+          "你——顾清——此刻站在众人面前，表面身份尚未被揭穿。你清楚自己身负秘密，且这秘密一旦暴露，将牵动许多人的立场与命运。你暂时选择按兵不动，维持现状，避免过早暴露任何破绽。",
+          "你注意到同场中有人同样在观察你，但你无法确定他们究竟知道多少。你只能谨慎行事，在言语与行动间留下回旋余地。",
+          "你的短期目标是：让身份继续保持隐秘，为自己争取更多时间判断局势。"
+        ],
+        "roleIds": [],
+        "provenance": {
+          "sourceBeatIds": [
+            "ob-mtpaytct-o066"
+          ],
+          "sourceClueIds": [],
+          "sourceFactIds": []
+        }
+      },
+      {
+        "id": "memory",
+        "stageId": "act1",
+        "title": "记忆碎片",
+        "paragraphs": [
+          "脑海中有些片段时隐时现——关于某个家族的旧事，关于你与那家族之间若有若无的联系。你尚不能拼出全貌，但你知道那些记忆碎片并非无端而来。",
+          "你隐约感到，自己的身份可能比表面更为复杂。你曾刻意遗忘某些事，但如今它们正慢慢浮出水面。",
+          "你并不确定这些记忆是否被人为操控，但你决定先不声张，静观其变。"
+        ],
+        "roleIds": [],
+        "provenance": {
+          "sourceBeatIds": [],
+          "sourceClueIds": [
+            "smb-mtpaytco-5tnaz-memory_fragment-1",
+            "smb-mtpaytco-5tnaz-identity_hint-2"
+          ],
+          "sourceFactIds": []
+        }
+      },
+      {
+        "id": "perception",
+        "stageId": "act1",
+        "title": "对他人认知",
+        "paragraphs": [
+          "你观察到场中有些人似乎分属不同阵营，彼此之间有微妙的试探与防备。你无法确定谁可信、谁不可信。",
+          "你特别留意到某些人可能与你身世有关，但你没有证据，也不愿轻易表露兴趣。",
+          "你决定保持中立姿态，不轻易站队，以免暴露自己的软肋。"
+        ],
+        "roleIds": [],
+        "provenance": {
+          "sourceBeatIds": [],
+          "sourceClueIds": [
+            "smb-mtpaytcp-5lvas-faction_foreshadow-0",
+            "smb-mtpaytcp-5lvas-membership_hint-1"
+          ],
+          "sourceFactIds": []
+        }
+      },
+      {
+        "id": "action-space",
+        "stageId": "act1",
+        "title": "行动空间",
+        "paragraphs": [
+          "你可以选择继续隐藏身份，也可以试探性地向某些人透露一点信息，以观察反应。但每一步都有风险。",
+          "你可以接近某些线索，比如住户登记档案或物业档案室，但需谨慎行事。",
+          "你的行动原则是：不主动暴露，不轻信他人，保持主动权。"
+        ],
+        "roleIds": [],
+        "provenance": {
+          "sourceBeatIds": [],
+          "sourceClueIds": [
+            "fact-interface:ob-mtpaytcs-gzbg"
+          ],
+          "sourceFactIds": []
+        }
+      },
+      {
+        "id": "situation",
+        "stageId": "act2",
+        "title": "处境与目标",
+        "paragraphs": [
+          "局势开始变得紧张。你得知有人正在寻找某样关键物品——可能是账册或信物——而你隐约觉得那与你的身份记录有关。",
+          "你并非主导者，但你被卷入其中。你需要在混乱中保护自己，同时留意任何可能揭示你身份真相的线索。",
+          "你的目标是：等待合适的时机，获取被封存的那部分事实，但不引起过多注意。"
+        ],
+        "roleIds": [],
+        "provenance": {
+          "sourceBeatIds": [
+            "ob-mtpaytct-sgls",
+            "ob-mtpaytct-mmws"
+          ],
+          "sourceClueIds": [],
+          "sourceFactIds": [
+            "fact:smb-mtpaytco-5tnaz:beat-develop:identity_clue:P5",
+            "fact:smb-mtpaytco-5tnaz:beat-develop:site_accessible:P5"
+          ]
+        }
+      },
+      {
+        "id": "memory",
+        "stageId": "act2",
+        "title": "记忆碎片",
+        "paragraphs": [
+          "你想起更多细节：某个夜晚，你曾在某处留下过印记，但那记忆被刻意模糊。你怀疑有人想掩盖什么。",
+          "你开始怀疑，自己的身份可能并非单纯，而是与某个秘密组织有关。但你尚不确定。",
+          "你决定继续收集线索，尤其是那些可能指向你真实身份的证物。"
+        ],
+        "roleIds": [],
+        "provenance": {
+          "sourceBeatIds": [],
+          "sourceClueIds": [
+            "smb-mtpaytco-5tnaz-memory_fragment-1",
+            "smb-mtpaytco-5tnaz-identity_hint-2"
+          ],
+          "sourceFactIds": []
+        }
+      },
+      {
+        "id": "perception",
+        "stageId": "act2",
+        "title": "对他人认知",
+        "paragraphs": [
+          "你注意到梁赫正在积极行动，他似乎对关键资源志在必得。你不想与他正面对抗，但也不愿被他利用。",
+          "方序似乎也有自己的算盘，他可能在寻找机会改变归属。你对他保持警惕。",
+          "你观察到一些误导性线索，比如被嫁祸者遗失的玉佩，但那可能只是障眼法。"
+        ],
+        "roleIds": [],
+        "provenance": {
+          "sourceBeatIds": [],
+          "sourceClueIds": [
+            "smb-mtpaytck-l1bny-false_lead-0",
+            "smb-mtpaytck-l1bny-contradiction-1"
+          ],
+          "sourceFactIds": []
+        }
+      },
+      {
+        "id": "action-space",
+        "stageId": "act2",
+        "title": "行动空间",
+        "paragraphs": [
+          "你可以主动接触某些线索，例如库房钥匙记录或账册，但需小心不要成为众矢之的。",
+          "你也可以选择暗中观察，让其他人先行行动，自己坐收渔利。",
+          "你决定在必要时刻介入，但始终保持一定距离。"
+        ],
+        "roleIds": [],
+        "provenance": {
+          "sourceBeatIds": [],
+          "sourceClueIds": [
+            "smb-mtpaytck-l1bny-false_lead-0",
+            "smb-mtpaytck-l1bny-contradiction-1"
+          ],
+          "sourceFactIds": []
+        }
+      },
+      {
+        "id": "situation",
+        "stageId": "act3",
+        "title": "处境与目标",
+        "paragraphs": [
+          "关键时刻到来。你手中的证据已足以确认自己的真实身份，但你面临选择：公开还是继续隐瞒？",
+          "你意识到，这个决定不仅影响你自己，还可能改变整个家族的命运。你感到压力巨大。",
+          "你需要在背叛、退出或清洗异己之间做出抉择，而每一步都可能导致不可挽回的后果。"
+        ],
+        "roleIds": [],
+        "provenance": {
+          "sourceBeatIds": [
+            "ob-mtpaytct-90on",
+            "ob-mtpaytct-9c3m"
+          ],
+          "sourceClueIds": [],
+          "sourceFactIds": [
+            "fact:smb-mtpaytco-5tnaz:beat-climax:identity_confirmed:P5",
+            "fact:smb-mtpaytco-5tnaz:beat-climax:family_status:P5",
+            "fact:smb-mtpaytcp-5lvas:beat-climax:allegiance_changed:P6"
+          ]
+        }
+      },
+      {
+        "id": "memory",
+        "stageId": "act3",
+        "title": "记忆碎片",
+        "paragraphs": [
+          "记忆终于清晰：你确实与那个家族有关，你的身份记录被刻意隐藏，如今真相大白。",
+          "你回想起家族的教诲，以及你为何要隐藏身份的原因。现在，你必须做出选择。",
+          "你感到释然，但也感到恐惧——一旦公开，你将失去现有的平静。"
+        ],
+        "roleIds": [],
+        "provenance": {
+          "sourceBeatIds": [],
+          "sourceClueIds": [
+            "smb-mtpaytco-5tnaz-decisive_reveal-5",
+            "smb-mtpaytco-5tnaz-confirmation-4"
+          ],
+          "sourceFactIds": [
+            "fact:smb-mtpaytco-5tnaz:beat-climax:identity_confirmed:P5"
+          ]
+        }
+      },
+      {
+        "id": "perception",
+        "stageId": "act3",
+        "title": "对他人认知",
+        "paragraphs": [
+          "你看到方序正在暗中行动，他可能为了自保而背叛或清洗他人。你理解他的处境，但不会轻易信任他。",
+          "梁赫也在虎视眈眈，他可能想利用你的身份作为筹码。你必须小心应对。",
+          "你意识到，有些人早已知道你的秘密，只是没有点破。这让你感到不安。"
+        ],
+        "roleIds": [],
+        "provenance": {
+          "sourceBeatIds": [],
+          "sourceClueIds": [
+            "smb-mtpaytcp-5lvas-betrayal_hint-5",
+            "smb-mtpaytcp-5lvas-internal_conflict-6"
+          ],
+          "sourceFactIds": []
+        }
+      },
+      {
+        "id": "action-space",
+        "stageId": "act3",
+        "title": "行动空间",
+        "paragraphs": [
+          "你可以选择公开身份，接受随之而来的后果；也可以继续隐瞒，但秘密可能被他人揭穿。",
+          "你可以与某些人结盟，共同应对危机，但需谨慎选择盟友。",
+          "你也可以选择背叛或清洗，彻底改变归属，但这可能导致更大的冲突。"
+        ],
+        "roleIds": [],
+        "provenance": {
+          "sourceBeatIds": [],
+          "sourceClueIds": [
+            "smb-mtpaytck-l1bny-true_evidence-2",
+            "smb-mtpaytck-l1bny-decisive_evidence-3"
+          ],
+          "sourceFactIds": [
+            "fact:smb-mtpaytco-5tnaz:beat-climax:identity_clue:P5"
+          ]
+        }
+      },
+      {
+        "id": "situation",
+        "stageId": "act4",
+        "title": "处境与目标",
+        "paragraphs": [
+          "尘埃落定。你的身份已经公开，你不得不面对知情者与阵营的反应。有些人震惊，有些人愤怒，有些人早已预料。",
+          "你必须承受身份公开后的关系后果，无论是家族的期望还是朋友的疏远。",
+          "你的目标是：在混乱中站稳脚跟，为自己争取最好的结局。"
+        ],
+        "roleIds": [],
+        "provenance": {
+          "sourceBeatIds": [
+            "ob-mtpaytct-xu4a",
+            "ob-mtpaytct-9jwq"
+          ],
+          "sourceClueIds": [],
+          "sourceFactIds": [
+            "fact:smb-mtpaytco-5tnaz:beat-res:identity_public:P5",
+            "fact:smb-mtpaytco-5tnaz:beat-res:identity_confirmed:P5"
+          ]
+        }
+      },
+      {
+        "id": "memory",
+        "stageId": "act4",
+        "title": "记忆碎片",
+        "paragraphs": [
+          "你回想过往种种，那些隐藏身份的岁月如今已成往事。你终于可以坦然面对自己的真实身份。",
+          "你记得自己为何要隐藏，也记得那些帮助过你的人。你感激他们，但也明白一切已无法回头。",
+          "你感到一种前所未有的轻松，尽管前路未知。"
+        ],
+        "roleIds": [],
+        "provenance": {
+          "sourceBeatIds": [],
+          "sourceClueIds": [
+            "smb-mtpaytco-5tnaz-decisive_reveal-5",
+            "smb-mtpaytco-5tnaz-memory_fragment-1"
+          ],
+          "sourceFactIds": []
+        }
+      },
+      {
+        "id": "perception",
+        "stageId": "act4",
+        "title": "对他人认知",
+        "paragraphs": [
+          "你看到梁赫公开站队，可能接受阵营败露的后果。你理解他的选择，但你们之间的信任已不复存在。",
+          "方序也做出了自己的决定，他可能改变了归属，你尊重他的选择，但你们的关系已变。",
+          "你意识到，有些人虽然表面友好，但内心可能早已与你为敌。你必须保持警觉。"
+        ],
+        "roleIds": [],
+        "provenance": {
+          "sourceBeatIds": [],
+          "sourceClueIds": [
+            "smb-mtpaytcp-5lvas-faction_exposure-9",
+            "smb-mtpaytcp-5lvas-membership_confirmation-8"
+          ],
+          "sourceFactIds": []
+        }
+      },
+      {
+        "id": "action-space",
+        "stageId": "act4",
+        "title": "行动空间",
+        "paragraphs": [
+          "你可以选择主动修复关系，或与某些人决裂。",
+          "你可以公开支持某个阵营，或保持中立。",
+          "你决定面对现实，承担起身份带来的责任，为自己和家人争取最好的未来。"
+        ],
+        "roleIds": [],
+        "provenance": {
+          "sourceBeatIds": [],
+          "sourceClueIds": [
+            "fact-interface:ob-mtpaytct-xu4a",
+            "fact-interface:ob-mtpaytct-9jwq"
+          ],
+          "sourceFactIds": []
+        }
+      }
+    ],
+    "role_P6": [
+      {
+        "id": "act1-intro",
+        "stageId": "act1",
+        "title": "登场与暗流",
+        "paragraphs": [
+          "你方序，身处这座城市美术馆的夜间展厅，身份尚未完全公开。你隐约感到顾清在刻意维持某种表象，似乎不想过早暴露什么；而梁赫则在试探性地确认成员与阵营的知情范围。你与二人同处一室，却各怀心思。",
+          "你注意到一些细节：顾清的行动带着刻意的伪装，梁赫则似乎在寻找某个暗号或名单。你决定先不动声色，观察他们的意图。"
+        ],
+        "roleIds": [],
+        "provenance": {
+          "sourceBeatIds": [
+            "ob-mtpaytct-o066",
+            "ob-mtpaytct-w3qi"
+          ],
+          "sourceClueIds": [
+            "fact-interface:ob-mtpaytcs-gzbg",
+            "smb-mtpaytco-5tnaz-foreshadow-0",
+            "smb-mtpaytcp-5lvas-faction_foreshadow-0"
+          ],
+          "sourceFactIds": [
+            "fact:smb-mtpaytco-5tnaz:beat-setup:identity_latent:P5",
+            "fact:smb-mtpaytcp-5lvas:beat-setup:faction_latent:P2"
+          ]
+        }
+      },
+      {
+        "id": "act2-develop",
+        "stageId": "act2",
+        "title": "线索交织",
+        "paragraphs": [
+          "场景推进，你看到顾清似乎在等待某个约定好的阶段，以接收一份被封存的记录；梁赫则开始组织成员夺取或销毁账册与信物。你尚未卷入核心，但能感到压力正在升级。",
+          "你瞥见一些零碎的证据：一块被嫁祸者遗失的玉佩，上面沾有红蜡；库房钥匙记录显示有人曾移动过某物。这些线索指向更深的冲突。"
+        ],
+        "roleIds": [],
+        "provenance": {
+          "sourceBeatIds": [
+            "ob-mtpaytct-sgls",
+            "ob-mtpaytct-mmws"
+          ],
+          "sourceClueIds": [
+            "smb-mtpaytco-5tnaz-memory_fragment-1",
+            "smb-mtpaytcp-5lvas-membership_hint-1",
+            "smb-mtpaytck-l1bny-false_lead-0",
+            "smb-mtpaytck-l1bny-contradiction-1"
+          ],
+          "sourceFactIds": [
+            "fact:smb-mtpaytco-5tnaz:beat-develop:identity_clue:P5",
+            "fact:smb-mtpaytcp-5lvas:beat-develop:faction_pressure:P2",
+            "fact:smb-mtpaytcp-5lvas:beat-develop:site_accessible:P2"
+          ]
+        }
+      },
+      {
+        "id": "act3-climax",
+        "stageId": "act3",
+        "title": "抉择时刻",
+        "paragraphs": [
+          "高潮逼近。顾清核对身份记录，准备决定是否公开；而你方序站在关键选择点：是否背叛、退出或清洗异己，以在暴露风险下保住秘密或改变归属。你感到归属已开始动摇，暴露风险上升。",
+          "你手中握有决定性证据，但必须权衡：若公开，可能改变阵营格局；若沉默，秘密或许得以保全。"
+        ],
+        "roleIds": [],
+        "provenance": {
+          "sourceBeatIds": [
+            "ob-mtpaytct-90on",
+            "ob-mtpaytct-9c3m"
+          ],
+          "sourceClueIds": [
+            "smb-mtpaytco-5tnaz-confirmation-4",
+            "smb-mtpaytco-5tnaz-decisive_reveal-5",
+            "smb-mtpaytcp-5lvas-loyalty_test-4",
+            "smb-mtpaytck-l1bny-true_evidence-2",
+            "smb-mtpaytck-l1bny-decisive_evidence-3"
+          ],
+          "sourceFactIds": [
+            "fact:smb-mtpaytco-5tnaz:beat-climax:identity_confirmed:P5",
+            "fact:smb-mtpaytco-5tnaz:beat-climax:family_status:P5",
+            "fact:smb-mtpaytcp-5lvas:beat-climax:allegiance_changed:P6",
+            "fact:smb-mtpaytcp-5lvas:beat-climax:faction_exposure_risk:P6",
+            "fact:smb-mtpaytcp-5lvas:beat-climax:faction_pressure:P6"
+          ]
+        }
+      },
+      {
+        "id": "act4-resolution",
+        "stageId": "act4",
+        "title": "余波与重组",
+        "paragraphs": [
+          "尘埃落定。顾清将面对身份公开后的人际后果，而梁赫则公开站队，接受阵营胜负的清算。你方序作为旁观者，目睹关系网络的重排。你意识到，无论结果如何，某些纽带已永久改变。",
+          "你手中仍有未解的线索，但大局已定。你开始思考自己的下一步行动。"
+        ],
+        "roleIds": [],
+        "provenance": {
+          "sourceBeatIds": [
+            "ob-mtpaytct-xu4a",
+            "ob-mtpaytct-9jwq"
+          ],
+          "sourceClueIds": [
+            "smb-mtpaytco-5tnaz-identity_hint-2",
+            "smb-mtpaytcp-5lvas-faction_exposure-9",
+            "fact-interface:ob-mtpaytct-xu4a",
+            "fact-interface:ob-mtpaytct-9jwq"
+          ],
+          "sourceFactIds": [
+            "fact:smb-mtpaytco-5tnaz:beat-res:identity_public:P5",
+            "fact:smb-mtpaytco-5tnaz:beat-res:identity_confirmed:P5",
+            "fact:smb-mtpaytcp-5lvas:beat-res:faction_settled:P2",
+            "fact:smb-mtpaytcp-5lvas:beat-res:allegiance_changed:P2"
+          ]
+        }
+      }
+    ],
+    "role_P2": [
+      {
+        "id": "act1-intro",
+        "stageId": "act1",
+        "title": "阵营确认",
+        "paragraphs": [
+          "你梁赫，是某个秘密阵营中的核心成员。此刻，你正与同阵营的成员在私下会合点碰面。你们借着公共应急任务的掩护，用成员暗号互相确认身份。你清楚，阵营结构已经成形，但每个成员的知情范围必须严格把控。你需要在这次碰面中，确认哪些成员了解阵营的完整名单和暗号，哪些只知道局部。你环视四周，眼神中带着审视，压低声音说道：“老规矩，先对暗号，再谈正事。谁知道的，心里有数；不该知道的，别多问。”"
+        ],
+        "roleIds": [],
+        "provenance": {
+          "sourceBeatIds": [
+            "ob-mtpaytct-w3qi"
+          ],
+          "sourceClueIds": [
+            "smb-mtpaytcp-5lvas-faction_foreshadow-0",
+            "smb-mtpaytcp-5lvas-membership_hint-1",
+            "smb-mtpaytcp-5lvas-secret_signal-2"
+          ],
+          "sourceFactIds": [
+            "fact:smb-mtpaytcp-5lvas:beat-setup:faction_latent:P2"
+          ]
+        }
+      },
+      {
+        "id": "act2-crime-scene",
+        "stageId": "act2",
+        "title": "案发现场的迷雾",
+        "paragraphs": [
+          "你身处案发现场，这里的气氛凝重。你注意到沈岚也在场，她似乎刚刚完成某种布置，但你没有直接看到她的动作。你发现了一枚玉佩，上面沾有仅库房存在的红蜡，这让你立刻联想到白绫——你知道白绫曾被嫁祸，这枚玉佩很可能就是误导证物。你将其视为关键线索，心中对白绫的嫌疑骤然上升。你拿起玉佩，仔细端详，对身边的人说：“这枚玉佩，还有这红蜡，都指向白绫。她脱不了干系。”然而，当你对照案发现场的其他细节时，你发现了一些矛盾之处：勒杀所用的工具与玉佩的摆放位置存在不合逻辑的地方。你皱眉思索，反证开始浮现——白绫或许并非真凶。",
+          "与此同时，你接到阵营的指令：组织成员夺取或销毁关键账册或信物。你明白这是阵营压力升级的信号，你们必须在调查深入之前，抹除可能的把柄。你低声吩咐身边的成员：“账册必须到手，或者毁掉。不能让它们落到外人手里。”"
+        ],
+        "roleIds": [],
+        "provenance": {
+          "sourceBeatIds": [
+            "ob-mtpaytct-nerp",
+            "ob-mtpaytct-yba9",
+            "ob-mtpaytct-8zcz",
+            "ob-mtpaytct-mmws"
+          ],
+          "sourceClueIds": [
+            "smb-mtpaytck-l1bny-false_lead-0",
+            "smb-mtpaytck-l1bny-contradiction-1",
+            "smb-mtpaytck-l1bny-true_evidence-2",
+            "smb-mtpaytcp-5lvas-recruitment_evidence-3",
+            "smb-mtpaytcp-5lvas-loyalty_test-4"
+          ],
+          "sourceFactIds": [
+            "fact:smb-mtpaytck-l1bny:beat-crime:crime_done:P1",
+            "fact:smb-mtpaytck-l1bny:beat-crime:planted_evidence_available:P1",
+            "fact:smb-mtpaytck-l1bny:beat-false:false_suspicion:P2",
+            "fact:smb-mtpaytck-l1bny:beat-contra:contradiction:P2",
+            "fact:smb-mtpaytcp-5lvas:beat-develop:faction_pressure:P2"
+          ]
+        }
+      },
+      {
+        "id": "act3-climax",
+        "stageId": "act3",
+        "title": "真相揭晓",
+        "paragraphs": [
+          "随着调查深入，你手中的反证越来越多。你发现库房钥匙记录证明真凶曾移动过某物——那件物品正是关键突破证物。你意识到，真正的凶手是沈岚，她为了完成犯行并嫁祸给白绫，布置了误导证物。你召集众人，用决定性证据揭穿了沈岚的嫁祸。你指着沈岚，语气坚定：“沈岚，你的手法虽然巧妙，但库房钥匙记录和红蜡的痕迹出卖了你。白绫是被冤枉的。”沈岚脸色苍白，无言以对。真凶锁定，你感到一阵释然。",
+          "与此同时，你注意到顾清在核对身份记录，似乎面临是否公开真实身份的选择；方序则神色紧张，似乎在考虑是否背叛阵营。你明白，这些纠葛与阵营的归属状态紧密相连，但此刻你更关注自己的阵营目标。你需要在关键选择点做出决策，是继续维护阵营，还是另做打算。"
+        ],
+        "roleIds": [],
+        "provenance": {
+          "sourceBeatIds": [
+            "ob-mtpaytct-j895",
+            "ob-mtpaytct-90on",
+            "ob-mtpaytct-9c3m"
+          ],
+          "sourceClueIds": [
+            "smb-mtpaytck-l1bny-decisive_evidence-3",
+            "smb-mtpaytco-5tnaz-confirmation-4",
+            "smb-mtpaytco-5tnaz-decisive_reveal-5",
+            "smb-mtpaytcp-5lvas-betrayal_hint-5",
+            "smb-mtpaytcp-5lvas-internal_conflict-6",
+            "smb-mtpaytcp-5lvas-hidden_goal_hint-7"
+          ],
+          "sourceFactIds": [
+            "fact:smb-mtpaytck-l1bny:beat-climax:truth_locked:P2",
+            "fact:smb-mtpaytck-l1bny:beat-climax:contradiction:P2",
+            "fact:smb-mtpaytcp-5lvas:beat-climax:allegiance_changed:P6",
+            "fact:smb-mtpaytcp-5lvas:beat-climax:faction_exposure_risk:P6"
+          ]
+        }
+      },
+      {
+        "id": "act4-resolution",
+        "stageId": "act4",
+        "title": "尘埃落定",
+        "paragraphs": [
+          "真相大白后，你再次确认了沈岚的真凶身份，她无法再抵赖。你承受着公开后果，你的阵营目标也面临结算。顾清的身份已经公开，她正在面对知情者与阵营的反应，关系正在重组。你必须在公开站队和接受阵营败露后的关系重排之间做出选择。你深吸一口气，决定公开站队，表明你的立场。你对着众人说：“我梁赫，从今往后，与我的阵营共存亡。”你明白，无论结果如何，你都将承担由此带来的关系变化。",
+          "你回顾整个过程，从最初的阵营确认，到案发现场的迷雾，再到真相揭晓，你始终在寻找自己的位置。现在，尘埃落定，你终于可以松一口气。"
+        ],
+        "roleIds": [],
+        "provenance": {
+          "sourceBeatIds": [
+            "ob-mtpaytct-iptk",
+            "ob-mtpaytct-xu4a",
+            "ob-mtpaytct-9jwq"
+          ],
+          "sourceClueIds": [
+            "smb-mtpaytck-l1bny-decisive_evidence-3",
+            "smb-mtpaytco-5tnaz-identity_clue-2",
+            "smb-mtpaytcp-5lvas-membership_confirmation-8",
+            "smb-mtpaytcp-5lvas-faction_exposure-9"
+          ],
+          "sourceFactIds": [
+            "fact:smb-mtpaytck-l1bny:beat-res:truth_locked:P2",
+            "fact:smb-mtpaytcp-5lvas:beat-res:faction_settled:P2",
+            "fact:smb-mtpaytcp-5lvas:beat-res:allegiance_changed:P2"
+          ]
+        }
+      }
+    ],
+    "role_P4": [
+      {
+        "id": "P4-act2",
+        "stageId": "act2",
+        "title": "第二幕：暗流与裂痕",
+        "paragraphs": [
+          "你站在案发现场边缘，灯光昏暗，空气里还残留着未曾消散的紧张。沈岚的身影在阴影中移动，动作利落而克制，仿佛每一步都经过计算。你看见她将一枚沾着红蜡的玉佩放在显眼处——那是白绫的东西。你明白这意味着什么，但你没有出声。你只是记住了这个画面。",
+          "随后，你随顾清来到一处约定好的地点。他没有多言，只是递给你一段信息，像是某种被封存已久的片段终于被允许打开。你接过，感受到其中的分量——那与身份有关，与一个人究竟是谁有关。你意识到，这可能是揭开真相的关键，也可能让你陷入更深的漩涡。",
+          "梁赫出现了，带着几名组织成员。他们的目标明确：夺取或销毁关键账册。你看见他们动作迅速，没有犹豫。账册被转移，痕迹被清理。你站在一旁，既没有阻止，也没有参与。你知道，在这场棋局里，每个人都有自己的目的，而你的目的，还没有到暴露的时候。",
+          "你感到压力在积累。你看见的、听见的，都指向一个更大的秘密。但你现在还不能完全看清。你必须保持警觉，等待时机。"
+        ],
+        "roleIds": [],
+        "provenance": {
+          "sourceBeatIds": [
+            "ob-mtpaytct-nerp",
+            "ob-mtpaytct-sgls",
+            "ob-mtpaytct-mmws"
+          ],
+          "sourceClueIds": [
+            "smb-mtpaytck-l1bny-false_lead-0",
+            "smb-mtpaytck-l1bny-contradiction-1",
+            "smb-mtpaytco-5tnaz-memory_fragment-1",
+            "smb-mtpaytcp-5lvas-faction_foreshadow-0"
+          ],
+          "sourceFactIds": []
+        }
+      },
+      {
+        "id": "P4-act3",
+        "stageId": "act3",
+        "title": "第三幕：抉择与暴露",
+        "paragraphs": [
+          "真相开始浮出水面。顾清核对着一份身份记录，神色凝重。你知道，他即将面临一个选择：公开，或者隐瞒。这个选择会影响所有人，包括你。你站在一旁，观察着他的每一个细微表情，试图判断他最终的决定。",
+          "方序也处在关键节点。他必须在背叛、退出和清洗异己之间做出选择。你感觉到阵营内部的裂痕正在扩大，信任变得脆弱。你知道，一旦他做出选择，整个格局都会改变。你不得不重新评估自己的立场。",
+          "你意识到，自己也必须做出回应。你不能再只是旁观者。你握紧拳头，思考着下一步行动。"
+        ],
+        "roleIds": [],
+        "provenance": {
+          "sourceBeatIds": [
+            "ob-mtpaytct-90on",
+            "ob-mtpaytct-9c3m"
+          ],
+          "sourceClueIds": [
+            "smb-mtpaytco-5tnaz-identity_hint-2",
+            "smb-mtpaytco-5tnaz-misdirection-3",
+            "smb-mtpaytcp-5lvas-betrayal_hint-5",
+            "smb-mtpaytcp-5lvas-internal_conflict-6"
+          ],
+          "sourceFactIds": []
+        }
+      },
+      {
+        "id": "P4-act4",
+        "stageId": "act4",
+        "title": "第四幕：尘埃落定",
+        "paragraphs": [
+          "最后的时刻来临。梁赫拿出了决定性证据，指向沈岚。嫁祸的谎言被揭穿，真凶终于无所遁形。你看着这一切，心中既有一种尘埃落定的释然，也有一种说不清的沉重。",
+          "顾清的身份已经公开，他必须面对知情者和阵营的反应。你看到他的肩膀微微颤抖，但他没有退缩。你知道，这个结果将改变你们之间的关系。",
+          "梁赫公开站队，接受了阵营的胜负。你看着周围的一切，明白这场游戏已经结束。但对你来说，新的问题才刚刚开始：你将如何面对这些已经改变的关系？你的下一步，又该走向何方？",
+          "你深吸一口气，准备迎接接下来的挑战。"
+        ],
+        "roleIds": [],
+        "provenance": {
+          "sourceBeatIds": [
+            "ob-mtpaytct-iptk",
+            "ob-mtpaytct-xu4a",
+            "ob-mtpaytct-9jwq"
+          ],
+          "sourceClueIds": [
+            "smb-mtpaytck-l1bny-decisive_evidence-3",
+            "smb-mtpaytco-5tnaz-decisive_reveal-5",
+            "smb-mtpaytcp-5lvas-faction_exposure-9"
+          ],
+          "sourceFactIds": []
+        }
+      }
+    ]
+  },
+  "sharedScripts": [],
+  "publicScripts": [
+    {
+      "id": "act1-scene",
+      "stageId": "act1",
+      "title": "黎明前的暗流",
+      "paragraphs": [
+        "夜色尚未褪尽，城市美术馆的轮廓在薄雾中若隐若现。案发现场周边的警戒带已被晨露打湿，而在那片被标记为禁区的阴影里，有人正将一条白绫轻轻搭在路灯基座的铁钩上——它垂落的角度刻意而自然，仿佛只是昨夜匆忙撤离时遗落的私人物品。",
+        "与此同时，另一批身影在街巷间穿行。他们刻意压低帽檐、放缓脚步，按着各自伪装的身份行动：有人扮作早起的清洁工，有人装作迷路的游客。没有人交谈，没有人对视，只有藏在袖口或衣领下的暗号在无声确认——谁是同路人，谁尚在迷雾之中。",
+        "在美术馆侧门的一处隐蔽角落，几位成员终于碰头。他们快速交换着眼神，用最低的声音核对彼此已知的范围：哪些人已经确认了阵营，哪些人仍处于未知状态，以及那句只在特定时刻才有效的暗号——它如今还差最后半句才能被完整接上。远处传来保安巡逻的脚步声，所有人立刻散开，仿佛从未存在过。"
+      ],
+      "roleIds": [],
+      "provenance": {
+        "sourceBeatIds": [
+          "ob-mtpaytcs-gzbg",
+          "ob-mtpaytct-o066",
+          "ob-mtpaytct-w3qi"
+        ],
+        "sourceClueIds": [],
+        "sourceFactIds": [
+          "fact:smb-mtpaytck-l1bny:beat-setup:false_lead:P1",
+          "fact:smb-mtpaytco-5tnaz:beat-setup:identity_latent:P5",
+          "fact:smb-mtpaytcp-5lvas:beat-setup:faction_latent:P2"
+        ]
+      }
+    },
+    {
+      "id": "act2-pressure",
+      "stageId": "act2",
+      "title": "加压",
+      "paragraphs": [
+        "夜幕笼罩城市美术馆，闭馆后的展厅寂静无声。白绫的身影在监控死角中移动，她小心翼翼地将一件关键误导证物放置在案发现场，刻意留下指向自己的痕迹——但这一切，都只是精心设计的假象。",
+        "调查人员随后抵达，发现并解读了那件误导证物，白绫因此被列为头号嫌疑人。然而，随着调查深入，他们开始对照案发现场与证物，试图寻找错误嫌疑无法解释的矛盾。",
+        "与此同时，组织成员在暗中行动，夺取或销毁关键账册与信物，试图抹去一切可能暴露真相的线索。时间紧迫，压力层层叠加，每个人的选择都将决定最终结局。"
+      ],
+      "roleIds": [],
+      "provenance": {
+        "sourceBeatIds": [
+          "ob-mtpaytct-nerp",
+          "ob-mtpaytct-yba9",
+          "ob-mtpaytct-8zcz",
+          "ob-mtpaytct-sgls",
+          "ob-mtpaytct-mmws"
+        ],
+        "sourceClueIds": [],
+        "sourceFactIds": [
+          "fact:smb-mtpaytck-l1bny:beat-crime:crime_done:P1",
+          "fact:smb-mtpaytck-l1bny:beat-crime:planted_evidence_available:P1",
+          "fact:smb-mtpaytck-l1bny:beat-crime:false_lead:P1",
+          "fact:smb-mtpaytck-l1bny:beat-false:false_suspicion:P2",
+          "fact:smb-mtpaytck-l1bny:beat-false:planted_evidence_available:P2",
+          "fact:smb-mtpaytck-l1bny:beat-contra:contradiction:P2",
+          "fact:smb-mtpaytck-l1bny:beat-contra:false_suspicion:P2",
+          "fact:smb-mtpaytco-5tnaz:beat-develop:identity_clue:P5",
+          "fact:smb-mtpaytco-5tnaz:beat-develop:site_accessible:P5",
+          "fact:smb-mtpaytcp-5lvas:beat-develop:faction_pressure:P2",
+          "fact:smb-mtpaytcp-5lvas:beat-develop:site_accessible:P2",
+          "fact:smb-mtpaytcp-5lvas:beat-develop:faction_latent:P2"
+        ]
+      }
+    },
+    {
+      "id": "public-narrative-escalation",
+      "stageId": "act3",
+      "title": "升级",
+      "paragraphs": [
+        "局势骤然收紧。原本隐于暗处的矛盾，此刻被推至台前。有人握住了足以颠覆局面的证据，也有人正为身份暴露而如坐针毡。",
+        "关键抉择已至：是当众揭穿嫁祸的真相，让谎言崩塌；还是核对身份记录后选择沉默，为自己留一份余地？",
+        "在利益与立场的交叉路口，每一次表态都可能成为背叛的起点，每一次退出都可能保全自身，而清洗异己的念头，也在某些人心中悄然滋长。",
+        "此刻，没有中立的旁观者——每个人都在为自己的下一步押注。"
+      ],
+      "roleIds": [],
+      "provenance": {
+        "sourceBeatIds": [
+          "ob-mtpaytct-j895",
+          "ob-mtpaytct-90on",
+          "ob-mtpaytct-9c3m"
+        ],
+        "sourceClueIds": [],
+        "sourceFactIds": [
+          "fact:smb-mtpaytck-l1bny:beat-climax:truth_locked:P2",
+          "fact:smb-mtpaytck-l1bny:beat-climax:contradiction:P2",
+          "fact:smb-mtpaytco-5tnaz:beat-climax:identity_confirmed:P5",
+          "fact:smb-mtpaytco-5tnaz:beat-climax:family_status:P5",
+          "fact:smb-mtpaytco-5tnaz:beat-climax:identity_clue:P5",
+          "fact:smb-mtpaytcp-5lvas:beat-climax:allegiance_changed:P6",
+          "fact:smb-mtpaytcp-5lvas:beat-climax:faction_exposure_risk:P6",
+          "fact:smb-mtpaytcp-5lvas:beat-climax:faction_pressure:P6"
+        ]
+      }
+    },
+    {
+      "id": "public-stakes-and-options",
+      "stageId": "act3",
+      "title": "抉择的代价",
+      "paragraphs": [
+        "摆在你面前的，不是简单的对错题，而是关乎立场与生存的权衡。",
+        "你可以动用手中的决定性证据，当众撕开嫁祸的伪装——但这样做，也将彻底暴露你的调查方向与信息来源。",
+        "你也可以核对身份记录，确认对方真实底细后，再决定是公开摊牌，还是将这份认知深埋心底，留作日后筹码。",
+        "更微妙的是，此刻的盟友未必可靠，昔日的对手或许正等你犯错。背叛、退出、清洗——每一种行动都伴随不可逆的后果，而时间不会为任何人停留。"
+      ],
+      "roleIds": [],
+      "provenance": {
+        "sourceBeatIds": [
+          "ob-mtpaytct-j895",
+          "ob-mtpaytct-90on",
+          "ob-mtpaytct-9c3m"
+        ],
+        "sourceClueIds": [],
+        "sourceFactIds": [
+          "fact:smb-mtpaytck-l1bny:beat-climax:truth_locked:P2",
+          "fact:smb-mtpaytck-l1bny:beat-climax:contradiction:P2",
+          "fact:smb-mtpaytco-5tnaz:beat-climax:identity_confirmed:P5",
+          "fact:smb-mtpaytco-5tnaz:beat-climax:family_status:P5",
+          "fact:smb-mtpaytco-5tnaz:beat-climax:identity_clue:P5",
+          "fact:smb-mtpaytcp-5lvas:beat-climax:allegiance_changed:P6",
+          "fact:smb-mtpaytcp-5lvas:beat-climax:faction_exposure_risk:P6",
+          "fact:smb-mtpaytcp-5lvas:beat-climax:faction_pressure:P6"
+        ]
+      }
+    },
+    {
+      "id": "act4-confrontation",
+      "stageId": "act4",
+      "title": "铁证当前",
+      "paragraphs": [
+        "当你们将手中的证据——那件被刻意布置的误导证物、与案发现场记录相悖的细节、以及指向真正幕后之人的关键账册——逐一摊开时，原本笃定的指控开始松动。",
+        "有人脸色骤变，有人沉默不语。那些曾言之凿凿的结论，在决定性证据面前显得苍白。嫁祸的痕迹清晰可见，而真相的轮廓终于显露。"
+      ],
+      "roleIds": [],
+      "provenance": {
+        "sourceBeatIds": [
+          "ob-mtpaytct-iptk",
+          "ob-mtpaytct-xu4a"
+        ],
+        "sourceClueIds": [],
+        "sourceFactIds": [
+          "fact:smb-mtpaytck-l1bny:beat-res:truth_locked:P2",
+          "fact:smb-mtpaytck-l1bny:beat-res:contradiction:P2"
+        ]
+      }
+    },
+    {
+      "id": "act4-reactions",
+      "stageId": "act4",
+      "title": "知情者的注视",
+      "paragraphs": [
+        "现场的目光汇聚过来：那些早已知道内情的人，那些被蒙在鼓里如今恍然大悟的人，以及代表调查方立场、等待着最终表态的人。",
+        "他们的反应各不相同——有的露出果然如此的神情，有的则因身份被公开而显出动摇。但所有人都明白，此刻已无法再回避。"
+      ],
+      "roleIds": [],
+      "provenance": {
+        "sourceBeatIds": [
+          "ob-mtpaytct-xu4a",
+          "ob-mtpaytct-9jwq"
+        ],
+        "sourceClueIds": [],
+        "sourceFactIds": [
+          "fact:smb-mtpaytco-5tnaz:beat-res:identity_public:P5",
+          "fact:smb-mtpaytco-5tnaz:beat-res:identity_confirmed:P5"
+        ]
+      }
+    },
+    {
+      "id": "act4-alignment",
+      "stageId": "act4",
+      "title": "站队与重排",
+      "paragraphs": [
+        "最后一刻，每个人都必须做出选择：是继续维护已然败露的阵营，还是站到真相一边？",
+        "关系在此时重新洗牌。一些同盟因彼此的立场而分道扬镳，另一些则在坦诚中重建信任。无论结果如何，这场风波过后，再也没有人能装作无事发生。"
+      ],
+      "roleIds": [],
+      "provenance": {
+        "sourceBeatIds": [
+          "ob-mtpaytct-9jwq"
+        ],
+        "sourceClueIds": [],
+        "sourceFactIds": [
+          "fact:smb-mtpaytcp-5lvas:beat-res:faction_settled:P2",
+          "fact:smb-mtpaytcp-5lvas:beat-res:allegiance_changed:P2"
+        ]
+      }
+    }
+  ],
+  "clues": [
+    {
+      "id": "fact-interface:ob-mtpaytcs-gzbg",
+      "title": "误导证物已就绪",
+      "stageId": "act1",
+      "delivery": "HOST_RELEASE",
+      "visibility": "PUBLIC",
+      "paragraphs": [
+        "在物业档案室的铁皮柜中，P1 和 P3 找到了一份泛黄的住户登记档案，纸张边缘有被水渍浸过的痕迹，但关键信息仍清晰可读。",
+        "档案显示，在案发当晚的访客记录里，有一名访客登记的身份信息与住户名单存在出入——该访客所填的住户门牌号对应的住户，在当晚并未登记在案，但访客签名处的字迹却与某位住户的笔迹相似。",
+        "档案的封底贴着一张物业核验码标签，标签上的数字被部分涂抹，但仍可辨识出与门禁权限相关的代码片段。这份档案似乎是被刻意放在显眼位置，但内容却指向一个并不存在的住户。",
+        "档案的最后一页夹着一张便条，上面写着‘已核验，无异常’，但便条上的日期却早于案发前一周，且没有物业负责人的签字。"
+      ],
+      "documentId": "doc_fact-interface:ob-mtpaytcs-gzbg",
+      "roleIds": [
+        "role_P1",
+        "role_P3"
+      ],
+      "isMisleading": true,
+      "isDecisive": false,
+      "supportsFact": "误导证物已就绪",
+      "provenance": {
+        "sourceClueId": "fact-interface:ob-mtpaytcs-gzbg",
+        "sourceBeatIds": []
+      }
+    },
+    {
+      "id": "smb-mtpaytco-5tnaz-foreshadow-0",
+      "title": "早期伏笔",
+      "stageId": "act1",
+      "delivery": "HOST_RELEASE",
+      "visibility": "PUBLIC",
+      "paragraphs": [
+        "在物业档案室的灰色铁皮柜中，有一册泛黄的住户登记档案。翻到夹着干枯银杏叶的那一页，会发现P5的登记信息旁，用褪色蓝墨水写着一行小字：「此人门禁权限异常，曾于闭馆时段出现在库房走廊，核验码多次失效，但每次都能自行恢复。」",
+        "档案页脚贴着一条褪色的打印标签，标注「城市美术馆夜间展厅-未公开预展目录册」的借阅记录，但未注明借阅人。",
+        "旁边散落着一份手写的备忘录，提到「闭馆门禁与库房授权日志」中，某次记录与「私人预展邀请腕带」的发放名单不符，但并未指出具体是谁。"
+      ],
+      "documentId": "doc_smb-mtpaytco-5tnaz-foreshadow-0",
+      "roleIds": [
+        "role_P5",
+        "role_P6",
+        "role_P2",
+        "role_P3",
+        "role_P4"
+      ],
+      "isMisleading": false,
+      "isDecisive": false,
+      "supportsFact": "早期伏笔",
+      "provenance": {
+        "sourceClueId": "smb-mtpaytco-5tnaz-foreshadow-0",
+        "sourceBeatIds": [
+          "ob-mtpaytct-o066",
+          "ob-mtpaytct-sgls"
+        ]
+      }
+    },
+    {
+      "id": "smb-mtpaytcp-5lvas-faction_foreshadow-0",
+      "title": "阵营伏笔",
+      "stageId": "act1",
+      "delivery": "HOST_RELEASE",
+      "visibility": "PUBLIC",
+      "paragraphs": [
+        "在物业档案室一角的铁皮柜里，P2 翻出了一份住户登记档案的复印件。纸张边缘微微卷曲，像是被人反复翻阅过。档案上，某户业主的名字旁，有人用铅笔轻轻画了一个圆圈，又在旁边写了一个极小的符号，像是某种暗记。",
+        "翻到背面，P2 看到一行潦草的字迹，墨水颜色与档案正文不同，似乎是后来添上的：“门禁权限已更新，核验码注意查收。”字迹旁边还画了一个类似箭头的标记，指向档案中一处关于小区公共应急任务的记录。",
+        "这份档案本身并不起眼，但那种刻意留下的痕迹，让 P2 隐约觉得，这或许与某个尚未浮出水面的阵营有关。档案中提到的“门禁权限”和“物业核验码”，似乎暗示着有人在暗中协调进入某些区域的机会。"
+      ],
+      "documentId": "doc_smb-mtpaytcp-5lvas-faction_foreshadow-0",
+      "roleIds": [
+        "role_P2",
+        "role_P6",
+        "role_P5",
+        "role_P1",
+        "role_P3",
+        "role_P4"
+      ],
+      "isMisleading": false,
+      "isDecisive": false,
+      "supportsFact": "阵营伏笔",
+      "provenance": {
+        "sourceClueId": "smb-mtpaytcp-5lvas-faction_foreshadow-0",
+        "sourceBeatIds": [
+          "ob-mtpaytct-w3qi",
+          "ob-mtpaytct-mmws"
+        ]
+      }
+    },
+    {
+      "id": "smb-mtpaytck-l1bny-false_lead-0",
+      "title": "被嫁祸者遗失的玉佩",
+      "stageId": "act2",
+      "delivery": "HOST_RELEASE",
+      "visibility": "PUBLIC",
+      "paragraphs": [
+        "在案发现场附近的花坛边缘，调查者发现了一枚成色温润的玉佩，系绳断裂处有新鲜磨损。玉佩背面刻着一个小小的‘林’字，与住户登记档案中某位住户的姓氏吻合。",
+        "物业档案室的登记日志显示，案发当晚19:47，一位自称‘林先生’的人以‘物业核验码’为由进入2号楼单元门，门禁权限记录与玉佩主人所登记的房号一致。",
+        "然而，档案室角落的碎纸机旁散落着几张被撕碎的便签，拼凑后可见‘借玉佩一用’‘事成归还’等字句，字迹与物业经理日常便条截然不同。这似乎暗示玉佩并非自愿遗落，而是被人刻意携带至现场。",
+        "调查者若顺着玉佩追查，会暂时锁定那位住户；但细看便签内容和断裂的系绳，会发现这更像是一枚被临时取走的‘关键误导证物’，其真正用途是转移视线。"
+      ],
+      "documentId": "doc_smb-mtpaytck-l1bny-false_lead-0",
+      "roleIds": [
+        "role_P1",
+        "role_P4",
+        "role_P2",
+        "role_P3"
+      ],
+      "isMisleading": true,
+      "isDecisive": false,
+      "supportsFact": "被嫁祸者遗失的玉佩",
+      "provenance": {
+        "sourceClueId": "smb-mtpaytck-l1bny-false_lead-0",
+        "sourceBeatIds": [
+          "ob-mtpaytct-nerp",
+          "ob-mtpaytct-yba9"
+        ]
+      }
+    },
+    {
+      "id": "smb-mtpaytck-l1bny-contradiction-1",
+      "title": "玉佩沾有仅库房存在的红蜡",
+      "stageId": "act2",
+      "delivery": "HOST_RELEASE",
+      "visibility": "PRIVATE",
+      "paragraphs": [
+        "P2 在物业档案室整理住户登记档案时，发现一枚沾有暗红色蜡渍的玉佩被夹在一本《2023年闭馆门禁与库房授权日志》的扉页里。蜡渍尚未完全干透，边缘有细微的指纹压痕。",
+        "P2 用物业核验码打开库房侧门，发现门轴内侧散落着几粒同样的红蜡碎屑。对比之下，蜡色、质地与玉佩上的残留完全一致。库房钥匙只有物业经理与当日值班保安持有，而 P2 记得昨晚的授权日志上并没有这两人的名字。",
+        "P2 翻看关键账册中的“临时出入记录”，发现昨晚九点有一笔未登记的库房开启记录，时间与案发现场附近监控失灵时段吻合。记录下方用铅笔写着一个模糊的“王”字，但被水渍晕开，无法确认全名。",
+        "P2 将玉佩与红蜡碎屑拍照留存，并把原物放回原处。他意识到，这块玉佩的主人若真在案发时到过库房，那么此前关于“P1 在案发现场留下关键误导证物”的推断就出现了裂缝——因为 P1 并没有库房权限，而玉佩上的蜡只可能来自库房内部。"
+      ],
+      "documentId": "doc_smb-mtpaytck-l1bny-contradiction-1",
+      "roleIds": [
+        "role_P2"
+      ],
+      "isMisleading": false,
+      "isDecisive": false,
+      "supportsFact": "玉佩沾有仅库房存在的红蜡",
+      "provenance": {
+        "sourceClueId": "smb-mtpaytck-l1bny-contradiction-1",
+        "sourceBeatIds": [
+          "ob-mtpaytct-8zcz"
+        ]
+      }
+    },
+    {
+      "id": "smb-mtpaytck-l1bny-true_evidence-2",
+      "title": "勒杀",
+      "stageId": "act3",
+      "delivery": "HOST_RELEASE",
+      "visibility": "PUBLIC",
+      "paragraphs": [
+        "物业档案室的住户登记档案里，夹着一份打印出来的智能门锁日志，纸张边缘有被翻动过的折痕。日志显示：案发当晚21:47，201室门锁曾以「维修模式」临时解除门禁权限，使用的物业核验码属于当班保安队长，但该时段监控恰好因检修缺失。",
+        "日志下方有人用铅笔潦草地写了一句：「问过中控，说那晚他替人顶班，核验码在交接本上没涂掉。」字迹与物业经理日常批注不同，更像某个熟悉档案室的人临时留下的提示。"
+      ],
+      "documentId": "doc_smb-mtpaytck-l1bny-true_evidence-2",
+      "roleIds": [
+        "role_P2",
+        "role_P1",
+        "role_P3"
+      ],
+      "isMisleading": false,
+      "isDecisive": false,
+      "supportsFact": "勒杀",
+      "provenance": {
+        "sourceClueId": "smb-mtpaytck-l1bny-true_evidence-2",
+        "sourceBeatIds": [
+          "ob-mtpaytct-j895"
+        ]
+      }
+    },
+    {
+      "id": "smb-mtpaytck-l1bny-decisive_evidence-3",
+      "title": "库房钥匙记录证明真凶曾移动该物",
+      "stageId": "act3",
+      "delivery": "HOST_RELEASE",
+      "visibility": "PUBLIC",
+      "paragraphs": [
+        "在物业档案室的角落，一本厚实的登记册摊开在桌上。封皮写着『闭馆门禁与库房授权日志』，内页是密密麻麻的借出与归还记录，每一行都盖着物业核验码的蓝章。",
+        "翻到案发当晚的那一页，你看到一条用红笔圈出的记录：『城市美术馆夜间展厅——库房钥匙，借出时间 21:47，归还时间 22:15，经手人：夜班保安。』旁边附有手写的备注：『钥匙归还时未放回原位，而是放在库房门口的置物架上。』",
+        "继续往后翻，日志的附录里夹着一张皱巴巴的纸，是当天的临时变更通知：『因应急演练，库房备用钥匙由值班主管临时保管，演练结束后需重新登记。』但通知上没有签名，日期也被人用修正液涂改过。",
+        "你注意到，日志的每一页都有固定的借还流程说明：借出必须由值班主管签字，归还时需当场核验钥匙编号。然而，这一条记录却只有保安的印章，没有主管的签字——这违反了规程。"
+      ],
+      "documentId": "doc_smb-mtpaytck-l1bny-decisive_evidence-3",
+      "roleIds": [
+        "role_P2",
+        "role_P1",
+        "role_P3",
+        "role_P4"
+      ],
+      "isMisleading": false,
+      "isDecisive": false,
+      "supportsFact": "库房钥匙记录证明真凶曾移动该物",
+      "provenance": {
+        "sourceClueId": "smb-mtpaytck-l1bny-decisive_evidence-3",
+        "sourceBeatIds": [
+          "ob-mtpaytct-j895",
+          "ob-mtpaytct-iptk"
+        ]
+      }
+    },
+    {
+      "id": "smb-mtpaytco-5tnaz-memory_fragment-1",
+      "title": "记忆碎片",
+      "stageId": "act3",
+      "delivery": "HOST_RELEASE",
+      "visibility": "PUBLIC",
+      "paragraphs": [
+        "在物业档案室的角落，一个被遗忘的文件夹里，夹着一张泛黄的旧照片。照片上是一个年轻女子站在城市美术馆夜间展厅的入口，手腕上戴着私人预展邀请腕带。她的面容与P5有几分相似。",
+        "照片背面用钢笔写着几行字，字迹有些模糊，但依稀可辨：'她从未告诉过任何人她的真实身份。她的住户登记档案上写的名字是假的，但物业核验码不会说谎。'",
+        "旁边还有一行小字，似乎是后来添加的：'门禁权限记录显示，她在闭馆后曾进入库房。那晚的闭馆门禁与库房授权日志，或许能揭开真相。'"
+      ],
+      "documentId": "doc_smb-mtpaytco-5tnaz-memory_fragment-1",
+      "roleIds": [
+        "role_P5",
+        "role_P6",
+        "role_P2",
+        "role_P3",
+        "role_P4"
+      ],
+      "isMisleading": false,
+      "isDecisive": false,
+      "supportsFact": "记忆碎片",
+      "provenance": {
+        "sourceClueId": "smb-mtpaytco-5tnaz-memory_fragment-1",
+        "sourceBeatIds": [
+          "ob-mtpaytct-90on"
+        ]
+      }
+    },
+    {
+      "id": "smb-mtpaytco-5tnaz-identity_hint-2",
+      "title": "身份暗示",
+      "stageId": "act3",
+      "delivery": "HOST_RELEASE",
+      "visibility": "PUBLIC",
+      "paragraphs": [
+        "在物业档案室的铁皮柜深处，一份住户登记档案的封皮已经泛黄。翻开内页，第三户的登记栏里，家庭成员一栏用蓝黑墨水写着：'沈氏，独女，早年随母迁出，现居城市美术馆职工宿舍。' 旁边有人用铅笔轻轻圈出'城市美术馆'几个字，又在页边写下一行小字：'夜间展厅值班表上见过这姓氏。'",
+        "档案末尾夹着一张便签，字迹潦草却有力：'核验码已更新，门禁权限只开到闭馆前。若有人持私人预展邀请腕带，务必核对腕带编号与登记档案是否一致。' 便签的落款日期，恰在案发前一周。",
+        "纸张背面透出淡淡的墨痕，像是被撕掉过一页。对着光看，能辨认出残留的笔画，大约是一个'沈'字的半边，以及'预展'两个字的轮廓。档案室的管理员提到，这一册在案发后曾被借出过，归还时页码已经对不上了。"
+      ],
+      "documentId": "doc_smb-mtpaytco-5tnaz-identity_hint-2",
+      "roleIds": [
+        "role_P5",
+        "role_P6",
+        "role_P2",
+        "role_P3",
+        "role_P4"
+      ],
+      "isMisleading": false,
+      "isDecisive": false,
+      "supportsFact": "身份暗示",
+      "provenance": {
+        "sourceClueId": "smb-mtpaytco-5tnaz-identity_hint-2",
+        "sourceBeatIds": [
+          "ob-mtpaytct-90on"
+        ]
+      }
+    },
+    {
+      "id": "smb-mtpaytco-5tnaz-misdirection-3",
+      "title": "误导",
+      "stageId": "act3",
+      "delivery": "HOST_RELEASE",
+      "visibility": "PUBLIC",
+      "paragraphs": [
+        "泛黄的A4纸上印着物业档案室的抬头，日期是案发前一周。日志显示，P5曾以「住户登记档案核验」为由申请临时门禁权限，审批栏签着物业经理的名字。",
+        "纸面右下角有一行铅笔批注：「核验码已发，注意闭馆后勿留人。」字迹潦草，与正文打印体明显不同。",
+        "同一页的背面，粘着一张便签，写着「城市美术馆夜间展厅——未公开的预展目录册已入库，闭馆门禁与库房授权日志需双人复核。」便签边角有被水渍洇开的痕迹。"
+      ],
+      "documentId": "doc_smb-mtpaytco-5tnaz-misdirection-3",
+      "roleIds": [
+        "role_P5",
+        "role_P6",
+        "role_P2",
+        "role_P3",
+        "role_P4"
+      ],
+      "isMisleading": true,
+      "isDecisive": false,
+      "supportsFact": "误导",
+      "provenance": {
+        "sourceClueId": "smb-mtpaytco-5tnaz-misdirection-3",
+        "sourceBeatIds": [
+          "ob-mtpaytct-90on"
+        ]
+      }
+    },
+    {
+      "id": "smb-mtpaytco-5tnaz-confirmation-4",
+      "title": "确认",
+      "stageId": "act3",
+      "delivery": "HOST_RELEASE",
+      "visibility": "PUBLIC",
+      "paragraphs": [
+        "在物业档案室的登记簿中，夹着一页最新的核验记录，纸张边缘还带着刚撕下的毛边。",
+        "记录显示，住户登记档案中关于P5的身份信息，经物业核验码比对后，与门禁权限系统内的记录完全一致。",
+        "档案下方有一行手写备注：『身份确认无误，已同步至门禁权限。』落款日期正是案发后第三天。",
+        "这份记录被压在档案室常用台账的下层，但纸面干净，显然是有人近期翻阅后未放回原位。"
+      ],
+      "documentId": "doc_smb-mtpaytco-5tnaz-confirmation-4",
+      "roleIds": [
+        "role_P5",
+        "role_P6",
+        "role_P2",
+        "role_P3",
+        "role_P4"
+      ],
+      "isMisleading": false,
+      "isDecisive": false,
+      "supportsFact": "确认",
+      "provenance": {
+        "sourceClueId": "smb-mtpaytco-5tnaz-confirmation-4",
+        "sourceBeatIds": [
+          "ob-mtpaytct-90on"
+        ]
+      }
+    },
+    {
+      "id": "smb-mtpaytco-5tnaz-decisive_reveal-5",
+      "title": "决定性揭示",
+      "stageId": "act3",
+      "delivery": "HOST_RELEASE",
+      "visibility": "PUBLIC",
+      "paragraphs": [
+        "在物业档案室的旧铁柜底层，一份住户登记档案的边角已经卷起。纸页上印着「城市美术馆夜间展厅」的专用水印，旁边贴着私人预展邀请腕带的存根。腕带编号与闭馆门禁与库房授权日志中的一条记录完全一致。",
+        "档案内页用铅笔标注了「核验码：7-4-2-9」，与物业核验码的登记册吻合。字迹明显经过涂改，但透过光线仍可辨认出P5的姓名。在「关系」栏里，潦草地写着「家族直系」，下方附注一行小字：「已确认，未经公开。」",
+        "档案底部夹着一张便签，是物业门禁权限的临时授权单，日期正是案发当晚。授权单上的签名与P5在入住登记时的签名笔迹一致。旁边还有一张照片，背面写着「家族合影，摄于美术馆预展夜」，照片中P5站在一位年长者的身侧，神情恭敬。",
+        "这份档案室留存的关键记录，将P5与案件的核心身份联系直接摊开——不是误导，不是猜测，而是白纸黑字的登记与核验记录。它指向一个被刻意隐藏的真相：P5的真实身份与家族地位，在案发前夜已被物业系统确认。"
+      ],
+      "documentId": "doc_smb-mtpaytco-5tnaz-decisive_reveal-5",
+      "roleIds": [
+        "role_P5",
+        "role_P6",
+        "role_P2",
+        "role_P3",
+        "role_P4"
+      ],
+      "isMisleading": false,
+      "isDecisive": true,
+      "supportsFact": "决定性揭示",
+      "provenance": {
+        "sourceClueId": "smb-mtpaytco-5tnaz-decisive_reveal-5",
+        "sourceBeatIds": [
+          "ob-mtpaytct-90on"
+        ]
+      }
+    },
+    {
+      "id": "smb-mtpaytcp-5lvas-membership_hint-1",
+      "title": "成员暗示",
+      "stageId": "act3",
+      "delivery": "HOST_RELEASE",
+      "visibility": "PUBLIC",
+      "paragraphs": [
+        "在物业档案室的废纸篓底部，你发现一张被撕下的住户登记页，纸张边缘还带着撕扯的毛边。页面上大部分字迹已被水渍洇得模糊，但‘住户登记档案’的抬头和几个关键字段仍清晰可辨。",
+        "登记页的备注栏里，有人用铅笔匆匆写下一行小字：‘今晚闭馆后，美术馆夜间展厅见——带上腕带。’字迹潦草，但‘私人预展邀请腕带’和‘城市美术馆夜间展厅’两个词组被圈了出来。",
+        "翻过纸页，背面印着物业档案室归档时盖的日期章，日期正是案发前三天。纸页角落还有一道折痕，像是曾被人夹在某本账册里。"
+      ],
+      "documentId": "doc_smb-mtpaytcp-5lvas-membership_hint-1",
+      "roleIds": [
+        "role_P6",
+        "role_P2",
+        "role_P5",
+        "role_P1",
+        "role_P3",
+        "role_P4"
+      ],
+      "isMisleading": false,
+      "isDecisive": false,
+      "supportsFact": "成员暗示",
+      "provenance": {
+        "sourceClueId": "smb-mtpaytcp-5lvas-membership_hint-1",
+        "sourceBeatIds": [
+          "ob-mtpaytct-9c3m"
+        ]
+      }
+    },
+    {
+      "id": "smb-mtpaytcp-5lvas-secret_signal-2",
+      "title": "秘密信号",
+      "stageId": "act3",
+      "delivery": "HOST_RELEASE",
+      "visibility": "PUBLIC",
+      "paragraphs": [
+        "在物业档案室的一堆待处理文件中，夹着一张被撕成两半的「城市美术馆夜间展厅」私人预展邀请函。纸片边缘有整齐的刀切痕迹，背面用铅笔写着几行小字，字迹刻意潦草，但能辨认出「闭馆后」「库房授权日志」「核验码」等词。",
+        "邀请函正面印着「未公开的预展目录册」的宣传语，下方有一串手写的数字，看起来像是某个「物业核验码」的片段。纸片折痕处有反复摩挲的痕迹，显然被人随身携带过。",
+        "在纸片背面，有一组看似随意的符号：一个圆圈里画着斜线，旁边标注了「3F」和「通风口」。这组符号与「成员暗号」的记录方式高度吻合，暗示持有者曾用它作为「秘密信号」，指示在特定时间于「私下会合点」碰头。"
+      ],
+      "documentId": "doc_smb-mtpaytcp-5lvas-secret_signal-2",
+      "roleIds": [
+        "role_P6",
+        "role_P2",
+        "role_P5",
+        "role_P1",
+        "role_P3",
+        "role_P4"
+      ],
+      "isMisleading": false,
+      "isDecisive": false,
+      "supportsFact": "秘密信号",
+      "provenance": {
+        "sourceClueId": "smb-mtpaytcp-5lvas-secret_signal-2",
+        "sourceBeatIds": [
+          "ob-mtpaytct-9c3m"
+        ]
+      }
+    },
+    {
+      "id": "smb-mtpaytcp-5lvas-recruitment_evidence-3",
+      "title": "招募证据",
+      "stageId": "act3",
+      "delivery": "HOST_RELEASE",
+      "visibility": "PUBLIC",
+      "paragraphs": [
+        "你推开物业档案室的门，灰尘在从百叶窗漏进来的光线里浮动。铁皮柜第三层，一个标着「住户登记档案（2019–2021）」的牛皮纸盒被抽出一半，像是有人匆忙翻找后没放回原位。",
+        "盒内的档案按楼栋编号排列，其中一份的边角被折过，纸质明显比其他旧。翻开来，是一张《住户信息变更登记表》的复印件，表格下方的备注栏里，用蓝色圆珠笔写着几行字：",
+        "「2021.11.03 补录：P6 曾以临时访客身份申请门禁权限，核验码通过后未再更新。物业系统内留存其当时提交的紧急联系人电话——归属地显示为外省，但通话记录显示该号码在近三个月内多次于凌晨时段联系物业值班室，询问『档案室是否有人加班』。」",
+        "表格背面粘着一张便签纸，字迹潦草：「P6 名义上是住户，但登记的职业栏空白。保安老周说见过他凌晨从档案室方向出来，手里拿着一个牛皮纸信封。当时老周没多问，因为 P6 出示了物业核验码——那个码的权限级别，比普通住户高一级。」",
+        "这张纸的右下角有一道浅浅的压痕，像是长时间夹在某本硬壳笔记本里留下的。纸的边缘有被撕裂又粘回的痕迹，说明有人试图销毁它，但最终保留了这份复印件。",
+        "如果你把这页纸对着光看，能看到背面透出的水印——是「未公开的预展目录册」的封面图案，与城市美术馆夜间展厅那批展品有关。这暗示 P6 的招募行为，可能和美术馆某次未公开的预展存在关联。"
+      ],
+      "documentId": "doc_smb-mtpaytcp-5lvas-recruitment_evidence-3",
+      "roleIds": [
+        "role_P6",
+        "role_P2",
+        "role_P5",
+        "role_P1",
+        "role_P3",
+        "role_P4"
+      ],
+      "isMisleading": false,
+      "isDecisive": false,
+      "supportsFact": "招募证据",
+      "provenance": {
+        "sourceClueId": "smb-mtpaytcp-5lvas-recruitment_evidence-3",
+        "sourceBeatIds": [
+          "ob-mtpaytct-9c3m"
+        ]
+      }
+    },
+    {
+      "id": "smb-mtpaytcp-5lvas-loyalty_test-4",
+      "title": "忠诚考验",
+      "stageId": "act3",
+      "delivery": "HOST_RELEASE",
+      "visibility": "PUBLIC",
+      "paragraphs": [
+        "深夜的物业档案室只有应急灯亮着。你（或你协助的那位住户）在住户登记档案的夹层里，发现一张被反复折叠的纸张。纸上不是正式的物业核验码登记表，而是一行手写的、与门禁权限有关的暗号。",
+        "纸张背面用铅笔潦草地写着一段批注，大意是：某位住户在公共应急任务的执行名单上，却同时持有另一套私下会合点的门禁授权。批注没有点名，但旁边画了一个小小的、只有内部成员才看得懂的符号——正是你们常用的成员暗号。",
+        "这张纸没有直接指认任何人，却把「忠诚考验」摆到了台面上：如果这个人同时出现在公共任务和私下会合记录里，那么ta对哪一边才是真心的？纸张边缘有被水渍晕开的痕迹，像是有人犹豫过要不要销毁它。",
+        "线索指向的不是一件具体证物，而是一份可能被重新解读的授权记录。档案室的借阅日志显示，最近三天内，有人调阅过同一时期的门禁权限备份，但未登记姓名。这份记录与案发现场的某些细节若对照起来，或许能解释为何关键突破证物迟迟没有出现。"
+      ],
+      "documentId": "doc_smb-mtpaytcp-5lvas-loyalty_test-4",
+      "roleIds": [
+        "role_P6",
+        "role_P2",
+        "role_P5",
+        "role_P1",
+        "role_P3",
+        "role_P4"
+      ],
+      "isMisleading": false,
+      "isDecisive": false,
+      "supportsFact": "忠诚考验",
+      "provenance": {
+        "sourceClueId": "smb-mtpaytcp-5lvas-loyalty_test-4",
+        "sourceBeatIds": [
+          "ob-mtpaytct-9c3m"
+        ]
+      }
+    },
+    {
+      "id": "smb-mtpaytcp-5lvas-betrayal_hint-5",
+      "title": "背叛暗示",
+      "stageId": "act3",
+      "delivery": "HOST_RELEASE",
+      "visibility": "PUBLIC",
+      "paragraphs": [
+        "物业档案室的借阅登记簿上，最新一行记录格外刺眼：在案发当晚的闭馆时段，有人使用住户登记档案中 P6 的门禁权限，调阅了「城市美术馆夜间展厅」的闭馆门禁与库房授权日志。记录时间与案发时间高度吻合，而借阅人签名栏却潦草地写着 P2 的名字。",
+        "翻到下一页，同一份档案的复印件被夹在物业核验码通知单中间，边角有反复摩挲的痕迹。通知单上的核验码对应的是 P5 的住户编号，但手写的备注却是「替 P3 代领」。纸面微微发皱，像是曾被匆忙塞进口袋又取出。",
+        "在档案室角落的碎纸机里，还残留着半张未完全粉碎的纸条，上面是 P1 的笔迹，写着「今晚别走正门，从库房通道进」。纸条背面印着城市美术馆的夜间展厅标识，以及一个被划掉的成员暗号。",
+        "这些痕迹彼此矛盾，却共同指向一个事实：有人利用物业档案室的门禁权限，在案发时段接触了关键记录，并且试图用他人的名义掩盖行踪。P6、P2、P5、P1、P3 的名字交错出现，像一张编织紧密的网——而网的中央，是尚未揭穿的背叛。"
+      ],
+      "documentId": "doc_smb-mtpaytcp-5lvas-betrayal_hint-5",
+      "roleIds": [
+        "role_P6",
+        "role_P2",
+        "role_P5",
+        "role_P1",
+        "role_P3",
+        "role_P4"
+      ],
+      "isMisleading": false,
+      "isDecisive": false,
+      "supportsFact": "背叛暗示",
+      "provenance": {
+        "sourceClueId": "smb-mtpaytcp-5lvas-betrayal_hint-5",
+        "sourceBeatIds": [
+          "ob-mtpaytct-9c3m"
+        ]
+      }
+    },
+    {
+      "id": "smb-mtpaytcp-5lvas-internal_conflict-6",
+      "title": "内部冲突",
+      "stageId": "act3",
+      "delivery": "HOST_RELEASE",
+      "visibility": "PUBLIC",
+      "paragraphs": [
+        "物业档案室的角落，一台老旧的录音笔被压在住户登记档案下面。按下播放键，先是一阵杂音，随后是压低嗓门的争吵。",
+        "一个声音说：「这次公共应急任务，你为什么要抢在我前面？门禁权限明明已经批给我了，你却拿着物业核验码私自改了排班。」另一个声音回敬：「你心里清楚，上次私下会合点的事，你根本没按成员暗号来。现在又想把库房授权日志的事揽过去，你到底站哪边？」",
+        "录音最后，一个更低沉的声音插进来：「够了。城市美术馆的闭馆门禁记录已经被人动过手脚，这时候内讧，是想让所有人都暴露吗？」随后是椅子被猛地推开的声音，录音戛然而止。",
+        "这段录音没有明确提到任何名字，但争吵中反复出现的「公共应急任务」「私下会合点」「成员暗号」等字眼，暗示某个团体内部正在因信任和立场问题产生裂痕。"
+      ],
+      "documentId": "doc_smb-mtpaytcp-5lvas-internal_conflict-6",
+      "roleIds": [
+        "role_P6",
+        "role_P2",
+        "role_P5",
+        "role_P1",
+        "role_P3",
+        "role_P4"
+      ],
+      "isMisleading": false,
+      "isDecisive": false,
+      "supportsFact": "内部冲突",
+      "provenance": {
+        "sourceClueId": "smb-mtpaytcp-5lvas-internal_conflict-6",
+        "sourceBeatIds": [
+          "ob-mtpaytct-9c3m"
+        ]
+      }
+    },
+    {
+      "id": "smb-mtpaytcp-5lvas-hidden_goal_hint-7",
+      "title": "隐藏目标暗示",
+      "stageId": "act3",
+      "delivery": "HOST_RELEASE",
+      "visibility": "PUBLIC",
+      "paragraphs": [
+        "在物业档案室的访客登记簿上，夹着一张被撕下又匆忙塞回的纸片。纸片边缘有被水渍洇开的痕迹，字迹潦草却用力，像是怕被人看见。",
+        "上面写着：‘今晚闭馆后，城市美术馆夜间展厅的闭馆门禁与库房授权日志会更新——那批未公开的预展目录册里夹着的东西，比表面值钱。别走正门，用私人预展邀请腕带刷员工通道。’",
+        "纸片背面用铅笔描出半张地图，指向美术馆地下库房的一处暗门。暗门旁标注着‘物业核验码 7-3-9-1’，但数字‘1’被反复描粗，像是特意强调。",
+        "翻到档案室电脑的调阅记录，发现有人曾用物业核验码查过‘住户登记档案’和‘关键账册’，但时间戳被删除，只留下一行备注：‘若有人问起，就说这是公共应急任务演练。’",
+        "档案室角落的废纸篓里，还有一枚揉皱的烟盒，烟盒内衬写着：‘成员暗号：美术馆后巷第三个消防栓。私下会合点不变。别让物业的人看见你查这个。’字迹与纸片相同。"
+      ],
+      "documentId": "doc_smb-mtpaytcp-5lvas-hidden_goal_hint-7",
+      "roleIds": [
+        "role_P6",
+        "role_P2",
+        "role_P5",
+        "role_P1",
+        "role_P3",
+        "role_P4"
+      ],
+      "isMisleading": false,
+      "isDecisive": false,
+      "supportsFact": "隐藏目标暗示",
+      "provenance": {
+        "sourceClueId": "smb-mtpaytcp-5lvas-hidden_goal_hint-7",
+        "sourceBeatIds": [
+          "ob-mtpaytct-9c3m"
+        ]
+      }
+    },
+    {
+      "id": "smb-mtpaytcp-5lvas-membership_confirmation-8",
+      "title": "归属确认",
+      "stageId": "act3",
+      "delivery": "HOST_RELEASE",
+      "visibility": "PUBLIC",
+      "paragraphs": [
+        "在物业档案室最底层的铁皮柜里，压着一册泛黄的住户登记档案。翻到夹着回形针的那一页，纸角已经卷起，墨迹因潮气洇开，但关键栏仍可辨认。",
+        "「住户姓名」栏填写的名字与当前登记不符，旁边有人用铅笔轻轻划了一道，又在边角补了『已核验』三个小字。『入住时间』栏的日期与物业电脑系统里的记录并不一致，但下方盖着物业核验码的章——那枚章只有当天值班的物业主管才有权使用。",
+        "档案页背面贴着一张便签，字迹潦草：『门禁权限已更新，旧卡作废。今晚闭馆后到城市美术馆夜间展厅，带私人预展邀请腕带，核对未公开的预展目录册。』便签没有署名，但折痕与档案页的折痕完全吻合。"
+      ],
+      "documentId": "doc_smb-mtpaytcp-5lvas-membership_confirmation-8",
+      "roleIds": [
+        "role_P6",
+        "role_P2",
+        "role_P5",
+        "role_P1",
+        "role_P3",
+        "role_P4"
+      ],
+      "isMisleading": false,
+      "isDecisive": false,
+      "supportsFact": "归属确认",
+      "provenance": {
+        "sourceClueId": "smb-mtpaytcp-5lvas-membership_confirmation-8",
+        "sourceBeatIds": [
+          "ob-mtpaytct-9c3m"
+        ]
+      }
+    },
+    {
+      "id": "smb-mtpaytcp-5lvas-faction_exposure-9",
+      "title": "阵营暴露",
+      "stageId": "act3",
+      "delivery": "HOST_RELEASE",
+      "visibility": "PUBLIC",
+      "paragraphs": [
+        "物业档案室的角落，一份住户登记档案被翻得有些卷边。在P6的登记页上，墨迹清晰可见，但旁边多了一行潦草的批注：“门禁权限异常，与登记不符。核验码过期，已通知物业。”",
+        "档案中还夹着一张便条，字迹匆忙：“今晚闭馆后，库房授权日志要改。别让外人看到。”便条上没有署名，但纸张的折痕与P6常用笔记本的折痕完全一致。",
+        "档案室的借阅记录显示，这份档案最近被P2、P5、P1、P3、P4分别调阅过，时间集中在近期。每一次调阅都留下了签名，但唯独P6自己的调阅记录被涂改过，隐约能看出原始时间被人为抹去。"
+      ],
+      "documentId": "doc_smb-mtpaytcp-5lvas-faction_exposure-9",
+      "roleIds": [
+        "role_P6",
+        "role_P2",
+        "role_P5",
+        "role_P1",
+        "role_P3",
+        "role_P4"
+      ],
+      "isMisleading": false,
+      "isDecisive": false,
+      "supportsFact": "阵营暴露",
+      "provenance": {
+        "sourceClueId": "smb-mtpaytcp-5lvas-faction_exposure-9",
+        "sourceBeatIds": [
+          "ob-mtpaytct-9c3m"
+        ]
+      }
+    },
+    {
+      "id": "fact-interface:ob-mtpaytct-xu4a",
+      "title": "身份确认；身份进入公开层",
+      "stageId": "act4",
+      "delivery": "HOST_RELEASE",
+      "visibility": "PUBLIC",
+      "paragraphs": [
+        "在物业档案室的住户登记档案中，夹着一张泛黄的登记表，表头印有「住户登记档案」字样。该表登记了某位住户的入住信息，其右下角盖有物业核验码的印章，但字迹已被刻意涂抹，仅能辨认出部分笔画。档案的侧边有一行手写批注：「此户身份存疑，已上报，待核验。」",
+        "档案袋的封口处有被反复开启的痕迹，内页的装订线松动，似乎有人曾将文件抽出又放回。在档案袋的底部，掉落了一小片纸角，上面印有「门禁权限」的打印字样，与档案中的某页页码吻合。"
+      ],
+      "documentId": "doc_fact-interface:ob-mtpaytct-xu4a",
+      "roleIds": [
+        "role_P5",
+        "role_P6",
+        "role_P2",
+        "role_P3",
+        "role_P4"
+      ],
+      "isMisleading": false,
+      "isDecisive": false,
+      "supportsFact": "身份确认；身份进入公开层",
+      "provenance": {
+        "sourceClueId": "fact-interface:ob-mtpaytct-xu4a",
+        "sourceBeatIds": []
+      }
+    },
+    {
+      "id": "fact-interface:ob-mtpaytct-9jwq",
+      "title": "归属变化；阵营线结算",
+      "stageId": "act4",
+      "delivery": "HOST_RELEASE",
+      "visibility": "PUBLIC",
+      "paragraphs": [
+        "在物业档案室的铁皮柜最底层，压着一份泛黄的住户登记档案，边角已被翻得卷起。档案显示：该户最初登记在一位老住户名下，但在最近一次年度复核时，登记人悄然变更为另一名住户，且变更栏未填写理由，只盖了一个模糊的物业核验码。",
+        "紧贴在档案后面的是一张门禁权限变更单：同一时间段，该户的门禁权限被重新分配，原持有人被降为‘仅公共区域’，而新持有人则被授予‘全楼层通行’。变更单底部有一行手写备注：‘按上级要求，无需复查。’",
+        "档案室的电脑登录日志显示，在变更操作发生的那天深夜，有人使用物业经理的备用账号登录，调阅了该户的全部历史记录，并导出了一份名为‘归属变化’的加密文件。日志中该操作被标记为‘公共应急任务’，但实际执行时间与任何应急报备都不吻合。"
+      ],
+      "documentId": "doc_fact-interface:ob-mtpaytct-9jwq",
+      "roleIds": [
+        "role_P2",
+        "role_P6",
+        "role_P5",
+        "role_P1",
+        "role_P3",
+        "role_P4"
+      ],
+      "isMisleading": false,
+      "isDecisive": false,
+      "supportsFact": "归属变化；阵营线结算",
+      "provenance": {
+        "sourceClueId": "fact-interface:ob-mtpaytct-9jwq",
+        "sourceBeatIds": []
+      }
+    }
+  ],
+  "endingContent": {
+    "finalStageId": "act4",
+    "resolutionMode": "MIXED",
+    "sections": [
+      {
+        "id": "ending-vote-result",
+        "stageId": "act4",
+        "title": "终局表决：众人的裁决",
+        "paragraphs": [
+          "夜幕低垂，城市美术馆的库房灯光惨白。梁赫将决定性证据——那份被篡改的物业核验码与库房授权日志——摊在众人面前。他冷静地陈述：沈岚在案发前后多次以私人预展邀请腕带进入闭馆后的展厅，并利用门禁权限布置了指向白绫的误导证物。",
+          "玩家们经过讨论，最终投票表决。多数票指向沈岚为真凶，但亦有零散票数投向白绫与顾清。由于表决结果并未一致，且部分关键事实（如顾清的真实身份、方序的归属变化）仍未被公开证实，公开结算只能呈现为“混合决议”。",
+          "请注意：玩家的表决仅是公开层面的判断，它并不改写案件的真实脉络。最终真相以调查中确凿的证据链为准，而非以票数为准。"
+        ],
+        "roleIds": [],
+        "provenance": {
+          "sourceBeatIds": [
+            "ob-mtpaytct-j895",
+            "ob-mtpaytct-iptk",
+            "ob-mtpaytct-8zcz",
+            "ob-mtpaytct-yba9"
+          ],
+          "sourceClueIds": [
+            "smb-mtpaytco-5tnaz-decisive_reveal-5"
+          ],
+          "sourceFactIds": [
+            "fact:smb-mtpaytck-l1bny:beat-crime:crime_done:P1",
+            "fact:smb-mtpaytck-l1bny:beat-crime:planted_evidence_available:P1",
+            "fact:smb-mtpaytck-l1bny:beat-crime:false_lead:P1",
+            "fact:smb-mtpaytck-l1bny:beat-climax:truth_locked:P2",
+            "fact:smb-mtpaytck-l1bny:beat-res:truth_locked:P2"
+          ]
+        }
+      },
+      {
+        "id": "ending-truth-reveal",
+        "stageId": "act4",
+        "title": "真相：沈岚的嫁祸与白绫的冤屈",
+        "paragraphs": [
+          "然而，真相早已在证据中沉淀。沈岚，为了掩盖自己的罪行，提前在案发现场周边布置了与白绫相关的误导证物——一条白绫、一枚物业核验码——试图将调查引向白绫。",
+          "梁赫在反复比对案发现场与证物后，发现了矛盾：白绫的指纹缺失、时间线无法吻合，以及那枚被篡改的物业核验码。决定性证据最终锁定沈岚：她利用闭馆门禁与库房授权日志，在案发时段进入展厅，实施了犯罪，并留下嫁祸白绫的痕迹。",
+          "白绫是无辜的。沈岚的嫁祸未能经得起推敲，梁赫的追查让真相浮出水面。"
+        ],
+        "roleIds": [],
+        "provenance": {
+          "sourceBeatIds": [
+            "ob-mtpaytcs-gzbg",
+            "ob-mtpaytct-nerp",
+            "ob-mtpaytct-yba9",
+            "ob-mtpaytct-8zcz",
+            "ob-mtpaytct-j895",
+            "ob-mtpaytct-iptk"
+          ],
+          "sourceClueIds": [
+            "smb-mtpaytco-5tnaz-decisive_reveal-5"
+          ],
+          "sourceFactIds": [
+            "fact:smb-mtpaytck-l1bny:beat-setup:false_lead:P1",
+            "fact:smb-mtpaytck-l1bny:beat-crime:crime_done:P1",
+            "fact:smb-mtpaytck-l1bny:beat-crime:planted_evidence_available:P1",
+            "fact:smb-mtpaytck-l1bny:beat-crime:false_lead:P1",
+            "fact:smb-mtpaytck-l1bny:beat-false:false_suspicion:P2",
+            "fact:smb-mtpaytck-l1bny:beat-false:planted_evidence_available:P2",
+            "fact:smb-mtpaytck-l1bny:beat-contra:contradiction:P2",
+            "fact:smb-mtpaytck-l1bny:beat-contra:false_suspicion:P2",
+            "fact:smb-mtpaytck-l1bny:beat-climax:truth_locked:P2",
+            "fact:smb-mtpaytck-l1bny:beat-climax:contradiction:P2",
+            "fact:smb-mtpaytck-l1bny:beat-res:truth_locked:P2",
+            "fact:smb-mtpaytck-l1bny:beat-res:contradiction:P2"
+          ]
+        }
+      },
+      {
+        "id": "ending-aftermath",
+        "stageId": "act4",
+        "title": "余波：身份与阵营的代价",
+        "paragraphs": [
+          "真相揭晓后，余波荡漾。顾清的真实身份——那份被封存的身份记录——被公开。她原本是方序的旧识，却以另一重身份潜伏至今。面对知情者与调查方的目光，她不得不承受关系重组的代价，与方序之间的信任裂痕难以弥合。",
+          "方序在暴露风险下，曾一度考虑背叛或退出，但最终选择了沉默，隐藏了部分关键私人文书，以保全自己的归属。他的阵营归属在暗中改变，但未在公开场合明朗化。",
+          "梁赫的阵营目标——夺取关键账册或信物——在冲突中部分达成，但代价是阵营的暴露风险。他公开站队，承受了阵营败露后的关系重排。最终，这场风波以“混合决议”收场：真凶伏法，但秘密与裂痕仍留在每个人心中。"
+        ],
+        "roleIds": [],
+        "provenance": {
+          "sourceBeatIds": [
+            "ob-mtpaytct-o066",
+            "ob-mtpaytct-sgls",
+            "ob-mtpaytct-90on",
+            "ob-mtpaytct-9c3m",
+            "ob-mtpaytct-xu4a",
+            "ob-mtpaytct-9jwq",
+            "ob-mtpaytct-mmws"
+          ],
+          "sourceClueIds": [],
+          "sourceFactIds": [
+            "fact:smb-mtpaytco-5tnaz:beat-setup:identity_latent:P5",
+            "fact:smb-mtpaytco-5tnaz:beat-develop:identity_clue:P5",
+            "fact:smb-mtpaytco-5tnaz:beat-develop:site_accessible:P5",
+            "fact:smb-mtpaytco-5tnaz:beat-climax:identity_confirmed:P5",
+            "fact:smb-mtpaytco-5tnaz:beat-climax:family_status:P5",
+            "fact:smb-mtpaytco-5tnaz:beat-climax:identity_clue:P5",
+            "fact:smb-mtpaytco-5tnaz:beat-res:identity_public:P5",
+            "fact:smb-mtpaytco-5tnaz:beat-res:identity_confirmed:P5",
+            "fact:smb-mtpaytcp-5lvas:beat-setup:faction_latent:P2",
+            "fact:smb-mtpaytcp-5lvas:beat-develop:faction_pressure:P2",
+            "fact:smb-mtpaytcp-5lvas:beat-develop:site_accessible:P2",
+            "fact:smb-mtpaytcp-5lvas:beat-develop:faction_latent:P2",
+            "fact:smb-mtpaytcp-5lvas:beat-climax:allegiance_changed:P6",
+            "fact:smb-mtpaytcp-5lvas:beat-climax:faction_exposure_risk:P6",
+            "fact:smb-mtpaytcp-5lvas:beat-climax:faction_pressure:P6",
+            "fact:smb-mtpaytcp-5lvas:beat-res:faction_settled:P2",
+            "fact:smb-mtpaytcp-5lvas:beat-res:allegiance_changed:P2"
+          ]
+        }
+      }
+    ]
+  },
+  "mechanismAnnotations": [],
+  "permissions": [],
+  "provenanceIndex": {
+    "act1-host": {
+      "sourceBeatIds": [
+        "ob-mtpaytcs-gzbg",
+        "ob-mtpaytct-o066",
+        "ob-mtpaytct-w3qi"
+      ],
+      "sourceClueIds": [
+        "fact-interface:ob-mtpaytcs-gzbg",
+        "smb-mtpaytco-5tnaz-foreshadow-0",
+        "smb-mtpaytcp-5lvas-faction_foreshadow-0"
+      ],
+      "sourceFactIds": [
+        "fact:smb-mtpaytck-l1bny:beat-setup:false_lead:P1",
+        "fact:smb-mtpaytco-5tnaz:beat-setup:identity_latent:P5",
+        "fact:smb-mtpaytcp-5lvas:beat-setup:faction_latent:P2"
+      ],
+      "sectionStatus": "GENERATED"
+    },
+    "act2-host": {
+      "sourceBeatIds": [
+        "ob-mtpaytct-nerp",
+        "ob-mtpaytct-yba9",
+        "ob-mtpaytct-8zcz",
+        "ob-mtpaytct-sgls",
+        "ob-mtpaytct-mmws"
+      ],
+      "sourceClueIds": [
+        "smb-mtpaytco-5tnaz-foreshadow-0",
+        "smb-mtpaytcp-5lvas-faction_foreshadow-0",
+        "smb-mtpaytck-l1bny-false_lead-0",
+        "smb-mtpaytck-l1bny-contradiction-1"
+      ],
+      "sourceFactIds": [
+        "fact:smb-mtpaytck-l1bny:beat-crime:crime_done:P1",
+        "fact:smb-mtpaytck-l1bny:beat-crime:planted_evidence_available:P1",
+        "fact:smb-mtpaytck-l1bny:beat-crime:false_lead:P1",
+        "fact:smb-mtpaytck-l1bny:beat-false:false_suspicion:P2",
+        "fact:smb-mtpaytck-l1bny:beat-false:planted_evidence_available:P2",
+        "fact:smb-mtpaytck-l1bny:beat-contra:contradiction:P2",
+        "fact:smb-mtpaytck-l1bny:beat-contra:false_suspicion:P2",
+        "fact:smb-mtpaytco-5tnaz:beat-develop:identity_clue:P5",
+        "fact:smb-mtpaytco-5tnaz:beat-develop:site_accessible:P5",
+        "fact:smb-mtpaytcp-5lvas:beat-develop:faction_pressure:P2",
+        "fact:smb-mtpaytcp-5lvas:beat-develop:site_accessible:P2",
+        "fact:smb-mtpaytcp-5lvas:beat-develop:faction_latent:P2"
+      ],
+      "sectionStatus": "GENERATED"
+    },
+    "act3-host": {
+      "sourceBeatIds": [
+        "ob-mtpaytct-j895",
+        "ob-mtpaytct-90on",
+        "ob-mtpaytct-9c3m"
+      ],
+      "sourceClueIds": [
+        "smb-mtpaytck-l1bny-true_evidence-2",
+        "smb-mtpaytck-l1bny-decisive_evidence-3",
+        "smb-mtpaytco-5tnaz-memory_fragment-1",
+        "smb-mtpaytco-5tnaz-identity_hint-2",
+        "smb-mtpaytco-5tnaz-misdirection-3",
+        "smb-mtpaytco-5tnaz-confirmation-4",
+        "smb-mtpaytco-5tnaz-decisive_reveal-5",
+        "smb-mtpaytcp-5lvas-membership_hint-1",
+        "smb-mtpaytcp-5lvas-secret_signal-2",
+        "smb-mtpaytcp-5lvas-recruitment_evidence-3",
+        "smb-mtpaytcp-5lvas-loyalty_test-4",
+        "smb-mtpaytcp-5lvas-betrayal_hint-5",
+        "smb-mtpaytcp-5lvas-internal_conflict-6",
+        "smb-mtpaytcp-5lvas-hidden_goal_hint-7",
+        "smb-mtpaytcp-5lvas-membership_confirmation-8",
+        "smb-mtpaytcp-5lvas-faction_exposure-9"
+      ],
+      "sourceFactIds": [
+        "fact:smb-mtpaytck-l1bny:beat-climax:truth_locked:P2",
+        "fact:smb-mtpaytck-l1bny:beat-climax:contradiction:P2",
+        "fact:smb-mtpaytco-5tnaz:beat-climax:identity_confirmed:P5",
+        "fact:smb-mtpaytco-5tnaz:beat-climax:family_status:P5",
+        "fact:smb-mtpaytco-5tnaz:beat-climax:identity_clue:P5",
+        "fact:smb-mtpaytcp-5lvas:beat-climax:allegiance_changed:P6",
+        "fact:smb-mtpaytcp-5lvas:beat-climax:faction_exposure_risk:P6",
+        "fact:smb-mtpaytcp-5lvas:beat-climax:faction_pressure:P6"
+      ],
+      "sectionStatus": "GENERATED"
+    },
+    "act4-host": {
+      "sourceBeatIds": [
+        "ob-mtpaytct-iptk",
+        "ob-mtpaytct-xu4a",
+        "ob-mtpaytct-9jwq"
+      ],
+      "sourceClueIds": [
+        "smb-mtpaytck-l1bny-decisive_evidence-3",
+        "fact-interface:ob-mtpaytct-xu4a",
+        "fact-interface:ob-mtpaytct-9jwq"
+      ],
+      "sourceFactIds": [
+        "fact:smb-mtpaytck-l1bny:beat-res:truth_locked:P2",
+        "fact:smb-mtpaytck-l1bny:beat-res:contradiction:P2",
+        "fact:smb-mtpaytco-5tnaz:beat-res:identity_public:P5",
+        "fact:smb-mtpaytco-5tnaz:beat-res:identity_confirmed:P5",
+        "fact:smb-mtpaytcp-5lvas:beat-res:faction_settled:P2",
+        "fact:smb-mtpaytcp-5lvas:beat-res:allegiance_changed:P2"
+      ],
+      "sectionStatus": "GENERATED"
+    },
+    "act1-scene": {
+      "sourceBeatIds": [
+        "ob-mtpaytcs-gzbg",
+        "ob-mtpaytct-o066",
+        "ob-mtpaytct-w3qi"
+      ],
+      "sourceClueIds": [],
+      "sourceFactIds": [
+        "fact:smb-mtpaytck-l1bny:beat-setup:false_lead:P1",
+        "fact:smb-mtpaytco-5tnaz:beat-setup:identity_latent:P5",
+        "fact:smb-mtpaytcp-5lvas:beat-setup:faction_latent:P2"
+      ],
+      "sectionStatus": "GENERATED"
+    },
+    "act2-pressure": {
+      "sourceBeatIds": [
+        "ob-mtpaytct-nerp",
+        "ob-mtpaytct-yba9",
+        "ob-mtpaytct-8zcz",
+        "ob-mtpaytct-sgls",
+        "ob-mtpaytct-mmws"
+      ],
+      "sourceClueIds": [],
+      "sourceFactIds": [
+        "fact:smb-mtpaytck-l1bny:beat-crime:crime_done:P1",
+        "fact:smb-mtpaytck-l1bny:beat-crime:planted_evidence_available:P1",
+        "fact:smb-mtpaytck-l1bny:beat-crime:false_lead:P1",
+        "fact:smb-mtpaytck-l1bny:beat-false:false_suspicion:P2",
+        "fact:smb-mtpaytck-l1bny:beat-false:planted_evidence_available:P2",
+        "fact:smb-mtpaytck-l1bny:beat-contra:contradiction:P2",
+        "fact:smb-mtpaytck-l1bny:beat-contra:false_suspicion:P2",
+        "fact:smb-mtpaytco-5tnaz:beat-develop:identity_clue:P5",
+        "fact:smb-mtpaytco-5tnaz:beat-develop:site_accessible:P5",
+        "fact:smb-mtpaytcp-5lvas:beat-develop:faction_pressure:P2",
+        "fact:smb-mtpaytcp-5lvas:beat-develop:site_accessible:P2",
+        "fact:smb-mtpaytcp-5lvas:beat-develop:faction_latent:P2"
+      ],
+      "sectionStatus": "GENERATED"
+    },
+    "public-narrative-escalation": {
+      "sourceBeatIds": [
+        "ob-mtpaytct-j895",
+        "ob-mtpaytct-90on",
+        "ob-mtpaytct-9c3m"
+      ],
+      "sourceClueIds": [],
+      "sourceFactIds": [
+        "fact:smb-mtpaytck-l1bny:beat-climax:truth_locked:P2",
+        "fact:smb-mtpaytck-l1bny:beat-climax:contradiction:P2",
+        "fact:smb-mtpaytco-5tnaz:beat-climax:identity_confirmed:P5",
+        "fact:smb-mtpaytco-5tnaz:beat-climax:family_status:P5",
+        "fact:smb-mtpaytco-5tnaz:beat-climax:identity_clue:P5",
+        "fact:smb-mtpaytcp-5lvas:beat-climax:allegiance_changed:P6",
+        "fact:smb-mtpaytcp-5lvas:beat-climax:faction_exposure_risk:P6",
+        "fact:smb-mtpaytcp-5lvas:beat-climax:faction_pressure:P6"
+      ],
+      "sectionStatus": "GENERATED"
+    },
+    "public-stakes-and-options": {
+      "sourceBeatIds": [
+        "ob-mtpaytct-j895",
+        "ob-mtpaytct-90on",
+        "ob-mtpaytct-9c3m"
+      ],
+      "sourceClueIds": [],
+      "sourceFactIds": [
+        "fact:smb-mtpaytck-l1bny:beat-climax:truth_locked:P2",
+        "fact:smb-mtpaytck-l1bny:beat-climax:contradiction:P2",
+        "fact:smb-mtpaytco-5tnaz:beat-climax:identity_confirmed:P5",
+        "fact:smb-mtpaytco-5tnaz:beat-climax:family_status:P5",
+        "fact:smb-mtpaytco-5tnaz:beat-climax:identity_clue:P5",
+        "fact:smb-mtpaytcp-5lvas:beat-climax:allegiance_changed:P6",
+        "fact:smb-mtpaytcp-5lvas:beat-climax:faction_exposure_risk:P6",
+        "fact:smb-mtpaytcp-5lvas:beat-climax:faction_pressure:P6"
+      ],
+      "sectionStatus": "GENERATED"
+    },
+    "act4-confrontation": {
+      "sourceBeatIds": [
+        "ob-mtpaytct-iptk",
+        "ob-mtpaytct-xu4a"
+      ],
+      "sourceClueIds": [],
+      "sourceFactIds": [
+        "fact:smb-mtpaytck-l1bny:beat-res:truth_locked:P2",
+        "fact:smb-mtpaytck-l1bny:beat-res:contradiction:P2"
+      ],
+      "sectionStatus": "GENERATED"
+    },
+    "act4-reactions": {
+      "sourceBeatIds": [
+        "ob-mtpaytct-xu4a",
+        "ob-mtpaytct-9jwq"
+      ],
+      "sourceClueIds": [],
+      "sourceFactIds": [
+        "fact:smb-mtpaytco-5tnaz:beat-res:identity_public:P5",
+        "fact:smb-mtpaytco-5tnaz:beat-res:identity_confirmed:P5"
+      ],
+      "sectionStatus": "GENERATED"
+    },
+    "act4-alignment": {
+      "sourceBeatIds": [
+        "ob-mtpaytct-9jwq"
+      ],
+      "sourceClueIds": [],
+      "sourceFactIds": [
+        "fact:smb-mtpaytcp-5lvas:beat-res:faction_settled:P2",
+        "fact:smb-mtpaytcp-5lvas:beat-res:allegiance_changed:P2"
+      ],
+      "sectionStatus": "GENERATED"
+    },
+    "ending-vote-result": {
+      "sourceBeatIds": [
+        "ob-mtpaytct-j895",
+        "ob-mtpaytct-iptk",
+        "ob-mtpaytct-8zcz",
+        "ob-mtpaytct-yba9"
+      ],
+      "sourceClueIds": [
+        "smb-mtpaytco-5tnaz-decisive_reveal-5"
+      ],
+      "sourceFactIds": [
+        "fact:smb-mtpaytck-l1bny:beat-crime:crime_done:P1",
+        "fact:smb-mtpaytck-l1bny:beat-crime:planted_evidence_available:P1",
+        "fact:smb-mtpaytck-l1bny:beat-crime:false_lead:P1",
+        "fact:smb-mtpaytck-l1bny:beat-climax:truth_locked:P2",
+        "fact:smb-mtpaytck-l1bny:beat-res:truth_locked:P2"
+      ],
+      "sectionStatus": "GENERATED"
+    },
+    "ending-truth-reveal": {
+      "sourceBeatIds": [
+        "ob-mtpaytcs-gzbg",
+        "ob-mtpaytct-nerp",
+        "ob-mtpaytct-yba9",
+        "ob-mtpaytct-8zcz",
+        "ob-mtpaytct-j895",
+        "ob-mtpaytct-iptk"
+      ],
+      "sourceClueIds": [
+        "smb-mtpaytco-5tnaz-decisive_reveal-5"
+      ],
+      "sourceFactIds": [
+        "fact:smb-mtpaytck-l1bny:beat-setup:false_lead:P1",
+        "fact:smb-mtpaytck-l1bny:beat-crime:crime_done:P1",
+        "fact:smb-mtpaytck-l1bny:beat-crime:planted_evidence_available:P1",
+        "fact:smb-mtpaytck-l1bny:beat-crime:false_lead:P1",
+        "fact:smb-mtpaytck-l1bny:beat-false:false_suspicion:P2",
+        "fact:smb-mtpaytck-l1bny:beat-false:planted_evidence_available:P2",
+        "fact:smb-mtpaytck-l1bny:beat-contra:contradiction:P2",
+        "fact:smb-mtpaytck-l1bny:beat-contra:false_suspicion:P2",
+        "fact:smb-mtpaytck-l1bny:beat-climax:truth_locked:P2",
+        "fact:smb-mtpaytck-l1bny:beat-climax:contradiction:P2",
+        "fact:smb-mtpaytck-l1bny:beat-res:truth_locked:P2",
+        "fact:smb-mtpaytck-l1bny:beat-res:contradiction:P2"
+      ],
+      "sectionStatus": "GENERATED"
+    },
+    "ending-aftermath": {
+      "sourceBeatIds": [
+        "ob-mtpaytct-o066",
+        "ob-mtpaytct-sgls",
+        "ob-mtpaytct-90on",
+        "ob-mtpaytct-9c3m",
+        "ob-mtpaytct-xu4a",
+        "ob-mtpaytct-9jwq",
+        "ob-mtpaytct-mmws"
+      ],
+      "sourceClueIds": [],
+      "sourceFactIds": [
+        "fact:smb-mtpaytco-5tnaz:beat-setup:identity_latent:P5",
+        "fact:smb-mtpaytco-5tnaz:beat-develop:identity_clue:P5",
+        "fact:smb-mtpaytco-5tnaz:beat-develop:site_accessible:P5",
+        "fact:smb-mtpaytco-5tnaz:beat-climax:identity_confirmed:P5",
+        "fact:smb-mtpaytco-5tnaz:beat-climax:family_status:P5",
+        "fact:smb-mtpaytco-5tnaz:beat-climax:identity_clue:P5",
+        "fact:smb-mtpaytco-5tnaz:beat-res:identity_public:P5",
+        "fact:smb-mtpaytco-5tnaz:beat-res:identity_confirmed:P5",
+        "fact:smb-mtpaytcp-5lvas:beat-setup:faction_latent:P2",
+        "fact:smb-mtpaytcp-5lvas:beat-develop:faction_pressure:P2",
+        "fact:smb-mtpaytcp-5lvas:beat-develop:site_accessible:P2",
+        "fact:smb-mtpaytcp-5lvas:beat-develop:faction_latent:P2",
+        "fact:smb-mtpaytcp-5lvas:beat-climax:allegiance_changed:P6",
+        "fact:smb-mtpaytcp-5lvas:beat-climax:faction_exposure_risk:P6",
+        "fact:smb-mtpaytcp-5lvas:beat-climax:faction_pressure:P6",
+        "fact:smb-mtpaytcp-5lvas:beat-res:faction_settled:P2",
+        "fact:smb-mtpaytcp-5lvas:beat-res:allegiance_changed:P2"
+      ],
+      "sectionStatus": "GENERATED"
+    },
+    "act1-intro": {
+      "sourceCharacterId": "P2",
+      "sourceBeatIds": [
+        "ob-mtpaytct-w3qi"
+      ],
+      "sourceClueIds": [
+        "smb-mtpaytcp-5lvas-faction_foreshadow-0",
+        "smb-mtpaytcp-5lvas-membership_hint-1",
+        "smb-mtpaytcp-5lvas-secret_signal-2"
+      ],
+      "sourceFactIds": [
+        "fact:smb-mtpaytcp-5lvas:beat-setup:faction_latent:P2"
+      ],
+      "sectionStatus": "INVALID"
+    },
+    "act2-crime": {
+      "sourceCharacterId": "P1",
+      "sourceBeatIds": [
+        "ob-mtpaytct-nerp",
+        "ob-mtpaytct-mmws"
+      ],
+      "sourceClueIds": [
+        "fact-interface:ob-mtpaytcs-gzbg",
+        "smb-mtpaytck-l1bny-false_lead-0",
+        "smb-mtpaytck-l1bny-true_evidence-2",
+        "smb-mtpaytck-l1bny-decisive_evidence-3"
+      ],
+      "sourceFactIds": [
+        "fact:smb-mtpaytck-l1bny:beat-crime:crime_done:P1",
+        "fact:smb-mtpaytck-l1bny:beat-crime:planted_evidence_available:P1",
+        "fact:smb-mtpaytck-l1bny:beat-crime:false_lead:P1"
+      ],
+      "sectionStatus": "GENERATED"
+    },
+    "act3-confrontation": {
+      "sourceCharacterId": "P1",
+      "sourceBeatIds": [
+        "ob-mtpaytct-j895",
+        "ob-mtpaytct-9c3m"
+      ],
+      "sourceClueIds": [
+        "smb-mtpaytck-l1bny-true_evidence-2",
+        "smb-mtpaytck-l1bny-decisive_evidence-3",
+        "smb-mtpaytck-l1bny-contradiction-1",
+        "smb-mtpaytcp-5lvas-betrayal_hint-5"
+      ],
+      "sourceFactIds": [
+        "fact:smb-mtpaytck-l1bny:beat-climax:truth_locked:P2",
+        "fact:smb-mtpaytck-l1bny:beat-climax:contradiction:P2",
+        "fact:smb-mtpaytcp-5lvas:beat-climax:allegiance_changed:P6"
+      ],
+      "sectionStatus": "GENERATED"
+    },
+    "act4-resolution": {
+      "sourceCharacterId": "P2",
+      "sourceBeatIds": [
+        "ob-mtpaytct-iptk",
+        "ob-mtpaytct-xu4a",
+        "ob-mtpaytct-9jwq"
+      ],
+      "sourceClueIds": [
+        "smb-mtpaytck-l1bny-decisive_evidence-3",
+        "smb-mtpaytco-5tnaz-identity_clue-2",
+        "smb-mtpaytcp-5lvas-membership_confirmation-8",
+        "smb-mtpaytcp-5lvas-faction_exposure-9"
+      ],
+      "sourceFactIds": [
+        "fact:smb-mtpaytck-l1bny:beat-res:truth_locked:P2",
+        "fact:smb-mtpaytcp-5lvas:beat-res:faction_settled:P2",
+        "fact:smb-mtpaytcp-5lvas:beat-res:allegiance_changed:P2"
+      ],
+      "sectionStatus": "INVALID"
+    },
+    "act1": {
+      "sourceCharacterId": "P3",
+      "sourceBeatIds": [
+        "ob-mtpaytcs-gzbg"
+      ],
+      "sourceClueIds": [
+        "fact-interface:ob-mtpaytcs-gzbg",
+        "smb-mtpaytco-5tnaz-foreshadow-0",
+        "smb-mtpaytcp-5lvas-faction_foreshadow-0",
+        "smb-mtpaytck-l1bny-false_lead-0",
+        "smb-mtpaytck-l1bny-true_evidence-2",
+        "smb-mtpaytck-l1bny-decisive_evidence-3"
+      ],
+      "sourceFactIds": [
+        "fact:smb-mtpaytck-l1bny:beat-setup:false_lead:P1"
+      ],
+      "sectionStatus": "GENERATED"
+    },
+    "act2": {
+      "sourceCharacterId": "P3",
+      "sourceBeatIds": [
+        "ob-mtpaytct-yba9",
+        "ob-mtpaytct-sgls",
+        "ob-mtpaytct-mmws"
+      ],
+      "sourceClueIds": [
+        "smb-mtpaytck-l1bny-contradiction-1",
+        "smb-mtpaytco-5tnaz-memory_fragment-1",
+        "smb-mtpaytco-5tnaz-identity_hint-2",
+        "smb-mtpaytco-5tnaz-misdirection-3",
+        "smb-mtpaytcp-5lvas-membership_hint-1",
+        "smb-mtpaytcp-5lvas-secret_signal-2"
+      ],
+      "sourceFactIds": [
+        "fact:smb-mtpaytck-l1bny:beat-false:false_suspicion:P2",
+        "fact:smb-mtpaytck-l1bny:beat-false:planted_evidence_available:P2",
+        "fact:smb-mtpaytco-5tnaz:beat-develop:identity_clue:P5",
+        "fact:smb-mtpaytcp-5lvas:beat-develop:faction_pressure:P2"
+      ],
+      "sectionStatus": "GENERATED"
+    },
+    "act3": {
+      "sourceCharacterId": "P3",
+      "sourceBeatIds": [
+        "ob-mtpaytct-j895",
+        "ob-mtpaytct-90on",
+        "ob-mtpaytct-9c3m"
+      ],
+      "sourceClueIds": [
+        "smb-mtpaytck-l1bny-true_evidence-2",
+        "smb-mtpaytck-l1bny-decisive_evidence-3",
+        "smb-mtpaytco-5tnaz-confirmation-4",
+        "smb-mtpaytco-5tnaz-decisive_reveal-5",
+        "smb-mtpaytcp-5lvas-betrayal_hint-5",
+        "smb-mtpaytcp-5lvas-internal_conflict-6",
+        "smb-mtpaytcp-5lvas-hidden_goal_hint-7"
+      ],
+      "sourceFactIds": [
+        "fact:smb-mtpaytck-l1bny:beat-climax:truth_locked:P2",
+        "fact:smb-mtpaytck-l1bny:beat-climax:contradiction:P2",
+        "fact:smb-mtpaytco-5tnaz:beat-climax:identity_confirmed:P5",
+        "fact:smb-mtpaytcp-5lvas:beat-climax:allegiance_changed:P6"
+      ],
+      "sectionStatus": "GENERATED"
+    },
+    "act4": {
+      "sourceCharacterId": "P3",
+      "sourceBeatIds": [
+        "ob-mtpaytct-iptk",
+        "ob-mtpaytct-xu4a",
+        "ob-mtpaytct-9jwq"
+      ],
+      "sourceClueIds": [
+        "smb-mtpaytck-l1bny-true_evidence-2",
+        "smb-mtpaytck-l1bny-decisive_evidence-3",
+        "smb-mtpaytco-5tnaz-confirmation-4",
+        "smb-mtpaytco-5tnaz-decisive_reveal-5",
+        "smb-mtpaytcp-5lvas-membership_confirmation-8",
+        "smb-mtpaytcp-5lvas-faction_exposure-9"
+      ],
+      "sourceFactIds": [
+        "fact:smb-mtpaytck-l1bny:beat-res:truth_locked:P2",
+        "fact:smb-mtpaytck-l1bny:beat-res:contradiction:P2",
+        "fact:smb-mtpaytco-5tnaz:beat-res:identity_public:P5",
+        "fact:smb-mtpaytcp-5lvas:beat-res:faction_settled:P2"
+      ],
+      "sectionStatus": "GENERATED"
+    },
+    "situation": {
+      "sourceCharacterId": "P5",
+      "sourceBeatIds": [
+        "ob-mtpaytct-xu4a",
+        "ob-mtpaytct-9jwq"
+      ],
+      "sourceClueIds": [],
+      "sourceFactIds": [
+        "fact:smb-mtpaytco-5tnaz:beat-res:identity_public:P5",
+        "fact:smb-mtpaytco-5tnaz:beat-res:identity_confirmed:P5"
+      ],
+      "sectionStatus": "GENERATED"
+    },
+    "memory": {
+      "sourceCharacterId": "P5",
+      "sourceBeatIds": [],
+      "sourceClueIds": [
+        "smb-mtpaytco-5tnaz-decisive_reveal-5",
+        "smb-mtpaytco-5tnaz-memory_fragment-1"
+      ],
+      "sourceFactIds": [],
+      "sectionStatus": "GENERATED"
+    },
+    "perception": {
+      "sourceCharacterId": "P5",
+      "sourceBeatIds": [],
+      "sourceClueIds": [
+        "smb-mtpaytcp-5lvas-faction_exposure-9",
+        "smb-mtpaytcp-5lvas-membership_confirmation-8"
+      ],
+      "sourceFactIds": [],
+      "sectionStatus": "GENERATED"
+    },
+    "action-space": {
+      "sourceCharacterId": "P5",
+      "sourceBeatIds": [],
+      "sourceClueIds": [
+        "fact-interface:ob-mtpaytct-xu4a",
+        "fact-interface:ob-mtpaytct-9jwq"
+      ],
+      "sourceFactIds": [],
+      "sectionStatus": "GENERATED"
+    },
+    "act2-develop": {
+      "sourceCharacterId": "P6",
+      "sourceBeatIds": [
+        "ob-mtpaytct-sgls",
+        "ob-mtpaytct-mmws"
+      ],
+      "sourceClueIds": [
+        "smb-mtpaytco-5tnaz-memory_fragment-1",
+        "smb-mtpaytcp-5lvas-membership_hint-1",
+        "smb-mtpaytck-l1bny-false_lead-0",
+        "smb-mtpaytck-l1bny-contradiction-1"
+      ],
+      "sourceFactIds": [
+        "fact:smb-mtpaytco-5tnaz:beat-develop:identity_clue:P5",
+        "fact:smb-mtpaytcp-5lvas:beat-develop:faction_pressure:P2",
+        "fact:smb-mtpaytcp-5lvas:beat-develop:site_accessible:P2"
+      ],
+      "sectionStatus": "GENERATED"
+    },
+    "act3-climax": {
+      "sourceCharacterId": "P2",
+      "sourceBeatIds": [
+        "ob-mtpaytct-j895",
+        "ob-mtpaytct-90on",
+        "ob-mtpaytct-9c3m"
+      ],
+      "sourceClueIds": [
+        "smb-mtpaytck-l1bny-decisive_evidence-3",
+        "smb-mtpaytco-5tnaz-confirmation-4",
+        "smb-mtpaytco-5tnaz-decisive_reveal-5",
+        "smb-mtpaytcp-5lvas-betrayal_hint-5",
+        "smb-mtpaytcp-5lvas-internal_conflict-6",
+        "smb-mtpaytcp-5lvas-hidden_goal_hint-7"
+      ],
+      "sourceFactIds": [
+        "fact:smb-mtpaytck-l1bny:beat-climax:truth_locked:P2",
+        "fact:smb-mtpaytck-l1bny:beat-climax:contradiction:P2",
+        "fact:smb-mtpaytcp-5lvas:beat-climax:allegiance_changed:P6",
+        "fact:smb-mtpaytcp-5lvas:beat-climax:faction_exposure_risk:P6"
+      ],
+      "sectionStatus": "INVALID"
+    },
+    "act2-crime-scene": {
+      "sourceCharacterId": "P2",
+      "sourceBeatIds": [
+        "ob-mtpaytct-nerp",
+        "ob-mtpaytct-yba9",
+        "ob-mtpaytct-8zcz",
+        "ob-mtpaytct-mmws"
+      ],
+      "sourceClueIds": [
+        "smb-mtpaytck-l1bny-false_lead-0",
+        "smb-mtpaytck-l1bny-contradiction-1",
+        "smb-mtpaytck-l1bny-true_evidence-2",
+        "smb-mtpaytcp-5lvas-recruitment_evidence-3",
+        "smb-mtpaytcp-5lvas-loyalty_test-4"
+      ],
+      "sourceFactIds": [
+        "fact:smb-mtpaytck-l1bny:beat-crime:crime_done:P1",
+        "fact:smb-mtpaytck-l1bny:beat-crime:planted_evidence_available:P1",
+        "fact:smb-mtpaytck-l1bny:beat-false:false_suspicion:P2",
+        "fact:smb-mtpaytck-l1bny:beat-contra:contradiction:P2",
+        "fact:smb-mtpaytcp-5lvas:beat-develop:faction_pressure:P2"
+      ],
+      "sectionStatus": "INVALID"
+    },
+    "P4-act2": {
+      "sourceCharacterId": "P4",
+      "sourceBeatIds": [
+        "ob-mtpaytct-nerp",
+        "ob-mtpaytct-sgls",
+        "ob-mtpaytct-mmws"
+      ],
+      "sourceClueIds": [
+        "smb-mtpaytck-l1bny-false_lead-0",
+        "smb-mtpaytck-l1bny-contradiction-1",
+        "smb-mtpaytco-5tnaz-memory_fragment-1",
+        "smb-mtpaytcp-5lvas-faction_foreshadow-0"
+      ],
+      "sourceFactIds": [],
+      "sectionStatus": "GENERATED"
+    },
+    "P4-act3": {
+      "sourceCharacterId": "P4",
+      "sourceBeatIds": [
+        "ob-mtpaytct-90on",
+        "ob-mtpaytct-9c3m"
+      ],
+      "sourceClueIds": [
+        "smb-mtpaytco-5tnaz-identity_hint-2",
+        "smb-mtpaytco-5tnaz-misdirection-3",
+        "smb-mtpaytcp-5lvas-betrayal_hint-5",
+        "smb-mtpaytcp-5lvas-internal_conflict-6"
+      ],
+      "sourceFactIds": [],
+      "sectionStatus": "GENERATED"
+    },
+    "P4-act4": {
+      "sourceCharacterId": "P4",
+      "sourceBeatIds": [
+        "ob-mtpaytct-iptk",
+        "ob-mtpaytct-xu4a",
+        "ob-mtpaytct-9jwq"
+      ],
+      "sourceClueIds": [
+        "smb-mtpaytck-l1bny-decisive_evidence-3",
+        "smb-mtpaytco-5tnaz-decisive_reveal-5",
+        "smb-mtpaytcp-5lvas-faction_exposure-9"
+      ],
+      "sourceFactIds": [],
+      "sectionStatus": "GENERATED"
+    },
+    "clue:fact-interface:ob-mtpaytcs-gzbg": {
+      "sourceClueId": "fact-interface:ob-mtpaytcs-gzbg",
+      "sourceBeatIds": [],
+      "sourceClueIds": [
+        "fact-interface:ob-mtpaytcs-gzbg"
+      ],
+      "sourceFactIds": [],
+      "sectionStatus": "GENERATED"
+    },
+    "clue:smb-mtpaytco-5tnaz-foreshadow-0": {
+      "sourceClueId": "smb-mtpaytco-5tnaz-foreshadow-0",
+      "sourceBeatIds": [
+        "ob-mtpaytct-o066",
+        "ob-mtpaytct-sgls"
+      ],
+      "sourceClueIds": [
+        "smb-mtpaytco-5tnaz-foreshadow-0"
+      ],
+      "sourceFactIds": [
+        "fact:smb-mtpaytco-5tnaz:beat-setup:identity_latent:P5",
+        "fact:smb-mtpaytco-5tnaz:beat-develop:identity_clue:P5",
+        "fact:smb-mtpaytco-5tnaz:beat-develop:site_accessible:P5"
+      ],
+      "sectionStatus": "GENERATED"
+    },
+    "clue:smb-mtpaytcp-5lvas-faction_foreshadow-0": {
+      "sourceClueId": "smb-mtpaytcp-5lvas-faction_foreshadow-0",
+      "sourceBeatIds": [
+        "ob-mtpaytct-w3qi",
+        "ob-mtpaytct-mmws"
+      ],
+      "sourceClueIds": [
+        "smb-mtpaytcp-5lvas-faction_foreshadow-0"
+      ],
+      "sourceFactIds": [
+        "fact:smb-mtpaytcp-5lvas:beat-setup:faction_latent:P2",
+        "fact:smb-mtpaytcp-5lvas:beat-develop:faction_pressure:P2",
+        "fact:smb-mtpaytcp-5lvas:beat-develop:site_accessible:P2",
+        "fact:smb-mtpaytcp-5lvas:beat-develop:faction_latent:P2"
+      ],
+      "sectionStatus": "GENERATED"
+    },
+    "clue:smb-mtpaytck-l1bny-false_lead-0": {
+      "sourceClueId": "smb-mtpaytck-l1bny-false_lead-0",
+      "sourceBeatIds": [
+        "ob-mtpaytct-nerp",
+        "ob-mtpaytct-yba9"
+      ],
+      "sourceClueIds": [
+        "smb-mtpaytck-l1bny-false_lead-0"
+      ],
+      "sourceFactIds": [
+        "fact:smb-mtpaytck-l1bny:beat-crime:crime_done:P1",
+        "fact:smb-mtpaytck-l1bny:beat-crime:planted_evidence_available:P1",
+        "fact:smb-mtpaytck-l1bny:beat-crime:false_lead:P1",
+        "fact:smb-mtpaytck-l1bny:beat-false:false_suspicion:P2",
+        "fact:smb-mtpaytck-l1bny:beat-false:planted_evidence_available:P2"
+      ],
+      "sectionStatus": "GENERATED"
+    },
+    "clue:smb-mtpaytck-l1bny-contradiction-1": {
+      "sourceClueId": "smb-mtpaytck-l1bny-contradiction-1",
+      "sourceBeatIds": [
+        "ob-mtpaytct-8zcz"
+      ],
+      "sourceClueIds": [
+        "smb-mtpaytck-l1bny-contradiction-1"
+      ],
+      "sourceFactIds": [
+        "fact:smb-mtpaytck-l1bny:beat-contra:contradiction:P2",
+        "fact:smb-mtpaytck-l1bny:beat-contra:false_suspicion:P2"
+      ],
+      "sectionStatus": "GENERATED"
+    },
+    "clue:smb-mtpaytck-l1bny-true_evidence-2": {
+      "sourceClueId": "smb-mtpaytck-l1bny-true_evidence-2",
+      "sourceBeatIds": [
+        "ob-mtpaytct-j895"
+      ],
+      "sourceClueIds": [
+        "smb-mtpaytck-l1bny-true_evidence-2"
+      ],
+      "sourceFactIds": [
+        "fact:smb-mtpaytck-l1bny:beat-climax:truth_locked:P2",
+        "fact:smb-mtpaytck-l1bny:beat-climax:contradiction:P2"
+      ],
+      "sectionStatus": "GENERATED"
+    },
+    "clue:smb-mtpaytck-l1bny-decisive_evidence-3": {
+      "sourceClueId": "smb-mtpaytck-l1bny-decisive_evidence-3",
+      "sourceBeatIds": [
+        "ob-mtpaytct-j895",
+        "ob-mtpaytct-iptk"
+      ],
+      "sourceClueIds": [
+        "smb-mtpaytck-l1bny-decisive_evidence-3"
+      ],
+      "sourceFactIds": [],
+      "sectionStatus": "GENERATED"
+    },
+    "clue:smb-mtpaytco-5tnaz-memory_fragment-1": {
+      "sourceClueId": "smb-mtpaytco-5tnaz-memory_fragment-1",
+      "sourceBeatIds": [
+        "ob-mtpaytct-90on"
+      ],
+      "sourceClueIds": [
+        "smb-mtpaytco-5tnaz-memory_fragment-1"
+      ],
+      "sourceFactIds": [
+        "fact:smb-mtpaytco-5tnaz:beat-climax:identity_confirmed:P5",
+        "fact:smb-mtpaytco-5tnaz:beat-climax:family_status:P5",
+        "fact:smb-mtpaytco-5tnaz:beat-climax:identity_clue:P5"
+      ],
+      "sectionStatus": "GENERATED"
+    },
+    "clue:smb-mtpaytco-5tnaz-identity_hint-2": {
+      "sourceClueId": "smb-mtpaytco-5tnaz-identity_hint-2",
+      "sourceBeatIds": [
+        "ob-mtpaytct-90on"
+      ],
+      "sourceClueIds": [
+        "smb-mtpaytco-5tnaz-identity_hint-2"
+      ],
+      "sourceFactIds": [
+        "fact:smb-mtpaytco-5tnaz:beat-climax:identity_confirmed:P5",
+        "fact:smb-mtpaytco-5tnaz:beat-climax:family_status:P5",
+        "fact:smb-mtpaytco-5tnaz:beat-climax:identity_clue:P5"
+      ],
+      "sectionStatus": "GENERATED"
+    },
+    "clue:smb-mtpaytco-5tnaz-misdirection-3": {
+      "sourceClueId": "smb-mtpaytco-5tnaz-misdirection-3",
+      "sourceBeatIds": [
+        "ob-mtpaytct-90on"
+      ],
+      "sourceClueIds": [
+        "smb-mtpaytco-5tnaz-misdirection-3"
+      ],
+      "sourceFactIds": [
+        "fact:smb-mtpaytco-5tnaz:beat-climax:identity_confirmed:P5",
+        "fact:smb-mtpaytco-5tnaz:beat-climax:family_status:P5",
+        "fact:smb-mtpaytco-5tnaz:beat-climax:identity_clue:P5"
+      ],
+      "sectionStatus": "GENERATED"
+    },
+    "clue:smb-mtpaytco-5tnaz-confirmation-4": {
+      "sourceClueId": "smb-mtpaytco-5tnaz-confirmation-4",
+      "sourceBeatIds": [
+        "ob-mtpaytct-90on"
+      ],
+      "sourceClueIds": [
+        "smb-mtpaytco-5tnaz-confirmation-4"
+      ],
+      "sourceFactIds": [
+        "fact:smb-mtpaytco-5tnaz:beat-climax:identity_confirmed:P5",
+        "fact:smb-mtpaytco-5tnaz:beat-climax:family_status:P5",
+        "fact:smb-mtpaytco-5tnaz:beat-climax:identity_clue:P5"
+      ],
+      "sectionStatus": "GENERATED"
+    },
+    "clue:smb-mtpaytco-5tnaz-decisive_reveal-5": {
+      "sourceClueId": "smb-mtpaytco-5tnaz-decisive_reveal-5",
+      "sourceBeatIds": [
+        "ob-mtpaytct-90on"
+      ],
+      "sourceClueIds": [
+        "smb-mtpaytco-5tnaz-decisive_reveal-5"
+      ],
+      "sourceFactIds": [
+        "fact:smb-mtpaytco-5tnaz:beat-climax:identity_confirmed:P5",
+        "fact:smb-mtpaytco-5tnaz:beat-climax:family_status:P5",
+        "fact:smb-mtpaytco-5tnaz:beat-climax:identity_clue:P5"
+      ],
+      "sectionStatus": "GENERATED"
+    },
+    "clue:smb-mtpaytcp-5lvas-membership_hint-1": {
+      "sourceClueId": "smb-mtpaytcp-5lvas-membership_hint-1",
+      "sourceBeatIds": [
+        "ob-mtpaytct-9c3m"
+      ],
+      "sourceClueIds": [
+        "smb-mtpaytcp-5lvas-membership_hint-1"
+      ],
+      "sourceFactIds": [
+        "fact:smb-mtpaytcp-5lvas:beat-climax:allegiance_changed:P6",
+        "fact:smb-mtpaytcp-5lvas:beat-climax:faction_exposure_risk:P6",
+        "fact:smb-mtpaytcp-5lvas:beat-climax:faction_pressure:P6"
+      ],
+      "sectionStatus": "GENERATED"
+    },
+    "clue:smb-mtpaytcp-5lvas-secret_signal-2": {
+      "sourceClueId": "smb-mtpaytcp-5lvas-secret_signal-2",
+      "sourceBeatIds": [
+        "ob-mtpaytct-9c3m"
+      ],
+      "sourceClueIds": [
+        "smb-mtpaytcp-5lvas-secret_signal-2"
+      ],
+      "sourceFactIds": [
+        "fact:smb-mtpaytcp-5lvas:beat-climax:allegiance_changed:P6",
+        "fact:smb-mtpaytcp-5lvas:beat-climax:faction_exposure_risk:P6",
+        "fact:smb-mtpaytcp-5lvas:beat-climax:faction_pressure:P6"
+      ],
+      "sectionStatus": "GENERATED"
+    },
+    "clue:smb-mtpaytcp-5lvas-recruitment_evidence-3": {
+      "sourceClueId": "smb-mtpaytcp-5lvas-recruitment_evidence-3",
+      "sourceBeatIds": [
+        "ob-mtpaytct-9c3m"
+      ],
+      "sourceClueIds": [
+        "smb-mtpaytcp-5lvas-recruitment_evidence-3"
+      ],
+      "sourceFactIds": [
+        "fact:smb-mtpaytcp-5lvas:beat-climax:allegiance_changed:P6",
+        "fact:smb-mtpaytcp-5lvas:beat-climax:faction_exposure_risk:P6",
+        "fact:smb-mtpaytcp-5lvas:beat-climax:faction_pressure:P6"
+      ],
+      "sectionStatus": "GENERATED"
+    },
+    "clue:smb-mtpaytcp-5lvas-loyalty_test-4": {
+      "sourceClueId": "smb-mtpaytcp-5lvas-loyalty_test-4",
+      "sourceBeatIds": [
+        "ob-mtpaytct-9c3m"
+      ],
+      "sourceClueIds": [
+        "smb-mtpaytcp-5lvas-loyalty_test-4"
+      ],
+      "sourceFactIds": [
+        "fact:smb-mtpaytcp-5lvas:beat-climax:allegiance_changed:P6",
+        "fact:smb-mtpaytcp-5lvas:beat-climax:faction_exposure_risk:P6",
+        "fact:smb-mtpaytcp-5lvas:beat-climax:faction_pressure:P6"
+      ],
+      "sectionStatus": "GENERATED"
+    },
+    "clue:smb-mtpaytcp-5lvas-betrayal_hint-5": {
+      "sourceClueId": "smb-mtpaytcp-5lvas-betrayal_hint-5",
+      "sourceBeatIds": [
+        "ob-mtpaytct-9c3m"
+      ],
+      "sourceClueIds": [
+        "smb-mtpaytcp-5lvas-betrayal_hint-5"
+      ],
+      "sourceFactIds": [
+        "fact:smb-mtpaytcp-5lvas:beat-climax:allegiance_changed:P6",
+        "fact:smb-mtpaytcp-5lvas:beat-climax:faction_exposure_risk:P6",
+        "fact:smb-mtpaytcp-5lvas:beat-climax:faction_pressure:P6"
+      ],
+      "sectionStatus": "GENERATED"
+    },
+    "clue:smb-mtpaytcp-5lvas-internal_conflict-6": {
+      "sourceClueId": "smb-mtpaytcp-5lvas-internal_conflict-6",
+      "sourceBeatIds": [
+        "ob-mtpaytct-9c3m"
+      ],
+      "sourceClueIds": [
+        "smb-mtpaytcp-5lvas-internal_conflict-6"
+      ],
+      "sourceFactIds": [
+        "fact:smb-mtpaytcp-5lvas:beat-climax:allegiance_changed:P6",
+        "fact:smb-mtpaytcp-5lvas:beat-climax:faction_exposure_risk:P6",
+        "fact:smb-mtpaytcp-5lvas:beat-climax:faction_pressure:P6"
+      ],
+      "sectionStatus": "GENERATED"
+    },
+    "clue:smb-mtpaytcp-5lvas-hidden_goal_hint-7": {
+      "sourceClueId": "smb-mtpaytcp-5lvas-hidden_goal_hint-7",
+      "sourceBeatIds": [
+        "ob-mtpaytct-9c3m"
+      ],
+      "sourceClueIds": [
+        "smb-mtpaytcp-5lvas-hidden_goal_hint-7"
+      ],
+      "sourceFactIds": [
+        "fact:smb-mtpaytcp-5lvas:beat-climax:allegiance_changed:P6",
+        "fact:smb-mtpaytcp-5lvas:beat-climax:faction_exposure_risk:P6",
+        "fact:smb-mtpaytcp-5lvas:beat-climax:faction_pressure:P6"
+      ],
+      "sectionStatus": "GENERATED"
+    },
+    "clue:smb-mtpaytcp-5lvas-membership_confirmation-8": {
+      "sourceClueId": "smb-mtpaytcp-5lvas-membership_confirmation-8",
+      "sourceBeatIds": [
+        "ob-mtpaytct-9c3m"
+      ],
+      "sourceClueIds": [
+        "smb-mtpaytcp-5lvas-membership_confirmation-8"
+      ],
+      "sourceFactIds": [
+        "fact:smb-mtpaytcp-5lvas:beat-climax:allegiance_changed:P6",
+        "fact:smb-mtpaytcp-5lvas:beat-climax:faction_exposure_risk:P6",
+        "fact:smb-mtpaytcp-5lvas:beat-climax:faction_pressure:P6"
+      ],
+      "sectionStatus": "GENERATED"
+    },
+    "clue:smb-mtpaytcp-5lvas-faction_exposure-9": {
+      "sourceClueId": "smb-mtpaytcp-5lvas-faction_exposure-9",
+      "sourceBeatIds": [
+        "ob-mtpaytct-9c3m"
+      ],
+      "sourceClueIds": [
+        "smb-mtpaytcp-5lvas-faction_exposure-9"
+      ],
+      "sourceFactIds": [
+        "fact:smb-mtpaytcp-5lvas:beat-climax:allegiance_changed:P6",
+        "fact:smb-mtpaytcp-5lvas:beat-climax:faction_exposure_risk:P6",
+        "fact:smb-mtpaytcp-5lvas:beat-climax:faction_pressure:P6"
+      ],
+      "sectionStatus": "GENERATED"
+    },
+    "clue:fact-interface:ob-mtpaytct-xu4a": {
+      "sourceClueId": "fact-interface:ob-mtpaytct-xu4a",
+      "sourceBeatIds": [],
+      "sourceClueIds": [
+        "fact-interface:ob-mtpaytct-xu4a"
+      ],
+      "sourceFactIds": [],
+      "sectionStatus": "GENERATED"
+    },
+    "clue:fact-interface:ob-mtpaytct-9jwq": {
+      "sourceClueId": "fact-interface:ob-mtpaytct-9jwq",
+      "sourceBeatIds": [],
+      "sourceClueIds": [
+        "fact-interface:ob-mtpaytct-9jwq"
+      ],
+      "sourceFactIds": [],
+      "sectionStatus": "GENERATED"
+    }
+  },
+  "diagnostics": [
+    {
+      "id": "warn-clue-ob-mtpaytcs-gzbg",
+      "type": "MISSING_CLUE_DETAIL",
+      "severity": "info",
+      "message": "该剧情 beat 需要/产生事实接口，但模板尚未绑定具体线索内容。",
+      "stageIds": [
+        "act1"
+      ],
+      "beatIds": [
+        "ob-mtpaytcs-gzbg"
+      ],
+      "lane": "fillable"
+    },
+    {
+      "id": "warn-clue-ob-mtpaytct-xu4a",
+      "type": "MISSING_CLUE_DETAIL",
+      "severity": "info",
+      "message": "该剧情 beat 需要/产生事实接口，但模板尚未绑定具体线索内容。",
+      "stageIds": [
+        "act4"
+      ],
+      "beatIds": [
+        "ob-mtpaytct-xu4a"
+      ],
+      "lane": "fillable"
+    },
+    {
+      "id": "warn-clue-ob-mtpaytct-9jwq",
+      "type": "MISSING_CLUE_DETAIL",
+      "severity": "info",
+      "message": "该剧情 beat 需要/产生事实接口，但模板尚未绑定具体线索内容。",
+      "stageIds": [
+        "act4"
+      ],
+      "beatIds": [
+        "ob-mtpaytct-9jwq"
+      ],
+      "lane": "fillable"
+    },
+    {
+      "code": "UNKNOWN_CLUE",
+      "message": "未知 clue smb-mtpaytco-5tnaz-identity_clue-2",
+      "lane": "writer",
+      "sectionId": "role:P2"
+    }
+  ],
+  "revision": 1,
+  "updatedAt": "2026-09-06T04:23:11.366Z"
+}

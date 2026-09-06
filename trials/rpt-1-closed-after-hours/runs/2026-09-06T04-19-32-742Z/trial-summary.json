@@ -1,0 +1,40 @@
+{
+  "trialId": "RPT-1",
+  "title": "闭馆之后",
+  "trialVerdict": "TRIAL_PARTIAL",
+  "writerMode": {
+    "mode": "real",
+    "adapterId": "deepseek-script-writer",
+    "modelId": "deepseek-v4-flash"
+  },
+  "quality": {
+    "status": "QUALITY_BLOCKED",
+    "totalScore": 65.5,
+    "hardBlockers": 1,
+    "lowestDimensions": [
+      {
+        "id": "E_AESTHETIC_VOICE",
+        "score": 1.5
+      },
+      {
+        "id": "C_STAGE_PROGRESSION",
+        "score": 3
+      },
+      {
+        "id": "D_GAME_NARRATIVE_FUSION",
+        "score": 3
+      }
+    ]
+  },
+  "humanIntervention": {
+    "authorConfirmations": 13,
+    "systemAuto": 6,
+    "developerFirefighting": 0
+  },
+  "elapsedMs": 218658,
+  "artifactDir": "D:\\长剧情\\trials\\rpt-1-closed-after-hours\\runs\\2026-09-06T04-19-32-742Z",
+  "note": "全链路无开发者救火；Quality Gate HARD BLOCK（HOST_CANNOT_RUN）+ score 65.5 → 机器判 PARTIAL。正式 TRIAL_PASS 仍须五项人工审看。Runtime smoke 因 package 未 approve 按产品路径跳过（非救火）。",
+  "reclassifiedAt": "2026-09-06T04:24:34.838Z",
+  "reclassifyReason": "runtime_smoke_failed on INVALID playable was mislabeled FIREFIGHT",
+  "modelCalls": 36
+}

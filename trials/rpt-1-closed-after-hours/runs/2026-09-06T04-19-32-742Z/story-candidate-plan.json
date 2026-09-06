@@ -1,0 +1,219 @@
+{
+  "sourceSpecRevision": 1,
+  "candidates": [
+    {
+      "templateId": "M01-FRAMING",
+      "familyId": "M01",
+      "score": 0.675,
+      "reasons": [
+        "体验匹配 0.67",
+        "COMPLETE 语义可用",
+        "意图 DEDUCTION"
+      ],
+      "matchedIntents": [
+        "DEDUCTION"
+      ],
+      "warnings": []
+    },
+    {
+      "templateId": "M07-1",
+      "familyId": "M07",
+      "score": 0.652,
+      "reasons": [
+        "体验匹配 0.65",
+        "COMPLETE 语义可用",
+        "意图 IDENTITY",
+        "意图 DEDUCTION",
+        "意图 ROLEPLAY"
+      ],
+      "matchedIntents": [
+        "IDENTITY",
+        "DEDUCTION",
+        "ROLEPLAY"
+      ],
+      "warnings": []
+    },
+    {
+      "templateId": "M07-3",
+      "familyId": "M07",
+      "score": 0.652,
+      "reasons": [
+        "体验匹配 0.65",
+        "COMPLETE 语义可用",
+        "意图 IDENTITY",
+        "意图 DEDUCTION",
+        "意图 ROLEPLAY"
+      ],
+      "matchedIntents": [
+        "IDENTITY",
+        "DEDUCTION",
+        "ROLEPLAY"
+      ],
+      "warnings": []
+    },
+    {
+      "templateId": "M07-4",
+      "familyId": "M07",
+      "score": 0.652,
+      "reasons": [
+        "体验匹配 0.65",
+        "COMPLETE 语义可用",
+        "意图 IDENTITY",
+        "意图 DEDUCTION",
+        "意图 ROLEPLAY"
+      ],
+      "matchedIntents": [
+        "IDENTITY",
+        "DEDUCTION",
+        "ROLEPLAY"
+      ],
+      "warnings": []
+    },
+    {
+      "templateId": "M07-6",
+      "familyId": "M07",
+      "score": 0.652,
+      "reasons": [
+        "体验匹配 0.65",
+        "COMPLETE 语义可用",
+        "意图 IDENTITY",
+        "意图 DEDUCTION",
+        "意图 ROLEPLAY"
+      ],
+      "matchedIntents": [
+        "IDENTITY",
+        "DEDUCTION",
+        "ROLEPLAY"
+      ],
+      "warnings": []
+    },
+    {
+      "templateId": "M07-7",
+      "familyId": "M07",
+      "score": 0.652,
+      "reasons": [
+        "体验匹配 0.65",
+        "COMPLETE 语义可用",
+        "意图 IDENTITY",
+        "意图 DEDUCTION",
+        "意图 ROLEPLAY"
+      ],
+      "matchedIntents": [
+        "IDENTITY",
+        "DEDUCTION",
+        "ROLEPLAY"
+      ],
+      "warnings": []
+    },
+    {
+      "templateId": "M07-8",
+      "familyId": "M07",
+      "score": 0.652,
+      "reasons": [
+        "体验匹配 0.65",
+        "COMPLETE 语义可用",
+        "意图 IDENTITY",
+        "意图 DEDUCTION",
+        "意图 ROLEPLAY"
+      ],
+      "matchedIntents": [
+        "IDENTITY",
+        "DEDUCTION",
+        "ROLEPLAY"
+      ],
+      "warnings": []
+    },
+    {
+      "templateId": "M08-1",
+      "familyId": "M08",
+      "score": 0.633,
+      "reasons": [
+        "体验匹配 0.63",
+        "COMPLETE 语义可用",
+        "意图 ROLEPLAY"
+      ],
+      "matchedIntents": [
+        "ROLEPLAY"
+      ],
+      "warnings": []
+    },
+    {
+      "templateId": "M08-2",
+      "familyId": "M08",
+      "score": 0.633,
+      "reasons": [
+        "体验匹配 0.63",
+        "COMPLETE 语义可用",
+        "意图 ROLEPLAY"
+      ],
+      "matchedIntents": [
+        "ROLEPLAY"
+      ],
+      "warnings": []
+    },
+    {
+      "templateId": "M08-3",
+      "familyId": "M08",
+      "score": 0.633,
+      "reasons": [
+        "体验匹配 0.63",
+        "COMPLETE 语义可用",
+        "意图 ROLEPLAY"
+      ],
+      "matchedIntents": [
+        "ROLEPLAY"
+      ],
+      "warnings": []
+    },
+    {
+      "templateId": "M08-4",
+      "familyId": "M08",
+      "score": 0.633,
+      "reasons": [
+        "体验匹配 0.63",
+        "COMPLETE 语义可用",
+        "意图 ROLEPLAY"
+      ],
+      "matchedIntents": [
+        "ROLEPLAY"
+      ],
+      "warnings": []
+    },
+    {
+      "templateId": "M08-5",
+      "familyId": "M08",
+      "score": 0.633,
+      "reasons": [
+        "体验匹配 0.63",
+        "COMPLETE 语义可用",
+        "意图 ROLEPLAY"
+      ],
+      "matchedIntents": [
+        "ROLEPLAY"
+      ],
+      "warnings": []
+    }
+  ],
+  "coverage": {
+    "deduction": 1,
+    "roleplay": 1,
+    "faction": 1,
+    "mechanism": 0,
+    "emotional": 1
+  },
+  "gameplayCandidates": [
+    {
+      "intentTag": "NEGOTIATION",
+      "internalFamilyHints": [
+        "M04",
+        "M06"
+      ],
+      "reasons": [
+        "用户偏好「NEGOTIATION」→ 内部候选族 M04/M06"
+      ],
+      "warnings": [
+        "P8.1 仅保留意图与候选提示；不做 stage placement / OutcomeBinding / Runtime"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,4510 @@
+{
+  "id": "pmd-mod-mtpaytcv-gzre",
+  "version": 2,
+  "projectId": "rpt1-RPT-1",
+  "sourceStoryStateRevision": 0,
+  "sourceMasterOutlineId": "mod-mtpaytcv-gzre",
+  "sourceMasterOutlineRevision": "v1:mod-mtpaytcv-gzre:act1@0:{ob-mtpaytcs-gzbg|smb-mtpaytck-l1bny|beat-setup,ob-mtpaytct-o066|smb-mtpaytco-5tnaz|beat-setup,ob-mtpaytct-w3qi|smb-mtpaytcp-5lvas|beat-setup};act2@1:{ob-mtpaytct-nerp|smb-mtpaytck-l1bny|beat-crime,ob-mtpaytct-yba9|smb-mtpaytck-l1bny|beat-false,ob-mtpaytct-8zcz|smb-mtpaytck-l1bny|beat-contra,ob-mtpaytct-sgls|smb-mtpaytco-5tnaz|beat-develop,ob-mtpaytct-mmws|smb-mtpaytcp-5lvas|beat-develop};act3@2:{ob-mtpaytct-j895|smb-mtpaytck-l1bny|beat-climax,ob-mtpaytct-90on|smb-mtpaytco-5tnaz|beat-climax,ob-mtpaytct-9c3m|smb-mtpaytcp-5lvas|beat-climax};act4@3:{ob-mtpaytct-iptk|smb-mtpaytck-l1bny|beat-res,ob-mtpaytct-xu4a|smb-mtpaytco-5tnaz|beat-res,ob-mtpaytct-9jwq|smb-mtpaytcp-5lvas|beat-res}#wl-mtpaytcu-3w1c:WEAVE_SHARED_CHARACTER:ob-mtpaytct-nerp,ob-mtpaytct-90on|wl-mtpaytcu-4bdi:WEAVE_SHARED_SCENE:ob-mtpaytct-sgls,ob-mtpaytct-mmws|wl-mtpaytcu-4kyp:KEEP_PARALLEL:ob-mtpaytct-nerp,ob-mtpaytct-mmws|wl-mtpaytcu-6zul:WEAVE_SHARED_SCENE:ob-mtpaytct-nerp,ob-mtpaytct-sgls|wl-mtpaytcu-7erv:WEAVE_SHARED_SCENE:ob-mtpaytct-iptk,ob-mtpaytct-xu4a|wl-mtpaytcu-8ij1:WEAVE_SHARED_CHARACTER:ob-mtpaytct-90on,ob-mtpaytct-9jwq|wl-mtpaytcu-9kg9:WEAVE_SHARED_CHARACTER:ob-mtpaytct-nerp,ob-mtpaytct-9c3m|wl-mtpaytcu-b8ug:KEEP_PARALLEL:ob-mtpaytct-sgls,ob-mtpaytct-mmws|wl-mtpaytcu-cabt:WEAVE_SHARED_CHARACTER:ob-mtpaytct-j895,ob-mtpaytct-xu4a|wl-mtpaytcu-cy2f:WEAVE_SHARED_SCENE:ob-mtpaytct-nerp,ob-mtpaytct-mmws|wl-mtpaytcu-dbrj:WEAVE_SHARED_CHARACTER:ob-mtpaytct-sgls,ob-mtpaytct-9c3m|wl-mtpaytcu-g8va:WEAVE_SHARED_CHARACTER:ob-mtpaytct-o066,ob-mtpaytct-mmws|wl-mtpaytcu-gdy1:WEAVE_SHARED_SCENE:ob-mtpaytct-j895,ob-mtpaytct-9c3m|wl-mtpaytcu-imwk:KEEP_PARALLEL:ob-mtpaytct-nerp,ob-mtpaytct-sgls|wl-mtpaytcu-jgef:WEAVE_SHARED_SCENE:ob-mtpaytct-o066,ob-mtpaytct-w3qi|wl-mtpaytcu-ktm3:WEAVE_SHARED_CHARACTER:ob-mtpaytcs-gzbg,ob-mtpaytct-mmws|wl-mtpaytcu-l6qw:WEAVE_SHARED_SCENE:ob-mtpaytct-j895,ob-mtpaytct-90on|wl-mtpaytcu-lrnd:WEAVE_SHARED_SCENE:ob-mtpaytct-xu4a,ob-mtpaytct-9jwq|wl-mtpaytcu-qo2g:WEAVE_SHARED_CHARACTER:ob-mtpaytct-j895,ob-mtpaytct-9jwq|wl-mtpaytcu-tc24:WEAVE_SHARED_SCENE:ob-mtpaytct-90on,ob-mtpaytct-9c3m|wl-mtpaytcu-ujsh:WEAVE_SHARED_SCENE:ob-mtpaytct-iptk,ob-mtpaytct-9jwq|wl-mtpaytcu-v99m:WEAVE_SHARED_CHARACTER:ob-mtpaytcs-gzbg,ob-mtpaytct-sgls",
+  "title": "闭馆之后",
+  "premiseSummary": "关系博弈·推理·美术馆·当代 · CONTEMPORARY · 关系博弈 · 推理 · 美术馆 · 当代",
+  "stages": [
+    {
+      "stageId": "act1",
+      "stageRole": "SETUP",
+      "title": "铺垫",
+      "order": 0,
+      "purpose": "沈岚：准备可嫁祸的假象；顾清：隐藏或维持当前身份表象；梁赫：公开亮明阵营归属与目标",
+      "beats": [
+        {
+          "id": "pbeat-ob-mtpaytcs-gzbg",
+          "sourceBeatId": "beat-setup",
+          "sourceOutlineBeatId": "ob-mtpaytcs-gzbg",
+          "sourceBlockId": "smb-mtpaytck-l1bny",
+          "sourceMechanismId": "smb-mtpaytck-l1bny",
+          "templateId": "M01-FRAMING",
+          "familyId": "M01",
+          "actors": [
+            {
+              "id": "P1",
+              "name": "沈岚"
+            },
+            {
+              "id": "P3",
+              "name": "白绫"
+            }
+          ],
+          "ownerCharacterIds": [
+            "P1"
+          ],
+          "ownerUnresolved": false,
+          "ownerAmbiguous": false,
+          "goal": "准备可嫁祸的假象",
+          "action": "在案发现场周边布置与白绫相关的误导证物",
+          "target": "误导证物",
+          "setupContext": "作案准备地",
+          "eventSummary": "沈岚为了准备可嫁祸的假象，在案发现场周边布置与白绫相关的误导证物（目标：误导证物）",
+          "immediateConsequence": "误导证物已就绪",
+          "requires": [],
+          "produces": [
+            {
+              "factId": "fact:smb-mtpaytck-l1bny:beat-setup:false_lead:P1",
+              "factType": "false_lead",
+              "id": "fact:smb-mtpaytck-l1bny:beat-setup:false_lead:P1",
+              "kind": "false_lead",
+              "scope": {
+                "characterIds": [
+                  "P1"
+                ],
+                "entityIds": [],
+                "factionIds": [],
+                "locationIds": [],
+                "sourceBlockId": "smb-mtpaytck-l1bny",
+                "global": false
+              },
+              "summary": "误导证物已就绪"
+            }
+          ],
+          "playerKnowledge": "玩家可见：在案发现场周边布置与白绫相关的误导证物（仅同场，不暗示因果）",
+          "hostTruth": "主持真相：沈岚为了准备可嫁祸的假象，在案发现场周边布置与白绫相关的误导证物（目标：误导证物）",
+          "clueRefs": [],
+          "relatedCharacterIds": [
+            "P1",
+            "P3"
+          ],
+          "relationQuality": "COLOCATED",
+          "weaveLinkIds": [
+            "wl-mtpaytcu-v99m",
+            "wl-mtpaytcu-ktm3"
+          ],
+          "relationNotes": [
+            "【同场并列】共享角色 P3——仅角色重合，保持同场并列而非强制合并",
+            "【同场并列】共享角色 P1、P3——仅角色重合，保持同场并列而非强制合并"
+          ],
+          "needsDetail": false,
+          "contentConfirmed": false
+        },
+        {
+          "id": "pbeat-ob-mtpaytct-o066",
+          "sourceBeatId": "beat-setup",
+          "sourceOutlineBeatId": "ob-mtpaytct-o066",
+          "sourceBlockId": "smb-mtpaytco-5tnaz",
+          "sourceMechanismId": "smb-mtpaytco-5tnaz",
+          "templateId": "M07-1",
+          "familyId": "M07",
+          "actors": [
+            {
+              "id": "P5",
+              "name": "顾清"
+            },
+            {
+              "id": "P6",
+              "name": "方序"
+            }
+          ],
+          "ownerCharacterIds": [
+            "P5"
+          ],
+          "ownerUnresolved": false,
+          "ownerAmbiguous": false,
+          "goal": "隐藏或维持当前身份表象",
+          "action": "按伪装/未知状态行动，避免过早暴露",
+          "target": "身份表象",
+          "setupContext": "日常活动场所",
+          "eventSummary": "顾清为了隐藏或维持当前身份表象，按伪装/未知状态行动，避免过早暴露（目标：身份表象）",
+          "immediateConsequence": "身份仍未公开",
+          "requires": [],
+          "produces": [
+            {
+              "factId": "fact:smb-mtpaytco-5tnaz:beat-setup:identity_latent:P5",
+              "factType": "identity_latent",
+              "id": "fact:smb-mtpaytco-5tnaz:beat-setup:identity_latent:P5",
+              "kind": "identity_latent",
+              "scope": {
+                "characterIds": [
+                  "P5"
+                ],
+                "entityIds": [],
+                "factionIds": [],
+                "locationIds": [],
+                "sourceBlockId": "smb-mtpaytco-5tnaz",
+                "global": false
+              },
+              "summary": "身份仍未公开"
+            }
+          ],
+          "playerKnowledge": "玩家可见：按伪装/未知状态行动，避免过早暴露（仅同场，不暗示因果）",
+          "hostTruth": "主持真相：顾清为了隐藏或维持当前身份表象，按伪装/未知状态行动，避免过早暴露（目标：身份表象）",
+          "clueRefs": [
+            "smb-mtpaytco-5tnaz-foreshadow-0"
+          ],
+          "relatedCharacterIds": [
+            "P5",
+            "P6"
+          ],
+          "relationQuality": "COLOCATED",
+          "weaveLinkIds": [
+            "wl-mtpaytcu-jgef",
+            "wl-mtpaytcu-g8va"
+          ],
+          "relationNotes": [
+            "【同场并列】同阶段共享角色 P6——可同场并列，不算真正交织",
+            "【同场并列】共享角色 P5、P6——仅角色重合，保持同场并列而非强制合并"
+          ],
+          "needsDetail": false,
+          "contentConfirmed": false
+        },
+        {
+          "id": "pbeat-ob-mtpaytct-w3qi",
+          "sourceBeatId": "beat-setup",
+          "sourceOutlineBeatId": "ob-mtpaytct-w3qi",
+          "sourceBlockId": "smb-mtpaytcp-5lvas",
+          "sourceMechanismId": "smb-mtpaytcp-5lvas",
+          "templateId": "M08-1",
+          "familyId": "M08",
+          "actors": [
+            {
+              "id": "P2",
+              "name": "梁赫"
+            },
+            {
+              "id": "P6",
+              "name": "方序"
+            }
+          ],
+          "ownerCharacterIds": [
+            "P2"
+          ],
+          "ownerUnresolved": false,
+          "ownerAmbiguous": false,
+          "goal": "公开亮明阵营归属与目标",
+          "action": "确认成员知情范围与阵营名单/暗号",
+          "target": "阵营名单/暗号",
+          "setupContext": "阵营会合点",
+          "eventSummary": "梁赫为了公开亮明阵营归属与目标，确认成员知情范围与阵营名单/暗号（目标：阵营名单/暗号）",
+          "immediateConsequence": "阵营结构已成形",
+          "requires": [],
+          "produces": [
+            {
+              "factId": "fact:smb-mtpaytcp-5lvas:beat-setup:faction_latent:P2",
+              "factType": "faction_latent",
+              "id": "fact:smb-mtpaytcp-5lvas:beat-setup:faction_latent:P2",
+              "kind": "faction_latent",
+              "scope": {
+                "characterIds": [
+                  "P2"
+                ],
+                "entityIds": [],
+                "factionIds": [],
+                "locationIds": [],
+                "sourceBlockId": "smb-mtpaytcp-5lvas",
+                "global": false
+              },
+              "summary": "阵营结构已成形"
+            }
+          ],
+          "playerKnowledge": "玩家可见：确认成员知情范围与阵营名单/暗号（仅同场，不暗示因果）",
+          "hostTruth": "主持真相：梁赫为了公开亮明阵营归属与目标，确认成员知情范围与阵营名单/暗号（目标：阵营名单/暗号）",
+          "clueRefs": [
+            "smb-mtpaytcp-5lvas-faction_foreshadow-0"
+          ],
+          "relatedCharacterIds": [
+            "P2",
+            "P6"
+          ],
+          "relationQuality": "COLOCATED",
+          "weaveLinkIds": [
+            "wl-mtpaytcu-jgef"
+          ],
+          "relationNotes": [
+            "【同场并列】同阶段共享角色 P6——可同场并列，不算真正交织"
+          ],
+          "needsDetail": false,
+          "contentConfirmed": false
+        }
+      ],
+      "playerVisibleSummary": "玩家可见：在案发现场周边布置与白绫相关的误导证物（仅同场，不暗示因果） / 玩家可见：按伪装/未知状态行动，避免过早暴露（仅同场，不暗示因果） / 玩家可见：确认成员知情范围与阵营名单/暗号（仅同场，不暗示因果）",
+      "hostTruthSummary": "主持真相：沈岚为了准备可嫁祸的假象，在案发现场周边布置与白绫相关的误导证物（目标：误导证物） / 主持真相：顾清为了隐藏或维持当前身份表象，按伪装/未知状态行动，避免过早暴露（目标：身份表象） / 主持真相：梁赫为了公开亮明阵营归属与目标，确认成员知情范围与阵营名单/暗号（目标：阵营名单/暗号）",
+      "stageStartState": "开局：各线按积木 setup 状态进入（不新增前提）",
+      "stageEndState": "误导证物已就绪；身份仍未公开；阵营结构已成形",
+      "clueEntries": [
+        {
+          "clueId": "fact-interface:ob-mtpaytcs-gzbg",
+          "label": "事实接口（尚无线索实体）",
+          "mechanismId": "smb-mtpaytck-l1bny",
+          "templateId": "M01-FRAMING",
+          "introducedAt": "act1",
+          "availableStages": [
+            "act1"
+          ],
+          "persists": false,
+          "stageId": "act1",
+          "possibleFinders": [
+            "P1",
+            "P3"
+          ],
+          "supportsFact": "误导证物已就绪",
+          "isMisleading": true,
+          "isDecisive": false,
+          "missingDetail": true,
+          "detailNote": "这个剧情 beat 需要关键线索，但模板尚未提供具体线索内容。"
+        },
+        {
+          "clueId": "smb-mtpaytco-5tnaz-foreshadow-0",
+          "label": "早期伏笔",
+          "mechanismId": "smb-mtpaytco-5tnaz",
+          "templateId": "M07-1",
+          "introducedAt": "act1",
+          "availableStages": [
+            "act1",
+            "act2"
+          ],
+          "persists": true,
+          "stageId": "act1",
+          "possibleFinders": [
+            "P5",
+            "P6",
+            "P2",
+            "P3",
+            "P4"
+          ],
+          "supportsFact": "早期伏笔",
+          "isMisleading": false,
+          "isDecisive": false,
+          "missingDetail": false
+        },
+        {
+          "clueId": "smb-mtpaytcp-5lvas-faction_foreshadow-0",
+          "label": "阵营伏笔",
+          "mechanismId": "smb-mtpaytcp-5lvas",
+          "templateId": "M08-1",
+          "introducedAt": "act1",
+          "availableStages": [
+            "act1",
+            "act2"
+          ],
+          "persists": true,
+          "stageId": "act1",
+          "possibleFinders": [
+            "P2",
+            "P6",
+            "P5",
+            "P1",
+            "P3",
+            "P4"
+          ],
+          "supportsFact": "阵营伏笔",
+          "isMisleading": false,
+          "isDecisive": false,
+          "missingDetail": false
+        }
+      ],
+      "characterEntries": [
+        {
+          "id": "P1",
+          "name": "沈岚"
+        },
+        {
+          "id": "P3",
+          "name": "白绫"
+        },
+        {
+          "id": "P5",
+          "name": "顾清"
+        },
+        {
+          "id": "P6",
+          "name": "方序"
+        },
+        {
+          "id": "P2",
+          "name": "梁赫"
+        }
+      ],
+      "unresolvedDetails": [],
+      "warnings": [
+        {
+          "id": "warn-low-weave",
+          "type": "LOW_WEAVE_DENSITY",
+          "severity": "info",
+          "message": "整本存在较少真正交织关系；当前母稿主要由平行剧情 + 同场并列构成。P6 未伪造额外因果。",
+          "stageIds": [
+            "act1",
+            "act2",
+            "act3",
+            "act4"
+          ],
+          "beatIds": []
+        },
+        {
+          "id": "warn-clue-ob-mtpaytcs-gzbg",
+          "type": "MISSING_CLUE_DETAIL",
+          "severity": "info",
+          "message": "该剧情 beat 需要/产生事实接口，但模板尚未绑定具体线索内容。",
+          "stageIds": [
+            "act1"
+          ],
+          "beatIds": [
+            "ob-mtpaytcs-gzbg"
+          ]
+        }
+      ]
+    },
+    {
+      "stageId": "act2",
+      "stageRole": "PRESSURE",
+      "title": "加压",
+      "order": 1,
+      "purpose": "沈岚：完成犯行并维持对白绫的嫁祸条件；梁赫：根据当前证据判断案情并形成对白绫的主要嫌疑；梁赫：推翻对白绫的错误判断；顾清：等到约定阶段再领取被封存的事实；梁赫：夺取关键资源",
+      "beats": [
+        {
+          "id": "pbeat-ob-mtpaytct-nerp",
+          "sourceBeatId": "beat-crime",
+          "sourceOutlineBeatId": "ob-mtpaytct-nerp",
+          "sourceBlockId": "smb-mtpaytck-l1bny",
+          "sourceMechanismId": "smb-mtpaytck-l1bny",
+          "templateId": "M01-FRAMING",
+          "familyId": "M01",
+          "actors": [
+            {
+              "id": "P1",
+              "name": "沈岚"
+            },
+            {
+              "id": "P4",
+              "name": "周祁"
+            },
+            {
+              "id": "P2",
+              "name": "梁赫"
+            }
+          ],
+          "ownerCharacterIds": [
+            "P1"
+          ],
+          "ownerUnresolved": false,
+          "ownerAmbiguous": false,
+          "goal": "完成犯行并维持对白绫的嫁祸条件",
+          "action": "在案发现场实施犯罪并留下指向白绫的误导证物",
+          "target": "误导证物",
+          "setupContext": "案发现场",
+          "eventSummary": "沈岚为了完成犯行并维持对白绫的嫁祸条件，在案发现场实施犯罪并留下指向白绫的误导证物（目标：误导证物）",
+          "immediateConsequence": "犯行已发生；误导证物可供发现与解读",
+          "requires": [
+            {
+              "factId": "fact:smb-mtpaytck-l1bny:beat-crime:false_lead:P1",
+              "factType": "false_lead",
+              "id": "fact:smb-mtpaytck-l1bny:beat-crime:false_lead:P1",
+              "kind": "false_lead",
+              "scope": {
+                "characterIds": [
+                  "P1"
+                ],
+                "entityIds": [],
+                "factionIds": [],
+                "locationIds": [],
+                "sourceBlockId": "smb-mtpaytck-l1bny",
+                "global": false
+              },
+              "summary": "误导物",
+              "sourceKind": "STORY_FACT"
+            }
+          ],
+          "produces": [
+            {
+              "factId": "fact:smb-mtpaytck-l1bny:beat-crime:crime_done:P1",
+              "factType": "crime_done",
+              "id": "fact:smb-mtpaytck-l1bny:beat-crime:crime_done:P1",
+              "kind": "crime_done",
+              "scope": {
+                "characterIds": [
+                  "P1"
+                ],
+                "entityIds": [],
+                "factionIds": [],
+                "locationIds": [],
+                "sourceBlockId": "smb-mtpaytck-l1bny",
+                "global": false
+              },
+              "summary": "犯行已发生"
+            },
+            {
+              "factId": "fact:smb-mtpaytck-l1bny:beat-crime:planted_evidence_available:P1",
+              "factType": "planted_evidence_available",
+              "id": "fact:smb-mtpaytck-l1bny:beat-crime:planted_evidence_available:P1",
+              "kind": "planted_evidence_available",
+              "scope": {
+                "characterIds": [
+                  "P1"
+                ],
+                "entityIds": [],
+                "factionIds": [],
+                "locationIds": [],
+                "sourceBlockId": "smb-mtpaytck-l1bny",
+                "global": false
+              },
+              "summary": "误导证物可供发现与解读"
+            }
+          ],
+          "playerKnowledge": "玩家可见：在案发现场实施犯罪并留下指向白绫的误导证物（仅同场，不暗示因果）",
+          "hostTruth": "主持真相：沈岚为了完成犯行并维持对白绫的嫁祸条件，在案发现场实施犯罪并留下指向白绫的误导证物（目标：误导证物）",
+          "clueRefs": [
+            "smb-mtpaytck-l1bny-false_lead-0"
+          ],
+          "relatedCharacterIds": [
+            "P1",
+            "P4",
+            "P2"
+          ],
+          "relationQuality": "COLOCATED",
+          "weaveLinkIds": [
+            "wl-mtpaytcu-6zul",
+            "wl-mtpaytcu-3w1c",
+            "wl-mtpaytcu-cy2f",
+            "wl-mtpaytcu-9kg9",
+            "wl-mtpaytcu-imwk",
+            "wl-mtpaytcu-4kyp"
+          ],
+          "relationNotes": [
+            "【同场并列】同阶段共享角色 P4、P2——可同场并列，不算真正交织",
+            "【同场并列】共享角色 P4、P2——仅角色重合，保持同场并列而非强制合并",
+            "【同场并列】同阶段共享角色 P1、P4、P2——可同场并列，不算真正交织",
+            "【同场并列】共享角色 P1、P4、P2——仅角色重合，保持同场并列而非强制合并",
+            "【保持平行】嫁祸型追凶｜栽赃物品 与 固定阶段开放｜全体同步到点发放 无线索级交织证据，叙事线保持平行（同场/同角不算交织）",
+            "【保持平行】嫁祸型追凶｜栽赃物品 与 固定公开阵营｜开局全员互认公开阵营 无线索级交织证据，叙事线保持平行（同场/同角不算交织）"
+          ],
+          "needsDetail": false,
+          "contentConfirmed": false
+        },
+        {
+          "id": "pbeat-ob-mtpaytct-yba9",
+          "sourceBeatId": "beat-false",
+          "sourceOutlineBeatId": "ob-mtpaytct-yba9",
+          "sourceBlockId": "smb-mtpaytck-l1bny",
+          "sourceMechanismId": "smb-mtpaytck-l1bny",
+          "templateId": "M01-FRAMING",
+          "familyId": "M01",
+          "actors": [
+            {
+              "id": "P2",
+              "name": "梁赫"
+            },
+            {
+              "id": "P3",
+              "name": "白绫"
+            }
+          ],
+          "ownerCharacterIds": [
+            "P2"
+          ],
+          "ownerUnresolved": false,
+          "ownerAmbiguous": false,
+          "goal": "根据当前证据判断案情并形成对白绫的主要嫌疑",
+          "action": "发现并解读误导证物，把白绫视为主要嫌疑人",
+          "target": "误导证物",
+          "setupContext": "案发现场",
+          "eventSummary": "梁赫为了根据当前证据判断案情并形成对白绫的主要嫌疑，发现并解读误导证物，把白绫视为主要嫌疑人（目标：误导证物）",
+          "immediateConsequence": "错误嫌疑进入调查",
+          "requires": [
+            {
+              "factId": "fact:smb-mtpaytck-l1bny:beat-false:planted_evidence_available:P2",
+              "factType": "planted_evidence_available",
+              "id": "fact:smb-mtpaytck-l1bny:beat-false:planted_evidence_available:P2",
+              "kind": "planted_evidence_available",
+              "scope": {
+                "characterIds": [
+                  "P2"
+                ],
+                "entityIds": [],
+                "factionIds": [],
+                "locationIds": [],
+                "sourceBlockId": "smb-mtpaytck-l1bny",
+                "global": false
+              },
+              "summary": "可解读的误导证据",
+              "sourceKind": "STORY_FACT"
+            }
+          ],
+          "produces": [
+            {
+              "factId": "fact:smb-mtpaytck-l1bny:beat-false:false_suspicion:P2",
+              "factType": "false_suspicion",
+              "id": "fact:smb-mtpaytck-l1bny:beat-false:false_suspicion:P2",
+              "kind": "false_suspicion",
+              "scope": {
+                "characterIds": [
+                  "P2"
+                ],
+                "entityIds": [],
+                "factionIds": [],
+                "locationIds": [],
+                "sourceBlockId": "smb-mtpaytck-l1bny",
+                "global": false
+              },
+              "summary": "错误嫌疑进入调查"
+            }
+          ],
+          "playerKnowledge": "玩家可见：发现并解读误导证物，把白绫视为主要嫌疑人",
+          "hostTruth": "主持真相：梁赫为了根据当前证据判断案情并形成对白绫的主要嫌疑，发现并解读误导证物，把白绫视为主要嫌疑人（目标：误导证物）",
+          "clueRefs": [
+            "smb-mtpaytck-l1bny-false_lead-0"
+          ],
+          "relatedCharacterIds": [
+            "P2",
+            "P3"
+          ],
+          "weaveLinkIds": [],
+          "relationNotes": [],
+          "needsDetail": false,
+          "contentConfirmed": false
+        },
+        {
+          "id": "pbeat-ob-mtpaytct-8zcz",
+          "sourceBeatId": "beat-contra",
+          "sourceOutlineBeatId": "ob-mtpaytct-8zcz",
+          "sourceBlockId": "smb-mtpaytck-l1bny",
+          "sourceMechanismId": "smb-mtpaytck-l1bny",
+          "templateId": "M01-FRAMING",
+          "familyId": "M01",
+          "actors": [
+            {
+              "id": "P2",
+              "name": "梁赫"
+            }
+          ],
+          "ownerCharacterIds": [
+            "P2"
+          ],
+          "ownerUnresolved": false,
+          "ownerAmbiguous": false,
+          "goal": "推翻对白绫的错误判断",
+          "action": "对照案发现场与证物寻找错误嫌疑无法解释的矛盾",
+          "target": "误导证物",
+          "setupContext": "案发现场",
+          "eventSummary": "梁赫为了推翻对白绫的错误判断，对照案发现场与证物寻找错误嫌疑无法解释的矛盾（目标：误导证物）",
+          "immediateConsequence": "反证出现",
+          "requires": [
+            {
+              "factId": "fact:smb-mtpaytck-l1bny:beat-contra:false_suspicion:P2",
+              "factType": "false_suspicion",
+              "id": "fact:smb-mtpaytck-l1bny:beat-contra:false_suspicion:P2",
+              "kind": "false_suspicion",
+              "scope": {
+                "characterIds": [
+                  "P2"
+                ],
+                "entityIds": [],
+                "factionIds": [],
+                "locationIds": [],
+                "sourceBlockId": "smb-mtpaytck-l1bny",
+                "global": false
+              },
+              "summary": "错误嫌疑",
+              "sourceKind": "STORY_FACT"
+            }
+          ],
+          "produces": [
+            {
+              "factId": "fact:smb-mtpaytck-l1bny:beat-contra:contradiction:P2",
+              "factType": "contradiction",
+              "id": "fact:smb-mtpaytck-l1bny:beat-contra:contradiction:P2",
+              "kind": "contradiction",
+              "scope": {
+                "characterIds": [
+                  "P2"
+                ],
+                "entityIds": [],
+                "factionIds": [],
+                "locationIds": [],
+                "sourceBlockId": "smb-mtpaytck-l1bny",
+                "global": false
+              },
+              "summary": "反证出现"
+            }
+          ],
+          "playerKnowledge": "玩家可见：对照案发现场与证物寻找错误嫌疑无法解释的矛盾",
+          "hostTruth": "主持真相：梁赫为了推翻对白绫的错误判断，对照案发现场与证物寻找错误嫌疑无法解释的矛盾（目标：误导证物）",
+          "clueRefs": [
+            "smb-mtpaytck-l1bny-contradiction-1"
+          ],
+          "relatedCharacterIds": [
+            "P2"
+          ],
+          "weaveLinkIds": [],
+          "relationNotes": [],
+          "needsDetail": false,
+          "contentConfirmed": false
+        },
+        {
+          "id": "pbeat-ob-mtpaytct-sgls",
+          "sourceBeatId": "beat-develop",
+          "sourceOutlineBeatId": "ob-mtpaytct-sgls",
+          "sourceBlockId": "smb-mtpaytco-5tnaz",
+          "sourceMechanismId": "smb-mtpaytco-5tnaz",
+          "templateId": "M07-1",
+          "familyId": "M07",
+          "actors": [
+            {
+              "id": "P5",
+              "name": "顾清"
+            },
+            {
+              "id": "P6",
+              "name": "方序"
+            },
+            {
+              "id": "P2",
+              "name": "梁赫"
+            },
+            {
+              "id": "P3",
+              "name": "白绫"
+            },
+            {
+              "id": "P4",
+              "name": "周祁"
+            }
+          ],
+          "ownerCharacterIds": [
+            "P5"
+          ],
+          "ownerUnresolved": false,
+          "ownerAmbiguous": false,
+          "goal": "等到约定阶段再领取被封存的事实",
+          "action": "等待阶段到达并接收同一事实片段",
+          "target": "身份记录",
+          "setupContext": "藏有记录的场所",
+          "eventSummary": "顾清为了等到约定阶段再领取被封存的事实，等待阶段到达并接收同一事实片段（目标：身份记录）",
+          "immediateConsequence": "与身份记录相关的线索",
+          "requires": [
+            {
+              "factId": "fact:smb-mtpaytco-5tnaz:beat-develop:site_accessible:P5",
+              "factType": "site_accessible",
+              "id": "fact:smb-mtpaytco-5tnaz:beat-develop:site_accessible:P5",
+              "kind": "site_accessible",
+              "scope": {
+                "characterIds": [
+                  "P5"
+                ],
+                "entityIds": [],
+                "factionIds": [],
+                "locationIds": [],
+                "sourceBlockId": "smb-mtpaytco-5tnaz",
+                "global": false
+              },
+              "summary": "藏有记录的场所可进入",
+              "sourceKind": "PROJECT_PREREQ"
+            }
+          ],
+          "produces": [
+            {
+              "factId": "fact:smb-mtpaytco-5tnaz:beat-develop:identity_clue:P5",
+              "factType": "identity_clue",
+              "id": "fact:smb-mtpaytco-5tnaz:beat-develop:identity_clue:P5",
+              "kind": "identity_clue",
+              "scope": {
+                "characterIds": [
+                  "P5"
+                ],
+                "entityIds": [],
+                "factionIds": [],
+                "locationIds": [],
+                "sourceBlockId": "smb-mtpaytco-5tnaz",
+                "global": false
+              },
+              "summary": "与身份记录相关的线索"
+            }
+          ],
+          "playerKnowledge": "玩家可见：等待阶段到达并接收同一事实片段（仅同场，不暗示因果）",
+          "hostTruth": "主持真相：顾清为了等到约定阶段再领取被封存的事实，等待阶段到达并接收同一事实片段（目标：身份记录）",
+          "clueRefs": [
+            "smb-mtpaytco-5tnaz-foreshadow-0"
+          ],
+          "relatedCharacterIds": [
+            "P5",
+            "P6",
+            "P2",
+            "P3",
+            "P4"
+          ],
+          "relationQuality": "COLOCATED",
+          "weaveLinkIds": [
+            "wl-mtpaytcu-v99m",
+            "wl-mtpaytcu-6zul",
+            "wl-mtpaytcu-4bdi",
+            "wl-mtpaytcu-dbrj",
+            "wl-mtpaytcu-imwk",
+            "wl-mtpaytcu-b8ug"
+          ],
+          "relationNotes": [
+            "【同场并列】共享角色 P3——仅角色重合，保持同场并列而非强制合并",
+            "【同场并列】同阶段共享角色 P4、P2——可同场并列，不算真正交织",
+            "【同场并列】同阶段共享角色 P5、P6、P2、P3、P4——可同场并列，不算真正交织",
+            "【同场并列】共享角色 P5、P6、P2、P3、P4——仅角色重合，保持同场并列而非强制合并",
+            "【保持平行】嫁祸型追凶｜栽赃物品 与 固定阶段开放｜全体同步到点发放 无线索级交织证据，叙事线保持平行（同场/同角不算交织）",
+            "【保持平行】固定阶段开放｜全体同步到点发放 与 固定公开阵营｜开局全员互认公开阵营 无线索级交织证据，叙事线保持平行（同场/同角不算交织）"
+          ],
+          "needsDetail": false,
+          "contentConfirmed": false
+        },
+        {
+          "id": "pbeat-ob-mtpaytct-mmws",
+          "sourceBeatId": "beat-develop",
+          "sourceOutlineBeatId": "ob-mtpaytct-mmws",
+          "sourceBlockId": "smb-mtpaytcp-5lvas",
+          "sourceMechanismId": "smb-mtpaytcp-5lvas",
+          "templateId": "M08-1",
+          "familyId": "M08",
+          "actors": [
+            {
+              "id": "P2",
+              "name": "梁赫"
+            },
+            {
+              "id": "P6",
+              "name": "方序"
+            },
+            {
+              "id": "P5",
+              "name": "顾清"
+            },
+            {
+              "id": "P1",
+              "name": "沈岚"
+            },
+            {
+              "id": "P3",
+              "name": "白绫"
+            },
+            {
+              "id": "P4",
+              "name": "周祁"
+            }
+          ],
+          "ownerCharacterIds": [
+            "P2"
+          ],
+          "ownerUnresolved": false,
+          "ownerAmbiguous": false,
+          "goal": "夺取关键资源",
+          "action": "组织成员夺取或销毁关键账册或信物",
+          "target": "关键账册或信物",
+          "setupContext": "关键场所",
+          "eventSummary": "梁赫为了夺取关键资源，组织成员夺取或销毁关键账册或信物（目标：关键账册或信物）",
+          "immediateConsequence": "阵营压力升级",
+          "requires": [
+            {
+              "factId": "fact:smb-mtpaytcp-5lvas:beat-develop:site_accessible:P2",
+              "factType": "site_accessible",
+              "id": "fact:smb-mtpaytcp-5lvas:beat-develop:site_accessible:P2",
+              "kind": "site_accessible",
+              "scope": {
+                "characterIds": [
+                  "P2"
+                ],
+                "entityIds": [],
+                "factionIds": [],
+                "locationIds": [],
+                "sourceBlockId": "smb-mtpaytcp-5lvas",
+                "global": false
+              },
+              "summary": "关键场所可进入",
+              "sourceKind": "PROJECT_PREREQ"
+            },
+            {
+              "factId": "fact:smb-mtpaytcp-5lvas:beat-develop:faction_latent:P2",
+              "factType": "faction_latent",
+              "id": "fact:smb-mtpaytcp-5lvas:beat-develop:faction_latent:P2",
+              "kind": "faction_latent",
+              "scope": {
+                "characterIds": [
+                  "P2"
+                ],
+                "entityIds": [],
+                "factionIds": [],
+                "locationIds": [],
+                "sourceBlockId": "smb-mtpaytcp-5lvas",
+                "global": false
+              },
+              "summary": "阵营已成形",
+              "sourceKind": "STORY_FACT"
+            }
+          ],
+          "produces": [
+            {
+              "factId": "fact:smb-mtpaytcp-5lvas:beat-develop:faction_pressure:P2",
+              "factType": "faction_pressure",
+              "id": "fact:smb-mtpaytcp-5lvas:beat-develop:faction_pressure:P2",
+              "kind": "faction_pressure",
+              "scope": {
+                "characterIds": [
+                  "P2"
+                ],
+                "entityIds": [],
+                "factionIds": [],
+                "locationIds": [],
+                "sourceBlockId": "smb-mtpaytcp-5lvas",
+                "global": false
+              },
+              "summary": "阵营压力升级"
+            }
+          ],
+          "playerKnowledge": "玩家可见：组织成员夺取或销毁关键账册或信物（仅同场，不暗示因果）",
+          "hostTruth": "主持真相：梁赫为了夺取关键资源，组织成员夺取或销毁关键账册或信物（目标：关键账册或信物）",
+          "clueRefs": [
+            "smb-mtpaytcp-5lvas-faction_foreshadow-0"
+          ],
+          "relatedCharacterIds": [
+            "P2",
+            "P6",
+            "P5",
+            "P1",
+            "P3",
+            "P4"
+          ],
+          "relationQuality": "COLOCATED",
+          "weaveLinkIds": [
+            "wl-mtpaytcu-ktm3",
+            "wl-mtpaytcu-cy2f",
+            "wl-mtpaytcu-g8va",
+            "wl-mtpaytcu-4bdi",
+            "wl-mtpaytcu-4kyp",
+            "wl-mtpaytcu-b8ug"
+          ],
+          "relationNotes": [
+            "【同场并列】共享角色 P1、P3——仅角色重合，保持同场并列而非强制合并",
+            "【同场并列】同阶段共享角色 P1、P4、P2——可同场并列，不算真正交织",
+            "【同场并列】共享角色 P5、P6——仅角色重合，保持同场并列而非强制合并",
+            "【同场并列】同阶段共享角色 P5、P6、P2、P3、P4——可同场并列，不算真正交织",
+            "【保持平行】嫁祸型追凶｜栽赃物品 与 固定公开阵营｜开局全员互认公开阵营 无线索级交织证据，叙事线保持平行（同场/同角不算交织）",
+            "【保持平行】固定阶段开放｜全体同步到点发放 与 固定公开阵营｜开局全员互认公开阵营 无线索级交织证据，叙事线保持平行（同场/同角不算交织）"
+          ],
+          "needsDetail": false,
+          "contentConfirmed": false
+        }
+      ],
+      "playerVisibleSummary": "玩家可见：在案发现场实施犯罪并留下指向白绫的误导证物（仅同场，不暗示因果） / 玩家可见：发现并解读误导证物，把白绫视为主要嫌疑人 / 玩家可见：对照案发现场与证物寻找错误嫌疑无法解释的矛盾 / 玩家可见：等待阶段到达并接收同一事实片段（仅同场，不暗示因果） / 玩家可见：组织成员夺取或销毁关键账册或信物（仅同场，不暗示因果）",
+      "hostTruthSummary": "主持真相：沈岚为了完成犯行并维持对白绫的嫁祸条件，在案发现场实施犯罪并留下指向白绫的误导证物（目标：误导证物） / 主持真相：梁赫为了根据当前证据判断案情并形成对白绫的主要嫌疑，发现并解读误导证物，把白绫视为主要嫌疑人（目标：误导证物） / 主持真相：梁赫为了推翻对白绫的错误判断，对照案发现场与证物寻找错误嫌疑无法解释的矛盾（目标：误导证物） / 主持真相：顾清为了等到约定阶段再领取被封存的事实，等待阶段到达并接收同一事实片段（目标：身份记录） / 主持真相：梁赫为了夺取关键资源，组织成员夺取或销毁关键账册或信物（目标：关键账册或信物）",
+      "stageStartState": "承接上一阶段已声明后果；未声明者标 UNKNOWN",
+      "stageEndState": "犯行已发生；误导证物可供发现与解读；错误嫌疑进入调查；反证出现；与身份记录相关的线索；阵营压力升级",
+      "clueEntries": [
+        {
+          "clueId": "smb-mtpaytco-5tnaz-foreshadow-0",
+          "label": "早期伏笔",
+          "mechanismId": "smb-mtpaytco-5tnaz",
+          "templateId": "M07-1",
+          "introducedAt": "act1",
+          "availableStages": [
+            "act1",
+            "act2"
+          ],
+          "persists": true,
+          "stageId": "act1",
+          "possibleFinders": [
+            "P5",
+            "P6",
+            "P2",
+            "P3",
+            "P4"
+          ],
+          "supportsFact": "早期伏笔",
+          "isMisleading": false,
+          "isDecisive": false,
+          "missingDetail": false
+        },
+        {
+          "clueId": "smb-mtpaytcp-5lvas-faction_foreshadow-0",
+          "label": "阵营伏笔",
+          "mechanismId": "smb-mtpaytcp-5lvas",
+          "templateId": "M08-1",
+          "introducedAt": "act1",
+          "availableStages": [
+            "act1",
+            "act2"
+          ],
+          "persists": true,
+          "stageId": "act1",
+          "possibleFinders": [
+            "P2",
+            "P6",
+            "P5",
+            "P1",
+            "P3",
+            "P4"
+          ],
+          "supportsFact": "阵营伏笔",
+          "isMisleading": false,
+          "isDecisive": false,
+          "missingDetail": false
+        },
+        {
+          "clueId": "smb-mtpaytck-l1bny-false_lead-0",
+          "label": "误导",
+          "mechanismId": "smb-mtpaytck-l1bny",
+          "templateId": "M01-FRAMING",
+          "introducedAt": "act2",
+          "availableStages": [
+            "act2"
+          ],
+          "persists": false,
+          "stageId": "act2",
+          "possibleFinders": [
+            "P1",
+            "P4",
+            "P2",
+            "P3"
+          ],
+          "supportsFact": "被嫁祸者遗失的玉佩",
+          "isMisleading": true,
+          "isDecisive": false,
+          "missingDetail": false
+        },
+        {
+          "clueId": "smb-mtpaytck-l1bny-contradiction-1",
+          "label": "反证",
+          "mechanismId": "smb-mtpaytck-l1bny",
+          "templateId": "M01-FRAMING",
+          "introducedAt": "act2",
+          "availableStages": [
+            "act2"
+          ],
+          "persists": false,
+          "stageId": "act2",
+          "possibleFinders": [
+            "P2"
+          ],
+          "supportsFact": "玉佩沾有仅库房存在的红蜡",
+          "isMisleading": false,
+          "isDecisive": false,
+          "missingDetail": false
+        }
+      ],
+      "characterEntries": [
+        {
+          "id": "P1",
+          "name": "沈岚"
+        },
+        {
+          "id": "P4",
+          "name": "周祁"
+        },
+        {
+          "id": "P2",
+          "name": "梁赫"
+        },
+        {
+          "id": "P3",
+          "name": "白绫"
+        },
+        {
+          "id": "P5",
+          "name": "顾清"
+        },
+        {
+          "id": "P6",
+          "name": "方序"
+        }
+      ],
+      "unresolvedDetails": [],
+      "warnings": [
+        {
+          "id": "warn-low-weave",
+          "type": "LOW_WEAVE_DENSITY",
+          "severity": "info",
+          "message": "整本存在较少真正交织关系；当前母稿主要由平行剧情 + 同场并列构成。P6 未伪造额外因果。",
+          "stageIds": [
+            "act1",
+            "act2",
+            "act3",
+            "act4"
+          ],
+          "beatIds": []
+        }
+      ]
+    },
+    {
+      "stageId": "act3",
+      "stageRole": "ESCALATION",
+      "title": "升级",
+      "order": 2,
+      "purpose": "梁赫：锁定真凶沈岚；顾清：确认真实身份并决定是否公开；方序：在暴露风险下改归属或保住秘密",
+      "beats": [
+        {
+          "id": "pbeat-ob-mtpaytct-j895",
+          "sourceBeatId": "beat-climax",
+          "sourceOutlineBeatId": "ob-mtpaytct-j895",
+          "sourceBlockId": "smb-mtpaytck-l1bny",
+          "sourceMechanismId": "smb-mtpaytck-l1bny",
+          "templateId": "M01-FRAMING",
+          "familyId": "M01",
+          "actors": [
+            {
+              "id": "P2",
+              "name": "梁赫"
+            },
+            {
+              "id": "P1",
+              "name": "沈岚"
+            },
+            {
+              "id": "P3",
+              "name": "白绫"
+            }
+          ],
+          "ownerCharacterIds": [
+            "P2"
+          ],
+          "ownerUnresolved": false,
+          "ownerAmbiguous": false,
+          "goal": "锁定真凶沈岚",
+          "action": "用决定性证据揭穿嫁祸",
+          "target": "决定性证据",
+          "setupContext": "{ctx.crimeScene}",
+          "eventSummary": "梁赫为了锁定真凶沈岚，用决定性证据揭穿嫁祸（目标：决定性证据）",
+          "immediateConsequence": "真凶锁定",
+          "requires": [
+            {
+              "factId": "fact:smb-mtpaytck-l1bny:beat-climax:contradiction:P2",
+              "factType": "contradiction",
+              "id": "fact:smb-mtpaytck-l1bny:beat-climax:contradiction:P2",
+              "kind": "contradiction",
+              "scope": {
+                "characterIds": [
+                  "P2"
+                ],
+                "entityIds": [],
+                "factionIds": [],
+                "locationIds": [],
+                "sourceBlockId": "smb-mtpaytck-l1bny",
+                "global": false
+              },
+              "summary": "反证",
+              "sourceKind": "STORY_FACT"
+            }
+          ],
+          "produces": [
+            {
+              "factId": "fact:smb-mtpaytck-l1bny:beat-climax:truth_locked:P2",
+              "factType": "truth_locked",
+              "id": "fact:smb-mtpaytck-l1bny:beat-climax:truth_locked:P2",
+              "kind": "truth_locked",
+              "scope": {
+                "characterIds": [
+                  "P2"
+                ],
+                "entityIds": [],
+                "factionIds": [],
+                "locationIds": [],
+                "sourceBlockId": "smb-mtpaytck-l1bny",
+                "global": false
+              },
+              "summary": "真凶锁定"
+            }
+          ],
+          "playerKnowledge": "玩家可见：用决定性证据揭穿嫁祸（仅同场，不暗示因果）",
+          "hostTruth": "主持真相：梁赫为了锁定真凶沈岚，用决定性证据揭穿嫁祸（目标：决定性证据）",
+          "clueRefs": [
+            "smb-mtpaytck-l1bny-true_evidence-2",
+            "smb-mtpaytck-l1bny-decisive_evidence-3"
+          ],
+          "relatedCharacterIds": [
+            "P2",
+            "P1",
+            "P3"
+          ],
+          "relationQuality": "COLOCATED",
+          "weaveLinkIds": [
+            "wl-mtpaytcu-l6qw",
+            "wl-mtpaytcu-cabt",
+            "wl-mtpaytcu-gdy1",
+            "wl-mtpaytcu-qo2g"
+          ],
+          "relationNotes": [
+            "【同场并列】同阶段共享角色 P2、P3——可同场并列，不算真正交织",
+            "【同场并列】共享角色 P2、P3——仅角色重合，保持同场并列而非强制合并",
+            "【同场并列】同阶段共享角色 P2、P1、P3——可同场并列，不算真正交织",
+            "【同场并列】共享角色 P2、P1、P3——仅角色重合，保持同场并列而非强制合并"
+          ],
+          "needsDetail": false,
+          "contentConfirmed": false
+        },
+        {
+          "id": "pbeat-ob-mtpaytct-90on",
+          "sourceBeatId": "beat-climax",
+          "sourceOutlineBeatId": "ob-mtpaytct-90on",
+          "sourceBlockId": "smb-mtpaytco-5tnaz",
+          "sourceMechanismId": "smb-mtpaytco-5tnaz",
+          "templateId": "M07-1",
+          "familyId": "M07",
+          "actors": [
+            {
+              "id": "P5",
+              "name": "顾清"
+            },
+            {
+              "id": "P6",
+              "name": "方序"
+            },
+            {
+              "id": "P2",
+              "name": "梁赫"
+            },
+            {
+              "id": "P3",
+              "name": "白绫"
+            },
+            {
+              "id": "P4",
+              "name": "周祁"
+            }
+          ],
+          "ownerCharacterIds": [
+            "P5"
+          ],
+          "ownerUnresolved": false,
+          "ownerAmbiguous": false,
+          "goal": "确认真实身份并决定是否公开",
+          "action": "核对身份记录并作出公开或隐瞒选择",
+          "target": "真实身份",
+          "setupContext": "{ctx.recordLocation}",
+          "eventSummary": "顾清为了确认真实身份并决定是否公开，核对身份记录并作出公开或隐瞒选择（目标：真实身份）",
+          "immediateConsequence": "身份已确认；家族/资格状态",
+          "requires": [
+            {
+              "factId": "fact:smb-mtpaytco-5tnaz:beat-climax:identity_clue:P5",
+              "factType": "identity_clue",
+              "id": "fact:smb-mtpaytco-5tnaz:beat-climax:identity_clue:P5",
+              "kind": "identity_clue",
+              "scope": {
+                "characterIds": [
+                  "P5"
+                ],
+                "entityIds": [],
+                "factionIds": [],
+                "locationIds": [],
+                "sourceBlockId": "smb-mtpaytco-5tnaz",
+                "global": false
+              },
+              "summary": "身份线索",
+              "sourceKind": "STORY_FACT"
+            }
+          ],
+          "produces": [
+            {
+              "factId": "fact:smb-mtpaytco-5tnaz:beat-climax:identity_confirmed:P5",
+              "factType": "identity_confirmed",
+              "id": "fact:smb-mtpaytco-5tnaz:beat-climax:identity_confirmed:P5",
+              "kind": "identity_confirmed",
+              "scope": {
+                "characterIds": [
+                  "P5"
+                ],
+                "entityIds": [],
+                "factionIds": [],
+                "locationIds": [],
+                "sourceBlockId": "smb-mtpaytco-5tnaz",
+                "global": false
+              },
+              "summary": "身份已确认"
+            },
+            {
+              "factId": "fact:smb-mtpaytco-5tnaz:beat-climax:family_status:P5",
+              "factType": "family_status",
+              "id": "fact:smb-mtpaytco-5tnaz:beat-climax:family_status:P5",
+              "kind": "family_status",
+              "scope": {
+                "characterIds": [
+                  "P5"
+                ],
+                "entityIds": [],
+                "factionIds": [],
+                "locationIds": [],
+                "sourceBlockId": "smb-mtpaytco-5tnaz",
+                "global": false
+              },
+              "summary": "家族/资格状态"
+            }
+          ],
+          "playerKnowledge": "玩家可见：核对身份记录并作出公开或隐瞒选择（仅同场，不暗示因果）",
+          "hostTruth": "主持真相：顾清为了确认真实身份并决定是否公开，核对身份记录并作出公开或隐瞒选择（目标：真实身份）",
+          "clueRefs": [
+            "smb-mtpaytco-5tnaz-memory_fragment-1",
+            "smb-mtpaytco-5tnaz-identity_hint-2",
+            "smb-mtpaytco-5tnaz-misdirection-3",
+            "smb-mtpaytco-5tnaz-confirmation-4",
+            "smb-mtpaytco-5tnaz-decisive_reveal-5"
+          ],
+          "relatedCharacterIds": [
+            "P5",
+            "P6",
+            "P2",
+            "P3",
+            "P4"
+          ],
+          "relationQuality": "COLOCATED",
+          "weaveLinkIds": [
+            "wl-mtpaytcu-3w1c",
+            "wl-mtpaytcu-l6qw",
+            "wl-mtpaytcu-tc24",
+            "wl-mtpaytcu-8ij1"
+          ],
+          "relationNotes": [
+            "【同场并列】共享角色 P4、P2——仅角色重合，保持同场并列而非强制合并",
+            "【同场并列】同阶段共享角色 P2、P3——可同场并列，不算真正交织",
+            "【同场并列】同阶段共享角色 P5、P6、P2、P3、P4——可同场并列，不算真正交织",
+            "【同场并列】共享角色 P5、P6、P2、P3、P4——仅角色重合，保持同场并列而非强制合并"
+          ],
+          "needsDetail": false,
+          "contentConfirmed": false
+        },
+        {
+          "id": "pbeat-ob-mtpaytct-9c3m",
+          "sourceBeatId": "beat-climax",
+          "sourceOutlineBeatId": "ob-mtpaytct-9c3m",
+          "sourceBlockId": "smb-mtpaytcp-5lvas",
+          "sourceMechanismId": "smb-mtpaytcp-5lvas",
+          "templateId": "M08-1",
+          "familyId": "M08",
+          "actors": [
+            {
+              "id": "P6",
+              "name": "方序"
+            },
+            {
+              "id": "P2",
+              "name": "梁赫"
+            },
+            {
+              "id": "P5",
+              "name": "顾清"
+            },
+            {
+              "id": "P1",
+              "name": "沈岚"
+            },
+            {
+              "id": "P3",
+              "name": "白绫"
+            },
+            {
+              "id": "P4",
+              "name": "周祁"
+            }
+          ],
+          "ownerCharacterIds": [
+            "P6"
+          ],
+          "ownerUnresolved": false,
+          "ownerAmbiguous": false,
+          "goal": "在暴露风险下改归属或保住秘密",
+          "action": "在关键选择点背叛、退出或清洗异己",
+          "target": "归属状态",
+          "setupContext": "{ctx.factionMeetingPlace}",
+          "eventSummary": "方序为了在暴露风险下改归属或保住秘密，在关键选择点背叛、退出或清洗异己（目标：归属状态）",
+          "immediateConsequence": "归属已改变；暴露风险上升",
+          "requires": [
+            {
+              "factId": "fact:smb-mtpaytcp-5lvas:beat-climax:faction_pressure:P6",
+              "factType": "faction_pressure",
+              "id": "fact:smb-mtpaytcp-5lvas:beat-climax:faction_pressure:P6",
+              "kind": "faction_pressure",
+              "scope": {
+                "characterIds": [
+                  "P6"
+                ],
+                "entityIds": [],
+                "factionIds": [],
+                "locationIds": [],
+                "sourceBlockId": "smb-mtpaytcp-5lvas",
+                "global": false
+              },
+              "summary": "阵营压力",
+              "sourceKind": "STORY_FACT"
+            }
+          ],
+          "produces": [
+            {
+              "factId": "fact:smb-mtpaytcp-5lvas:beat-climax:allegiance_changed:P6",
+              "factType": "allegiance_changed",
+              "id": "fact:smb-mtpaytcp-5lvas:beat-climax:allegiance_changed:P6",
+              "kind": "allegiance_changed",
+              "scope": {
+                "characterIds": [
+                  "P6"
+                ],
+                "entityIds": [],
+                "factionIds": [],
+                "locationIds": [],
+                "sourceBlockId": "smb-mtpaytcp-5lvas",
+                "global": false
+              },
+              "summary": "归属已改变"
+            },
+            {
+              "factId": "fact:smb-mtpaytcp-5lvas:beat-climax:faction_exposure_risk:P6",
+              "factType": "faction_exposure_risk",
+              "id": "fact:smb-mtpaytcp-5lvas:beat-climax:faction_exposure_risk:P6",
+              "kind": "faction_exposure_risk",
+              "scope": {
+                "characterIds": [
+                  "P6"
+                ],
+                "entityIds": [],
+                "factionIds": [],
+                "locationIds": [],
+                "sourceBlockId": "smb-mtpaytcp-5lvas",
+                "global": false
+              },
+              "summary": "暴露风险上升"
+            }
+          ],
+          "playerKnowledge": "玩家可见：在关键选择点背叛、退出或清洗异己（仅同场，不暗示因果）",
+          "hostTruth": "主持真相：方序为了在暴露风险下改归属或保住秘密，在关键选择点背叛、退出或清洗异己（目标：归属状态）",
+          "clueRefs": [
+            "smb-mtpaytcp-5lvas-membership_hint-1",
+            "smb-mtpaytcp-5lvas-secret_signal-2",
+            "smb-mtpaytcp-5lvas-recruitment_evidence-3",
+            "smb-mtpaytcp-5lvas-loyalty_test-4",
+            "smb-mtpaytcp-5lvas-betrayal_hint-5",
+            "smb-mtpaytcp-5lvas-internal_conflict-6",
+            "smb-mtpaytcp-5lvas-hidden_goal_hint-7",
+            "smb-mtpaytcp-5lvas-membership_confirmation-8",
+            "smb-mtpaytcp-5lvas-faction_exposure-9"
+          ],
+          "relatedCharacterIds": [
+            "P6",
+            "P2",
+            "P5",
+            "P1",
+            "P3",
+            "P4"
+          ],
+          "relationQuality": "COLOCATED",
+          "weaveLinkIds": [
+            "wl-mtpaytcu-9kg9",
+            "wl-mtpaytcu-gdy1",
+            "wl-mtpaytcu-dbrj",
+            "wl-mtpaytcu-tc24"
+          ],
+          "relationNotes": [
+            "【同场并列】共享角色 P1、P4、P2——仅角色重合，保持同场并列而非强制合并",
+            "【同场并列】同阶段共享角色 P2、P1、P3——可同场并列，不算真正交织",
+            "【同场并列】共享角色 P5、P6、P2、P3、P4——仅角色重合，保持同场并列而非强制合并",
+            "【同场并列】同阶段共享角色 P5、P6、P2、P3、P4——可同场并列，不算真正交织"
+          ],
+          "needsDetail": false,
+          "contentConfirmed": false
+        }
+      ],
+      "playerVisibleSummary": "玩家可见：用决定性证据揭穿嫁祸（仅同场，不暗示因果） / 玩家可见：核对身份记录并作出公开或隐瞒选择（仅同场，不暗示因果） / 玩家可见：在关键选择点背叛、退出或清洗异己（仅同场，不暗示因果）",
+      "hostTruthSummary": "主持真相：梁赫为了锁定真凶沈岚，用决定性证据揭穿嫁祸（目标：决定性证据） / 主持真相：顾清为了确认真实身份并决定是否公开，核对身份记录并作出公开或隐瞒选择（目标：真实身份） / 主持真相：方序为了在暴露风险下改归属或保住秘密，在关键选择点背叛、退出或清洗异己（目标：归属状态）",
+      "stageStartState": "承接上一阶段已声明后果；未声明者标 UNKNOWN",
+      "stageEndState": "真凶锁定；身份已确认；家族/资格状态；归属已改变；暴露风险上升",
+      "clueEntries": [
+        {
+          "clueId": "smb-mtpaytck-l1bny-true_evidence-2",
+          "label": "真手法",
+          "mechanismId": "smb-mtpaytck-l1bny",
+          "templateId": "M01-FRAMING",
+          "introducedAt": "act3",
+          "availableStages": [
+            "act3"
+          ],
+          "persists": false,
+          "stageId": "act3",
+          "possibleFinders": [
+            "P2",
+            "P1",
+            "P3"
+          ],
+          "supportsFact": "勒杀",
+          "isMisleading": false,
+          "isDecisive": false,
+          "missingDetail": false
+        },
+        {
+          "clueId": "smb-mtpaytck-l1bny-decisive_evidence-3",
+          "label": "突破",
+          "mechanismId": "smb-mtpaytck-l1bny",
+          "templateId": "M01-FRAMING",
+          "introducedAt": "act3",
+          "availableStages": [
+            "act3",
+            "act4"
+          ],
+          "persists": true,
+          "stageId": "act3",
+          "possibleFinders": [
+            "P2",
+            "P1",
+            "P3",
+            "P4"
+          ],
+          "supportsFact": "库房钥匙记录证明真凶曾移动该物",
+          "isMisleading": false,
+          "isDecisive": false,
+          "missingDetail": false
+        },
+        {
+          "clueId": "smb-mtpaytco-5tnaz-memory_fragment-1",
+          "label": "记忆碎片",
+          "mechanismId": "smb-mtpaytco-5tnaz",
+          "templateId": "M07-1",
+          "introducedAt": "act3",
+          "availableStages": [
+            "act3"
+          ],
+          "persists": false,
+          "stageId": "act3",
+          "possibleFinders": [
+            "P5",
+            "P6",
+            "P2",
+            "P3",
+            "P4"
+          ],
+          "supportsFact": "记忆碎片",
+          "isMisleading": false,
+          "isDecisive": false,
+          "missingDetail": false
+        },
+        {
+          "clueId": "smb-mtpaytco-5tnaz-identity_hint-2",
+          "label": "身份暗示",
+          "mechanismId": "smb-mtpaytco-5tnaz",
+          "templateId": "M07-1",
+          "introducedAt": "act3",
+          "availableStages": [
+            "act3"
+          ],
+          "persists": false,
+          "stageId": "act3",
+          "possibleFinders": [
+            "P5",
+            "P6",
+            "P2",
+            "P3",
+            "P4"
+          ],
+          "supportsFact": "身份暗示",
+          "isMisleading": false,
+          "isDecisive": false,
+          "missingDetail": false
+        },
+        {
+          "clueId": "smb-mtpaytco-5tnaz-misdirection-3",
+          "label": "误导",
+          "mechanismId": "smb-mtpaytco-5tnaz",
+          "templateId": "M07-1",
+          "introducedAt": "act3",
+          "availableStages": [
+            "act3"
+          ],
+          "persists": false,
+          "stageId": "act3",
+          "possibleFinders": [
+            "P5",
+            "P6",
+            "P2",
+            "P3",
+            "P4"
+          ],
+          "supportsFact": "误导",
+          "isMisleading": true,
+          "isDecisive": false,
+          "missingDetail": false
+        },
+        {
+          "clueId": "smb-mtpaytco-5tnaz-confirmation-4",
+          "label": "确认",
+          "mechanismId": "smb-mtpaytco-5tnaz",
+          "templateId": "M07-1",
+          "introducedAt": "act3",
+          "availableStages": [
+            "act3"
+          ],
+          "persists": false,
+          "stageId": "act3",
+          "possibleFinders": [
+            "P5",
+            "P6",
+            "P2",
+            "P3",
+            "P4"
+          ],
+          "supportsFact": "确认",
+          "isMisleading": false,
+          "isDecisive": false,
+          "missingDetail": false
+        },
+        {
+          "clueId": "smb-mtpaytco-5tnaz-decisive_reveal-5",
+          "label": "决定性揭示",
+          "mechanismId": "smb-mtpaytco-5tnaz",
+          "templateId": "M07-1",
+          "introducedAt": "act3",
+          "availableStages": [
+            "act3"
+          ],
+          "persists": false,
+          "stageId": "act3",
+          "possibleFinders": [
+            "P5",
+            "P6",
+            "P2",
+            "P3",
+            "P4"
+          ],
+          "supportsFact": "决定性揭示",
+          "isMisleading": false,
+          "isDecisive": true,
+          "missingDetail": false
+        },
+        {
+          "clueId": "smb-mtpaytcp-5lvas-membership_hint-1",
+          "label": "成员暗示",
+          "mechanismId": "smb-mtpaytcp-5lvas",
+          "templateId": "M08-1",
+          "introducedAt": "act3",
+          "availableStages": [
+            "act3"
+          ],
+          "persists": false,
+          "stageId": "act3",
+          "possibleFinders": [
+            "P6",
+            "P2",
+            "P5",
+            "P1",
+            "P3",
+            "P4"
+          ],
+          "supportsFact": "成员暗示",
+          "isMisleading": false,
+          "isDecisive": false,
+          "missingDetail": false
+        },
+        {
+          "clueId": "smb-mtpaytcp-5lvas-secret_signal-2",
+          "label": "秘密信号",
+          "mechanismId": "smb-mtpaytcp-5lvas",
+          "templateId": "M08-1",
+          "introducedAt": "act3",
+          "availableStages": [
+            "act3"
+          ],
+          "persists": false,
+          "stageId": "act3",
+          "possibleFinders": [
+            "P6",
+            "P2",
+            "P5",
+            "P1",
+            "P3",
+            "P4"
+          ],
+          "supportsFact": "秘密信号",
+          "isMisleading": false,
+          "isDecisive": false,
+          "missingDetail": false
+        },
+        {
+          "clueId": "smb-mtpaytcp-5lvas-recruitment_evidence-3",
+          "label": "招募证据",
+          "mechanismId": "smb-mtpaytcp-5lvas",
+          "templateId": "M08-1",
+          "introducedAt": "act3",
+          "availableStages": [
+            "act3"
+          ],
+          "persists": false,
+          "stageId": "act3",
+          "possibleFinders": [
+            "P6",
+            "P2",
+            "P5",
+            "P1",
+            "P3",
+            "P4"
+          ],
+          "supportsFact": "招募证据",
+          "isMisleading": false,
+          "isDecisive": false,
+          "missingDetail": false
+        },
+        {
+          "clueId": "smb-mtpaytcp-5lvas-loyalty_test-4",
+          "label": "忠诚考验",
+          "mechanismId": "smb-mtpaytcp-5lvas",
+          "templateId": "M08-1",
+          "introducedAt": "act3",
+          "availableStages": [
+            "act3"
+          ],
+          "persists": false,
+          "stageId": "act3",
+          "possibleFinders": [
+            "P6",
+            "P2",
+            "P5",
+            "P1",
+            "P3",
+            "P4"
+          ],
+          "supportsFact": "忠诚考验",
+          "isMisleading": false,
+          "isDecisive": false,
+          "missingDetail": false
+        },
+        {
+          "clueId": "smb-mtpaytcp-5lvas-betrayal_hint-5",
+          "label": "背叛暗示",
+          "mechanismId": "smb-mtpaytcp-5lvas",
+          "templateId": "M08-1",
+          "introducedAt": "act3",
+          "availableStages": [
+            "act3"
+          ],
+          "persists": false,
+          "stageId": "act3",
+          "possibleFinders": [
+            "P6",
+            "P2",
+            "P5",
+            "P1",
+            "P3",
+            "P4"
+          ],
+          "supportsFact": "背叛暗示",
+          "isMisleading": false,
+          "isDecisive": false,
+          "missingDetail": false
+        },
+        {
+          "clueId": "smb-mtpaytcp-5lvas-internal_conflict-6",
+          "label": "内部冲突",
+          "mechanismId": "smb-mtpaytcp-5lvas",
+          "templateId": "M08-1",
+          "introducedAt": "act3",
+          "availableStages": [
+            "act3"
+          ],
+          "persists": false,
+          "stageId": "act3",
+          "possibleFinders": [
+            "P6",
+            "P2",
+            "P5",
+            "P1",
+            "P3",
+            "P4"
+          ],
+          "supportsFact": "内部冲突",
+          "isMisleading": false,
+          "isDecisive": false,
+          "missingDetail": false
+        },
+        {
+          "clueId": "smb-mtpaytcp-5lvas-hidden_goal_hint-7",
+          "label": "隐藏目标暗示",
+          "mechanismId": "smb-mtpaytcp-5lvas",
+          "templateId": "M08-1",
+          "introducedAt": "act3",
+          "availableStages": [
+            "act3"
+          ],
+          "persists": false,
+          "stageId": "act3",
+          "possibleFinders": [
+            "P6",
+            "P2",
+            "P5",
+            "P1",
+            "P3",
+            "P4"
+          ],
+          "supportsFact": "隐藏目标暗示",
+          "isMisleading": false,
+          "isDecisive": false,
+          "missingDetail": false
+        },
+        {
+          "clueId": "smb-mtpaytcp-5lvas-membership_confirmation-8",
+          "label": "归属确认",
+          "mechanismId": "smb-mtpaytcp-5lvas",
+          "templateId": "M08-1",
+          "introducedAt": "act3",
+          "availableStages": [
+            "act3"
+          ],
+          "persists": false,
+          "stageId": "act3",
+          "possibleFinders": [
+            "P6",
+            "P2",
+            "P5",
+            "P1",
+            "P3",
+            "P4"
+          ],
+          "supportsFact": "归属确认",
+          "isMisleading": false,
+          "isDecisive": false,
+          "missingDetail": false
+        },
+        {
+          "clueId": "smb-mtpaytcp-5lvas-faction_exposure-9",
+          "label": "阵营暴露",
+          "mechanismId": "smb-mtpaytcp-5lvas",
+          "templateId": "M08-1",
+          "introducedAt": "act3",
+          "availableStages": [
+            "act3"
+          ],
+          "persists": false,
+          "stageId": "act3",
+          "possibleFinders": [
+            "P6",
+            "P2",
+            "P5",
+            "P1",
+            "P3",
+            "P4"
+          ],
+          "supportsFact": "阵营暴露",
+          "isMisleading": false,
+          "isDecisive": false,
+          "missingDetail": false
+        }
+      ],
+      "characterEntries": [
+        {
+          "id": "P2",
+          "name": "梁赫"
+        },
+        {
+          "id": "P1",
+          "name": "沈岚"
+        },
+        {
+          "id": "P3",
+          "name": "白绫"
+        },
+        {
+          "id": "P5",
+          "name": "顾清"
+        },
+        {
+          "id": "P6",
+          "name": "方序"
+        },
+        {
+          "id": "P4",
+          "name": "周祁"
+        }
+      ],
+      "unresolvedDetails": [],
+      "warnings": [
+        {
+          "id": "warn-low-weave",
+          "type": "LOW_WEAVE_DENSITY",
+          "severity": "info",
+          "message": "整本存在较少真正交织关系；当前母稿主要由平行剧情 + 同场并列构成。P6 未伪造额外因果。",
+          "stageIds": [
+            "act1",
+            "act2",
+            "act3",
+            "act4"
+          ],
+          "beatIds": []
+        }
+      ]
+    },
+    {
+      "stageId": "act4",
+      "stageRole": "PAYOFF",
+      "title": "收束",
+      "order": 3,
+      "purpose": "梁赫：锁定真凶沈岚；顾清：承受身份公开后的关系后果；梁赫：结算阵营目标并承受公开后果",
+      "beats": [
+        {
+          "id": "pbeat-ob-mtpaytct-iptk",
+          "sourceBeatId": "beat-res",
+          "sourceOutlineBeatId": "ob-mtpaytct-iptk",
+          "sourceBlockId": "smb-mtpaytck-l1bny",
+          "sourceMechanismId": "smb-mtpaytck-l1bny",
+          "templateId": "M01-FRAMING",
+          "familyId": "M01",
+          "actors": [
+            {
+              "id": "P2",
+              "name": "梁赫"
+            },
+            {
+              "id": "P1",
+              "name": "沈岚"
+            },
+            {
+              "id": "P3",
+              "name": "白绫"
+            },
+            {
+              "id": "P4",
+              "name": "周祁"
+            }
+          ],
+          "ownerCharacterIds": [
+            "P2"
+          ],
+          "ownerUnresolved": false,
+          "ownerAmbiguous": false,
+          "goal": "锁定真凶沈岚",
+          "action": "用决定性证据揭穿嫁祸",
+          "target": "决定性证据",
+          "setupContext": "{ctx.crimeScene}",
+          "eventSummary": "梁赫为了锁定真凶沈岚，用决定性证据揭穿嫁祸（目标：决定性证据）",
+          "immediateConsequence": "真凶锁定",
+          "requires": [
+            {
+              "factId": "fact:smb-mtpaytck-l1bny:beat-res:contradiction:P2",
+              "factType": "contradiction",
+              "id": "fact:smb-mtpaytck-l1bny:beat-res:contradiction:P2",
+              "kind": "contradiction",
+              "scope": {
+                "characterIds": [
+                  "P2"
+                ],
+                "entityIds": [],
+                "factionIds": [],
+                "locationIds": [],
+                "sourceBlockId": "smb-mtpaytck-l1bny",
+                "global": false
+              },
+              "summary": "反证",
+              "sourceKind": "STORY_FACT"
+            }
+          ],
+          "produces": [
+            {
+              "factId": "fact:smb-mtpaytck-l1bny:beat-res:truth_locked:P2",
+              "factType": "truth_locked",
+              "id": "fact:smb-mtpaytck-l1bny:beat-res:truth_locked:P2",
+              "kind": "truth_locked",
+              "scope": {
+                "characterIds": [
+                  "P2"
+                ],
+                "entityIds": [],
+                "factionIds": [],
+                "locationIds": [],
+                "sourceBlockId": "smb-mtpaytck-l1bny",
+                "global": false
+              },
+              "summary": "真凶锁定"
+            }
+          ],
+          "playerKnowledge": "玩家可见：用决定性证据揭穿嫁祸（仅同场，不暗示因果）",
+          "hostTruth": "主持真相：梁赫为了锁定真凶沈岚，用决定性证据揭穿嫁祸（目标：决定性证据）",
+          "clueRefs": [
+            "smb-mtpaytck-l1bny-decisive_evidence-3"
+          ],
+          "relatedCharacterIds": [
+            "P2",
+            "P1",
+            "P3",
+            "P4"
+          ],
+          "relationQuality": "COLOCATED",
+          "weaveLinkIds": [
+            "wl-mtpaytcu-7erv",
+            "wl-mtpaytcu-ujsh"
+          ],
+          "relationNotes": [
+            "【同场并列】同阶段共享角色 P2、P3、P4——可同场并列，不算真正交织",
+            "【同场并列】同阶段共享角色 P2、P1、P3、P4——可同场并列，不算真正交织"
+          ],
+          "needsDetail": false,
+          "contentConfirmed": false
+        },
+        {
+          "id": "pbeat-ob-mtpaytct-xu4a",
+          "sourceBeatId": "beat-res",
+          "sourceOutlineBeatId": "ob-mtpaytct-xu4a",
+          "sourceBlockId": "smb-mtpaytco-5tnaz",
+          "sourceMechanismId": "smb-mtpaytco-5tnaz",
+          "templateId": "M07-1",
+          "familyId": "M07",
+          "actors": [
+            {
+              "id": "P5",
+              "name": "顾清"
+            },
+            {
+              "id": "P6",
+              "name": "方序"
+            },
+            {
+              "id": "P2",
+              "name": "梁赫"
+            },
+            {
+              "id": "P3",
+              "name": "白绫"
+            },
+            {
+              "id": "P4",
+              "name": "周祁"
+            }
+          ],
+          "ownerCharacterIds": [
+            "P5"
+          ],
+          "ownerUnresolved": false,
+          "ownerAmbiguous": false,
+          "goal": "承受身份公开后的关系后果",
+          "action": "面对知情者与阵营/调查方的反应",
+          "target": "关系重组",
+          "setupContext": "{ctx.recordLocation}",
+          "eventSummary": "顾清为了承受身份公开后的关系后果，面对知情者与阵营/调查方的反应（目标：关系重组）",
+          "immediateConsequence": "身份进入公开层",
+          "requires": [
+            {
+              "factId": "fact:smb-mtpaytco-5tnaz:beat-res:identity_confirmed:P5",
+              "factType": "identity_confirmed",
+              "id": "fact:smb-mtpaytco-5tnaz:beat-res:identity_confirmed:P5",
+              "kind": "identity_confirmed",
+              "scope": {
+                "characterIds": [
+                  "P5"
+                ],
+                "entityIds": [],
+                "factionIds": [],
+                "locationIds": [],
+                "sourceBlockId": "smb-mtpaytco-5tnaz",
+                "global": false
+              },
+              "summary": "身份确认",
+              "sourceKind": "STORY_FACT"
+            }
+          ],
+          "produces": [
+            {
+              "factId": "fact:smb-mtpaytco-5tnaz:beat-res:identity_public:P5",
+              "factType": "identity_public",
+              "id": "fact:smb-mtpaytco-5tnaz:beat-res:identity_public:P5",
+              "kind": "identity_public",
+              "scope": {
+                "characterIds": [
+                  "P5"
+                ],
+                "entityIds": [],
+                "factionIds": [],
+                "locationIds": [],
+                "sourceBlockId": "smb-mtpaytco-5tnaz",
+                "global": false
+              },
+              "summary": "身份进入公开层"
+            }
+          ],
+          "playerKnowledge": "玩家可见：面对知情者与阵营/调查方的反应（仅同场，不暗示因果）",
+          "hostTruth": "主持真相：顾清为了承受身份公开后的关系后果，面对知情者与阵营/调查方的反应（目标：关系重组）",
+          "clueRefs": [],
+          "relatedCharacterIds": [
+            "P5",
+            "P6",
+            "P2",
+            "P3",
+            "P4"
+          ],
+          "relationQuality": "COLOCATED",
+          "weaveLinkIds": [
+            "wl-mtpaytcu-cabt",
+            "wl-mtpaytcu-7erv",
+            "wl-mtpaytcu-lrnd"
+          ],
+          "relationNotes": [
+            "【同场并列】共享角色 P2、P3——仅角色重合，保持同场并列而非强制合并",
+            "【同场并列】同阶段共享角色 P2、P3、P4——可同场并列，不算真正交织",
+            "【同场并列】同阶段共享角色 P5、P6、P2、P3、P4——可同场并列，不算真正交织"
+          ],
+          "needsDetail": false,
+          "contentConfirmed": false
+        },
+        {
+          "id": "pbeat-ob-mtpaytct-9jwq",
+          "sourceBeatId": "beat-res",
+          "sourceOutlineBeatId": "ob-mtpaytct-9jwq",
+          "sourceBlockId": "smb-mtpaytcp-5lvas",
+          "sourceMechanismId": "smb-mtpaytcp-5lvas",
+          "templateId": "M08-1",
+          "familyId": "M08",
+          "actors": [
+            {
+              "id": "P2",
+              "name": "梁赫"
+            },
+            {
+              "id": "P6",
+              "name": "方序"
+            },
+            {
+              "id": "P5",
+              "name": "顾清"
+            },
+            {
+              "id": "P1",
+              "name": "沈岚"
+            },
+            {
+              "id": "P3",
+              "name": "白绫"
+            },
+            {
+              "id": "P4",
+              "name": "周祁"
+            }
+          ],
+          "ownerCharacterIds": [
+            "P2"
+          ],
+          "ownerUnresolved": false,
+          "ownerAmbiguous": false,
+          "goal": "结算阵营目标并承受公开后果",
+          "action": "公开站队或接受阵营败露后的关系重排",
+          "target": "阵营胜负条件",
+          "setupContext": "{ctx.factionMeetingPlace}",
+          "eventSummary": "梁赫为了结算阵营目标并承受公开后果，公开站队或接受阵营败露后的关系重排（目标：阵营胜负条件）",
+          "immediateConsequence": "阵营线结算",
+          "requires": [
+            {
+              "factId": "fact:smb-mtpaytcp-5lvas:beat-res:allegiance_changed:P2",
+              "factType": "allegiance_changed",
+              "id": "fact:smb-mtpaytcp-5lvas:beat-res:allegiance_changed:P2",
+              "kind": "allegiance_changed",
+              "scope": {
+                "characterIds": [
+                  "P2"
+                ],
+                "entityIds": [],
+                "factionIds": [],
+                "locationIds": [],
+                "sourceBlockId": "smb-mtpaytcp-5lvas",
+                "global": false
+              },
+              "summary": "归属变化",
+              "sourceKind": "STORY_FACT"
+            }
+          ],
+          "produces": [
+            {
+              "factId": "fact:smb-mtpaytcp-5lvas:beat-res:faction_settled:P2",
+              "factType": "faction_settled",
+              "id": "fact:smb-mtpaytcp-5lvas:beat-res:faction_settled:P2",
+              "kind": "faction_settled",
+              "scope": {
+                "characterIds": [
+                  "P2"
+                ],
+                "entityIds": [],
+                "factionIds": [],
+                "locationIds": [],
+                "sourceBlockId": "smb-mtpaytcp-5lvas",
+                "global": false
+              },
+              "summary": "阵营线结算"
+            }
+          ],
+          "playerKnowledge": "玩家可见：公开站队或接受阵营败露后的关系重排（仅同场，不暗示因果）",
+          "hostTruth": "主持真相：梁赫为了结算阵营目标并承受公开后果，公开站队或接受阵营败露后的关系重排（目标：阵营胜负条件）",
+          "clueRefs": [],
+          "relatedCharacterIds": [
+            "P2",
+            "P6",
+            "P5",
+            "P1",
+            "P3",
+            "P4"
+          ],
+          "relationQuality": "COLOCATED",
+          "weaveLinkIds": [
+            "wl-mtpaytcu-qo2g",
+            "wl-mtpaytcu-ujsh",
+            "wl-mtpaytcu-8ij1",
+            "wl-mtpaytcu-lrnd"
+          ],
+          "relationNotes": [
+            "【同场并列】共享角色 P2、P1、P3——仅角色重合，保持同场并列而非强制合并",
+            "【同场并列】同阶段共享角色 P2、P1、P3、P4——可同场并列，不算真正交织",
+            "【同场并列】共享角色 P5、P6、P2、P3、P4——仅角色重合，保持同场并列而非强制合并",
+            "【同场并列】同阶段共享角色 P5、P6、P2、P3、P4——可同场并列，不算真正交织"
+          ],
+          "needsDetail": false,
+          "contentConfirmed": false
+        }
+      ],
+      "playerVisibleSummary": "玩家可见：用决定性证据揭穿嫁祸（仅同场，不暗示因果） / 玩家可见：面对知情者与阵营/调查方的反应（仅同场，不暗示因果） / 玩家可见：公开站队或接受阵营败露后的关系重排（仅同场，不暗示因果）",
+      "hostTruthSummary": "主持真相：梁赫为了锁定真凶沈岚，用决定性证据揭穿嫁祸（目标：决定性证据） / 主持真相：顾清为了承受身份公开后的关系后果，面对知情者与阵营/调查方的反应（目标：关系重组） / 主持真相：梁赫为了结算阵营目标并承受公开后果，公开站队或接受阵营败露后的关系重排（目标：阵营胜负条件）",
+      "stageStartState": "承接上一阶段已声明后果；未声明者标 UNKNOWN",
+      "stageEndState": "真凶锁定；身份进入公开层；阵营线结算",
+      "clueEntries": [
+        {
+          "clueId": "smb-mtpaytck-l1bny-decisive_evidence-3",
+          "label": "突破",
+          "mechanismId": "smb-mtpaytck-l1bny",
+          "templateId": "M01-FRAMING",
+          "introducedAt": "act3",
+          "availableStages": [
+            "act3",
+            "act4"
+          ],
+          "persists": true,
+          "stageId": "act3",
+          "possibleFinders": [
+            "P2",
+            "P1",
+            "P3",
+            "P4"
+          ],
+          "supportsFact": "库房钥匙记录证明真凶曾移动该物",
+          "isMisleading": false,
+          "isDecisive": false,
+          "missingDetail": false
+        },
+        {
+          "clueId": "fact-interface:ob-mtpaytct-xu4a",
+          "label": "事实接口（尚无线索实体）",
+          "mechanismId": "smb-mtpaytco-5tnaz",
+          "templateId": "M07-1",
+          "introducedAt": "act4",
+          "availableStages": [
+            "act4"
+          ],
+          "persists": false,
+          "stageId": "act4",
+          "possibleFinders": [
+            "P5",
+            "P6",
+            "P2",
+            "P3",
+            "P4"
+          ],
+          "supportsFact": "身份确认；身份进入公开层",
+          "isMisleading": false,
+          "isDecisive": false,
+          "missingDetail": true,
+          "detailNote": "这个剧情 beat 需要关键线索，但模板尚未提供具体线索内容。"
+        },
+        {
+          "clueId": "fact-interface:ob-mtpaytct-9jwq",
+          "label": "事实接口（尚无线索实体）",
+          "mechanismId": "smb-mtpaytcp-5lvas",
+          "templateId": "M08-1",
+          "introducedAt": "act4",
+          "availableStages": [
+            "act4"
+          ],
+          "persists": false,
+          "stageId": "act4",
+          "possibleFinders": [
+            "P2",
+            "P6",
+            "P5",
+            "P1",
+            "P3",
+            "P4"
+          ],
+          "supportsFact": "归属变化；阵营线结算",
+          "isMisleading": false,
+          "isDecisive": false,
+          "missingDetail": true,
+          "detailNote": "这个剧情 beat 需要关键线索，但模板尚未提供具体线索内容。"
+        }
+      ],
+      "characterEntries": [
+        {
+          "id": "P2",
+          "name": "梁赫"
+        },
+        {
+          "id": "P1",
+          "name": "沈岚"
+        },
+        {
+          "id": "P3",
+          "name": "白绫"
+        },
+        {
+          "id": "P4",
+          "name": "周祁"
+        },
+        {
+          "id": "P5",
+          "name": "顾清"
+        },
+        {
+          "id": "P6",
+          "name": "方序"
+        }
+      ],
+      "unresolvedDetails": [],
+      "warnings": [
+        {
+          "id": "warn-low-weave",
+          "type": "LOW_WEAVE_DENSITY",
+          "severity": "info",
+          "message": "整本存在较少真正交织关系；当前母稿主要由平行剧情 + 同场并列构成。P6 未伪造额外因果。",
+          "stageIds": [
+            "act1",
+            "act2",
+            "act3",
+            "act4"
+          ],
+          "beatIds": []
+        },
+        {
+          "id": "warn-clue-ob-mtpaytct-xu4a",
+          "type": "MISSING_CLUE_DETAIL",
+          "severity": "info",
+          "message": "该剧情 beat 需要/产生事实接口，但模板尚未绑定具体线索内容。",
+          "stageIds": [
+            "act4"
+          ],
+          "beatIds": [
+            "ob-mtpaytct-xu4a"
+          ]
+        },
+        {
+          "id": "warn-clue-ob-mtpaytct-9jwq",
+          "type": "MISSING_CLUE_DETAIL",
+          "severity": "info",
+          "message": "该剧情 beat 需要/产生事实接口，但模板尚未绑定具体线索内容。",
+          "stageIds": [
+            "act4"
+          ],
+          "beatIds": [
+            "ob-mtpaytct-9jwq"
+          ]
+        }
+      ]
+    }
+  ],
+  "truthView": {
+    "events": [
+      {
+        "beatId": "ob-mtpaytcs-gzbg",
+        "stageId": "act1",
+        "whatHappened": "沈岚为了准备可嫁祸的假象，在案发现场周边布置与白绫相关的误导证物（目标：误导证物）",
+        "who": [
+          "P1",
+          "P3"
+        ],
+        "why": "准备可嫁祸的假象",
+        "consequence": "误导证物已就绪",
+        "eventOccurred": true,
+        "evidenceEffect": "MISLEADING",
+        "claimTruth": "FALSE",
+        "isMisleading": true,
+        "isTruth": true,
+        "needsDetail": false
+      },
+      {
+        "beatId": "ob-mtpaytct-o066",
+        "stageId": "act1",
+        "whatHappened": "顾清为了隐藏或维持当前身份表象，按伪装/未知状态行动，避免过早暴露（目标：身份表象）",
+        "who": [
+          "P5",
+          "P6"
+        ],
+        "why": "隐藏或维持当前身份表象",
+        "consequence": "身份仍未公开",
+        "eventOccurred": true,
+        "evidenceEffect": "NEUTRAL",
+        "claimTruth": "UNKNOWN",
+        "isMisleading": false,
+        "isTruth": true,
+        "needsDetail": false
+      },
+      {
+        "beatId": "ob-mtpaytct-w3qi",
+        "stageId": "act1",
+        "whatHappened": "梁赫为了公开亮明阵营归属与目标，确认成员知情范围与阵营名单/暗号（目标：阵营名单/暗号）",
+        "who": [
+          "P2",
+          "P6"
+        ],
+        "why": "公开亮明阵营归属与目标",
+        "consequence": "阵营结构已成形",
+        "eventOccurred": true,
+        "evidenceEffect": "NEUTRAL",
+        "claimTruth": "UNKNOWN",
+        "isMisleading": false,
+        "isTruth": true,
+        "needsDetail": false
+      },
+      {
+        "beatId": "ob-mtpaytct-nerp",
+        "stageId": "act2",
+        "whatHappened": "沈岚为了完成犯行并维持对白绫的嫁祸条件，在案发现场实施犯罪并留下指向白绫的误导证物（目标：误导证物）",
+        "who": [
+          "P1",
+          "P4",
+          "P2"
+        ],
+        "why": "完成犯行并维持对白绫的嫁祸条件",
+        "consequence": "犯行已发生；误导证物可供发现与解读",
+        "eventOccurred": true,
+        "evidenceEffect": "MISLEADING",
+        "claimTruth": "FALSE",
+        "isMisleading": true,
+        "isTruth": true,
+        "needsDetail": false
+      },
+      {
+        "beatId": "ob-mtpaytct-yba9",
+        "stageId": "act2",
+        "whatHappened": "梁赫为了根据当前证据判断案情并形成对白绫的主要嫌疑，发现并解读误导证物，把白绫视为主要嫌疑人（目标：误导证物）",
+        "who": [
+          "P2",
+          "P3"
+        ],
+        "why": "根据当前证据判断案情并形成对白绫的主要嫌疑",
+        "consequence": "错误嫌疑进入调查",
+        "eventOccurred": true,
+        "evidenceEffect": "MISLEADING",
+        "claimTruth": "FALSE",
+        "isMisleading": true,
+        "isTruth": true,
+        "needsDetail": false
+      },
+      {
+        "beatId": "ob-mtpaytct-8zcz",
+        "stageId": "act2",
+        "whatHappened": "梁赫为了推翻对白绫的错误判断，对照案发现场与证物寻找错误嫌疑无法解释的矛盾（目标：误导证物）",
+        "who": [
+          "P2"
+        ],
+        "why": "推翻对白绫的错误判断",
+        "consequence": "反证出现",
+        "eventOccurred": true,
+        "evidenceEffect": "SUPPORTING",
+        "claimTruth": "TRUE",
+        "isMisleading": false,
+        "isTruth": true,
+        "needsDetail": false
+      },
+      {
+        "beatId": "ob-mtpaytct-sgls",
+        "stageId": "act2",
+        "whatHappened": "顾清为了等到约定阶段再领取被封存的事实，等待阶段到达并接收同一事实片段（目标：身份记录）",
+        "who": [
+          "P5",
+          "P6",
+          "P2",
+          "P3",
+          "P4"
+        ],
+        "why": "等到约定阶段再领取被封存的事实",
+        "consequence": "与身份记录相关的线索",
+        "eventOccurred": true,
+        "evidenceEffect": "NEUTRAL",
+        "claimTruth": "UNKNOWN",
+        "isMisleading": false,
+        "isTruth": true,
+        "needsDetail": false
+      },
+      {
+        "beatId": "ob-mtpaytct-mmws",
+        "stageId": "act2",
+        "whatHappened": "梁赫为了夺取关键资源，组织成员夺取或销毁关键账册或信物（目标：关键账册或信物）",
+        "who": [
+          "P2",
+          "P6",
+          "P5",
+          "P1",
+          "P3",
+          "P4"
+        ],
+        "why": "夺取关键资源",
+        "consequence": "阵营压力升级",
+        "eventOccurred": true,
+        "evidenceEffect": "NEUTRAL",
+        "claimTruth": "UNKNOWN",
+        "isMisleading": false,
+        "isTruth": true,
+        "needsDetail": false
+      },
+      {
+        "beatId": "ob-mtpaytct-j895",
+        "stageId": "act3",
+        "whatHappened": "梁赫为了锁定真凶沈岚，用决定性证据揭穿嫁祸（目标：决定性证据）",
+        "who": [
+          "P2",
+          "P1",
+          "P3"
+        ],
+        "why": "锁定真凶沈岚",
+        "consequence": "真凶锁定",
+        "eventOccurred": true,
+        "evidenceEffect": "NEUTRAL",
+        "claimTruth": "UNKNOWN",
+        "isMisleading": false,
+        "isTruth": true,
+        "needsDetail": false
+      },
+      {
+        "beatId": "ob-mtpaytct-90on",
+        "stageId": "act3",
+        "whatHappened": "顾清为了确认真实身份并决定是否公开，核对身份记录并作出公开或隐瞒选择（目标：真实身份）",
+        "who": [
+          "P5",
+          "P6",
+          "P2",
+          "P3",
+          "P4"
+        ],
+        "why": "确认真实身份并决定是否公开",
+        "consequence": "身份已确认；家族/资格状态",
+        "eventOccurred": true,
+        "evidenceEffect": "SUPPORTING",
+        "claimTruth": "TRUE",
+        "isMisleading": false,
+        "isTruth": true,
+        "needsDetail": false
+      },
+      {
+        "beatId": "ob-mtpaytct-9c3m",
+        "stageId": "act3",
+        "whatHappened": "方序为了在暴露风险下改归属或保住秘密，在关键选择点背叛、退出或清洗异己（目标：归属状态）",
+        "who": [
+          "P6",
+          "P2",
+          "P5",
+          "P1",
+          "P3",
+          "P4"
+        ],
+        "why": "在暴露风险下改归属或保住秘密",
+        "consequence": "归属已改变；暴露风险上升",
+        "eventOccurred": true,
+        "evidenceEffect": "NEUTRAL",
+        "claimTruth": "UNKNOWN",
+        "isMisleading": false,
+        "isTruth": true,
+        "needsDetail": false
+      },
+      {
+        "beatId": "ob-mtpaytct-iptk",
+        "stageId": "act4",
+        "whatHappened": "梁赫为了锁定真凶沈岚，用决定性证据揭穿嫁祸（目标：决定性证据）",
+        "who": [
+          "P2",
+          "P1",
+          "P3",
+          "P4"
+        ],
+        "why": "锁定真凶沈岚",
+        "consequence": "真凶锁定",
+        "eventOccurred": true,
+        "evidenceEffect": "NEUTRAL",
+        "claimTruth": "UNKNOWN",
+        "isMisleading": false,
+        "isTruth": true,
+        "needsDetail": false
+      },
+      {
+        "beatId": "ob-mtpaytct-xu4a",
+        "stageId": "act4",
+        "whatHappened": "顾清为了承受身份公开后的关系后果，面对知情者与阵营/调查方的反应（目标：关系重组）",
+        "who": [
+          "P5",
+          "P6",
+          "P2",
+          "P3",
+          "P4"
+        ],
+        "why": "承受身份公开后的关系后果",
+        "consequence": "身份进入公开层",
+        "eventOccurred": true,
+        "evidenceEffect": "NEUTRAL",
+        "claimTruth": "UNKNOWN",
+        "isMisleading": false,
+        "isTruth": true,
+        "needsDetail": false
+      },
+      {
+        "beatId": "ob-mtpaytct-9jwq",
+        "stageId": "act4",
+        "whatHappened": "梁赫为了结算阵营目标并承受公开后果，公开站队或接受阵营败露后的关系重排（目标：阵营胜负条件）",
+        "who": [
+          "P2",
+          "P6",
+          "P5",
+          "P1",
+          "P3",
+          "P4"
+        ],
+        "why": "结算阵营目标并承受公开后果",
+        "consequence": "阵营线结算",
+        "eventOccurred": true,
+        "evidenceEffect": "NEUTRAL",
+        "claimTruth": "UNKNOWN",
+        "isMisleading": false,
+        "isTruth": true,
+        "needsDetail": false
+      }
+    ]
+  },
+  "characterViews": {
+    "characters": [
+      {
+        "characterId": "P1",
+        "name": "沈岚",
+        "stages": [
+          {
+            "stageId": "act1",
+            "contributions": [
+              {
+                "sourceBeatId": "beat-setup",
+                "sourceOutlineBeatId": "ob-mtpaytcs-gzbg",
+                "sourceBlockId": "smb-mtpaytck-l1bny",
+                "familyId": "M01",
+                "templateId": "M01-FRAMING",
+                "roleInBeat": "OWNER",
+                "goal": "准备可嫁祸的假象",
+                "action": "在案发现场周边布置与白绫相关的误导证物",
+                "gainedInfo": "误导证物已就绪",
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              }
+            ],
+            "stageSummary": "准备可嫁祸的假象",
+            "knows": "本阶段主导行动：在案发现场周边布置与白绫相关的误导证物",
+            "goal": "准备可嫁祸的假象",
+            "action": "在案发现场周边布置与白绫相关的误导证物",
+            "relationChanges": [
+              "同场出现（非因果）"
+            ],
+            "gainedInfo": "误导证物已就绪",
+            "misunderstanding": "NEEDS_DETAIL",
+            "endChange": "误导证物已就绪",
+            "needsDetail": false
+          },
+          {
+            "stageId": "act2",
+            "contributions": [
+              {
+                "sourceBeatId": "beat-crime",
+                "sourceOutlineBeatId": "ob-mtpaytct-nerp",
+                "sourceBlockId": "smb-mtpaytck-l1bny",
+                "familyId": "M01",
+                "templateId": "M01-FRAMING",
+                "roleInBeat": "OWNER",
+                "goal": "完成犯行并维持对白绫的嫁祸条件",
+                "action": "在案发现场实施犯罪并留下指向白绫的误导证物",
+                "gainedInfo": "犯行已发生；误导证物可供发现与解读",
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-develop",
+                "sourceOutlineBeatId": "ob-mtpaytct-mmws",
+                "sourceBlockId": "smb-mtpaytcp-5lvas",
+                "familyId": "M08",
+                "templateId": "M08-1",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：梁赫为了夺取关键资源，组织成员夺取或销毁关键账册或信物（目标：关键账册或信物）",
+                "gainedInfo": null,
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              }
+            ],
+            "stageSummary": "完成犯行并维持对白绫的嫁祸条件",
+            "knows": "本阶段主导行动：在案发现场实施犯罪并留下指向白绫的误导证物",
+            "goal": "完成犯行并维持对白绫的嫁祸条件",
+            "action": "在案发现场实施犯罪并留下指向白绫的误导证物",
+            "relationChanges": [
+              "同场出现（非因果）"
+            ],
+            "gainedInfo": "犯行已发生；误导证物可供发现与解读",
+            "misunderstanding": "NEEDS_DETAIL",
+            "endChange": "犯行已发生；误导证物可供发现与解读",
+            "needsDetail": false
+          },
+          {
+            "stageId": "act3",
+            "contributions": [
+              {
+                "sourceBeatId": "beat-climax",
+                "sourceOutlineBeatId": "ob-mtpaytct-j895",
+                "sourceBlockId": "smb-mtpaytck-l1bny",
+                "familyId": "M01",
+                "templateId": "M01-FRAMING",
+                "roleInBeat": "TARGET",
+                "goal": null,
+                "action": "作为对象卷入：用决定性证据揭穿嫁祸",
+                "gainedInfo": null,
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-climax",
+                "sourceOutlineBeatId": "ob-mtpaytct-9c3m",
+                "sourceBlockId": "smb-mtpaytcp-5lvas",
+                "familyId": "M08",
+                "templateId": "M08-1",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：方序为了在暴露风险下改归属或保住秘密，在关键选择点背叛、退出或清洗异己（目标：归属状态）",
+                "gainedInfo": null,
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              }
+            ],
+            "stageSummary": "本阶段无独立主目标（仅参与/对象）",
+            "knows": "本阶段主要为参与/对象，无主导公开行动摘要",
+            "goal": "本阶段无独立主目标（仅参与/对象）",
+            "action": "见 contributions（参与/对象）",
+            "relationChanges": [
+              "同场出现（非因果）"
+            ],
+            "gainedInfo": "NEEDS_DETAIL",
+            "misunderstanding": "NEEDS_DETAIL",
+            "endChange": "NEEDS_DETAIL",
+            "needsDetail": false
+          },
+          {
+            "stageId": "act4",
+            "contributions": [
+              {
+                "sourceBeatId": "beat-res",
+                "sourceOutlineBeatId": "ob-mtpaytct-iptk",
+                "sourceBlockId": "smb-mtpaytck-l1bny",
+                "familyId": "M01",
+                "templateId": "M01-FRAMING",
+                "roleInBeat": "TARGET",
+                "goal": null,
+                "action": "作为对象卷入：用决定性证据揭穿嫁祸",
+                "gainedInfo": null,
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-res",
+                "sourceOutlineBeatId": "ob-mtpaytct-9jwq",
+                "sourceBlockId": "smb-mtpaytcp-5lvas",
+                "familyId": "M08",
+                "templateId": "M08-1",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：梁赫为了结算阵营目标并承受公开后果，公开站队或接受阵营败露后的关系重排（目标：阵营胜负条件）",
+                "gainedInfo": null,
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              }
+            ],
+            "stageSummary": "本阶段无独立主目标（仅参与/对象）",
+            "knows": "本阶段主要为参与/对象，无主导公开行动摘要",
+            "goal": "本阶段无独立主目标（仅参与/对象）",
+            "action": "见 contributions（参与/对象）",
+            "relationChanges": [
+              "同场出现（非因果）"
+            ],
+            "gainedInfo": "NEEDS_DETAIL",
+            "misunderstanding": "NEEDS_DETAIL",
+            "endChange": "NEEDS_DETAIL",
+            "needsDetail": false
+          }
+        ]
+      },
+      {
+        "characterId": "P3",
+        "name": "白绫",
+        "stages": [
+          {
+            "stageId": "act1",
+            "contributions": [
+              {
+                "sourceBeatId": "beat-setup",
+                "sourceOutlineBeatId": "ob-mtpaytcs-gzbg",
+                "sourceBlockId": "smb-mtpaytck-l1bny",
+                "familyId": "M01",
+                "templateId": "M01-FRAMING",
+                "roleInBeat": "TARGET",
+                "goal": null,
+                "action": "作为对象卷入：在案发现场周边布置与白绫相关的误导证物",
+                "gainedInfo": null,
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              }
+            ],
+            "stageSummary": "本阶段无独立主目标（仅参与/对象）",
+            "knows": "本阶段主要为参与/对象，无主导公开行动摘要",
+            "goal": "本阶段无独立主目标（仅参与/对象）",
+            "action": "见 contributions（参与/对象）",
+            "relationChanges": [
+              "同场出现（非因果）"
+            ],
+            "gainedInfo": "NEEDS_DETAIL",
+            "misunderstanding": "NEEDS_DETAIL",
+            "endChange": "NEEDS_DETAIL",
+            "needsDetail": false
+          },
+          {
+            "stageId": "act2",
+            "contributions": [
+              {
+                "sourceBeatId": "beat-false",
+                "sourceOutlineBeatId": "ob-mtpaytct-yba9",
+                "sourceBlockId": "smb-mtpaytck-l1bny",
+                "familyId": "M01",
+                "templateId": "M01-FRAMING",
+                "roleInBeat": "TARGET",
+                "goal": null,
+                "action": "作为对象卷入：发现并解读误导证物，把白绫视为主要嫌疑人",
+                "gainedInfo": null,
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-develop",
+                "sourceOutlineBeatId": "ob-mtpaytct-sgls",
+                "sourceBlockId": "smb-mtpaytco-5tnaz",
+                "familyId": "M07",
+                "templateId": "M07-1",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：顾清为了等到约定阶段再领取被封存的事实，等待阶段到达并接收同一事实片段（目标：身份记录）",
+                "gainedInfo": null,
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-develop",
+                "sourceOutlineBeatId": "ob-mtpaytct-mmws",
+                "sourceBlockId": "smb-mtpaytcp-5lvas",
+                "familyId": "M08",
+                "templateId": "M08-1",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：梁赫为了夺取关键资源，组织成员夺取或销毁关键账册或信物（目标：关键账册或信物）",
+                "gainedInfo": null,
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              }
+            ],
+            "stageSummary": "本阶段无独立主目标（仅参与/对象）",
+            "knows": "本阶段主要为参与/对象，无主导公开行动摘要",
+            "goal": "本阶段无独立主目标（仅参与/对象）",
+            "action": "见 contributions（参与/对象）",
+            "relationChanges": [
+              "同场出现（非因果）"
+            ],
+            "gainedInfo": "NEEDS_DETAIL",
+            "misunderstanding": "NEEDS_DETAIL",
+            "endChange": "NEEDS_DETAIL",
+            "needsDetail": false
+          },
+          {
+            "stageId": "act3",
+            "contributions": [
+              {
+                "sourceBeatId": "beat-climax",
+                "sourceOutlineBeatId": "ob-mtpaytct-j895",
+                "sourceBlockId": "smb-mtpaytck-l1bny",
+                "familyId": "M01",
+                "templateId": "M01-FRAMING",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：梁赫为了锁定真凶沈岚，用决定性证据揭穿嫁祸（目标：决定性证据）",
+                "gainedInfo": null,
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-climax",
+                "sourceOutlineBeatId": "ob-mtpaytct-90on",
+                "sourceBlockId": "smb-mtpaytco-5tnaz",
+                "familyId": "M07",
+                "templateId": "M07-1",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：顾清为了确认真实身份并决定是否公开，核对身份记录并作出公开或隐瞒选择（目标：真实身份）",
+                "gainedInfo": null,
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-climax",
+                "sourceOutlineBeatId": "ob-mtpaytct-9c3m",
+                "sourceBlockId": "smb-mtpaytcp-5lvas",
+                "familyId": "M08",
+                "templateId": "M08-1",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：方序为了在暴露风险下改归属或保住秘密，在关键选择点背叛、退出或清洗异己（目标：归属状态）",
+                "gainedInfo": null,
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              }
+            ],
+            "stageSummary": "本阶段无独立主目标（仅参与/对象）",
+            "knows": "本阶段主要为参与/对象，无主导公开行动摘要",
+            "goal": "本阶段无独立主目标（仅参与/对象）",
+            "action": "见 contributions（参与/对象）",
+            "relationChanges": [
+              "同场出现（非因果）"
+            ],
+            "gainedInfo": "NEEDS_DETAIL",
+            "misunderstanding": "NEEDS_DETAIL",
+            "endChange": "NEEDS_DETAIL",
+            "needsDetail": false
+          },
+          {
+            "stageId": "act4",
+            "contributions": [
+              {
+                "sourceBeatId": "beat-res",
+                "sourceOutlineBeatId": "ob-mtpaytct-iptk",
+                "sourceBlockId": "smb-mtpaytck-l1bny",
+                "familyId": "M01",
+                "templateId": "M01-FRAMING",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：梁赫为了锁定真凶沈岚，用决定性证据揭穿嫁祸（目标：决定性证据）",
+                "gainedInfo": null,
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-res",
+                "sourceOutlineBeatId": "ob-mtpaytct-xu4a",
+                "sourceBlockId": "smb-mtpaytco-5tnaz",
+                "familyId": "M07",
+                "templateId": "M07-1",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：顾清为了承受身份公开后的关系后果，面对知情者与阵营/调查方的反应（目标：关系重组）",
+                "gainedInfo": null,
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-res",
+                "sourceOutlineBeatId": "ob-mtpaytct-9jwq",
+                "sourceBlockId": "smb-mtpaytcp-5lvas",
+                "familyId": "M08",
+                "templateId": "M08-1",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：梁赫为了结算阵营目标并承受公开后果，公开站队或接受阵营败露后的关系重排（目标：阵营胜负条件）",
+                "gainedInfo": null,
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              }
+            ],
+            "stageSummary": "本阶段无独立主目标（仅参与/对象）",
+            "knows": "本阶段主要为参与/对象，无主导公开行动摘要",
+            "goal": "本阶段无独立主目标（仅参与/对象）",
+            "action": "见 contributions（参与/对象）",
+            "relationChanges": [
+              "同场出现（非因果）"
+            ],
+            "gainedInfo": "NEEDS_DETAIL",
+            "misunderstanding": "NEEDS_DETAIL",
+            "endChange": "NEEDS_DETAIL",
+            "needsDetail": false
+          }
+        ]
+      },
+      {
+        "characterId": "P5",
+        "name": "顾清",
+        "stages": [
+          {
+            "stageId": "act1",
+            "contributions": [
+              {
+                "sourceBeatId": "beat-setup",
+                "sourceOutlineBeatId": "ob-mtpaytct-o066",
+                "sourceBlockId": "smb-mtpaytco-5tnaz",
+                "familyId": "M07",
+                "templateId": "M07-1",
+                "roleInBeat": "OWNER",
+                "goal": "隐藏或维持当前身份表象",
+                "action": "按伪装/未知状态行动，避免过早暴露",
+                "gainedInfo": "身份仍未公开",
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              }
+            ],
+            "stageSummary": "隐藏或维持当前身份表象",
+            "knows": "本阶段主导行动：按伪装/未知状态行动，避免过早暴露",
+            "goal": "隐藏或维持当前身份表象",
+            "action": "按伪装/未知状态行动，避免过早暴露",
+            "relationChanges": [
+              "同场出现（非因果）"
+            ],
+            "gainedInfo": "身份仍未公开",
+            "misunderstanding": "NEEDS_DETAIL",
+            "endChange": "身份仍未公开",
+            "needsDetail": false
+          },
+          {
+            "stageId": "act2",
+            "contributions": [
+              {
+                "sourceBeatId": "beat-develop",
+                "sourceOutlineBeatId": "ob-mtpaytct-sgls",
+                "sourceBlockId": "smb-mtpaytco-5tnaz",
+                "familyId": "M07",
+                "templateId": "M07-1",
+                "roleInBeat": "OWNER",
+                "goal": "等到约定阶段再领取被封存的事实",
+                "action": "等待阶段到达并接收同一事实片段",
+                "gainedInfo": "与身份记录相关的线索",
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-develop",
+                "sourceOutlineBeatId": "ob-mtpaytct-mmws",
+                "sourceBlockId": "smb-mtpaytcp-5lvas",
+                "familyId": "M08",
+                "templateId": "M08-1",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：梁赫为了夺取关键资源，组织成员夺取或销毁关键账册或信物（目标：关键账册或信物）",
+                "gainedInfo": null,
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              }
+            ],
+            "stageSummary": "等到约定阶段再领取被封存的事实",
+            "knows": "本阶段主导行动：等待阶段到达并接收同一事实片段",
+            "goal": "等到约定阶段再领取被封存的事实",
+            "action": "等待阶段到达并接收同一事实片段",
+            "relationChanges": [
+              "同场出现（非因果）"
+            ],
+            "gainedInfo": "与身份记录相关的线索",
+            "misunderstanding": "NEEDS_DETAIL",
+            "endChange": "与身份记录相关的线索",
+            "needsDetail": false
+          },
+          {
+            "stageId": "act3",
+            "contributions": [
+              {
+                "sourceBeatId": "beat-climax",
+                "sourceOutlineBeatId": "ob-mtpaytct-90on",
+                "sourceBlockId": "smb-mtpaytco-5tnaz",
+                "familyId": "M07",
+                "templateId": "M07-1",
+                "roleInBeat": "OWNER",
+                "goal": "确认真实身份并决定是否公开",
+                "action": "核对身份记录并作出公开或隐瞒选择",
+                "gainedInfo": "身份已确认；家族/资格状态",
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-climax",
+                "sourceOutlineBeatId": "ob-mtpaytct-9c3m",
+                "sourceBlockId": "smb-mtpaytcp-5lvas",
+                "familyId": "M08",
+                "templateId": "M08-1",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：方序为了在暴露风险下改归属或保住秘密，在关键选择点背叛、退出或清洗异己（目标：归属状态）",
+                "gainedInfo": null,
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              }
+            ],
+            "stageSummary": "确认真实身份并决定是否公开",
+            "knows": "本阶段主导行动：核对身份记录并作出公开或隐瞒选择",
+            "goal": "确认真实身份并决定是否公开",
+            "action": "核对身份记录并作出公开或隐瞒选择",
+            "relationChanges": [
+              "同场出现（非因果）"
+            ],
+            "gainedInfo": "身份已确认；家族/资格状态",
+            "misunderstanding": "NEEDS_DETAIL",
+            "endChange": "身份已确认；家族/资格状态",
+            "needsDetail": false
+          },
+          {
+            "stageId": "act4",
+            "contributions": [
+              {
+                "sourceBeatId": "beat-res",
+                "sourceOutlineBeatId": "ob-mtpaytct-xu4a",
+                "sourceBlockId": "smb-mtpaytco-5tnaz",
+                "familyId": "M07",
+                "templateId": "M07-1",
+                "roleInBeat": "OWNER",
+                "goal": "承受身份公开后的关系后果",
+                "action": "面对知情者与阵营/调查方的反应",
+                "gainedInfo": "身份进入公开层",
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-res",
+                "sourceOutlineBeatId": "ob-mtpaytct-9jwq",
+                "sourceBlockId": "smb-mtpaytcp-5lvas",
+                "familyId": "M08",
+                "templateId": "M08-1",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：梁赫为了结算阵营目标并承受公开后果，公开站队或接受阵营败露后的关系重排（目标：阵营胜负条件）",
+                "gainedInfo": null,
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              }
+            ],
+            "stageSummary": "承受身份公开后的关系后果",
+            "knows": "本阶段主导行动：面对知情者与阵营/调查方的反应",
+            "goal": "承受身份公开后的关系后果",
+            "action": "面对知情者与阵营/调查方的反应",
+            "relationChanges": [
+              "同场出现（非因果）"
+            ],
+            "gainedInfo": "身份进入公开层",
+            "misunderstanding": "NEEDS_DETAIL",
+            "endChange": "身份进入公开层",
+            "needsDetail": false
+          }
+        ]
+      },
+      {
+        "characterId": "P6",
+        "name": "方序",
+        "stages": [
+          {
+            "stageId": "act1",
+            "contributions": [
+              {
+                "sourceBeatId": "beat-setup",
+                "sourceOutlineBeatId": "ob-mtpaytct-o066",
+                "sourceBlockId": "smb-mtpaytco-5tnaz",
+                "familyId": "M07",
+                "templateId": "M07-1",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：顾清为了隐藏或维持当前身份表象，按伪装/未知状态行动，避免过早暴露（目标：身份表象）",
+                "gainedInfo": null,
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-setup",
+                "sourceOutlineBeatId": "ob-mtpaytct-w3qi",
+                "sourceBlockId": "smb-mtpaytcp-5lvas",
+                "familyId": "M08",
+                "templateId": "M08-1",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：梁赫为了公开亮明阵营归属与目标，确认成员知情范围与阵营名单/暗号（目标：阵营名单/暗号）",
+                "gainedInfo": null,
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              }
+            ],
+            "stageSummary": "本阶段无独立主目标（仅参与/对象）",
+            "knows": "本阶段主要为参与/对象，无主导公开行动摘要",
+            "goal": "本阶段无独立主目标（仅参与/对象）",
+            "action": "见 contributions（参与/对象）",
+            "relationChanges": [
+              "同场出现（非因果）"
+            ],
+            "gainedInfo": "NEEDS_DETAIL",
+            "misunderstanding": "NEEDS_DETAIL",
+            "endChange": "NEEDS_DETAIL",
+            "needsDetail": false
+          },
+          {
+            "stageId": "act2",
+            "contributions": [
+              {
+                "sourceBeatId": "beat-develop",
+                "sourceOutlineBeatId": "ob-mtpaytct-sgls",
+                "sourceBlockId": "smb-mtpaytco-5tnaz",
+                "familyId": "M07",
+                "templateId": "M07-1",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：顾清为了等到约定阶段再领取被封存的事实，等待阶段到达并接收同一事实片段（目标：身份记录）",
+                "gainedInfo": null,
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-develop",
+                "sourceOutlineBeatId": "ob-mtpaytct-mmws",
+                "sourceBlockId": "smb-mtpaytcp-5lvas",
+                "familyId": "M08",
+                "templateId": "M08-1",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：梁赫为了夺取关键资源，组织成员夺取或销毁关键账册或信物（目标：关键账册或信物）",
+                "gainedInfo": null,
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              }
+            ],
+            "stageSummary": "本阶段无独立主目标（仅参与/对象）",
+            "knows": "本阶段主要为参与/对象，无主导公开行动摘要",
+            "goal": "本阶段无独立主目标（仅参与/对象）",
+            "action": "见 contributions（参与/对象）",
+            "relationChanges": [
+              "同场出现（非因果）"
+            ],
+            "gainedInfo": "NEEDS_DETAIL",
+            "misunderstanding": "NEEDS_DETAIL",
+            "endChange": "NEEDS_DETAIL",
+            "needsDetail": false
+          },
+          {
+            "stageId": "act3",
+            "contributions": [
+              {
+                "sourceBeatId": "beat-climax",
+                "sourceOutlineBeatId": "ob-mtpaytct-90on",
+                "sourceBlockId": "smb-mtpaytco-5tnaz",
+                "familyId": "M07",
+                "templateId": "M07-1",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：顾清为了确认真实身份并决定是否公开，核对身份记录并作出公开或隐瞒选择（目标：真实身份）",
+                "gainedInfo": null,
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-climax",
+                "sourceOutlineBeatId": "ob-mtpaytct-9c3m",
+                "sourceBlockId": "smb-mtpaytcp-5lvas",
+                "familyId": "M08",
+                "templateId": "M08-1",
+                "roleInBeat": "OWNER",
+                "goal": "在暴露风险下改归属或保住秘密",
+                "action": "在关键选择点背叛、退出或清洗异己",
+                "gainedInfo": "归属已改变；暴露风险上升",
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              }
+            ],
+            "stageSummary": "在暴露风险下改归属或保住秘密",
+            "knows": "本阶段主导行动：在关键选择点背叛、退出或清洗异己",
+            "goal": "在暴露风险下改归属或保住秘密",
+            "action": "在关键选择点背叛、退出或清洗异己",
+            "relationChanges": [
+              "同场出现（非因果）"
+            ],
+            "gainedInfo": "归属已改变；暴露风险上升",
+            "misunderstanding": "NEEDS_DETAIL",
+            "endChange": "归属已改变；暴露风险上升",
+            "needsDetail": false
+          },
+          {
+            "stageId": "act4",
+            "contributions": [
+              {
+                "sourceBeatId": "beat-res",
+                "sourceOutlineBeatId": "ob-mtpaytct-xu4a",
+                "sourceBlockId": "smb-mtpaytco-5tnaz",
+                "familyId": "M07",
+                "templateId": "M07-1",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：顾清为了承受身份公开后的关系后果，面对知情者与阵营/调查方的反应（目标：关系重组）",
+                "gainedInfo": null,
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-res",
+                "sourceOutlineBeatId": "ob-mtpaytct-9jwq",
+                "sourceBlockId": "smb-mtpaytcp-5lvas",
+                "familyId": "M08",
+                "templateId": "M08-1",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：梁赫为了结算阵营目标并承受公开后果，公开站队或接受阵营败露后的关系重排（目标：阵营胜负条件）",
+                "gainedInfo": null,
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              }
+            ],
+            "stageSummary": "本阶段无独立主目标（仅参与/对象）",
+            "knows": "本阶段主要为参与/对象，无主导公开行动摘要",
+            "goal": "本阶段无独立主目标（仅参与/对象）",
+            "action": "见 contributions（参与/对象）",
+            "relationChanges": [
+              "同场出现（非因果）"
+            ],
+            "gainedInfo": "NEEDS_DETAIL",
+            "misunderstanding": "NEEDS_DETAIL",
+            "endChange": "NEEDS_DETAIL",
+            "needsDetail": false
+          }
+        ]
+      },
+      {
+        "characterId": "P2",
+        "name": "梁赫",
+        "stages": [
+          {
+            "stageId": "act1",
+            "contributions": [
+              {
+                "sourceBeatId": "beat-setup",
+                "sourceOutlineBeatId": "ob-mtpaytct-w3qi",
+                "sourceBlockId": "smb-mtpaytcp-5lvas",
+                "familyId": "M08",
+                "templateId": "M08-1",
+                "roleInBeat": "OWNER",
+                "goal": "公开亮明阵营归属与目标",
+                "action": "确认成员知情范围与阵营名单/暗号",
+                "gainedInfo": "阵营结构已成形",
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              }
+            ],
+            "stageSummary": "公开亮明阵营归属与目标",
+            "knows": "本阶段主导行动：确认成员知情范围与阵营名单/暗号",
+            "goal": "公开亮明阵营归属与目标",
+            "action": "确认成员知情范围与阵营名单/暗号",
+            "relationChanges": [
+              "同场出现（非因果）"
+            ],
+            "gainedInfo": "阵营结构已成形",
+            "misunderstanding": "NEEDS_DETAIL",
+            "endChange": "阵营结构已成形",
+            "needsDetail": false
+          },
+          {
+            "stageId": "act2",
+            "contributions": [
+              {
+                "sourceBeatId": "beat-crime",
+                "sourceOutlineBeatId": "ob-mtpaytct-nerp",
+                "sourceBlockId": "smb-mtpaytck-l1bny",
+                "familyId": "M01",
+                "templateId": "M01-FRAMING",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：沈岚为了完成犯行并维持对白绫的嫁祸条件，在案发现场实施犯罪并留下指向白绫的误导证物（目标：误导证物）",
+                "gainedInfo": null,
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-false",
+                "sourceOutlineBeatId": "ob-mtpaytct-yba9",
+                "sourceBlockId": "smb-mtpaytck-l1bny",
+                "familyId": "M01",
+                "templateId": "M01-FRAMING",
+                "roleInBeat": "OWNER",
+                "goal": "根据当前证据判断案情并形成对白绫的主要嫌疑",
+                "action": "发现并解读误导证物，把白绫视为主要嫌疑人",
+                "gainedInfo": "错误嫌疑进入调查",
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-contra",
+                "sourceOutlineBeatId": "ob-mtpaytct-8zcz",
+                "sourceBlockId": "smb-mtpaytck-l1bny",
+                "familyId": "M01",
+                "templateId": "M01-FRAMING",
+                "roleInBeat": "OWNER",
+                "goal": "推翻对白绫的错误判断",
+                "action": "对照案发现场与证物寻找错误嫌疑无法解释的矛盾",
+                "gainedInfo": "反证出现",
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-develop",
+                "sourceOutlineBeatId": "ob-mtpaytct-sgls",
+                "sourceBlockId": "smb-mtpaytco-5tnaz",
+                "familyId": "M07",
+                "templateId": "M07-1",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：顾清为了等到约定阶段再领取被封存的事实，等待阶段到达并接收同一事实片段（目标：身份记录）",
+                "gainedInfo": null,
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-develop",
+                "sourceOutlineBeatId": "ob-mtpaytct-mmws",
+                "sourceBlockId": "smb-mtpaytcp-5lvas",
+                "familyId": "M08",
+                "templateId": "M08-1",
+                "roleInBeat": "OWNER",
+                "goal": "夺取关键资源",
+                "action": "组织成员夺取或销毁关键账册或信物",
+                "gainedInfo": "阵营压力升级",
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              }
+            ],
+            "stageSummary": "根据当前证据判断案情并形成对白绫的主要嫌疑；推翻对白绫的错误判断；夺取关键资源",
+            "knows": "本阶段主导行动：发现并解读误导证物，把白绫视为主要嫌疑人；对照案发现场与证物寻找错误嫌疑无法解释的矛盾；组织成员夺取或销毁关键账册或信物",
+            "goal": "根据当前证据判断案情并形成对白绫的主要嫌疑；推翻对白绫的错误判断；夺取关键资源",
+            "action": "发现并解读误导证物，把白绫视为主要嫌疑人；对照案发现场与证物寻找错误嫌疑无法解释的矛盾；组织成员夺取或销毁关键账册或信物",
+            "relationChanges": [
+              "同场出现（非因果）"
+            ],
+            "gainedInfo": "错误嫌疑进入调查；反证出现；阵营压力升级",
+            "misunderstanding": "NEEDS_DETAIL",
+            "endChange": "错误嫌疑进入调查；反证出现；阵营压力升级",
+            "needsDetail": false
+          },
+          {
+            "stageId": "act3",
+            "contributions": [
+              {
+                "sourceBeatId": "beat-climax",
+                "sourceOutlineBeatId": "ob-mtpaytct-j895",
+                "sourceBlockId": "smb-mtpaytck-l1bny",
+                "familyId": "M01",
+                "templateId": "M01-FRAMING",
+                "roleInBeat": "OWNER",
+                "goal": "锁定真凶沈岚",
+                "action": "用决定性证据揭穿嫁祸",
+                "gainedInfo": "真凶锁定",
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-climax",
+                "sourceOutlineBeatId": "ob-mtpaytct-90on",
+                "sourceBlockId": "smb-mtpaytco-5tnaz",
+                "familyId": "M07",
+                "templateId": "M07-1",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：顾清为了确认真实身份并决定是否公开，核对身份记录并作出公开或隐瞒选择（目标：真实身份）",
+                "gainedInfo": null,
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-climax",
+                "sourceOutlineBeatId": "ob-mtpaytct-9c3m",
+                "sourceBlockId": "smb-mtpaytcp-5lvas",
+                "familyId": "M08",
+                "templateId": "M08-1",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：方序为了在暴露风险下改归属或保住秘密，在关键选择点背叛、退出或清洗异己（目标：归属状态）",
+                "gainedInfo": null,
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              }
+            ],
+            "stageSummary": "锁定真凶沈岚",
+            "knows": "本阶段主导行动：用决定性证据揭穿嫁祸",
+            "goal": "锁定真凶沈岚",
+            "action": "用决定性证据揭穿嫁祸",
+            "relationChanges": [
+              "同场出现（非因果）"
+            ],
+            "gainedInfo": "真凶锁定",
+            "misunderstanding": "NEEDS_DETAIL",
+            "endChange": "真凶锁定",
+            "needsDetail": false
+          },
+          {
+            "stageId": "act4",
+            "contributions": [
+              {
+                "sourceBeatId": "beat-res",
+                "sourceOutlineBeatId": "ob-mtpaytct-iptk",
+                "sourceBlockId": "smb-mtpaytck-l1bny",
+                "familyId": "M01",
+                "templateId": "M01-FRAMING",
+                "roleInBeat": "OWNER",
+                "goal": "锁定真凶沈岚",
+                "action": "用决定性证据揭穿嫁祸",
+                "gainedInfo": "真凶锁定",
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-res",
+                "sourceOutlineBeatId": "ob-mtpaytct-xu4a",
+                "sourceBlockId": "smb-mtpaytco-5tnaz",
+                "familyId": "M07",
+                "templateId": "M07-1",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：顾清为了承受身份公开后的关系后果，面对知情者与阵营/调查方的反应（目标：关系重组）",
+                "gainedInfo": null,
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-res",
+                "sourceOutlineBeatId": "ob-mtpaytct-9jwq",
+                "sourceBlockId": "smb-mtpaytcp-5lvas",
+                "familyId": "M08",
+                "templateId": "M08-1",
+                "roleInBeat": "OWNER",
+                "goal": "结算阵营目标并承受公开后果",
+                "action": "公开站队或接受阵营败露后的关系重排",
+                "gainedInfo": "阵营线结算",
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              }
+            ],
+            "stageSummary": "锁定真凶沈岚；结算阵营目标并承受公开后果",
+            "knows": "本阶段主导行动：用决定性证据揭穿嫁祸；公开站队或接受阵营败露后的关系重排",
+            "goal": "锁定真凶沈岚；结算阵营目标并承受公开后果",
+            "action": "用决定性证据揭穿嫁祸；公开站队或接受阵营败露后的关系重排",
+            "relationChanges": [
+              "同场出现（非因果）"
+            ],
+            "gainedInfo": "真凶锁定；阵营线结算",
+            "misunderstanding": "NEEDS_DETAIL",
+            "endChange": "真凶锁定；阵营线结算",
+            "needsDetail": false
+          }
+        ]
+      },
+      {
+        "characterId": "P4",
+        "name": "周祁",
+        "stages": [
+          {
+            "stageId": "act2",
+            "contributions": [
+              {
+                "sourceBeatId": "beat-crime",
+                "sourceOutlineBeatId": "ob-mtpaytct-nerp",
+                "sourceBlockId": "smb-mtpaytck-l1bny",
+                "familyId": "M01",
+                "templateId": "M01-FRAMING",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：沈岚为了完成犯行并维持对白绫的嫁祸条件，在案发现场实施犯罪并留下指向白绫的误导证物（目标：误导证物）",
+                "gainedInfo": null,
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-develop",
+                "sourceOutlineBeatId": "ob-mtpaytct-sgls",
+                "sourceBlockId": "smb-mtpaytco-5tnaz",
+                "familyId": "M07",
+                "templateId": "M07-1",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：顾清为了等到约定阶段再领取被封存的事实，等待阶段到达并接收同一事实片段（目标：身份记录）",
+                "gainedInfo": null,
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-develop",
+                "sourceOutlineBeatId": "ob-mtpaytct-mmws",
+                "sourceBlockId": "smb-mtpaytcp-5lvas",
+                "familyId": "M08",
+                "templateId": "M08-1",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：梁赫为了夺取关键资源，组织成员夺取或销毁关键账册或信物（目标：关键账册或信物）",
+                "gainedInfo": null,
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              }
+            ],
+            "stageSummary": "本阶段无独立主目标（仅参与/对象）",
+            "knows": "本阶段主要为参与/对象，无主导公开行动摘要",
+            "goal": "本阶段无独立主目标（仅参与/对象）",
+            "action": "见 contributions（参与/对象）",
+            "relationChanges": [
+              "同场出现（非因果）"
+            ],
+            "gainedInfo": "NEEDS_DETAIL",
+            "misunderstanding": "NEEDS_DETAIL",
+            "endChange": "NEEDS_DETAIL",
+            "needsDetail": false
+          },
+          {
+            "stageId": "act3",
+            "contributions": [
+              {
+                "sourceBeatId": "beat-climax",
+                "sourceOutlineBeatId": "ob-mtpaytct-90on",
+                "sourceBlockId": "smb-mtpaytco-5tnaz",
+                "familyId": "M07",
+                "templateId": "M07-1",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：顾清为了确认真实身份并决定是否公开，核对身份记录并作出公开或隐瞒选择（目标：真实身份）",
+                "gainedInfo": null,
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-climax",
+                "sourceOutlineBeatId": "ob-mtpaytct-9c3m",
+                "sourceBlockId": "smb-mtpaytcp-5lvas",
+                "familyId": "M08",
+                "templateId": "M08-1",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：方序为了在暴露风险下改归属或保住秘密，在关键选择点背叛、退出或清洗异己（目标：归属状态）",
+                "gainedInfo": null,
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              }
+            ],
+            "stageSummary": "本阶段无独立主目标（仅参与/对象）",
+            "knows": "本阶段主要为参与/对象，无主导公开行动摘要",
+            "goal": "本阶段无独立主目标（仅参与/对象）",
+            "action": "见 contributions（参与/对象）",
+            "relationChanges": [
+              "同场出现（非因果）"
+            ],
+            "gainedInfo": "NEEDS_DETAIL",
+            "misunderstanding": "NEEDS_DETAIL",
+            "endChange": "NEEDS_DETAIL",
+            "needsDetail": false
+          },
+          {
+            "stageId": "act4",
+            "contributions": [
+              {
+                "sourceBeatId": "beat-res",
+                "sourceOutlineBeatId": "ob-mtpaytct-iptk",
+                "sourceBlockId": "smb-mtpaytck-l1bny",
+                "familyId": "M01",
+                "templateId": "M01-FRAMING",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：梁赫为了锁定真凶沈岚，用决定性证据揭穿嫁祸（目标：决定性证据）",
+                "gainedInfo": null,
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-res",
+                "sourceOutlineBeatId": "ob-mtpaytct-xu4a",
+                "sourceBlockId": "smb-mtpaytco-5tnaz",
+                "familyId": "M07",
+                "templateId": "M07-1",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：顾清为了承受身份公开后的关系后果，面对知情者与阵营/调查方的反应（目标：关系重组）",
+                "gainedInfo": null,
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              },
+              {
+                "sourceBeatId": "beat-res",
+                "sourceOutlineBeatId": "ob-mtpaytct-9jwq",
+                "sourceBlockId": "smb-mtpaytcp-5lvas",
+                "familyId": "M08",
+                "templateId": "M08-1",
+                "roleInBeat": "PARTICIPANT",
+                "goal": null,
+                "action": "参与（非主导）：梁赫为了结算阵营目标并承受公开后果，公开站队或接受阵营败露后的关系重排（目标：阵营胜负条件）",
+                "gainedInfo": null,
+                "relationQuality": "COLOCATED",
+                "needsDetail": false
+              }
+            ],
+            "stageSummary": "本阶段无独立主目标（仅参与/对象）",
+            "knows": "本阶段主要为参与/对象，无主导公开行动摘要",
+            "goal": "本阶段无独立主目标（仅参与/对象）",
+            "action": "见 contributions（参与/对象）",
+            "relationChanges": [
+              "同场出现（非因果）"
+            ],
+            "gainedInfo": "NEEDS_DETAIL",
+            "misunderstanding": "NEEDS_DETAIL",
+            "endChange": "NEEDS_DETAIL",
+            "needsDetail": false
+          }
+        ]
+      }
+    ]
+  },
+  "clueView": {
+    "clues": [
+      {
+        "clueId": "fact-interface:ob-mtpaytcs-gzbg",
+        "label": "事实接口（尚无线索实体）",
+        "mechanismId": "smb-mtpaytck-l1bny",
+        "templateId": "M01-FRAMING",
+        "introducedAt": "act1",
+        "availableStages": [
+          "act1"
+        ],
+        "persists": false,
+        "stageId": "act1",
+        "possibleFinders": [
+          "P1",
+          "P3"
+        ],
+        "supportsFact": "误导证物已就绪",
+        "isMisleading": true,
+        "isDecisive": false,
+        "missingDetail": true,
+        "detailNote": "这个剧情 beat 需要关键线索，但模板尚未提供具体线索内容。"
+      },
+      {
+        "clueId": "smb-mtpaytco-5tnaz-foreshadow-0",
+        "label": "早期伏笔",
+        "mechanismId": "smb-mtpaytco-5tnaz",
+        "templateId": "M07-1",
+        "introducedAt": "act1",
+        "availableStages": [
+          "act1",
+          "act2"
+        ],
+        "persists": true,
+        "stageId": "act1",
+        "possibleFinders": [
+          "P5",
+          "P6",
+          "P2",
+          "P3",
+          "P4"
+        ],
+        "supportsFact": "早期伏笔",
+        "isMisleading": false,
+        "isDecisive": false,
+        "missingDetail": false
+      },
+      {
+        "clueId": "smb-mtpaytcp-5lvas-faction_foreshadow-0",
+        "label": "阵营伏笔",
+        "mechanismId": "smb-mtpaytcp-5lvas",
+        "templateId": "M08-1",
+        "introducedAt": "act1",
+        "availableStages": [
+          "act1",
+          "act2"
+        ],
+        "persists": true,
+        "stageId": "act1",
+        "possibleFinders": [
+          "P2",
+          "P6",
+          "P5",
+          "P1",
+          "P3",
+          "P4"
+        ],
+        "supportsFact": "阵营伏笔",
+        "isMisleading": false,
+        "isDecisive": false,
+        "missingDetail": false
+      },
+      {
+        "clueId": "smb-mtpaytck-l1bny-false_lead-0",
+        "label": "误导",
+        "mechanismId": "smb-mtpaytck-l1bny",
+        "templateId": "M01-FRAMING",
+        "introducedAt": "act2",
+        "availableStages": [
+          "act2"
+        ],
+        "persists": false,
+        "stageId": "act2",
+        "possibleFinders": [
+          "P1",
+          "P4",
+          "P2",
+          "P3"
+        ],
+        "supportsFact": "被嫁祸者遗失的玉佩",
+        "isMisleading": true,
+        "isDecisive": false,
+        "missingDetail": false
+      },
+      {
+        "clueId": "smb-mtpaytck-l1bny-contradiction-1",
+        "label": "反证",
+        "mechanismId": "smb-mtpaytck-l1bny",
+        "templateId": "M01-FRAMING",
+        "introducedAt": "act2",
+        "availableStages": [
+          "act2"
+        ],
+        "persists": false,
+        "stageId": "act2",
+        "possibleFinders": [
+          "P2"
+        ],
+        "supportsFact": "玉佩沾有仅库房存在的红蜡",
+        "isMisleading": false,
+        "isDecisive": false,
+        "missingDetail": false
+      },
+      {
+        "clueId": "smb-mtpaytck-l1bny-true_evidence-2",
+        "label": "真手法",
+        "mechanismId": "smb-mtpaytck-l1bny",
+        "templateId": "M01-FRAMING",
+        "introducedAt": "act3",
+        "availableStages": [
+          "act3"
+        ],
+        "persists": false,
+        "stageId": "act3",
+        "possibleFinders": [
+          "P2",
+          "P1",
+          "P3"
+        ],
+        "supportsFact": "勒杀",
+        "isMisleading": false,
+        "isDecisive": false,
+        "missingDetail": false
+      },
+      {
+        "clueId": "smb-mtpaytck-l1bny-decisive_evidence-3",
+        "label": "突破",
+        "mechanismId": "smb-mtpaytck-l1bny",
+        "templateId": "M01-FRAMING",
+        "introducedAt": "act3",
+        "availableStages": [
+          "act3",
+          "act4"
+        ],
+        "persists": true,
+        "stageId": "act3",
+        "possibleFinders": [
+          "P2",
+          "P1",
+          "P3",
+          "P4"
+        ],
+        "supportsFact": "库房钥匙记录证明真凶曾移动该物",
+        "isMisleading": false,
+        "isDecisive": false,
+        "missingDetail": false
+      },
+      {
+        "clueId": "smb-mtpaytco-5tnaz-memory_fragment-1",
+        "label": "记忆碎片",
+        "mechanismId": "smb-mtpaytco-5tnaz",
+        "templateId": "M07-1",
+        "introducedAt": "act3",
+        "availableStages": [
+          "act3"
+        ],
+        "persists": false,
+        "stageId": "act3",
+        "possibleFinders": [
+          "P5",
+          "P6",
+          "P2",
+          "P3",
+          "P4"
+        ],
+        "supportsFact": "记忆碎片",
+        "isMisleading": false,
+        "isDecisive": false,
+        "missingDetail": false
+      },
+      {
+        "clueId": "smb-mtpaytco-5tnaz-identity_hint-2",
+        "label": "身份暗示",
+        "mechanismId": "smb-mtpaytco-5tnaz",
+        "templateId": "M07-1",
+        "introducedAt": "act3",
+        "availableStages": [
+          "act3"
+        ],
+        "persists": false,
+        "stageId": "act3",
+        "possibleFinders": [
+          "P5",
+          "P6",
+          "P2",
+          "P3",
+          "P4"
+        ],
+        "supportsFact": "身份暗示",
+        "isMisleading": false,
+        "isDecisive": false,
+        "missingDetail": false
+      },
+      {
+        "clueId": "smb-mtpaytco-5tnaz-misdirection-3",
+        "label": "误导",
+        "mechanismId": "smb-mtpaytco-5tnaz",
+        "templateId": "M07-1",
+        "introducedAt": "act3",
+        "availableStages": [
+          "act3"
+        ],
+        "persists": false,
+        "stageId": "act3",
+        "possibleFinders": [
+          "P5",
+          "P6",
+          "P2",
+          "P3",
+          "P4"
+        ],
+        "supportsFact": "误导",
+        "isMisleading": true,
+        "isDecisive": false,
+        "missingDetail": false
+      },
+      {
+        "clueId": "smb-mtpaytco-5tnaz-confirmation-4",
+        "label": "确认",
+        "mechanismId": "smb-mtpaytco-5tnaz",
+        "templateId": "M07-1",
+        "introducedAt": "act3",
+        "availableStages": [
+          "act3"
+        ],
+        "persists": false,
+        "stageId": "act3",
+        "possibleFinders": [
+          "P5",
+          "P6",
+          "P2",
+          "P3",
+          "P4"
+        ],
+        "supportsFact": "确认",
+        "isMisleading": false,
+        "isDecisive": false,
+        "missingDetail": false
+      },
+      {
+        "clueId": "smb-mtpaytco-5tnaz-decisive_reveal-5",
+        "label": "决定性揭示",
+        "mechanismId": "smb-mtpaytco-5tnaz",
+        "templateId": "M07-1",
+        "introducedAt": "act3",
+        "availableStages": [
+          "act3"
+        ],
+        "persists": false,
+        "stageId": "act3",
+        "possibleFinders": [
+          "P5",
+          "P6",
+          "P2",
+          "P3",
+          "P4"
+        ],
+        "supportsFact": "决定性揭示",
+        "isMisleading": false,
+        "isDecisive": true,
+        "missingDetail": false
+      },
+      {
+        "clueId": "smb-mtpaytcp-5lvas-membership_hint-1",
+        "label": "成员暗示",
+        "mechanismId": "smb-mtpaytcp-5lvas",
+        "templateId": "M08-1",
+        "introducedAt": "act3",
+        "availableStages": [
+          "act3"
+        ],
+        "persists": false,
+        "stageId": "act3",
+        "possibleFinders": [
+          "P6",
+          "P2",
+          "P5",
+          "P1",
+          "P3",
+          "P4"
+        ],
+        "supportsFact": "成员暗示",
+        "isMisleading": false,
+        "isDecisive": false,
+        "missingDetail": false
+      },
+      {
+        "clueId": "smb-mtpaytcp-5lvas-secret_signal-2",
+        "label": "秘密信号",
+        "mechanismId": "smb-mtpaytcp-5lvas",
+        "templateId": "M08-1",
+        "introducedAt": "act3",
+        "availableStages": [
+          "act3"
+        ],
+        "persists": false,
+        "stageId": "act3",
+        "possibleFinders": [
+          "P6",
+          "P2",
+          "P5",
+          "P1",
+          "P3",
+          "P4"
+        ],
+        "supportsFact": "秘密信号",
+        "isMisleading": false,
+        "isDecisive": false,
+        "missingDetail": false
+      },
+      {
+        "clueId": "smb-mtpaytcp-5lvas-recruitment_evidence-3",
+        "label": "招募证据",
+        "mechanismId": "smb-mtpaytcp-5lvas",
+        "templateId": "M08-1",
+        "introducedAt": "act3",
+        "availableStages": [
+          "act3"
+        ],
+        "persists": false,
+        "stageId": "act3",
+        "possibleFinders": [
+          "P6",
+          "P2",
+          "P5",
+          "P1",
+          "P3",
+          "P4"
+        ],
+        "supportsFact": "招募证据",
+        "isMisleading": false,
+        "isDecisive": false,
+        "missingDetail": false
+      },
+      {
+        "clueId": "smb-mtpaytcp-5lvas-loyalty_test-4",
+        "label": "忠诚考验",
+        "mechanismId": "smb-mtpaytcp-5lvas",
+        "templateId": "M08-1",
+        "introducedAt": "act3",
+        "availableStages": [
+          "act3"
+        ],
+        "persists": false,
+        "stageId": "act3",
+        "possibleFinders": [
+          "P6",
+          "P2",
+          "P5",
+          "P1",
+          "P3",
+          "P4"
+        ],
+        "supportsFact": "忠诚考验",
+        "isMisleading": false,
+        "isDecisive": false,
+        "missingDetail": false
+      },
+      {
+        "clueId": "smb-mtpaytcp-5lvas-betrayal_hint-5",
+        "label": "背叛暗示",
+        "mechanismId": "smb-mtpaytcp-5lvas",
+        "templateId": "M08-1",
+        "introducedAt": "act3",
+        "availableStages": [
+          "act3"
+        ],
+        "persists": false,
+        "stageId": "act3",
+        "possibleFinders": [
+          "P6",
+          "P2",
+          "P5",
+          "P1",
+          "P3",
+          "P4"
+        ],
+        "supportsFact": "背叛暗示",
+        "isMisleading": false,
+        "isDecisive": false,
+        "missingDetail": false
+      },
+      {
+        "clueId": "smb-mtpaytcp-5lvas-internal_conflict-6",
+        "label": "内部冲突",
+        "mechanismId": "smb-mtpaytcp-5lvas",
+        "templateId": "M08-1",
+        "introducedAt": "act3",
+        "availableStages": [
+          "act3"
+        ],
+        "persists": false,
+        "stageId": "act3",
+        "possibleFinders": [
+          "P6",
+          "P2",
+          "P5",
+          "P1",
+          "P3",
+          "P4"
+        ],
+        "supportsFact": "内部冲突",
+        "isMisleading": false,
+        "isDecisive": false,
+        "missingDetail": false
+      },
+      {
+        "clueId": "smb-mtpaytcp-5lvas-hidden_goal_hint-7",
+        "label": "隐藏目标暗示",
+        "mechanismId": "smb-mtpaytcp-5lvas",
+        "templateId": "M08-1",
+        "introducedAt": "act3",
+        "availableStages": [
+          "act3"
+        ],
+        "persists": false,
+        "stageId": "act3",
+        "possibleFinders": [
+          "P6",
+          "P2",
+          "P5",
+          "P1",
+          "P3",
+          "P4"
+        ],
+        "supportsFact": "隐藏目标暗示",
+        "isMisleading": false,
+        "isDecisive": false,
+        "missingDetail": false
+      },
+      {
+        "clueId": "smb-mtpaytcp-5lvas-membership_confirmation-8",
+        "label": "归属确认",
+        "mechanismId": "smb-mtpaytcp-5lvas",
+        "templateId": "M08-1",
+        "introducedAt": "act3",
+        "availableStages": [
+          "act3"
+        ],
+        "persists": false,
+        "stageId": "act3",
+        "possibleFinders": [
+          "P6",
+          "P2",
+          "P5",
+          "P1",
+          "P3",
+          "P4"
+        ],
+        "supportsFact": "归属确认",
+        "isMisleading": false,
+        "isDecisive": false,
+        "missingDetail": false
+      },
+      {
+        "clueId": "smb-mtpaytcp-5lvas-faction_exposure-9",
+        "label": "阵营暴露",
+        "mechanismId": "smb-mtpaytcp-5lvas",
+        "templateId": "M08-1",
+        "introducedAt": "act3",
+        "availableStages": [
+          "act3"
+        ],
+        "persists": false,
+        "stageId": "act3",
+        "possibleFinders": [
+          "P6",
+          "P2",
+          "P5",
+          "P1",
+          "P3",
+          "P4"
+        ],
+        "supportsFact": "阵营暴露",
+        "isMisleading": false,
+        "isDecisive": false,
+        "missingDetail": false
+      },
+      {
+        "clueId": "fact-interface:ob-mtpaytct-xu4a",
+        "label": "事实接口（尚无线索实体）",
+        "mechanismId": "smb-mtpaytco-5tnaz",
+        "templateId": "M07-1",
+        "introducedAt": "act4",
+        "availableStages": [
+          "act4"
+        ],
+        "persists": false,
+        "stageId": "act4",
+        "possibleFinders": [
+          "P5",
+          "P6",
+          "P2",
+          "P3",
+          "P4"
+        ],
+        "supportsFact": "身份确认；身份进入公开层",
+        "isMisleading": false,
+        "isDecisive": false,
+        "missingDetail": true,
+        "detailNote": "这个剧情 beat 需要关键线索，但模板尚未提供具体线索内容。"
+      },
+      {
+        "clueId": "fact-interface:ob-mtpaytct-9jwq",
+        "label": "事实接口（尚无线索实体）",
+        "mechanismId": "smb-mtpaytcp-5lvas",
+        "templateId": "M08-1",
+        "introducedAt": "act4",
+        "availableStages": [
+          "act4"
+        ],
+        "persists": false,
+        "stageId": "act4",
+        "possibleFinders": [
+          "P2",
+          "P6",
+          "P5",
+          "P1",
+          "P3",
+          "P4"
+        ],
+        "supportsFact": "归属变化；阵营线结算",
+        "isMisleading": false,
+        "isDecisive": false,
+        "missingDetail": true,
+        "detailNote": "这个剧情 beat 需要关键线索，但模板尚未提供具体线索内容。"
+      }
+    ]
+  },
+  "executionView": {
+    "stages": [
+      {
+        "stageId": "act1",
+        "openingState": "开局：各线按积木 setup 状态进入（不新增前提）",
+        "stageGoal": "沈岚：准备可嫁祸的假象；顾清：隐藏或维持当前身份表象；梁赫：公开亮明阵营归属与目标",
+        "beatsToAdvance": [
+          "ob-mtpaytcs-gzbg",
+          "ob-mtpaytct-o066",
+          "ob-mtpaytct-w3qi"
+        ],
+        "cluesAvailable": [
+          "fact-interface:ob-mtpaytcs-gzbg",
+          "smb-mtpaytco-5tnaz-foreshadow-0",
+          "smb-mtpaytcp-5lvas-faction_foreshadow-0"
+        ],
+        "charactersInPlay": [
+          "P1",
+          "P3",
+          "P5",
+          "P6",
+          "P2"
+        ],
+        "candidateGameInsertionPoints": [
+          {
+            "placementId": "game-candidate-ob-mtpaytcs-gzbg",
+            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+            "afterBeatId": "ob-mtpaytcs-gzbg"
+          },
+          {
+            "placementId": "game-candidate-ob-mtpaytct-o066",
+            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+            "afterBeatId": "ob-mtpaytct-o066"
+          },
+          {
+            "placementId": "game-candidate-ob-mtpaytct-w3qi",
+            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+            "afterBeatId": "ob-mtpaytct-w3qi"
+          }
+        ],
+        "gameMechanismSlots": [
+          {
+            "placementId": "game-candidate-ob-mtpaytcs-gzbg",
+            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+            "afterBeatId": "ob-mtpaytcs-gzbg"
+          },
+          {
+            "placementId": "game-candidate-ob-mtpaytct-o066",
+            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+            "afterBeatId": "ob-mtpaytct-o066"
+          },
+          {
+            "placementId": "game-candidate-ob-mtpaytct-w3qi",
+            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+            "afterBeatId": "ob-mtpaytct-w3qi"
+          }
+        ],
+        "requiredStateBeforeNext": "误导证物已就绪；身份仍未公开；阵营结构已成形"
+      },
+      {
+        "stageId": "act2",
+        "openingState": "承接上一阶段已声明后果；未声明者标 UNKNOWN",
+        "stageGoal": "沈岚：完成犯行并维持对白绫的嫁祸条件；梁赫：根据当前证据判断案情并形成对白绫的主要嫌疑；梁赫：推翻对白绫的错误判断；顾清：等到约定阶段再领取被封存的事实；梁赫：夺取关键资源",
+        "beatsToAdvance": [
+          "ob-mtpaytct-nerp",
+          "ob-mtpaytct-yba9",
+          "ob-mtpaytct-8zcz",
+          "ob-mtpaytct-sgls",
+          "ob-mtpaytct-mmws"
+        ],
+        "cluesAvailable": [
+          "smb-mtpaytco-5tnaz-foreshadow-0",
+          "smb-mtpaytcp-5lvas-faction_foreshadow-0",
+          "smb-mtpaytck-l1bny-false_lead-0",
+          "smb-mtpaytck-l1bny-contradiction-1"
+        ],
+        "charactersInPlay": [
+          "P1",
+          "P4",
+          "P2",
+          "P3",
+          "P5",
+          "P6"
+        ],
+        "candidateGameInsertionPoints": [
+          {
+            "placementId": "game-candidate-ob-mtpaytct-nerp",
+            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+            "afterBeatId": "ob-mtpaytct-nerp"
+          },
+          {
+            "placementId": "game-candidate-ob-mtpaytct-yba9",
+            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+            "afterBeatId": "ob-mtpaytct-yba9"
+          },
+          {
+            "placementId": "game-candidate-ob-mtpaytct-8zcz",
+            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+            "afterBeatId": "ob-mtpaytct-8zcz"
+          },
+          {
+            "placementId": "game-candidate-ob-mtpaytct-sgls",
+            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+            "afterBeatId": "ob-mtpaytct-sgls"
+          },
+          {
+            "placementId": "game-candidate-ob-mtpaytct-mmws",
+            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+            "afterBeatId": "ob-mtpaytct-mmws"
+          }
+        ],
+        "gameMechanismSlots": [
+          {
+            "placementId": "game-candidate-ob-mtpaytct-nerp",
+            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+            "afterBeatId": "ob-mtpaytct-nerp"
+          },
+          {
+            "placementId": "game-candidate-ob-mtpaytct-yba9",
+            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+            "afterBeatId": "ob-mtpaytct-yba9"
+          },
+          {
+            "placementId": "game-candidate-ob-mtpaytct-8zcz",
+            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+            "afterBeatId": "ob-mtpaytct-8zcz"
+          },
+          {
+            "placementId": "game-candidate-ob-mtpaytct-sgls",
+            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+            "afterBeatId": "ob-mtpaytct-sgls"
+          },
+          {
+            "placementId": "game-candidate-ob-mtpaytct-mmws",
+            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+            "afterBeatId": "ob-mtpaytct-mmws"
+          }
+        ],
+        "requiredStateBeforeNext": "犯行已发生；误导证物可供发现与解读；错误嫌疑进入调查；反证出现；与身份记录相关的线索；阵营压力升级"
+      },
+      {
+        "stageId": "act3",
+        "openingState": "承接上一阶段已声明后果；未声明者标 UNKNOWN",
+        "stageGoal": "梁赫：锁定真凶沈岚；顾清：确认真实身份并决定是否公开；方序：在暴露风险下改归属或保住秘密",
+        "beatsToAdvance": [
+          "ob-mtpaytct-j895",
+          "ob-mtpaytct-90on",
+          "ob-mtpaytct-9c3m"
+        ],
+        "cluesAvailable": [
+          "smb-mtpaytck-l1bny-true_evidence-2",
+          "smb-mtpaytck-l1bny-decisive_evidence-3",
+          "smb-mtpaytco-5tnaz-memory_fragment-1",
+          "smb-mtpaytco-5tnaz-identity_hint-2",
+          "smb-mtpaytco-5tnaz-misdirection-3",
+          "smb-mtpaytco-5tnaz-confirmation-4",
+          "smb-mtpaytco-5tnaz-decisive_reveal-5",
+          "smb-mtpaytcp-5lvas-membership_hint-1",
+          "smb-mtpaytcp-5lvas-secret_signal-2",
+          "smb-mtpaytcp-5lvas-recruitment_evidence-3",
+          "smb-mtpaytcp-5lvas-loyalty_test-4",
+          "smb-mtpaytcp-5lvas-betrayal_hint-5",
+          "smb-mtpaytcp-5lvas-internal_conflict-6",
+          "smb-mtpaytcp-5lvas-hidden_goal_hint-7",
+          "smb-mtpaytcp-5lvas-membership_confirmation-8",
+          "smb-mtpaytcp-5lvas-faction_exposure-9"
+        ],
+        "charactersInPlay": [
+          "P2",
+          "P1",
+          "P3",
+          "P5",
+          "P6",
+          "P4"
+        ],
+        "candidateGameInsertionPoints": [
+          {
+            "placementId": "game-candidate-ob-mtpaytct-j895",
+            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+            "afterBeatId": "ob-mtpaytct-j895"
+          },
+          {
+            "placementId": "game-candidate-ob-mtpaytct-90on",
+            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+            "afterBeatId": "ob-mtpaytct-90on"
+          },
+          {
+            "placementId": "game-candidate-ob-mtpaytct-9c3m",
+            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+            "afterBeatId": "ob-mtpaytct-9c3m"
+          }
+        ],
+        "gameMechanismSlots": [
+          {
+            "placementId": "game-candidate-ob-mtpaytct-j895",
+            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+            "afterBeatId": "ob-mtpaytct-j895"
+          },
+          {
+            "placementId": "game-candidate-ob-mtpaytct-90on",
+            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+            "afterBeatId": "ob-mtpaytct-90on"
+          },
+          {
+            "placementId": "game-candidate-ob-mtpaytct-9c3m",
+            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+            "afterBeatId": "ob-mtpaytct-9c3m"
+          }
+        ],
+        "requiredStateBeforeNext": "真凶锁定；身份已确认；家族/资格状态；归属已改变；暴露风险上升"
+      },
+      {
+        "stageId": "act4",
+        "openingState": "承接上一阶段已声明后果；未声明者标 UNKNOWN",
+        "stageGoal": "梁赫：锁定真凶沈岚；顾清：承受身份公开后的关系后果；梁赫：结算阵营目标并承受公开后果",
+        "beatsToAdvance": [
+          "ob-mtpaytct-iptk",
+          "ob-mtpaytct-xu4a",
+          "ob-mtpaytct-9jwq"
+        ],
+        "cluesAvailable": [
+          "smb-mtpaytck-l1bny-decisive_evidence-3",
+          "fact-interface:ob-mtpaytct-xu4a",
+          "fact-interface:ob-mtpaytct-9jwq"
+        ],
+        "charactersInPlay": [
+          "P2",
+          "P1",
+          "P3",
+          "P4",
+          "P5",
+          "P6"
+        ],
+        "candidateGameInsertionPoints": [
+          {
+            "placementId": "game-candidate-ob-mtpaytct-iptk",
+            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+            "afterBeatId": "ob-mtpaytct-iptk"
+          },
+          {
+            "placementId": "game-candidate-ob-mtpaytct-xu4a",
+            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+            "afterBeatId": "ob-mtpaytct-xu4a"
+          },
+          {
+            "placementId": "game-candidate-ob-mtpaytct-9jwq",
+            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+            "afterBeatId": "ob-mtpaytct-9jwq"
+          }
+        ],
+        "gameMechanismSlots": [
+          {
+            "placementId": "game-candidate-ob-mtpaytct-iptk",
+            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+            "afterBeatId": "ob-mtpaytct-iptk"
+          },
+          {
+            "placementId": "game-candidate-ob-mtpaytct-xu4a",
+            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+            "afterBeatId": "ob-mtpaytct-xu4a"
+          },
+          {
+            "placementId": "game-candidate-ob-mtpaytct-9jwq",
+            "hint": "候选插入点：可在此 beat 后考虑 GAME（非强制每 beat 都要放）",
+            "afterBeatId": "ob-mtpaytct-9jwq"
+          }
+        ],
+        "requiredStateBeforeNext": "终幕：无强制下一阶段"
+      }
+    ]
+  },
+  "warnings": [
+    {
+      "id": "warn-low-weave",
+      "type": "LOW_WEAVE_DENSITY",
+      "severity": "info",
+      "message": "整本存在较少真正交织关系；当前母稿主要由平行剧情 + 同场并列构成。P6 未伪造额外因果。",
+      "stageIds": [
+        "act1",
+        "act2",
+        "act3",
+        "act4"
+      ],
+      "beatIds": []
+    },
+    {
+      "id": "warn-parallel-heavy",
+      "type": "PARALLEL_HEAVY",
+      "severity": "info",
+      "message": "当前结构以平行线为主；这是诚实输出，不是失败。若需交织请在交织骨架提出调整。",
+      "stageIds": [],
+      "beatIds": []
+    },
+    {
+      "id": "warn-clue-ob-mtpaytcs-gzbg",
+      "type": "MISSING_CLUE_DETAIL",
+      "severity": "info",
+      "message": "该剧情 beat 需要/产生事实接口，但模板尚未绑定具体线索内容。",
+      "stageIds": [
+        "act1"
+      ],
+      "beatIds": [
+        "ob-mtpaytcs-gzbg"
+      ]
+    },
+    {
+      "id": "warn-clue-ob-mtpaytct-xu4a",
+      "type": "MISSING_CLUE_DETAIL",
+      "severity": "info",
+      "message": "该剧情 beat 需要/产生事实接口，但模板尚未绑定具体线索内容。",
+      "stageIds": [
+        "act4"
+      ],
+      "beatIds": [
+        "ob-mtpaytct-xu4a"
+      ]
+    },
+    {
+      "id": "warn-clue-ob-mtpaytct-9jwq",
+      "type": "MISSING_CLUE_DETAIL",
+      "severity": "info",
+      "message": "该剧情 beat 需要/产生事实接口，但模板尚未绑定具体线索内容。",
+      "stageIds": [
+        "act4"
+      ],
+      "beatIds": [
+        "ob-mtpaytct-9jwq"
+      ]
+    }
+  ],
+  "structureChangeRequests": [],
+  "status": "DRAFT",
+  "revision": 0,
+  "updatedAt": "2026-09-06T04:19:32.773Z"
+}

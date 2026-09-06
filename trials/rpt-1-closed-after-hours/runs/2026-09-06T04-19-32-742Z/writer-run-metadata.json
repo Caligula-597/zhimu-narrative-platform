@@ -1,0 +1,605 @@
+{
+  "llm": {
+    "mode": "real",
+    "adapterId": "deepseek-script-writer",
+    "modelId": "deepseek-v4-flash"
+  },
+  "sectionMetadata": [
+    {
+      "status": "GENERATED",
+      "writerRunMetadata": {
+        "writerProfileId": "HOST_WRITER_V1",
+        "providerAdapterId": "deepseek-script-writer",
+        "modelId": "deepseek-v4-flash",
+        "promptVersion": "HOST_WRITER_V1.v1",
+        "requestId": "req-host",
+        "startedAt": "2026-09-06T04:19:32.783Z",
+        "completedAt": "2026-09-06T04:19:45.405Z",
+        "inputFingerprint": "fa7ce9a16dd3b66ba4d3ec95c1b78d8f",
+        "outputFingerprint": "59556906a9ea1c186a8d655f8de9a531",
+        "attemptCount": 1,
+        "formatRepairUsed": false,
+        "regeneration": false
+      }
+    },
+    {
+      "status": "GENERATED",
+      "writerRunMetadata": {
+        "writerProfileId": "ROLE_WRITER_V1",
+        "providerAdapterId": "deepseek-script-writer",
+        "modelId": "deepseek-v4-flash",
+        "promptVersion": "ROLE_WRITER_V1.v1",
+        "requestId": "req-role:P1",
+        "startedAt": "2026-09-06T04:19:45.407Z",
+        "completedAt": "2026-09-06T04:20:05.087Z",
+        "inputFingerprint": "ba49810b822b965dd21013c22668dcaa",
+        "outputFingerprint": "2c98e2ecbcd735b7f803668a2d55fa55",
+        "attemptCount": 2,
+        "formatRepairUsed": true,
+        "regeneration": false
+      }
+    },
+    {
+      "status": "GENERATED",
+      "writerRunMetadata": {
+        "writerProfileId": "ROLE_WRITER_V1",
+        "providerAdapterId": "deepseek-script-writer",
+        "modelId": "deepseek-v4-flash",
+        "promptVersion": "ROLE_WRITER_V1.v1",
+        "requestId": "req-role:P3",
+        "startedAt": "2026-09-06T04:20:05.087Z",
+        "completedAt": "2026-09-06T04:20:17.953Z",
+        "inputFingerprint": "b8a201dae46f618975e418373ee3243f",
+        "outputFingerprint": "a004070450c45ee7f03da29f611ddafc",
+        "attemptCount": 1,
+        "formatRepairUsed": false,
+        "regeneration": false
+      }
+    },
+    {
+      "status": "GENERATED",
+      "writerRunMetadata": {
+        "writerProfileId": "ROLE_WRITER_V1",
+        "providerAdapterId": "deepseek-script-writer",
+        "modelId": "deepseek-v4-flash",
+        "promptVersion": "ROLE_WRITER_V1.v1",
+        "requestId": "req-role:P5",
+        "startedAt": "2026-09-06T04:20:17.953Z",
+        "completedAt": "2026-09-06T04:20:40.152Z",
+        "inputFingerprint": "9218bb5ce6f3566efca8788d5ee2a1a4",
+        "outputFingerprint": "8b89ac80f17c7f26107070174d6d882c",
+        "attemptCount": 1,
+        "formatRepairUsed": false,
+        "regeneration": false
+      }
+    },
+    {
+      "status": "GENERATED",
+      "writerRunMetadata": {
+        "writerProfileId": "ROLE_WRITER_V1",
+        "providerAdapterId": "deepseek-script-writer",
+        "modelId": "deepseek-v4-flash",
+        "promptVersion": "ROLE_WRITER_V1.v1",
+        "requestId": "req-role:P6",
+        "startedAt": "2026-09-06T04:20:40.153Z",
+        "completedAt": "2026-09-06T04:20:48.763Z",
+        "inputFingerprint": "2fb59c0d5ac0265f260624745d820e8a",
+        "outputFingerprint": "5a3de9dd03a6372704bb75b4de67dced",
+        "attemptCount": 1,
+        "formatRepairUsed": false,
+        "regeneration": false
+      }
+    },
+    {
+      "status": "INVALID",
+      "writerRunMetadata": {
+        "writerProfileId": "ROLE_WRITER_V1",
+        "providerAdapterId": "deepseek-script-writer",
+        "modelId": "deepseek-v4-flash",
+        "promptVersion": "ROLE_WRITER_V1.v1",
+        "requestId": "req-role:P2",
+        "startedAt": "2026-09-06T04:20:48.763Z",
+        "completedAt": "2026-09-06T04:21:01.662Z",
+        "inputFingerprint": "c7090234ceb08227a8974898a96e3177",
+        "outputFingerprint": "849a6431c9f4ba90c9ef78d82a1e8098",
+        "attemptCount": 1,
+        "formatRepairUsed": false,
+        "regeneration": false
+      }
+    },
+    {
+      "status": "GENERATED",
+      "writerRunMetadata": {
+        "writerProfileId": "ROLE_WRITER_V1",
+        "providerAdapterId": "deepseek-script-writer",
+        "modelId": "deepseek-v4-flash",
+        "promptVersion": "ROLE_WRITER_V1.v1",
+        "requestId": "req-role:P4",
+        "startedAt": "2026-09-06T04:21:01.662Z",
+        "completedAt": "2026-09-06T04:21:10.530Z",
+        "inputFingerprint": "b7e24a58f3d015eb7951834208c89242",
+        "outputFingerprint": "a9b5f794a08beaab94f13782668007fe",
+        "attemptCount": 1,
+        "formatRepairUsed": false,
+        "regeneration": false
+      }
+    },
+    {
+      "status": "GENERATED",
+      "writerRunMetadata": {
+        "writerProfileId": "CLUE_WRITER_V1",
+        "providerAdapterId": "deepseek-script-writer",
+        "modelId": "deepseek-v4-flash",
+        "promptVersion": "CLUE_WRITER_V1.v1",
+        "requestId": "req-clue:fact-interface:ob-mtpaytcs-gzbg",
+        "startedAt": "2026-09-06T04:21:10.530Z",
+        "completedAt": "2026-09-06T04:21:14.058Z",
+        "inputFingerprint": "684de7a18aed834a56297df92d32da06",
+        "outputFingerprint": "ae262d37902d83e1b07a43f6383b9687",
+        "attemptCount": 1,
+        "formatRepairUsed": false,
+        "regeneration": false
+      }
+    },
+    {
+      "status": "GENERATED",
+      "writerRunMetadata": {
+        "writerProfileId": "CLUE_WRITER_V1",
+        "providerAdapterId": "deepseek-script-writer",
+        "modelId": "deepseek-v4-flash",
+        "promptVersion": "CLUE_WRITER_V1.v1",
+        "requestId": "req-clue:smb-mtpaytco-5tnaz-foreshadow-0",
+        "startedAt": "2026-09-06T04:21:14.058Z",
+        "completedAt": "2026-09-06T04:21:17.454Z",
+        "inputFingerprint": "cf3e3433db9afa4e64daf2e5cf4e0a8a",
+        "outputFingerprint": "9177d8d90ee1d2402a680d74e0bca898",
+        "attemptCount": 1,
+        "formatRepairUsed": false,
+        "regeneration": false
+      }
+    },
+    {
+      "status": "GENERATED",
+      "writerRunMetadata": {
+        "writerProfileId": "CLUE_WRITER_V1",
+        "providerAdapterId": "deepseek-script-writer",
+        "modelId": "deepseek-v4-flash",
+        "promptVersion": "CLUE_WRITER_V1.v1",
+        "requestId": "req-clue:smb-mtpaytcp-5lvas-faction_foreshadow-0",
+        "startedAt": "2026-09-06T04:21:17.455Z",
+        "completedAt": "2026-09-06T04:21:21.225Z",
+        "inputFingerprint": "b80ee604c70e849d7471e3093f502f73",
+        "outputFingerprint": "5c6d8bd3f7468460a80df4bf1a23a1d7",
+        "attemptCount": 1,
+        "formatRepairUsed": false,
+        "regeneration": false
+      }
+    },
+    {
+      "status": "GENERATED",
+      "writerRunMetadata": {
+        "writerProfileId": "CLUE_WRITER_V1",
+        "providerAdapterId": "deepseek-script-writer",
+        "modelId": "deepseek-v4-flash",
+        "promptVersion": "CLUE_WRITER_V1.v1",
+        "requestId": "req-clue:smb-mtpaytck-l1bny-false_lead-0",
+        "startedAt": "2026-09-06T04:21:21.225Z",
+        "completedAt": "2026-09-06T04:21:25.561Z",
+        "inputFingerprint": "4e6736910c72f304566a437a530e1db7",
+        "outputFingerprint": "09505f1fc01e1067224203c17782a1a5",
+        "attemptCount": 1,
+        "formatRepairUsed": false,
+        "regeneration": false
+      }
+    },
+    {
+      "status": "GENERATED",
+      "writerRunMetadata": {
+        "writerProfileId": "CLUE_WRITER_V1",
+        "providerAdapterId": "deepseek-script-writer",
+        "modelId": "deepseek-v4-flash",
+        "promptVersion": "CLUE_WRITER_V1.v1",
+        "requestId": "req-clue:smb-mtpaytck-l1bny-contradiction-1",
+        "startedAt": "2026-09-06T04:21:25.561Z",
+        "completedAt": "2026-09-06T04:21:30.097Z",
+        "inputFingerprint": "6132d4a939c46bec800302c3231951ac",
+        "outputFingerprint": "e1f14faa23daac78f61207423991a954",
+        "attemptCount": 1,
+        "formatRepairUsed": false,
+        "regeneration": false
+      }
+    },
+    {
+      "status": "GENERATED",
+      "writerRunMetadata": {
+        "writerProfileId": "CLUE_WRITER_V1",
+        "providerAdapterId": "deepseek-script-writer",
+        "modelId": "deepseek-v4-flash",
+        "promptVersion": "CLUE_WRITER_V1.v1",
+        "requestId": "req-clue:smb-mtpaytck-l1bny-true_evidence-2",
+        "startedAt": "2026-09-06T04:21:30.097Z",
+        "completedAt": "2026-09-06T04:21:33.380Z",
+        "inputFingerprint": "2d5fafbc65e11f9f74df5846da45d529",
+        "outputFingerprint": "c383af6e908a8c1e96d08038e87008f8",
+        "attemptCount": 1,
+        "formatRepairUsed": false,
+        "regeneration": false
+      }
+    },
+    {
+      "status": "GENERATED",
+      "writerRunMetadata": {
+        "writerProfileId": "CLUE_WRITER_V1",
+        "providerAdapterId": "deepseek-script-writer",
+        "modelId": "deepseek-v4-flash",
+        "promptVersion": "CLUE_WRITER_V1.v1",
+        "requestId": "req-clue:smb-mtpaytck-l1bny-decisive_evidence-3",
+        "startedAt": "2026-09-06T04:21:33.380Z",
+        "completedAt": "2026-09-06T04:21:37.482Z",
+        "inputFingerprint": "232283c4772008654a320de5713ba5a1",
+        "outputFingerprint": "f55d39ffbdb5a7234fcf2ecaef79c014",
+        "attemptCount": 1,
+        "formatRepairUsed": false,
+        "regeneration": false
+      }
+    },
+    {
+      "status": "GENERATED",
+      "writerRunMetadata": {
+        "writerProfileId": "CLUE_WRITER_V1",
+        "providerAdapterId": "deepseek-script-writer",
+        "modelId": "deepseek-v4-flash",
+        "promptVersion": "CLUE_WRITER_V1.v1",
+        "requestId": "req-clue:smb-mtpaytco-5tnaz-memory_fragment-1",
+        "startedAt": "2026-09-06T04:21:37.483Z",
+        "completedAt": "2026-09-06T04:21:40.466Z",
+        "inputFingerprint": "3e6375dfb63ef7d58fa92ee181ba45de",
+        "outputFingerprint": "eead2a300413383743a409a143f704d4",
+        "attemptCount": 1,
+        "formatRepairUsed": false,
+        "regeneration": false
+      }
+    },
+    {
+      "status": "GENERATED",
+      "writerRunMetadata": {
+        "writerProfileId": "CLUE_WRITER_V1",
+        "providerAdapterId": "deepseek-script-writer",
+        "modelId": "deepseek-v4-flash",
+        "promptVersion": "CLUE_WRITER_V1.v1",
+        "requestId": "req-clue:smb-mtpaytco-5tnaz-identity_hint-2",
+        "startedAt": "2026-09-06T04:21:40.466Z",
+        "completedAt": "2026-09-06T04:21:44.680Z",
+        "inputFingerprint": "c82855e80e2c41906f34cf62362de864",
+        "outputFingerprint": "e186baafe2e0499f2000080f6e33bf7d",
+        "attemptCount": 1,
+        "formatRepairUsed": false,
+        "regeneration": false
+      }
+    },
+    {
+      "status": "GENERATED",
+      "writerRunMetadata": {
+        "writerProfileId": "CLUE_WRITER_V1",
+        "providerAdapterId": "deepseek-script-writer",
+        "modelId": "deepseek-v4-flash",
+        "promptVersion": "CLUE_WRITER_V1.v1",
+        "requestId": "req-clue:smb-mtpaytco-5tnaz-misdirection-3",
+        "startedAt": "2026-09-06T04:21:44.681Z",
+        "completedAt": "2026-09-06T04:21:47.717Z",
+        "inputFingerprint": "900edfd93c4f7dac0b2cc8d523fb2cfd",
+        "outputFingerprint": "80bcdad74d9b4ab39c3e789d4b630749",
+        "attemptCount": 1,
+        "formatRepairUsed": false,
+        "regeneration": false
+      }
+    },
+    {
+      "status": "GENERATED",
+      "writerRunMetadata": {
+        "writerProfileId": "CLUE_WRITER_V1",
+        "providerAdapterId": "deepseek-script-writer",
+        "modelId": "deepseek-v4-flash",
+        "promptVersion": "CLUE_WRITER_V1.v1",
+        "requestId": "req-clue:smb-mtpaytco-5tnaz-confirmation-4",
+        "startedAt": "2026-09-06T04:21:47.717Z",
+        "completedAt": "2026-09-06T04:21:50.938Z",
+        "inputFingerprint": "d9824b9cd6a503d4ad8eb14020b9cb19",
+        "outputFingerprint": "7bda0284bfd63f57cb13fa079ddb1005",
+        "attemptCount": 1,
+        "formatRepairUsed": false,
+        "regeneration": false
+      }
+    },
+    {
+      "status": "GENERATED",
+      "writerRunMetadata": {
+        "writerProfileId": "CLUE_WRITER_V1",
+        "providerAdapterId": "deepseek-script-writer",
+        "modelId": "deepseek-v4-flash",
+        "promptVersion": "CLUE_WRITER_V1.v1",
+        "requestId": "req-clue:smb-mtpaytco-5tnaz-decisive_reveal-5",
+        "startedAt": "2026-09-06T04:21:50.938Z",
+        "completedAt": "2026-09-06T04:21:55.361Z",
+        "inputFingerprint": "5e679a91d4126ad1e99a16097303a555",
+        "outputFingerprint": "f579d338f56ec5c428250bd4d108e297",
+        "attemptCount": 1,
+        "formatRepairUsed": false,
+        "regeneration": false
+      }
+    },
+    {
+      "status": "GENERATED",
+      "writerRunMetadata": {
+        "writerProfileId": "CLUE_WRITER_V1",
+        "providerAdapterId": "deepseek-script-writer",
+        "modelId": "deepseek-v4-flash",
+        "promptVersion": "CLUE_WRITER_V1.v1",
+        "requestId": "req-clue:smb-mtpaytcp-5lvas-membership_hint-1",
+        "startedAt": "2026-09-06T04:21:55.361Z",
+        "completedAt": "2026-09-06T04:21:58.853Z",
+        "inputFingerprint": "2d7a6436a9a33fbd1c9de422b30eebd3",
+        "outputFingerprint": "256890c17d4f739ecc9fc5122fdbc6ea",
+        "attemptCount": 1,
+        "formatRepairUsed": false,
+        "regeneration": false
+      }
+    },
+    {
+      "status": "GENERATED",
+      "writerRunMetadata": {
+        "writerProfileId": "CLUE_WRITER_V1",
+        "providerAdapterId": "deepseek-script-writer",
+        "modelId": "deepseek-v4-flash",
+        "promptVersion": "CLUE_WRITER_V1.v1",
+        "requestId": "req-clue:smb-mtpaytcp-5lvas-secret_signal-2",
+        "startedAt": "2026-09-06T04:21:58.853Z",
+        "completedAt": "2026-09-06T04:22:02.825Z",
+        "inputFingerprint": "bc402b72aff899f3e6b2b4dd79207fe2",
+        "outputFingerprint": "d2cb3b82ca77d8199c48e4132453e31f",
+        "attemptCount": 1,
+        "formatRepairUsed": false,
+        "regeneration": false
+      }
+    },
+    {
+      "status": "GENERATED",
+      "writerRunMetadata": {
+        "writerProfileId": "CLUE_WRITER_V1",
+        "providerAdapterId": "deepseek-script-writer",
+        "modelId": "deepseek-v4-flash",
+        "promptVersion": "CLUE_WRITER_V1.v1",
+        "requestId": "req-clue:smb-mtpaytcp-5lvas-recruitment_evidence-3",
+        "startedAt": "2026-09-06T04:22:02.825Z",
+        "completedAt": "2026-09-06T04:22:08.910Z",
+        "inputFingerprint": "0a07678d0f3106befc73b42dae90e0d6",
+        "outputFingerprint": "6353e06b1d26d1497c60810c71961c0f",
+        "attemptCount": 1,
+        "formatRepairUsed": false,
+        "regeneration": false
+      }
+    },
+    {
+      "status": "GENERATED",
+      "writerRunMetadata": {
+        "writerProfileId": "CLUE_WRITER_V1",
+        "providerAdapterId": "deepseek-script-writer",
+        "modelId": "deepseek-v4-flash",
+        "promptVersion": "CLUE_WRITER_V1.v1",
+        "requestId": "req-clue:smb-mtpaytcp-5lvas-loyalty_test-4",
+        "startedAt": "2026-09-06T04:22:08.910Z",
+        "completedAt": "2026-09-06T04:22:13.704Z",
+        "inputFingerprint": "43293c277f04c0065cf9685317a277ee",
+        "outputFingerprint": "299b331164068c2c587cd495bb35d667",
+        "attemptCount": 1,
+        "formatRepairUsed": false,
+        "regeneration": false
+      }
+    },
+    {
+      "status": "GENERATED",
+      "writerRunMetadata": {
+        "writerProfileId": "CLUE_WRITER_V1",
+        "providerAdapterId": "deepseek-script-writer",
+        "modelId": "deepseek-v4-flash",
+        "promptVersion": "CLUE_WRITER_V1.v1",
+        "requestId": "req-clue:smb-mtpaytcp-5lvas-betrayal_hint-5",
+        "startedAt": "2026-09-06T04:22:13.704Z",
+        "completedAt": "2026-09-06T04:22:18.560Z",
+        "inputFingerprint": "d5b174041f04c4ca7675647bbf8a61e2",
+        "outputFingerprint": "a2b4f36c5a0be9f9a4fd78bae435444b",
+        "attemptCount": 1,
+        "formatRepairUsed": false,
+        "regeneration": false
+      }
+    },
+    {
+      "status": "GENERATED",
+      "writerRunMetadata": {
+        "writerProfileId": "CLUE_WRITER_V1",
+        "providerAdapterId": "deepseek-script-writer",
+        "modelId": "deepseek-v4-flash",
+        "promptVersion": "CLUE_WRITER_V1.v1",
+        "requestId": "req-clue:smb-mtpaytcp-5lvas-internal_conflict-6",
+        "startedAt": "2026-09-06T04:22:18.560Z",
+        "completedAt": "2026-09-06T04:22:22.364Z",
+        "inputFingerprint": "8d300311a6369465a91b1cebda0fe7c6",
+        "outputFingerprint": "22beb95cd28113a72c43cd725e347b0c",
+        "attemptCount": 1,
+        "formatRepairUsed": false,
+        "regeneration": false
+      }
+    },
+    {
+      "status": "GENERATED",
+      "writerRunMetadata": {
+        "writerProfileId": "CLUE_WRITER_V1",
+        "providerAdapterId": "deepseek-script-writer",
+        "modelId": "deepseek-v4-flash",
+        "promptVersion": "CLUE_WRITER_V1.v1",
+        "requestId": "req-clue:smb-mtpaytcp-5lvas-hidden_goal_hint-7",
+        "startedAt": "2026-09-06T04:22:22.364Z",
+        "completedAt": "2026-09-06T04:22:26.963Z",
+        "inputFingerprint": "50553cc5ec5e0e8d1412496da9805040",
+        "outputFingerprint": "605d2e3be0e21abb4d561872c1f2a578",
+        "attemptCount": 1,
+        "formatRepairUsed": false,
+        "regeneration": false
+      }
+    },
+    {
+      "status": "GENERATED",
+      "writerRunMetadata": {
+        "writerProfileId": "CLUE_WRITER_V1",
+        "providerAdapterId": "deepseek-script-writer",
+        "modelId": "deepseek-v4-flash",
+        "promptVersion": "CLUE_WRITER_V1.v1",
+        "requestId": "req-clue:smb-mtpaytcp-5lvas-membership_confirmation-8",
+        "startedAt": "2026-09-06T04:22:26.963Z",
+        "completedAt": "2026-09-06T04:22:30.669Z",
+        "inputFingerprint": "a03dc81a100c1e468c1a26c357b6537c",
+        "outputFingerprint": "198dae362c3894b24dd0a41e935cabed",
+        "attemptCount": 1,
+        "formatRepairUsed": false,
+        "regeneration": false
+      }
+    },
+    {
+      "status": "GENERATED",
+      "writerRunMetadata": {
+        "writerProfileId": "CLUE_WRITER_V1",
+        "providerAdapterId": "deepseek-script-writer",
+        "modelId": "deepseek-v4-flash",
+        "promptVersion": "CLUE_WRITER_V1.v1",
+        "requestId": "req-clue:smb-mtpaytcp-5lvas-faction_exposure-9",
+        "startedAt": "2026-09-06T04:22:30.669Z",
+        "completedAt": "2026-09-06T04:22:34.077Z",
+        "inputFingerprint": "72868c03d2099f00887addbf74301f2b",
+        "outputFingerprint": "505b30970a729de3555ecc07cc8ceaff",
+        "attemptCount": 1,
+        "formatRepairUsed": false,
+        "regeneration": false
+      }
+    },
+    {
+      "status": "GENERATED",
+      "writerRunMetadata": {
+        "writerProfileId": "CLUE_WRITER_V1",
+        "providerAdapterId": "deepseek-script-writer",
+        "modelId": "deepseek-v4-flash",
+        "promptVersion": "CLUE_WRITER_V1.v1",
+        "requestId": "req-clue:fact-interface:ob-mtpaytct-xu4a",
+        "startedAt": "2026-09-06T04:22:34.078Z",
+        "completedAt": "2026-09-06T04:22:37.023Z",
+        "inputFingerprint": "93324968ae5878fdb53f87ee33ac37c7",
+        "outputFingerprint": "7b39cc076b61f05ab6b34e36b7b58120",
+        "attemptCount": 1,
+        "formatRepairUsed": false,
+        "regeneration": false
+      }
+    },
+    {
+      "status": "GENERATED",
+      "writerRunMetadata": {
+        "writerProfileId": "CLUE_WRITER_V1",
+        "providerAdapterId": "deepseek-script-writer",
+        "modelId": "deepseek-v4-flash",
+        "promptVersion": "CLUE_WRITER_V1.v1",
+        "requestId": "req-clue:fact-interface:ob-mtpaytct-9jwq",
+        "startedAt": "2026-09-06T04:22:37.023Z",
+        "completedAt": "2026-09-06T04:22:40.718Z",
+        "inputFingerprint": "0741b02bc696d0a89f14f623deeb1713",
+        "outputFingerprint": "af39c947b29fd75075df3d2e829ae1de",
+        "attemptCount": 1,
+        "formatRepairUsed": false,
+        "regeneration": false
+      }
+    },
+    {
+      "status": "GENERATED",
+      "writerRunMetadata": {
+        "writerProfileId": "PUBLIC_STAGE_WRITER_V1",
+        "providerAdapterId": "deepseek-script-writer",
+        "modelId": "deepseek-v4-flash",
+        "promptVersion": "PUBLIC_STAGE_WRITER_V1.v1",
+        "requestId": "req-public:act1",
+        "startedAt": "2026-09-06T04:22:40.719Z",
+        "completedAt": "2026-09-06T04:22:44.984Z",
+        "inputFingerprint": "4f181a58d48f7971c4cf43056c285fd9",
+        "outputFingerprint": "54171b9cdedf085a263a7b615a314e72",
+        "attemptCount": 1,
+        "formatRepairUsed": false,
+        "regeneration": false
+      }
+    },
+    {
+      "status": "GENERATED",
+      "writerRunMetadata": {
+        "writerProfileId": "PUBLIC_STAGE_WRITER_V1",
+        "providerAdapterId": "deepseek-script-writer",
+        "modelId": "deepseek-v4-flash",
+        "promptVersion": "PUBLIC_STAGE_WRITER_V1.v1",
+        "requestId": "req-public:act2",
+        "startedAt": "2026-09-06T04:22:44.984Z",
+        "completedAt": "2026-09-06T04:22:49.153Z",
+        "inputFingerprint": "e70c92f39b4bc18199dbcbf534c39ec1",
+        "outputFingerprint": "c6f9b38f63fa0274e76d93a3b005a88a",
+        "attemptCount": 1,
+        "formatRepairUsed": false,
+        "regeneration": false
+      }
+    },
+    {
+      "status": "GENERATED",
+      "writerRunMetadata": {
+        "writerProfileId": "PUBLIC_STAGE_WRITER_V1",
+        "providerAdapterId": "deepseek-script-writer",
+        "modelId": "deepseek-v4-flash",
+        "promptVersion": "PUBLIC_STAGE_WRITER_V1.v1",
+        "requestId": "req-public:act3",
+        "startedAt": "2026-09-06T04:22:49.153Z",
+        "completedAt": "2026-09-06T04:22:54.884Z",
+        "inputFingerprint": "f4a9875b520dd20b846cdd44c2bfc4d2",
+        "outputFingerprint": "dfae19e5eae11e24a7c2a02f3ab38a25",
+        "attemptCount": 1,
+        "formatRepairUsed": false,
+        "regeneration": false
+      }
+    },
+    {
+      "status": "GENERATED",
+      "writerRunMetadata": {
+        "writerProfileId": "PUBLIC_STAGE_WRITER_V1",
+        "providerAdapterId": "deepseek-script-writer",
+        "modelId": "deepseek-v4-flash",
+        "promptVersion": "PUBLIC_STAGE_WRITER_V1.v1",
+        "requestId": "req-public:act4",
+        "startedAt": "2026-09-06T04:22:54.884Z",
+        "completedAt": "2026-09-06T04:23:00.175Z",
+        "inputFingerprint": "9808577a82eb206149005f36026c9969",
+        "outputFingerprint": "430b5bf68d4fe526a2e07f5f802eb1fa",
+        "attemptCount": 1,
+        "formatRepairUsed": false,
+        "regeneration": false
+      }
+    },
+    {
+      "status": "GENERATED",
+      "writerRunMetadata": {
+        "writerProfileId": "ENDING_WRITER_V1",
+        "providerAdapterId": "deepseek-script-writer",
+        "modelId": "deepseek-v4-flash",
+        "promptVersion": "ENDING_WRITER_V1.v1",
+        "requestId": "req-ending",
+        "startedAt": "2026-09-06T04:23:00.175Z",
+        "completedAt": "2026-09-06T04:23:11.365Z",
+        "inputFingerprint": "a2f7ee8095a6ba91f3fa39df42dea734",
+        "outputFingerprint": "174e3e4a88dac6efb556d141afa12ecd",
+        "attemptCount": 1,
+        "formatRepairUsed": false,
+        "regeneration": false
+      }
+    }
+  ],
+  "modelCalls": 36
+}

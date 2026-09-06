@@ -1,0 +1,61 @@
+{
+  "trialId": "RPT-1",
+  "title": "闭馆之后",
+  "version": 1,
+  "createdFor": "Real Production Trial #1",
+  "rules": {
+    "forbidDeveloperFirefighting": true,
+    "allowAuthorConfirmationsOnly": true,
+    "noGenFixture": true,
+    "noQinglouClone": true
+  },
+  "creationSpec": {
+    "playerCount": 6,
+    "roleConfiguration": {
+      "genderPolicy": "FIXED_COUNTS",
+      "fixedCounts": { "male": 3, "female": 3 }
+    },
+    "setting": { "era": "CONTEMPORARY" },
+    "genreTags": ["关系博弈", "推理", "美术馆", "当代"],
+    "durationMinutes": 210,
+    "stagePreference": { "mode": "AUTO" },
+    "experience": {
+      "deduction": 0.65,
+      "roleplay": 0.75,
+      "faction": 0.35,
+      "mechanism": 0.25,
+      "emotional": 0.55
+    },
+    "gameplayPreferences": {
+      "preferred": ["NEGOTIATION"],
+      "avoid": []
+    },
+    "premise": {
+      "shortIdea": "城市美术馆闭馆后的私人预展夜：关系博弈 + 推理；不要求传统唯一凶手。",
+      "mustKeep": [
+        "前20分钟玩家就有事情想做",
+        "中途至少一次资源或信息所有权变化",
+        "后半段需要重新理解前面发生过的一件事"
+      ],
+      "avoid": ["照抄青楼流程", "为塞机制而塞 GAME", "必须唯一凶手"]
+    }
+  },
+  "authorPolicy": {
+    "acceptTopDistinctFamilies": 3,
+    "intentionalOverlapFromSecondBlock": true,
+    "acceptIntentionalOverlapConflicts": true,
+    "acceptGameplayPlacementIfPreferred": true,
+    "characterNameSet": "CONTEMPORARY_GALLERY",
+    "explicitContextBindings": {
+      "venue": { "kind": "LOCATION", "label": "城市美术馆夜间展厅" },
+      "core_object": { "kind": "OBJECT", "label": "未公开的预展目录册" },
+      "access_record": { "kind": "RECORD", "label": "闭馆门禁与库房授权日志" },
+      "credential": { "kind": "CREDENTIAL", "label": "私人预展邀请腕带" }
+    }
+  },
+  "judgment": {
+    "TRIAL_PASS": "全链路无开发者救火 + Quality≥75 + 无 Hard Blocker + 五项人工审看≥4成立",
+    "TRIAL_PARTIAL": "全链路能跑，但 1–2 个系统性内容弱点",
+    "TRIAL_FAIL": "需要开发者手修内部状态，或 Production/Package/Runtime 中途崩"
+  }
+}
