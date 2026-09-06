@@ -415,15 +415,18 @@ if (files.some((f) =>
   || f === "scripts/real-production-trial-1.mjs"
   || f === "scripts/p10-4-production-projection.test.mjs"
   || f === "scripts/p10-4-rpt1b-packet-probe.mjs"
+  || f === "scripts/p10-5-writer-rendering-adherence.test.mjs"
+  || f === "scripts/p10-5-rpt1c-adherence-probe.mjs"
   || f === "shared/rpt1c-p104-survival-probe.js"
   || f === "shared/rpt1b-m12-survival-probe.js"
   || /^trials\/rpt-1-/.test(f)
 )) {
   run(
     "P9/P10 content factory + trial harness",
-    "node --test scripts/context-instantiation.test.mjs scripts/story-semantic-fidelity.test.mjs scripts/game-narrative-binding.test.mjs scripts/real-script-writer.test.mjs scripts/content-quality-gate.test.mjs scripts/generated-script-quality-audit.test.mjs scripts/owner-binding-closure.test.mjs scripts/creation-intent-fidelity.test.mjs scripts/real-production-trial-1.test.mjs scripts/p10-4-production-projection.test.mjs",
+    "node --test scripts/context-instantiation.test.mjs scripts/story-semantic-fidelity.test.mjs scripts/game-narrative-binding.test.mjs scripts/real-script-writer.test.mjs scripts/content-quality-gate.test.mjs scripts/generated-script-quality-audit.test.mjs scripts/owner-binding-closure.test.mjs scripts/creation-intent-fidelity.test.mjs scripts/real-production-trial-1.test.mjs scripts/p10-4-production-projection.test.mjs scripts/p10-5-writer-rendering-adherence.test.mjs",
   );
   run("P10.4 RPT1B packet probe", "node scripts/p10-4-rpt1b-packet-probe.mjs");
+  run("P10.5 RPT1C adherence probe", "node scripts/p10-5-rpt1c-adherence-probe.mjs");
   run("P8 GEN machine regression", "npm run test:p8-generalization");
 }
 

@@ -17,6 +17,11 @@ import {
   normalizeScriptWriterResult,
 } from "./script-writer-result-contracts.js";
 import { diffWriterResultAgainstPacket } from "./script-writer-provenance-diff.js";
+import {
+  diffWriterRenderingAgainstGroundedPacket,
+  diffPackageRenderingAgainstGrounded,
+  foldRenderingAdherenceIntoStatus,
+} from "./script-writer-rendering-adherence-diff.js";
 import { normalizeCompleteScriptPackage } from "./complete-script-package-contracts.js";
 import { validateCompleteScriptPackage } from "./complete-script-validator.js";
 import { DeterministicTestScriptWriter } from "./deterministic-test-script-writer.js";
@@ -30,13 +35,16 @@ function asArray(value) {
 /**
  * Explicit approval — READY_TO_COMPILE only when clean.
  */
-export function approveCompleteScriptPackage(pkg, validation, { sectionStates = [] } = {}) {
+export function approveCompleteScriptPackage(pkg, validation, { sectionStates = [], renderingAdherence = null } = {}) {
   const normalized = normalizeCompleteScriptPackage(pkg);
   const invalidSections = asArray(sectionStates).filter((s) => s.status === "INVALID");
   const reviewSections = asArray(sectionStates).filter((s) => s.status === "REVIEW_REQUIRED");
   const proposed = asArray(normalized.diagnostics).some((d) => d.code === "HAS_PROPOSED_CANON");
+  const renderingBlocked =
+    (renderingAdherence && !renderingAdherence.ok) ||
+    asArray(normalized.diagnostics).some((d) => d.code === "RENDERING_REVIEW_REQUIRED");
 
-  if (!validation?.ok || invalidSections.length || reviewSections.length || proposed) {
+  if (!validation?.ok || invalidSections.length || reviewSections.length || proposed || renderingBlocked) {
     return {
       ok: false,
       package: {
@@ -47,7 +55,9 @@ export function approveCompleteScriptPackage(pkg, validation, { sectionStates = 
         ? "validation_failed"
         : invalidSections.length
           ? "invalid_sections"
-          : "review_required",
+          : renderingBlocked
+            ? "rendering_review_required"
+            : "review_required",
     };
   }
   if (normalized.status === "BLOCKED" || normalized.status === "STALE") {
@@ -263,6 +273,7 @@ async function runOneWriterJob({
   contextRevision = null,
   gameNarrativeRevision = null,
   regeneration = false,
+  groundedExperience = null,
 }) {
   const request = buildScriptWriterRequest({
     requestId: `req-${job.key}${regeneration ? "-regen" : ""}`,
@@ -292,11 +303,24 @@ async function runOneWriterJob({
   else if (diff.status === "REVIEW_REQUIRED") status = "REVIEW_REQUIRED";
   if (result.diagnostics?.some((d) => d.code === "WRITER_SCHEMA_FAIL")) status = "INVALID";
 
+  const renderingAdherence =
+    groundedExperience && asArray(groundedExperience.captures).length
+      ? diffWriterRenderingAgainstGroundedPacket({
+          packetKind: job.packetKind,
+          packet: job.packet,
+          result,
+          groundedExperience,
+          characterName: job.packet?.characterName || null,
+        })
+      : { status: "CLEAN", ok: true, issues: [], codes: [], skipped: true };
+  status = foldRenderingAdherenceIntoStatus(status, renderingAdherence);
+
   return {
     sectionId: job.key,
     status,
     result,
     diff,
+    renderingAdherence,
     packet: job.packet,
     packetKind: job.packetKind,
     characterId: job.characterId,
@@ -494,11 +518,12 @@ export async function runScriptProduction({
         writer,
         contextRevision: contextProfile?.revision ?? null,
         gameNarrativeRevision: gameNarrativePlan?.revision ?? null,
+        groundedExperience: packetSet.groundedExperience,
       }),
     );
   }
 
-  const pkg = mergeWriterSectionsIntoPackage({
+  let pkg = mergeWriterSectionsIntoPackage({
     pmd,
     packetSet,
     sectionStates,
@@ -506,6 +531,62 @@ export async function runScriptProduction({
     projectId,
     now,
   });
+
+  // P10.5 hard gate only when Grounded Packet captures exist (M12 etc.).
+  // Without captures, do not invent rendering failures on unrelated families.
+  const hasGroundedCapture =
+    asArray(packetSet?.groundedExperience?.captures).length > 0 ||
+    asArray(projectionAudit?.packetCaptures).length > 0;
+
+  const renderingAdherence = hasGroundedCapture
+    ? diffPackageRenderingAgainstGrounded({
+        package: pkg,
+        groundedExperience: packetSet.groundedExperience,
+        packetCaptures: projectionAudit?.packetCaptures,
+      })
+    : {
+        status: "RENDERING_PASS",
+        ok: true,
+        issues: [],
+        codes: [],
+        summary: null,
+        skipped: true,
+        reason: "no_grounded_packet_capture",
+      };
+
+  if (hasGroundedCapture && !renderingAdherence.ok) {
+    const diagnostics = [
+      ...asArray(pkg.diagnostics),
+      ...renderingAdherence.issues,
+      {
+        code: "RENDERING_REVIEW_REQUIRED",
+        message: `P10.5 rendering issues=${renderingAdherence.issues.length} codes=${renderingAdherence.codes.join(",")}`,
+        severity: "review",
+        lane: "rendering",
+        summary: renderingAdherence.summary,
+      },
+    ];
+    pkg = normalizeCompleteScriptPackage({
+      ...pkg,
+      status: pkg.status === "INVALID" || pkg.status === "BLOCKED" ? pkg.status : "READY_FOR_REVIEW",
+      diagnostics,
+    });
+    for (const iss of renderingAdherence.issues) {
+      if (!iss.characterId) continue;
+      const st = sectionStates.find((s) => s.characterId === iss.characterId);
+      if (st && st.status === "GENERATED") st.status = "REVIEW_REQUIRED";
+    }
+    for (const st of sectionStates) {
+      if (st.status !== "GENERATED") continue;
+      if (st.packetKind !== "PUBLIC_STAGE" && st.packetKind !== "HOST_SCRIPT") continue;
+      if (
+        renderingAdherence.codes.includes("INTERNAL_INSTRUCTION_LEAK") ||
+        renderingAdherence.codes.includes("CHOICE_PRE_RESOLVED")
+      ) {
+        st.status = "REVIEW_REQUIRED";
+      }
+    }
+  }
 
   // Real Writer never auto-approves — stay READY_FOR_REVIEW even when clean.
   const validation = validateCompleteScriptPackage({
@@ -519,6 +600,7 @@ export async function runScriptProduction({
     pmd,
     packetSet,
     projectionAudit,
+    renderingAdherence,
     sectionStates,
     package: pkg,
     validation,

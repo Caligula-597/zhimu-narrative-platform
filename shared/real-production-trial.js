@@ -439,6 +439,9 @@ export async function runRealProductionTrial(opts) {
   if (production.projectionAudit) {
     writeJson(path.join(outDir, "projection-audit.json"), production.projectionAudit);
   }
+  if (production.renderingAdherence) {
+    writeJson(path.join(outDir, "rendering-adherence.json"), production.renderingAdherence);
+  }
   if (production.validation?.code === "PROJECTION_GROUNDING_BLOCKED") {
     writeJson(path.join(outDir, "complete-script-package.json"), production.package);
     writeJson(path.join(outDir, "writer-section-states.json"), production.sectionStates || []);
@@ -496,6 +499,7 @@ export async function runRealProductionTrial(opts) {
     if (production.validation?.ok) {
       const approved = approveCompleteScriptPackage(production.package, production.validation, {
         sectionStates: production.sectionStates,
+        renderingAdherence: production.renderingAdherence,
       });
       if (approved.ok && approved.package) {
         pkgForCompile = approved.package;

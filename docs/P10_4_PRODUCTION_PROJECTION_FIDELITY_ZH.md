@@ -14,7 +14,7 @@ P10.4 Production Projection          ✅ FROZEN @ e469598
                                        Final CHANGE PARTIAL_PASS（#1C）
 RPT #1C                              ✅ CLOSED · TRIAL_PARTIAL @ 70c1155
 
-★ P10.5 Writer Rendering Fidelity    ← NEXT
+★ P10.5 Writer Rendering Fidelity    ← NOW · Adherence Diff V1
                                        docs/P10_5_WRITER_RENDERING_FIDELITY_ZH.md
 
 Writer literary / Voice V2           🚫 STILL NOT NOW

@@ -1,0 +1,183 @@
+{
+  "runDir": "D:\\长剧情\\trials\\rpt-1-closed-after-hours\\runs\\2026-09-06T09-32-02-159Z",
+  "expectedFromPacket": {
+    "seeker": "沈岚",
+    "holder": "梁赫",
+    "beforeOwner": "梁赫",
+    "afterOwner": "沈岚",
+    "stake": "未公开的预展目录册"
+  },
+  "adherence": {
+    "status": "RENDERING_REVIEW_REQUIRED",
+    "ok": false,
+    "codes": [
+      "RELATION_INVERTED",
+      "CHOICE_PRE_RESOLVED",
+      "INTERNAL_INSTRUCTION_LEAK",
+      "ROLE_SCOPE_INVENTED"
+    ],
+    "summary": {
+      "relationInverted": 1,
+      "roleScopeInvented": 2,
+      "choicePreResolved": 5,
+      "instructionLeak": 7
+    },
+    "issues": [
+      {
+        "code": "RELATION_INVERTED",
+        "message": "沈岚 section: expected holder=梁赫 · written as stake holder",
+        "severity": "review",
+        "lane": "rendering",
+        "characterName": "沈岚",
+        "characterId": "P1",
+        "expectedHolder": "梁赫",
+        "writtenHolder": "沈岚",
+        "evidence": "手中的筹码：那本未公开的预展目录册",
+        "stake": "未公开的预展目录册"
+      },
+      {
+        "code": "CHOICE_PRE_RESOLVED",
+        "message": "Writer 提前宣布成交/跳过玩家选择「最终点头」",
+        "severity": "review",
+        "lane": "rendering",
+        "sectionHint": "ROLE_SCRIPT",
+        "characterId": "P2",
+        "characterName": "梁赫",
+        "evidence": "最终点头"
+      },
+      {
+        "code": "CHOICE_PRE_RESOLVED",
+        "message": "Writer 提前宣布成交/跳过玩家选择「无论过程如何，你们达成」",
+        "severity": "review",
+        "lane": "rendering",
+        "sectionHint": "ROLE_SCRIPT",
+        "characterId": "P2",
+        "characterName": "梁赫",
+        "evidence": "无论过程如何，你们达成"
+      },
+      {
+        "code": "CHOICE_PRE_RESOLVED",
+        "message": "Writer 提前宣布成交/跳过玩家选择「对方犹豫片刻，最终点头」",
+        "severity": "review",
+        "lane": "rendering",
+        "sectionHint": "ROLE_SCRIPT",
+        "characterId": "P2",
+        "characterName": "梁赫",
+        "evidence": "对方犹豫片刻，最终点头"
+      },
+      {
+        "code": "INTERNAL_INSTRUCTION_LEAK",
+        "message": "玩家正文出现内部指令语言「不暗示因果」",
+        "severity": "review",
+        "lane": "rendering",
+        "sectionHint": "ROLE_SCRIPT",
+        "characterId": "P6",
+        "characterName": "方序",
+        "evidence": "不暗示因果"
+      },
+      {
+        "code": "ROLE_SCOPE_INVENTED",
+        "message": "白绫: M07 identity-owner action invented",
+        "severity": "review",
+        "lane": "rendering",
+        "characterName": "白绫",
+        "characterId": "P3",
+        "evidence": "核对腕带上的编号，确认无误。你抬起头，看到对方正注视着你，等待你的下一步行动。你知道，对方手中也握有你的把柄——那份住户登记档案 | 是否公开 | 住户登记档案"
+      },
+      {
+        "code": "ROLE_SCOPE_INVENTED",
+        "message": "周祁: M12 owner negotiation invented",
+        "severity": "review",
+        "lane": "rendering",
+        "characterName": "周祁",
+        "characterId": "P4",
+        "evidence": "握有一份关键筹码——未公开的预展目录册 | 提出交换代价 | 完成了交接"
+      },
+      {
+        "code": "INTERNAL_INSTRUCTION_LEAK",
+        "message": "玩家正文出现内部指令语言「玩家可见：」",
+        "severity": "review",
+        "lane": "rendering",
+        "sectionHint": "PUBLIC_STAGE",
+        "characterId": null,
+        "characterName": null,
+        "evidence": "玩家可见："
+      },
+      {
+        "code": "INTERNAL_INSTRUCTION_LEAK",
+        "message": "玩家正文出现内部指令语言「仅同场，不暗示因果」",
+        "severity": "review",
+        "lane": "rendering",
+        "sectionHint": "PUBLIC_STAGE",
+        "characterId": null,
+        "characterName": null,
+        "evidence": "仅同场，不暗示因果"
+      },
+      {
+        "code": "INTERNAL_INSTRUCTION_LEAK",
+        "message": "玩家正文出现内部指令语言「不暗示因果」",
+        "severity": "review",
+        "lane": "rendering",
+        "sectionHint": "PUBLIC_STAGE",
+        "characterId": null,
+        "characterName": null,
+        "evidence": "不暗示因果"
+      },
+      {
+        "code": "INTERNAL_INSTRUCTION_LEAK",
+        "message": "玩家正文出现内部指令语言「本幕不揭示」",
+        "severity": "review",
+        "lane": "rendering",
+        "sectionHint": "PUBLIC_STAGE",
+        "characterId": null,
+        "characterName": null,
+        "evidence": "本幕不揭示"
+      },
+      {
+        "code": "INTERNAL_INSTRUCTION_LEAK",
+        "message": "玩家正文出现内部指令语言「本段不改变」",
+        "severity": "review",
+        "lane": "rendering",
+        "sectionHint": "PUBLIC_STAGE",
+        "characterId": null,
+        "characterName": null,
+        "evidence": "本段不改变"
+      },
+      {
+        "code": "INTERNAL_INSTRUCTION_LEAK",
+        "message": "玩家正文出现内部指令语言「本段不改变要约」",
+        "severity": "review",
+        "lane": "rendering",
+        "sectionHint": "PUBLIC_STAGE",
+        "characterId": null,
+        "characterName": null,
+        "evidence": "本段不改变要约"
+      },
+      {
+        "code": "CHOICE_PRE_RESOLVED",
+        "message": "Writer 提前宣布成交/跳过玩家选择「无论选择为何，交接完成」",
+        "severity": "review",
+        "lane": "rendering",
+        "sectionHint": "PUBLIC_STAGE",
+        "characterId": null,
+        "characterName": null,
+        "evidence": "无论选择为何，交接完成"
+      },
+      {
+        "code": "CHOICE_PRE_RESOLVED",
+        "message": "Writer 提前宣布成交/跳过玩家选择「无论选择为何，交接完成时，玩家将取得」",
+        "severity": "review",
+        "lane": "rendering",
+        "sectionHint": "PUBLIC_STAGE",
+        "characterId": null,
+        "characterName": null,
+        "evidence": "无论选择为何，交接完成时，玩家将取得"
+      }
+    ]
+  },
+  "localizationGate": {
+    "note": "Offline probe PASS means #1C defects are detectable (not that rendering is clean)",
+    "requiredCodesPresent": true,
+    "missingRequired": []
+  }
+}
