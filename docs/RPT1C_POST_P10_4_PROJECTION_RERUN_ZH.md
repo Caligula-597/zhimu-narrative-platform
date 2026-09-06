@@ -44,6 +44,18 @@ node scripts/real-production-trial-1.mjs --mode=real --input=trials/rpt-1-closed
 
 Context 干净 · Host 可跑 · 六人声音优秀 · P9.4 ≥80
 
+## 人工结案
+
+权威：[`RPT1C_HUMAN_ADJUDICATION_ZH.md`](./RPT1C_HUMAN_ADJUDICATION_ZH.md)
+
+```text
+SYSTEM_VERDICT          TRIAL_PARTIAL ✅
+P10_4_CHANGE_VERDICT    PARTIAL_PASS ✅
+P10_4_CHANGE_PASS       ❌
+```
+
+P10.2–P10.4 **封板**（各责任层）。下一刀：[`P10_5_WRITER_RENDERING_FIDELITY_ZH.md`](./P10_5_WRITER_RENDERING_FIDELITY_ZH.md)。
+
 ## 首跑结果（机器）
 
 目录：`trials/rpt-1-closed-after-hours/runs/2026-09-06T09-32-02-159Z/`

@@ -9,15 +9,21 @@
 ```text
 P10.2 Creation Intent Fidelity       ✅ FROZEN
 P10.3 STORY Experience Coverage      ✅ FROZEN
-RPT #1B                              ✅ CLOSED · PARTIAL_PASS
+P10.4 Production Projection          ✅ FROZEN @ e469598
+                                       Packet PASS
+                                       Final CHANGE PARTIAL_PASS（#1C）
+RPT #1C                              ✅ CLOSED · TRIAL_PARTIAL @ 70c1155
 
-★ P10.4 Production Projection Fidelity ← Packet Probe PASS @ e469598
-★ RPT #1C Post-P10.4 Projection Rerun ← RAN · 机器草案 PARTIAL_PASS（待人工）
+★ P10.5 Writer Rendering Fidelity    ← NEXT
+                                       docs/P10_5_WRITER_RENDERING_FIDELITY_ZH.md
 
-Writer V2 / Rendering Specificity   ⏸ 等 #1C 人工结案后决定
+Writer literary / Voice V2           🚫 STILL NOT NOW
 Context Domain Coherence             ⏸
 Host Rendering                       ⏸
 ```
+
+**封板含义：** P10.4 对 *Packet* 责任层 PASS；不对 end-to-end Final Text 宣称 FULL PASS。  
+#1C 证明错误层已清晰转移到 **Writer Rendering / Packet Adherence**。
 
 ## 一句话
 
@@ -102,13 +108,12 @@ Probe
 - 新增 STORY family  
 - 放宽 P9.4  
 
-## 下一步
+## 下一步（已完成并封板）
 
 ```text
-RPT #1C — Post-P10.4 Projection Rerun
-同题 · 同模型 · 同 Writer · 同 Context · 同 Host
+RPT #1C ✅ CLOSED · TRIAL_PARTIAL
+P10.4 ✅ FROZEN（Packet PASS · Final CHANGE PARTIAL_PASS）
+下一刀：P10.5 Writer Rendering Fidelity（非 Voice V2）
 ```
 
-只问：Packet 已写清「沈岚为什么要和梁赫谈什么条件」后，正文是否变成真正的玩家谈判。
-
-若 grounding 全绿而文风仍 SAME_VOICE —— 那时才有资格开 **Writer Quality**。
+见 [`RPT1C_HUMAN_ADJUDICATION_ZH.md`](./RPT1C_HUMAN_ADJUDICATION_ZH.md) · [`P10_5_WRITER_RENDERING_FIDELITY_ZH.md`](./P10_5_WRITER_RENDERING_FIDELITY_ZH.md)。

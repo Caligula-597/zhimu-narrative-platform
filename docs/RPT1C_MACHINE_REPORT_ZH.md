@@ -1,4 +1,7 @@
-# RPT #1C — 机器报告 + CHANGE 草案（待人工确认）
+# RPT #1C — 机器报告（已被人工结案取代）
+
+> **正式裁决见 [`RPT1C_HUMAN_ADJUDICATION_ZH.md`](./RPT1C_HUMAN_ADJUDICATION_ZH.md)。**  
+> 下文保留机器草案供对照；人工在 Exchange / Role Scope / Motivation 上更严。
 
 > Run：`trials/rpt-1-closed-after-hours/runs/2026-09-06T09-32-02-159Z/`  
 > 基线：P10.4 @ `e469598` · 对照 #1B `2026-09-06T08-03-37-863Z`  
@@ -48,7 +51,18 @@
 
 Writer **有**把中等具体 packet 往本馆戏推（腕带、门禁日志、目录册），但也仍大量摘要句，且交换段落偏旁白。
 
-## CHANGE 草案（非正式 · 待你确认）
+## CHANGE 正式裁决（人工）
+
+```text
+SYSTEM_VERDICT          TRIAL_PARTIAL ✅
+P10_4_CHANGE_VERDICT    PARTIAL_PASS ✅
+P10_4_CHANGE_PASS       ❌
+```
+
+详见 [`RPT1C_HUMAN_ADJUDICATION_ZH.md`](./RPT1C_HUMAN_ADJUDICATION_ZH.md)。  
+P10.2–P10.4 封板；下一刀 [`P10_5_WRITER_RENDERING_FIDELITY_ZH.md`](./P10_5_WRITER_RENDERING_FIDELITY_ZH.md)。
+
+## 历史：机器 CHANGE 草案（已被人工收紧）
 
 ```text
 SYSTEM_VERDICT          TRIAL_PARTIAL（机器）
