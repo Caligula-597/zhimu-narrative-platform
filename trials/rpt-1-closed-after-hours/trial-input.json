@@ -1,8 +1,8 @@
 {
   "trialId": "RPT-1",
   "title": "闭馆之后",
-  "version": 1,
-  "createdFor": "Real Production Trial #1",
+  "version": 2,
+  "createdFor": "Real Production Trial #1 / P10.2 Creation Intent Fidelity",
   "rules": {
     "forbidDeveloperFirefighting": true,
     "allowAuthorConfirmationsOnly": true,
@@ -40,8 +40,26 @@
       "avoid": ["照抄青楼流程", "为塞机制而塞 GAME", "必须唯一凶手"]
     }
   },
+  "authorConfirmedExperienceAnchors": [
+    {
+      "sourceText": "前20分钟玩家就有事情想做",
+      "anchor": "EARLY_AGENCY"
+    },
+    {
+      "sourceText": "中途至少一次资源或信息所有权变化",
+      "anchor": "OWNERSHIP_SHIFT"
+    },
+    {
+      "sourceText": "后半段需要重新理解前面发生过的一件事",
+      "anchor": "LATE_REINTERPRETATION"
+    },
+    {
+      "sourceText": "不要求传统唯一凶手",
+      "anchor": "FLEXIBLE_RESOLUTION"
+    }
+  ],
   "authorPolicy": {
-    "acceptTopDistinctFamilies": 3,
+    "acceptRecommendedBundle": true,
     "intentionalOverlapFromSecondBlock": true,
     "acceptIntentionalOverlapConflicts": true,
     "acceptGameplayPlacementIfPreferred": true,

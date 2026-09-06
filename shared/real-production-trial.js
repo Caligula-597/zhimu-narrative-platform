@@ -39,6 +39,7 @@ import {
   startPlayableSession,
 } from "./playable-content-runtime.js";
 import { assignablePlayerRoles } from "./full-production-coverage.js";
+import { auditCreationIntentFidelity } from "./creation-intent-fidelity-audit.js";
 
 const GALLERY_NAMES = Object.freeze([
   { id: "P1", name: "沈岚", gender: "FEMALE" },
@@ -122,11 +123,36 @@ function buildStagesFromEnvelope(envelope) {
 }
 
 /**
- * Author policy: accept top distinct-family STORY candidates (product-allowed).
+ * Author policy (P10.2): prefer recommended fidelity bundle.
+ * Family diversity is never the primary accept rule.
  */
 export function selectAuthorStoryAccepts(candidatePlan, policy = {}) {
-  const maxFamilies = Math.max(1, Number(policy.acceptTopDistinctFamilies) || 3);
   const selected = [];
+
+  if (policy.acceptRecommendedBundle !== false && candidatePlan?.recommendedBundle?.blockTemplateIds?.length) {
+    const ids = candidatePlan.recommendedBundle.blockTemplateIds;
+    for (const templateId of ids) {
+      const c =
+        asArray(candidatePlan.candidates).find((row) => row.templateId === templateId) || {
+          templateId,
+          familyId: String(templateId).split("-")[0],
+          score: candidatePlan.recommendedBundle.fidelityScore,
+          reasons: candidatePlan.recommendedBundle.reasons,
+        };
+      selected.push({
+        templateId,
+        familyId: c.familyId || String(templateId).split("-")[0],
+        score: c.fidelityScore ?? c.score,
+        reasons: c.reasons,
+        intentionalOverlap: selected.length >= 1 && policy.intentionalOverlapFromSecondBlock !== false,
+        fromRecommendedBundle: true,
+      });
+    }
+    return selected;
+  }
+
+  // Legacy fallback (tests / old policies only)
+  const maxFamilies = Math.max(1, Number(policy.acceptTopDistinctFamilies) || 3);
   const seenFamily = new Set();
   for (const c of asArray(candidatePlan?.candidates)) {
     const fam = c.familyId || String(c.templateId || "").split("-")[0];
@@ -245,14 +271,24 @@ export async function runRealProductionTrial(opts) {
   });
 
   const templates = listStoryTemplates();
-  const candidatePlan = buildStoryCandidatePlan(spec, templates);
+  const planOpts = {
+    authorConfirmedExperienceAnchors: trialInput.authorConfirmedExperienceAnchors,
+  };
+  const candidatePlan = buildStoryCandidatePlan(spec, templates, planOpts);
   writeJson(path.join(outDir, "story-candidate-plan.json"), candidatePlan);
+  log.auto("creation_intent_recommendation", {
+    status: candidatePlan.recommendationStatus,
+    bundle: candidatePlan.recommendedBundle?.blockTemplateIds,
+    fidelityScore: candidatePlan.recommendedBundle?.fidelityScore,
+    coverageGaps: candidatePlan.coverageGaps,
+  });
   const accepts = selectAuthorStoryAccepts(candidatePlan, trialInput.authorPolicy);
   log.author("accept_recommended_story_blocks", {
     accepts: accepts.map((a) => ({
       templateId: a.templateId,
       intentionalOverlap: a.intentionalOverlap,
       score: a.score,
+      fromRecommendedBundle: a.fromRecommendedBundle,
     })),
   });
 
@@ -270,6 +306,21 @@ export async function runRealProductionTrial(opts) {
     state = acceptStoryBlock(state, block.id);
     log.author("accept_story_block", { blockId: block.id, templateId: step.templateId });
   }
+
+  const fidelityReport = auditCreationIntentFidelity({
+    creationSpec: spec,
+    authorConfirmedExperienceAnchors: trialInput.authorConfirmedExperienceAnchors,
+    acceptedBlocks: state.mechanismBlocks.filter((b) => b.status === "USER_ACCEPTED"),
+    playerRoleIds: asArray(state.characters)
+      .filter((c) => c.role !== "HOST")
+      .map((c) => c.id),
+  });
+  writeJson(path.join(outDir, "creation-intent-fidelity-report.json"), fidelityReport);
+  log.auto("creation_intent_fidelity_audit", {
+    status: fidelityReport.status,
+    unwantedCommitments: fidelityReport.unwantedCommitments,
+    missingIntents: fidelityReport.missingIntents,
+  });
 
   writeJson(path.join(outDir, "story-state.json"), state);
 

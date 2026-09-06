@@ -1,0 +1,204 @@
+{
+  "trialId": "RPT-1",
+  "title": "闭馆之后",
+  "recommendationStatus": "REVIEW_REQUIRED",
+  "recommendedBundle": {
+    "blockTemplateIds": [
+      "M01-FRAMING",
+      "M07-1"
+    ],
+    "fidelityScore": 0.163,
+    "interactionCoverage": 0,
+    "unwantedCommitments": [],
+    "missingInteractionModes": [
+      "NEGOTIATE"
+    ],
+    "anchorStates": [
+      {
+        "anchor": "EARLY_AGENCY",
+        "status": "COVERED_BY_PROFILE"
+      },
+      {
+        "anchor": "OWNERSHIP_SHIFT",
+        "status": "UNCOVERED"
+      },
+      {
+        "anchor": "LATE_REINTERPRETATION",
+        "status": "COVERED_BY_PROFILE"
+      },
+      {
+        "anchor": "FLEXIBLE_RESOLUTION",
+        "status": "UNCOVERED"
+      }
+    ],
+    "warnings": [
+      "BUNDLE_COVERAGE_GAP:NEGOTIATE",
+      "ANCHOR_UNCOVERED:OWNERSHIP_SHIFT",
+      "ANCHOR_UNCOVERED:FLEXIBLE_RESOLUTION",
+      "RESOLUTION_MODE_CAPTURE"
+    ],
+    "reasons": [
+      "主轴严格覆盖 0.333",
+      "互动覆盖 0",
+      "锚点覆盖 0.5",
+      "2-block bundle（允许）",
+      "引入承诺 CRIME_FRAMING",
+      "引入承诺 HIDDEN_IDENTITY",
+      "缺失互动 NEGOTIATE"
+    ]
+  },
+  "coverageGaps": {
+    "missingInteractionModes": [
+      "NEGOTIATE"
+    ],
+    "uncoveredAnchors": [
+      "OWNERSHIP_SHIFT",
+      "FLEXIBLE_RESOLUTION"
+    ],
+    "unwantedCommitments": []
+  },
+  "authorWouldAccept": [
+    "M01-FRAMING",
+    "M07-1"
+  ],
+  "m08RejectSample": [
+    {
+      "templateId": "M08-1",
+      "fidelityScore": 0,
+      "warnings": [
+        "UNWANTED_STRUCTURAL_COMMITMENT:FACTION_STRUCTURE",
+        "UNWANTED_STRUCTURAL_COMMITMENT:FACTION_STRUCTURE",
+        "NOT_ROLEPLAY_PRIMARY"
+      ],
+      "mismatchPenalties": [
+        {
+          "code": "SECONDARY_ROLEPLAY_ON_FACTION_PRIMARY",
+          "message": "ROLEPLAY 仅为次轴，主轴是 FACTION；faction 权重低时不应当 ROLEPLAY 优选"
+        },
+        {
+          "code": "DOMINANT_AXIS_MISMATCH",
+          "message": "模板主轴 FACTION 未覆盖用户主意图 ROLEPLAY/DEDUCTION/EMOTIONAL"
+        },
+        {
+          "code": "UNWANTED_STRUCTURAL_COMMITMENT",
+          "commitment": "FACTION_STRUCTURE",
+          "message": "引入 FACTION_STRUCTURE，但用户对应体验权重偏低"
+        }
+      ],
+      "provides": {
+        "primaryAxes": [
+          "FACTION"
+        ],
+        "secondaryAxes": [
+          "ROLEPLAY",
+          "SUSPICION"
+        ],
+        "interactionModes": [
+          "CONCEAL",
+          "SUSPECT",
+          "NEGOTIATE"
+        ],
+        "commitments": [
+          "FACTION_STRUCTURE"
+        ],
+        "anchors": [
+          "EARLY_AGENCY"
+        ],
+        "resolutionPressure": "FACTION_SETTLE"
+      }
+    },
+    {
+      "templateId": "M08-2",
+      "fidelityScore": 0,
+      "warnings": [
+        "UNWANTED_STRUCTURAL_COMMITMENT:FACTION_STRUCTURE",
+        "UNWANTED_STRUCTURAL_COMMITMENT:FACTION_STRUCTURE",
+        "NOT_ROLEPLAY_PRIMARY"
+      ],
+      "mismatchPenalties": [
+        {
+          "code": "SECONDARY_ROLEPLAY_ON_FACTION_PRIMARY",
+          "message": "ROLEPLAY 仅为次轴，主轴是 FACTION；faction 权重低时不应当 ROLEPLAY 优选"
+        },
+        {
+          "code": "DOMINANT_AXIS_MISMATCH",
+          "message": "模板主轴 FACTION 未覆盖用户主意图 ROLEPLAY/DEDUCTION/EMOTIONAL"
+        },
+        {
+          "code": "UNWANTED_STRUCTURAL_COMMITMENT",
+          "commitment": "FACTION_STRUCTURE",
+          "message": "引入 FACTION_STRUCTURE，但用户对应体验权重偏低"
+        }
+      ],
+      "provides": {
+        "primaryAxes": [
+          "FACTION"
+        ],
+        "secondaryAxes": [
+          "ROLEPLAY",
+          "SUSPICION"
+        ],
+        "interactionModes": [
+          "CONCEAL",
+          "SUSPECT",
+          "NEGOTIATE"
+        ],
+        "commitments": [
+          "FACTION_STRUCTURE"
+        ],
+        "anchors": [
+          "EARLY_AGENCY"
+        ],
+        "resolutionPressure": "FACTION_SETTLE"
+      }
+    }
+  ],
+  "intent": {
+    "dominantAxis": "ROLEPLAY",
+    "desiredPrimaryAxes": [
+      {
+        "axis": "ROLEPLAY",
+        "weight": 0.75,
+        "source": "roleplay"
+      },
+      {
+        "axis": "DEDUCTION",
+        "weight": 0.65,
+        "source": "deduction"
+      },
+      {
+        "axis": "EMOTIONAL",
+        "weight": 0.55,
+        "source": "emotional"
+      }
+    ],
+    "desiredInteractionModes": [
+      {
+        "mode": "NEGOTIATE",
+        "sourceGameplay": "NEGOTIATION"
+      }
+    ],
+    "confirmedAnchors": [
+      {
+        "anchor": "EARLY_AGENCY",
+        "sourceText": "前20分钟玩家就有事情想做",
+        "status": "CONFIRMED"
+      },
+      {
+        "anchor": "OWNERSHIP_SHIFT",
+        "sourceText": "中途至少一次资源或信息所有权变化",
+        "status": "CONFIRMED"
+      },
+      {
+        "anchor": "LATE_REINTERPRETATION",
+        "sourceText": "后半段需要重新理解前面发生过的一件事",
+        "status": "CONFIRMED"
+      },
+      {
+        "anchor": "FLEXIBLE_RESOLUTION",
+        "sourceText": "不要求传统唯一凶手",
+        "status": "CONFIRMED"
+      }
+    ]
+  }
+}

@@ -1,5 +1,6 @@
 /**
  * Real Production Trial #1 — dry/mock harness smoke (no network required).
+ * P10.2: author accepts recommended fidelity bundle (not distinct-family top-3).
  */
 import assert from "node:assert/strict";
 import fs from "node:fs";
@@ -18,14 +19,18 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const INPUT = path.resolve(__dirname, "../trials/rpt-1-closed-after-hours/trial-input.json");
 
 describe("Real Production Trial #1 harness", () => {
-  it("author policy accepts distinct-family recommendations only", () => {
+  it("author policy accepts recommended fidelity bundle", () => {
     const trialInput = JSON.parse(fs.readFileSync(INPUT, "utf8"));
-    const plan = buildStoryCandidatePlan(trialInput.creationSpec, listStoryTemplates());
+    const plan = buildStoryCandidatePlan(trialInput.creationSpec, listStoryTemplates(), {
+      authorConfirmedExperienceAnchors: trialInput.authorConfirmedExperienceAnchors,
+    });
     const accepts = selectAuthorStoryAccepts(plan, trialInput.authorPolicy);
     assert.ok(accepts.length >= 2);
     assert.ok(accepts.length <= 3);
-    const families = new Set(accepts.map((a) => a.familyId));
-    assert.equal(families.size, accepts.length);
+    assert.deepEqual(
+      accepts.map((a) => a.templateId),
+      plan.recommendedBundle.blockTemplateIds,
+    );
     assert.equal(accepts[0].intentionalOverlap, false);
     if (accepts[1]) assert.equal(accepts[1].intentionalOverlap, true);
   });
@@ -44,9 +49,9 @@ describe("Real Production Trial #1 harness", () => {
     assert.ok(fs.existsSync(path.join(outDir, "quality-report.json")));
     assert.ok(fs.existsSync(path.join(outDir, "author-decisions.json")));
     assert.ok(fs.existsSync(path.join(outDir, "readable-scripts.md")));
+    assert.ok(fs.existsSync(path.join(outDir, "creation-intent-fidelity-report.json")));
     assert.equal(result.humanIntervention.developerFirefighting, 0);
     assert.ok(result.humanIntervention.authorConfirmations >= 1);
-    // Not a GEN fixture
     assert.equal(trialInput.rules.noGenFixture, true);
   });
 });

@@ -56,4 +56,4 @@ GAME 可选，不为塞而塞
 3. Explicit venue/object 语义压过无关 Preset 键  
 4. 人工五项中至少「前 20 分钟欲望」或「互动语法换挡」有一项明显抬升  
 
-正式 ticket 名与切片在开刀时再锁；本稿只冻结方向。
+正式 ticket：**P10.2 Creation Intent Fidelity V1** — 见 [`P10_2_CREATION_INTENT_FIDELITY_ZH.md`](./P10_2_CREATION_INTENT_FIDELITY_ZH.md)。

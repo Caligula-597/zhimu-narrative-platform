@@ -1,11 +1,12 @@
 /**
- * P8.1 Story / Gameplay Candidate Planner — recommendations only, never auto-accept.
- * Scoring uses catalog creationMetadata × Spec experience (generic, no family if/else).
+ * P8.1 / P10.2 Story Candidate Planner — recommendations only, never auto-accept.
+ * P10.2: bundle-level Creation Intent Fidelity; family diversity is tie-breaker only.
  */
 
 import { EXPERIENCE_KEYS, normalizePlayableCreationSpec } from "./playable-creation-spec.js";
 import { buildCreationConstraintEnvelope } from "./creation-constraint-envelope.js";
 import { creationMetadataForTemplate } from "./creation-catalog-metadata.js";
+import { planCreationIntentStoryBundles } from "./creation-intent-bundle-planner.js";
 
 function asArray(value) {
   return Array.isArray(value) ? value : [];
@@ -24,7 +25,6 @@ function experienceDot(specExp, metaExp) {
   return score / Math.max(weight, 0.01);
 }
 
-/** Soft affinity only — never hard-filter by genre/era. */
 function softSettingBoost(envelope, meta) {
   const tags = new Set([...(envelope.genreTags || []), ...(envelope.settingTags || [])].map(String));
   const soft = asArray(meta?.softSettingTags);
@@ -48,66 +48,17 @@ export const GAMEPLAY_INTENT_TO_FAMILIES = Object.freeze({
 });
 
 /**
+ * Legacy individual candidate list (compat). Prefer buildStoryCandidatePlan for P10.2 fields.
  * @param {object} specInput
  * @param {Array<{ id: string, familyId?: string, contentMaturity?: string }>} templates
+ * @param {{ authorConfirmedExperienceAnchors?: object[] }} [opts]
  */
-export function planStoryCandidates(specInput, templates = []) {
-  const spec = normalizePlayableCreationSpec(specInput);
-  if (!spec) return null;
-  const envelope = buildCreationConstraintEnvelope(spec);
-  const avoid = new Set(asArray(spec.premise?.avoid).map((t) => String(t).toLowerCase()));
+export function planStoryCandidates(specInput, templates = [], opts = {}) {
+  const bundled = planCreationIntentStoryBundles(specInput, templates, opts);
+  if (!bundled) return null;
 
-  const candidates = [];
-  for (const tpl of templates) {
-    if (!tpl?.id) continue;
-    // Prefer COMPLETE maturity when available; foundations still allowed with lower base
-    const meta = creationMetadataForTemplate(tpl.id, tpl.familyId);
-    const maturity = tpl.contentMaturity || "FOUNDATION";
-    let score = experienceDot(spec.experience, meta.experienceProfile);
-    score += softSettingBoost(envelope, meta);
-    if (maturity === "COMPLETE") score += 0.2;
-    else score -= 0.05;
-
-    const matchedIntents = asArray(meta.intentTags).filter((tag) => {
-      const key = String(tag).toLowerCase();
-      if (key.includes("faction") && spec.experience.faction >= 0.5) return true;
-      if (key.includes("deduction") && spec.experience.deduction >= 0.5) return true;
-      if (key.includes("identity") && (spec.experience.deduction >= 0.4 || spec.experience.roleplay >= 0.4))
-        return true;
-      if (key.includes("roleplay") && spec.experience.roleplay >= 0.5) return true;
-      if (key.includes("emotional") && spec.experience.emotional >= 0.5) return true;
-      return spec.experience[key] >= 0.55;
-    });
-
-    const warnings = [];
-    if (avoid.size && asArray(meta.intentTags).some((t) => avoid.has(String(t).toLowerCase()))) {
-      warnings.push("命中 premise.avoid 意图标签");
-      score -= 0.5;
-    }
-    for (const tag of asArray(spec.gameplayPreferences?.avoid)) {
-      // STORY planner ignores GAME avoid except soft note
-      void tag;
-    }
-
-    const reasons = [
-      `体验匹配 ${score.toFixed(2)}`,
-      maturity === "COMPLETE" ? "COMPLETE 语义可用" : "catalog foundation",
-      ...matchedIntents.map((t) => `意图 ${t}`),
-    ];
-
-    candidates.push({
-      templateId: tpl.id,
-      familyId: tpl.familyId || meta.familyId,
-      score: Math.round(score * 1000) / 1000,
-      reasons,
-      matchedIntents,
-      warnings,
-    });
-  }
-
-  candidates.sort((a, b) => b.score - a.score || a.templateId.localeCompare(b.templateId));
-
-  const top = candidates.slice(0, 12);
+  // Keep a soft legacy coverage map for older callers
+  const top = bundled.candidates;
   const coverage = Object.fromEntries(
     EXPERIENCE_KEYS.map((k) => {
       const hits = top.filter((c) => {
@@ -119,9 +70,24 @@ export function planStoryCandidates(specInput, templates = []) {
   );
 
   return {
-    sourceSpecRevision: spec.revision,
-    candidates: top,
+    sourceSpecRevision: bundled.sourceSpecRevision,
+    candidates: top.map((c) => ({
+      templateId: c.templateId,
+      familyId: c.familyId,
+      score: c.fidelityScore,
+      reasons: c.reasons,
+      matchedIntents: c.matchedIntents,
+      warnings: c.warnings,
+      fidelityScore: c.fidelityScore,
+      provides: c.provides,
+      mismatchPenalties: c.mismatchPenalties,
+    })),
     coverage,
+    intentEnvelope: bundled.intentEnvelope,
+    bundles: bundled.bundles,
+    recommendedBundle: bundled.recommendedBundle,
+    recommendationStatus: bundled.recommendationStatus,
+    coverageGaps: bundled.coverageGaps,
   };
 }
 
@@ -149,9 +115,9 @@ export function planGameplayCandidates(specInput) {
   };
 }
 
-/** Combined plan for UI: story recommendations + gameplay intent hints. */
-export function buildStoryCandidatePlan(specInput, templates = []) {
-  const story = planStoryCandidates(specInput, templates);
+/** Combined plan for UI: story recommendations + gameplay intent hints + P10.2 bundles. */
+export function buildStoryCandidatePlan(specInput, templates = [], opts = {}) {
+  const story = planStoryCandidates(specInput, templates, opts);
   const gameplay = planGameplayCandidates(specInput);
   if (!story) return null;
   return {
@@ -159,3 +125,5 @@ export function buildStoryCandidatePlan(specInput, templates = []) {
     gameplayCandidates: gameplay?.candidates || [],
   };
 }
+
+export { softSettingBoost, experienceDot, buildCreationConstraintEnvelope };

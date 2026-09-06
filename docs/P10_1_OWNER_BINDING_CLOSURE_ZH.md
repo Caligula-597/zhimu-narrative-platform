@@ -12,7 +12,8 @@ P10.0 Generated Script Quality Audit ✅ 首报（3/8 可写）
 P10.1 Owner Binding Closure          ← 本刀
 P10.0 Re-audit                       → 确认 ≥7/8 可生产
 ★ Real Production Trial #1           ✅ CLOSED · TRIAL_PARTIAL
-下一刀 Creation Intent Fidelity      → 见 RPT1_NEXT_CREATION_INTENT_FIDELITY_ZH.md
+★ P10.2 Creation Intent Fidelity V1  ← NOW（见 P10_2_CREATION_INTENT_FIDELITY_ZH.md）
+Writer V2                            🚫 NOT NOW
 ```
 
 ## 根因
@@ -62,5 +63,5 @@ npm run test:p8-generalization
 
 ## 下一步
 
-Trial #1 已结案：[`RPT1_HUMAN_ADJUDICATION_ZH.md`](./RPT1_HUMAN_ADJUDICATION_ZH.md)。  
-下一刀方向：[`RPT1_NEXT_CREATION_INTENT_FIDELITY_ZH.md`](./RPT1_NEXT_CREATION_INTENT_FIDELITY_ZH.md)（**不开 Writer V2**）。
+**P10.2 Creation Intent Fidelity V1** — [`P10_2_CREATION_INTENT_FIDELITY_ZH.md`](./P10_2_CREATION_INTENT_FIDELITY_ZH.md)。  
+Writer V2 / Context Domain：**NOT NOW**。
