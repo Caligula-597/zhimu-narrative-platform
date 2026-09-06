@@ -1,0 +1,110 @@
+{
+  "version": 1,
+  "revision": 1,
+  "presetId": "CONTEMPORARY_URBAN",
+  "bindings": {
+    "identityRecord": {
+      "entityId": "ctx:identity-record",
+      "kind": "RECORD",
+      "label": "住户登记档案",
+      "source": "PRESET"
+    },
+    "recordLocation": {
+      "entityId": "ctx:record-location",
+      "kind": "LOCATION",
+      "label": "物业档案室",
+      "source": "PRESET"
+    },
+    "accessCredential": {
+      "entityId": "ctx:access-credential",
+      "kind": "CREDENTIAL",
+      "label": "门禁权限",
+      "source": "PRESET"
+    },
+    "settlementCode": {
+      "entityId": "ctx:settlement-code",
+      "kind": "TRIGGER",
+      "label": "物业核验码",
+      "source": "PRESET"
+    },
+    "plantedEvidence": {
+      "entityId": "ctx:planted-evidence",
+      "kind": "OBJECT",
+      "label": "关键误导证物",
+      "source": "PRESET"
+    },
+    "crimeScene": {
+      "entityId": "ctx:crime-scene",
+      "kind": "LOCATION",
+      "label": "案发现场",
+      "source": "PRESET"
+    },
+    "decisiveEvidence": {
+      "entityId": "ctx:decisive-evidence",
+      "kind": "OBJECT",
+      "label": "关键突破证物",
+      "source": "PRESET"
+    },
+    "contestedResource": {
+      "entityId": "ctx:contested-resource",
+      "kind": "RESOURCE",
+      "label": "关键账册",
+      "source": "PRESET"
+    },
+    "factionMeetingPlace": {
+      "entityId": "ctx:faction-meeting",
+      "kind": "LOCATION",
+      "label": "私下会合点",
+      "source": "PRESET"
+    },
+    "factionCredential": {
+      "entityId": "ctx:faction-credential",
+      "kind": "CREDENTIAL",
+      "label": "成员暗号",
+      "source": "PRESET"
+    },
+    "publicTask": {
+      "entityId": "ctx:public-task",
+      "kind": "TASK",
+      "label": "公共应急任务",
+      "source": "PRESET"
+    },
+    "centralDocument": {
+      "entityId": "ctx:central-document",
+      "kind": "RECORD",
+      "label": "关键私人文书",
+      "source": "PRESET"
+    },
+    "venue": {
+      "entityId": "ctx:venue",
+      "kind": "LOCATION",
+      "label": "城市美术馆夜间展厅",
+      "source": "PROJECT_EXPLICIT"
+    },
+    "core_object": {
+      "entityId": "ctx:core_object",
+      "kind": "OBJECT",
+      "label": "未公开的预展目录册",
+      "source": "PROJECT_EXPLICIT"
+    },
+    "access_record": {
+      "entityId": "ctx:access_record",
+      "kind": "RECORD",
+      "label": "闭馆门禁与库房授权日志",
+      "source": "PROJECT_EXPLICIT"
+    },
+    "credential": {
+      "entityId": "ctx:credential",
+      "kind": "CREDENTIAL",
+      "label": "私人预展邀请腕带",
+      "source": "PROJECT_EXPLICIT"
+    }
+  },
+  "explicitBindingKeys": [
+    "venue",
+    "core_object",
+    "access_record",
+    "credential"
+  ],
+  "updatedAt": "2026-09-06T08:03:37.907Z"
+}

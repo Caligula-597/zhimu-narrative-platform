@@ -13,9 +13,10 @@ P10.1 Owner Binding Closure          ← 本刀
 P10.0 Re-audit                       → 确认 ≥7/8 可生产
 ★ Real Production Trial #1           ✅ CLOSED · TRIAL_PARTIAL
 ★ P10.2 Creation Intent Fidelity V1  ✅ FROZEN @ db0b390
-★ P10.3 STORY Experience Coverage    ← NOW（见 P10_3_STORY_EXPERIENCE_COVERAGE_ZH.md）
-Full Real-Model Rerun                ⏸ WAIT
-Writer V2                            🚫 NOT NOW
+★ P10.3 STORY Experience Coverage    ✅ @ 2b6c761
+★ RPT #1B Full Real-Model Rerun      ✅ 已跑 · 待人工 CHANGE_VERDICT
+  run: trials/.../runs/2026-09-06T08-03-37-863Z
+Writer V2 / Context / Host           🚫 未动（隔离变量）
 ```
 
 ## 根因

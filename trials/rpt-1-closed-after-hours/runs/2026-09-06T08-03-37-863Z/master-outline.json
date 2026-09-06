@@ -1,0 +1,955 @@
+{
+  "id": "mod-mtpiyzoo-ble9",
+  "version": 1,
+  "sourceStoryStateRevision": 0,
+  "sourceBlockIds": [
+    "smb-mtpiyzod-lbm0x",
+    "smb-mtpiyzoh-3kg5f"
+  ],
+  "createdAt": "2026-09-06T08:03:37.896Z",
+  "updatedAt": "2026-09-06T08:03:37.897Z",
+  "status": "USER_ADJUSTED",
+  "stages": [
+    {
+      "id": "act1",
+      "label": "铺垫",
+      "order": 0,
+      "beats": [
+        {
+          "id": "ob-mtpiyzom-galw",
+          "sourceBlockId": "smb-mtpiyzod-lbm0x",
+          "sourceBeatId": "beat-setup",
+          "familyId": "M12",
+          "templateId": "M12-1",
+          "blockTitle": "双边关系议价｜信息换权限",
+          "summary": "沈岚为了试探 bargainB 对可交换标的的底线，在可私下谈判的场所试探对方掌握范围与要价（目标：可交换标的）",
+          "phaseBand": 0,
+          "stageKey": "PROBE",
+          "characterIds": [
+            "P1",
+            "P2"
+          ],
+          "clueIds": [
+            "smb-mtpiyzod-lbm0x-stake_hint-0"
+          ],
+          "weaveGroupId": null,
+          "semantics": {
+            "actorRefs": [
+              "P1"
+            ],
+            "actorLabel": "沈岚",
+            "goal": "试探 bargainB 对可交换标的的底线",
+            "action": "在可私下谈判的场所试探对方掌握范围与要价",
+            "target": "可交换标的",
+            "requires": [],
+            "produces": [
+              {
+                "factId": "fact:smb-mtpiyzod-lbm0x:beat-setup:bargain_terms_visible:P1",
+                "factType": "bargain_terms_visible",
+                "id": "fact:smb-mtpiyzod-lbm0x:beat-setup:bargain_terms_visible:P1",
+                "kind": "bargain_terms_visible",
+                "scope": {
+                  "characterIds": [
+                    "P1"
+                  ],
+                  "entityIds": [],
+                  "factionIds": [],
+                  "locationIds": [],
+                  "sourceBlockId": "smb-mtpiyzod-lbm0x",
+                  "global": false
+                },
+                "summary": "对方条件开始可见"
+              }
+            ],
+            "opposes": [],
+            "protects": [],
+            "locationHint": "可私下谈判的场所",
+            "actionKind": "PROBE",
+            "independence": "INDEPENDENT",
+            "needsDetail": false,
+            "actorResolution": {
+              "source": "DIRECT"
+            }
+          },
+          "needsDetail": false
+        },
+        {
+          "id": "ob-mtpiyzom-fadl",
+          "sourceBlockId": "smb-mtpiyzoh-3kg5f",
+          "sourceBeatId": "beat-setup",
+          "familyId": "M07",
+          "templateId": "M07-1",
+          "blockTitle": "固定阶段开放｜全体同步到点发放",
+          "summary": "顾清为了隐藏或维持当前身份表象，按伪装/未知状态行动，避免过早暴露（目标：身份表象）",
+          "phaseBand": 0,
+          "stageKey": "HIDDEN",
+          "characterIds": [
+            "P5",
+            "P6"
+          ],
+          "clueIds": [
+            "smb-mtpiyzoh-3kg5f-foreshadow-0"
+          ],
+          "weaveGroupId": null,
+          "semantics": {
+            "actorRefs": [
+              "P5"
+            ],
+            "actorLabel": "顾清",
+            "goal": "隐藏或维持当前身份表象",
+            "action": "按伪装/未知状态行动，避免过早暴露",
+            "target": "身份表象",
+            "requires": [],
+            "produces": [
+              {
+                "factId": "fact:smb-mtpiyzoh-3kg5f:beat-setup:identity_latent:P5",
+                "factType": "identity_latent",
+                "id": "fact:smb-mtpiyzoh-3kg5f:beat-setup:identity_latent:P5",
+                "kind": "identity_latent",
+                "scope": {
+                  "characterIds": [
+                    "P5"
+                  ],
+                  "entityIds": [],
+                  "factionIds": [],
+                  "locationIds": [],
+                  "sourceBlockId": "smb-mtpiyzoh-3kg5f",
+                  "global": false
+                },
+                "summary": "身份仍未公开"
+              }
+            ],
+            "opposes": [],
+            "protects": [],
+            "locationHint": "日常活动场所",
+            "actionKind": "CONCEAL",
+            "independence": "INDEPENDENT",
+            "needsDetail": false,
+            "actorResolution": {
+              "source": "DIRECT"
+            }
+          },
+          "needsDetail": false
+        }
+      ]
+    },
+    {
+      "id": "act2",
+      "label": "加压",
+      "order": 1,
+      "beats": [
+        {
+          "id": "ob-mtpiyzom-ho6r",
+          "sourceBlockId": "smb-mtpiyzod-lbm0x",
+          "sourceBeatId": "beat-develop",
+          "familyId": "M12",
+          "templateId": "M12-1",
+          "blockTitle": "双边关系议价｜信息换权限",
+          "summary": "梁赫为了隐瞒真正底线并开出可谈判条件，提出交换代价，同时隐瞒不可让步项（目标：交换条件）",
+          "phaseBand": 1,
+          "stageKey": "NEGOTIATE",
+          "characterIds": [
+            "P2",
+            "P1",
+            "P3",
+            "P4"
+          ],
+          "clueIds": [
+            "smb-mtpiyzod-lbm0x-stake_hint-0"
+          ],
+          "weaveGroupId": null,
+          "semantics": {
+            "actorRefs": [
+              "P2"
+            ],
+            "actorLabel": "梁赫",
+            "goal": "隐瞒真正底线并开出可谈判条件",
+            "action": "提出交换代价，同时隐瞒不可让步项",
+            "target": "交换条件",
+            "requires": [
+              {
+                "factId": "fact:smb-mtpiyzod-lbm0x:beat-develop:bargain_terms_visible:P2",
+                "factType": "bargain_terms_visible",
+                "id": "fact:smb-mtpiyzod-lbm0x:beat-develop:bargain_terms_visible:P2",
+                "kind": "bargain_terms_visible",
+                "scope": {
+                  "characterIds": [
+                    "P2"
+                  ],
+                  "entityIds": [],
+                  "factionIds": [],
+                  "locationIds": [],
+                  "sourceBlockId": "smb-mtpiyzod-lbm0x",
+                  "global": false
+                },
+                "summary": "条件已可见",
+                "sourceKind": "STORY_FACT"
+              }
+            ],
+            "produces": [
+              {
+                "factId": "fact:smb-mtpiyzod-lbm0x:beat-develop:bargain_offer:P2",
+                "factType": "bargain_offer",
+                "id": "fact:smb-mtpiyzod-lbm0x:beat-develop:bargain_offer:P2",
+                "kind": "bargain_offer",
+                "scope": {
+                  "characterIds": [
+                    "P2"
+                  ],
+                  "entityIds": [],
+                  "factionIds": [],
+                  "locationIds": [],
+                  "sourceBlockId": "smb-mtpiyzod-lbm0x",
+                  "global": false
+                },
+                "summary": "一份可回应的交换要约"
+              }
+            ],
+            "opposes": [],
+            "protects": [],
+            "locationHint": "可私下谈判的场所",
+            "actionKind": "NEGOTIATE",
+            "independence": "SHAREABLE",
+            "needsDetail": false,
+            "actorResolution": {
+              "source": "DIRECT"
+            }
+          },
+          "needsDetail": false
+        },
+        {
+          "id": "ob-mtpiyzom-65mb",
+          "sourceBlockId": "smb-mtpiyzoh-3kg5f",
+          "sourceBeatId": "beat-develop",
+          "familyId": "M07",
+          "templateId": "M07-1",
+          "blockTitle": "固定阶段开放｜全体同步到点发放",
+          "summary": "顾清为了等到约定阶段再领取被封存的事实，等待阶段到达并接收同一事实片段（目标：身份记录）",
+          "phaseBand": 1,
+          "stageKey": "FIRST_ANOMALY",
+          "characterIds": [
+            "P5",
+            "P6",
+            "P3",
+            "P4",
+            "P1"
+          ],
+          "clueIds": [
+            "smb-mtpiyzoh-3kg5f-foreshadow-0"
+          ],
+          "weaveGroupId": null,
+          "semantics": {
+            "actorRefs": [
+              "P5"
+            ],
+            "actorLabel": "顾清",
+            "goal": "等到约定阶段再领取被封存的事实",
+            "action": "等待阶段到达并接收同一事实片段",
+            "target": "身份记录",
+            "requires": [
+              {
+                "factId": "fact:smb-mtpiyzoh-3kg5f:beat-develop:site_accessible:P5",
+                "factType": "site_accessible",
+                "id": "fact:smb-mtpiyzoh-3kg5f:beat-develop:site_accessible:P5",
+                "kind": "site_accessible",
+                "scope": {
+                  "characterIds": [
+                    "P5"
+                  ],
+                  "entityIds": [],
+                  "factionIds": [],
+                  "locationIds": [],
+                  "sourceBlockId": "smb-mtpiyzoh-3kg5f",
+                  "global": false
+                },
+                "summary": "藏有记录的场所可进入",
+                "sourceKind": "PROJECT_PREREQ"
+              }
+            ],
+            "produces": [
+              {
+                "factId": "fact:smb-mtpiyzoh-3kg5f:beat-develop:identity_clue:P5",
+                "factType": "identity_clue",
+                "id": "fact:smb-mtpiyzoh-3kg5f:beat-develop:identity_clue:P5",
+                "kind": "identity_clue",
+                "scope": {
+                  "characterIds": [
+                    "P5"
+                  ],
+                  "entityIds": [],
+                  "factionIds": [],
+                  "locationIds": [],
+                  "sourceBlockId": "smb-mtpiyzoh-3kg5f",
+                  "global": false
+                },
+                "summary": "与身份记录相关的线索"
+              }
+            ],
+            "opposes": [],
+            "protects": [],
+            "locationHint": "藏有记录的场所",
+            "actionKind": "RECEIVE",
+            "independence": "INDEPENDENT",
+            "needsDetail": false,
+            "actorResolution": {
+              "source": "DIRECT"
+            }
+          },
+          "needsDetail": false
+        }
+      ]
+    },
+    {
+      "id": "act3",
+      "label": "升级",
+      "order": 2,
+      "beats": [
+        {
+          "id": "ob-mtpiyzom-z9lg",
+          "sourceBlockId": "smb-mtpiyzod-lbm0x",
+          "sourceBeatId": "beat-climax",
+          "familyId": "M12",
+          "templateId": "M12-1",
+          "blockTitle": "双边关系议价｜信息换权限",
+          "summary": "沈岚为了以玩家行动完成可交换标的换手，接受或改写要约，完成交接并取得换手凭证（目标：可交换标的）",
+          "phaseBand": 2,
+          "stageKey": "AFTERMATH",
+          "characterIds": [
+            "P1",
+            "P2",
+            "P3",
+            "P4"
+          ],
+          "clueIds": [
+            "smb-mtpiyzod-lbm0x-term_leak-1",
+            "smb-mtpiyzod-lbm0x-transfer_proof-2"
+          ],
+          "weaveGroupId": null,
+          "semantics": {
+            "actorRefs": [
+              "P1"
+            ],
+            "actorLabel": "沈岚",
+            "goal": "以玩家行动完成可交换标的换手",
+            "action": "接受或改写要约，完成交接并取得换手凭证",
+            "target": "可交换标的",
+            "requires": [
+              {
+                "factId": "fact:smb-mtpiyzod-lbm0x:beat-climax:bargain_offer:P1",
+                "factType": "bargain_offer",
+                "id": "fact:smb-mtpiyzod-lbm0x:beat-climax:bargain_offer:P1",
+                "kind": "bargain_offer",
+                "scope": {
+                  "characterIds": [
+                    "P1"
+                  ],
+                  "entityIds": [],
+                  "factionIds": [],
+                  "locationIds": [],
+                  "sourceBlockId": "smb-mtpiyzod-lbm0x",
+                  "global": false
+                },
+                "summary": "交换要约",
+                "sourceKind": "STORY_FACT"
+              }
+            ],
+            "produces": [
+              {
+                "factId": "fact:smb-mtpiyzod-lbm0x:beat-climax:stake_transferred:P1",
+                "factType": "stake_transferred",
+                "id": "fact:smb-mtpiyzod-lbm0x:beat-climax:stake_transferred:P1",
+                "kind": "stake_transferred",
+                "scope": {
+                  "characterIds": [
+                    "P1"
+                  ],
+                  "entityIds": [],
+                  "factionIds": [],
+                  "locationIds": [],
+                  "sourceBlockId": "smb-mtpiyzod-lbm0x",
+                  "global": false
+                },
+                "summary": "可交换标的所有权/权限已变化"
+              },
+              {
+                "factId": "fact:smb-mtpiyzod-lbm0x:beat-climax:access_proof:P1",
+                "factType": "access_proof",
+                "id": "fact:smb-mtpiyzod-lbm0x:beat-climax:access_proof:P1",
+                "kind": "access_proof",
+                "scope": {
+                  "characterIds": [
+                    "P1"
+                  ],
+                  "entityIds": [],
+                  "factionIds": [],
+                  "locationIds": [],
+                  "sourceBlockId": "smb-mtpiyzod-lbm0x",
+                  "global": false
+                },
+                "summary": "换手凭证已交付"
+              }
+            ],
+            "opposes": [],
+            "protects": [],
+            "locationHint": "可私下谈判的场所",
+            "actionKind": "EXCHANGE",
+            "independence": "DEPENDENT",
+            "needsDetail": false,
+            "actorResolution": {
+              "source": "DIRECT"
+            }
+          },
+          "needsDetail": false
+        },
+        {
+          "id": "ob-mtpiyzom-qtrm",
+          "sourceBlockId": "smb-mtpiyzoh-3kg5f",
+          "sourceBeatId": "beat-climax",
+          "familyId": "M07",
+          "templateId": "M07-1",
+          "blockTitle": "固定阶段开放｜全体同步到点发放",
+          "summary": "顾清为了确认真实身份并决定是否公开，核对身份记录并作出公开或隐瞒选择（目标：真实身份）",
+          "phaseBand": 2,
+          "stageKey": "CONSEQUENCE",
+          "characterIds": [
+            "P5",
+            "P6",
+            "P3",
+            "P4",
+            "P1"
+          ],
+          "clueIds": [
+            "smb-mtpiyzoh-3kg5f-memory_fragment-1",
+            "smb-mtpiyzoh-3kg5f-identity_hint-2",
+            "smb-mtpiyzoh-3kg5f-misdirection-3",
+            "smb-mtpiyzoh-3kg5f-confirmation-4",
+            "smb-mtpiyzoh-3kg5f-decisive_reveal-5"
+          ],
+          "weaveGroupId": null,
+          "semantics": {
+            "actorRefs": [
+              "P5"
+            ],
+            "actorLabel": "顾清",
+            "goal": "确认真实身份并决定是否公开",
+            "action": "核对身份记录并作出公开或隐瞒选择",
+            "target": "真实身份",
+            "requires": [
+              {
+                "factId": "fact:smb-mtpiyzoh-3kg5f:beat-climax:identity_clue:P5",
+                "factType": "identity_clue",
+                "id": "fact:smb-mtpiyzoh-3kg5f:beat-climax:identity_clue:P5",
+                "kind": "identity_clue",
+                "scope": {
+                  "characterIds": [
+                    "P5"
+                  ],
+                  "entityIds": [],
+                  "factionIds": [],
+                  "locationIds": [],
+                  "sourceBlockId": "smb-mtpiyzoh-3kg5f",
+                  "global": false
+                },
+                "summary": "身份线索",
+                "sourceKind": "STORY_FACT"
+              }
+            ],
+            "produces": [
+              {
+                "factId": "fact:smb-mtpiyzoh-3kg5f:beat-climax:identity_confirmed:P5",
+                "factType": "identity_confirmed",
+                "id": "fact:smb-mtpiyzoh-3kg5f:beat-climax:identity_confirmed:P5",
+                "kind": "identity_confirmed",
+                "scope": {
+                  "characterIds": [
+                    "P5"
+                  ],
+                  "entityIds": [],
+                  "factionIds": [],
+                  "locationIds": [],
+                  "sourceBlockId": "smb-mtpiyzoh-3kg5f",
+                  "global": false
+                },
+                "summary": "身份已确认"
+              },
+              {
+                "factId": "fact:smb-mtpiyzoh-3kg5f:beat-climax:family_status:P5",
+                "factType": "family_status",
+                "id": "fact:smb-mtpiyzoh-3kg5f:beat-climax:family_status:P5",
+                "kind": "family_status",
+                "scope": {
+                  "characterIds": [
+                    "P5"
+                  ],
+                  "entityIds": [],
+                  "factionIds": [],
+                  "locationIds": [],
+                  "sourceBlockId": "smb-mtpiyzoh-3kg5f",
+                  "global": false
+                },
+                "summary": "家族/资格状态"
+              }
+            ],
+            "opposes": [],
+            "protects": [],
+            "locationHint": "{ctx.recordLocation}",
+            "actionKind": "CONFIRM",
+            "independence": "DEPENDENT",
+            "needsDetail": false,
+            "actorResolution": {
+              "source": "DIRECT"
+            }
+          },
+          "needsDetail": false
+        }
+      ]
+    },
+    {
+      "id": "act4",
+      "label": "收束",
+      "order": 3,
+      "beats": [
+        {
+          "id": "ob-mtpiyzom-8ory",
+          "sourceBlockId": "smb-mtpiyzod-lbm0x",
+          "sourceBeatId": "beat-res",
+          "familyId": "M12",
+          "templateId": "M12-1",
+          "blockTitle": "双边关系议价｜信息换权限",
+          "summary": "梁赫为了面对换手后的关系重谈（开放收束），决定是否公开交换、继续合作或撕毁承诺（目标：关系选择）",
+          "phaseBand": 3,
+          "stageKey": "AFTERMATH",
+          "characterIds": [
+            "P2",
+            "P1",
+            "P3",
+            "P4"
+          ],
+          "clueIds": [],
+          "weaveGroupId": null,
+          "semantics": {
+            "actorRefs": [
+              "P2"
+            ],
+            "actorLabel": "梁赫",
+            "goal": "面对换手后的关系重谈（开放收束）",
+            "action": "决定是否公开交换、继续合作或撕毁承诺",
+            "target": "关系选择",
+            "requires": [
+              {
+                "factId": "fact:smb-mtpiyzod-lbm0x:beat-res:stake_transferred:P2",
+                "factType": "stake_transferred",
+                "id": "fact:smb-mtpiyzod-lbm0x:beat-res:stake_transferred:P2",
+                "kind": "stake_transferred",
+                "scope": {
+                  "characterIds": [
+                    "P2"
+                  ],
+                  "entityIds": [],
+                  "factionIds": [],
+                  "locationIds": [],
+                  "sourceBlockId": "smb-mtpiyzod-lbm0x",
+                  "global": false
+                },
+                "summary": "标的已换手",
+                "sourceKind": "STORY_FACT"
+              }
+            ],
+            "produces": [
+              {
+                "factId": "fact:smb-mtpiyzod-lbm0x:beat-res:bargain_aftermath:P2",
+                "factType": "bargain_aftermath",
+                "id": "fact:smb-mtpiyzod-lbm0x:beat-res:bargain_aftermath:P2",
+                "kind": "bargain_aftermath",
+                "scope": {
+                  "characterIds": [
+                    "P2"
+                  ],
+                  "entityIds": [],
+                  "factionIds": [],
+                  "locationIds": [],
+                  "sourceBlockId": "smb-mtpiyzod-lbm0x",
+                  "global": false
+                },
+                "summary": "换手后的关系状态"
+              }
+            ],
+            "opposes": [],
+            "protects": [],
+            "locationHint": "{ctx.bargainVenue}",
+            "actionKind": "CONSEQUENCE",
+            "independence": "DEPENDENT",
+            "needsDetail": false,
+            "actorResolution": {
+              "source": "DIRECT"
+            }
+          },
+          "needsDetail": false
+        },
+        {
+          "id": "ob-mtpiyzom-njbm",
+          "sourceBlockId": "smb-mtpiyzoh-3kg5f",
+          "sourceBeatId": "beat-res",
+          "familyId": "M07",
+          "templateId": "M07-1",
+          "blockTitle": "固定阶段开放｜全体同步到点发放",
+          "summary": "顾清为了承受身份公开后的关系后果，面对知情者与阵营/调查方的反应（目标：关系重组）",
+          "phaseBand": 3,
+          "stageKey": "CONSEQUENCE",
+          "characterIds": [
+            "P5",
+            "P6",
+            "P3",
+            "P4",
+            "P1"
+          ],
+          "clueIds": [],
+          "weaveGroupId": null,
+          "semantics": {
+            "actorRefs": [
+              "P5"
+            ],
+            "actorLabel": "顾清",
+            "goal": "承受身份公开后的关系后果",
+            "action": "面对知情者与阵营/调查方的反应",
+            "target": "关系重组",
+            "requires": [
+              {
+                "factId": "fact:smb-mtpiyzoh-3kg5f:beat-res:identity_confirmed:P5",
+                "factType": "identity_confirmed",
+                "id": "fact:smb-mtpiyzoh-3kg5f:beat-res:identity_confirmed:P5",
+                "kind": "identity_confirmed",
+                "scope": {
+                  "characterIds": [
+                    "P5"
+                  ],
+                  "entityIds": [],
+                  "factionIds": [],
+                  "locationIds": [],
+                  "sourceBlockId": "smb-mtpiyzoh-3kg5f",
+                  "global": false
+                },
+                "summary": "身份确认",
+                "sourceKind": "STORY_FACT"
+              }
+            ],
+            "produces": [
+              {
+                "factId": "fact:smb-mtpiyzoh-3kg5f:beat-res:identity_public:P5",
+                "factType": "identity_public",
+                "id": "fact:smb-mtpiyzoh-3kg5f:beat-res:identity_public:P5",
+                "kind": "identity_public",
+                "scope": {
+                  "characterIds": [
+                    "P5"
+                  ],
+                  "entityIds": [],
+                  "factionIds": [],
+                  "locationIds": [],
+                  "sourceBlockId": "smb-mtpiyzoh-3kg5f",
+                  "global": false
+                },
+                "summary": "身份进入公开层"
+              }
+            ],
+            "opposes": [],
+            "protects": [],
+            "locationHint": "{ctx.recordLocation}",
+            "actionKind": "CONSEQUENCE",
+            "independence": "DEPENDENT",
+            "needsDetail": false,
+            "actorResolution": {
+              "source": "DIRECT"
+            }
+          },
+          "needsDetail": false
+        }
+      ]
+    }
+  ],
+  "weaveLinks": [
+    {
+      "id": "wl-mtpiyzon-esnw",
+      "kind": "WEAVE_SHARED_CHARACTER",
+      "relationQuality": "COLOCATED",
+      "status": "PROPOSED",
+      "beatIds": [
+        "ob-mtpiyzom-galw",
+        "ob-mtpiyzom-65mb"
+      ],
+      "blockIds": [
+        "smb-mtpiyzod-lbm0x",
+        "smb-mtpiyzoh-3kg5f"
+      ],
+      "reason": "共享角色 P1——仅角色重合，保持同场并列而非强制合并",
+      "sharedCharacterIds": [
+        "P1"
+      ],
+      "sharedFactKinds": [],
+      "sharedTargets": []
+    },
+    {
+      "id": "wl-mtpiyzoo-12yz",
+      "kind": "WEAVE_SHARED_SCENE",
+      "relationQuality": "COLOCATED",
+      "status": "PROPOSED",
+      "beatIds": [
+        "ob-mtpiyzom-ho6r",
+        "ob-mtpiyzom-65mb"
+      ],
+      "blockIds": [
+        "smb-mtpiyzod-lbm0x",
+        "smb-mtpiyzoh-3kg5f"
+      ],
+      "reason": "同阶段共享角色 P1、P3、P4——可同场并列，不算真正交织",
+      "sharedCharacterIds": [
+        "P1",
+        "P3",
+        "P4"
+      ],
+      "sharedFactKinds": [],
+      "sharedTargets": []
+    },
+    {
+      "id": "wl-mtpiyzoo-1cve",
+      "kind": "WEAVE_SHARED_CHARACTER",
+      "relationQuality": "COLOCATED",
+      "status": "PROPOSED",
+      "beatIds": [
+        "ob-mtpiyzom-ho6r",
+        "ob-mtpiyzom-qtrm"
+      ],
+      "blockIds": [
+        "smb-mtpiyzod-lbm0x",
+        "smb-mtpiyzoh-3kg5f"
+      ],
+      "reason": "共享角色 P1、P3、P4——仅角色重合，保持同场并列而非强制合并",
+      "sharedCharacterIds": [
+        "P1",
+        "P3",
+        "P4"
+      ],
+      "sharedFactKinds": [],
+      "sharedTargets": []
+    },
+    {
+      "id": "wl-mtpiyzoo-w8ua",
+      "kind": "WEAVE_SHARED_SCENE",
+      "relationQuality": "COLOCATED",
+      "status": "PROPOSED",
+      "beatIds": [
+        "ob-mtpiyzom-z9lg",
+        "ob-mtpiyzom-qtrm"
+      ],
+      "blockIds": [
+        "smb-mtpiyzod-lbm0x",
+        "smb-mtpiyzoh-3kg5f"
+      ],
+      "reason": "同阶段共享角色 P1、P3、P4——可同场并列，不算真正交织",
+      "sharedCharacterIds": [
+        "P1",
+        "P3",
+        "P4"
+      ],
+      "sharedFactKinds": [],
+      "sharedTargets": []
+    },
+    {
+      "id": "wl-mtpiyzoo-pejn",
+      "kind": "WEAVE_SHARED_CHARACTER",
+      "relationQuality": "COLOCATED",
+      "status": "PROPOSED",
+      "beatIds": [
+        "ob-mtpiyzom-z9lg",
+        "ob-mtpiyzom-njbm"
+      ],
+      "blockIds": [
+        "smb-mtpiyzod-lbm0x",
+        "smb-mtpiyzoh-3kg5f"
+      ],
+      "reason": "共享角色 P1、P3、P4——仅角色重合，保持同场并列而非强制合并",
+      "sharedCharacterIds": [
+        "P1",
+        "P3",
+        "P4"
+      ],
+      "sharedFactKinds": [],
+      "sharedTargets": []
+    },
+    {
+      "id": "wl-mtpiyzoo-jjbt",
+      "kind": "WEAVE_SHARED_SCENE",
+      "relationQuality": "COLOCATED",
+      "status": "PROPOSED",
+      "beatIds": [
+        "ob-mtpiyzom-8ory",
+        "ob-mtpiyzom-njbm"
+      ],
+      "blockIds": [
+        "smb-mtpiyzod-lbm0x",
+        "smb-mtpiyzoh-3kg5f"
+      ],
+      "reason": "同阶段共享角色 P1、P3、P4——可同场并列，不算真正交织",
+      "sharedCharacterIds": [
+        "P1",
+        "P3",
+        "P4"
+      ],
+      "sharedFactKinds": [],
+      "sharedTargets": []
+    },
+    {
+      "id": "wl-mtpiyzoo-i0vt",
+      "kind": "KEEP_PARALLEL",
+      "relationQuality": "PARALLEL",
+      "status": "PROPOSED",
+      "beatIds": [
+        "ob-mtpiyzom-ho6r",
+        "ob-mtpiyzom-65mb"
+      ],
+      "blockIds": [
+        "smb-mtpiyzod-lbm0x",
+        "smb-mtpiyzoh-3kg5f"
+      ],
+      "reason": "双边关系议价｜信息换权限 与 固定阶段开放｜全体同步到点发放 无线索级交织证据，叙事线保持平行（同场/同角不算交织）",
+      "sharedCharacterIds": [
+        "P1",
+        "P3",
+        "P4"
+      ],
+      "sharedFactKinds": [],
+      "sharedTargets": []
+    }
+  ],
+  "conflictReport": [
+    {
+      "id": "cf-mtpiyzoo-feey",
+      "type": "ROLE_OVERLOAD",
+      "severity": "info",
+      "characterId": "P1",
+      "summary": "沈岚 当前承担：seeker HIGH、discoverer（负载 3）",
+      "suggestions": [
+        {
+          "id": "keep",
+          "label": "保留"
+        },
+        {
+          "id": "reassign",
+          "label": "建议把次要职责换给其他角色"
+        },
+        {
+          "id": "intentional",
+          "label": "标记为有意重叠"
+        }
+      ],
+      "decision": "ACCEPT"
+    }
+  ],
+  "characterLoadReport": [
+    {
+      "characterId": "P1",
+      "name": "沈岚",
+      "totalLoad": 3,
+      "roles": [
+        {
+          "blockId": "smb-mtpiyzod-lbm0x",
+          "slotId": "bargainA",
+          "narrativeRole": "seeker",
+          "intensity": 2,
+          "intentionalOverlap": false
+        },
+        {
+          "blockId": "smb-mtpiyzoh-3kg5f",
+          "slotId": "revealer",
+          "narrativeRole": "discoverer",
+          "intensity": 1,
+          "intentionalOverlap": false
+        }
+      ]
+    },
+    {
+      "characterId": "P2",
+      "name": "梁赫",
+      "totalLoad": 2,
+      "roles": [
+        {
+          "blockId": "smb-mtpiyzod-lbm0x",
+          "slotId": "bargainB",
+          "narrativeRole": "holder",
+          "intensity": 2,
+          "intentionalOverlap": false
+        }
+      ]
+    },
+    {
+      "characterId": "P3",
+      "name": "白绫",
+      "totalLoad": 2,
+      "roles": [
+        {
+          "blockId": "smb-mtpiyzod-lbm0x",
+          "slotId": "stakeholder",
+          "narrativeRole": "stakeholder",
+          "intensity": 1,
+          "intentionalOverlap": false
+        },
+        {
+          "blockId": "smb-mtpiyzoh-3kg5f",
+          "slotId": "misled",
+          "narrativeRole": "misled",
+          "intensity": 1,
+          "intentionalOverlap": false
+        }
+      ]
+    },
+    {
+      "characterId": "P4",
+      "name": "周祁",
+      "totalLoad": 2,
+      "roles": [
+        {
+          "blockId": "smb-mtpiyzod-lbm0x",
+          "slotId": "witness",
+          "narrativeRole": "witness",
+          "intensity": 1,
+          "intentionalOverlap": false
+        },
+        {
+          "blockId": "smb-mtpiyzoh-3kg5f",
+          "slotId": "related",
+          "narrativeRole": "support",
+          "intensity": 1,
+          "intentionalOverlap": false
+        }
+      ]
+    },
+    {
+      "characterId": "P5",
+      "name": "顾清",
+      "totalLoad": 2,
+      "roles": [
+        {
+          "blockId": "smb-mtpiyzoh-3kg5f",
+          "slotId": "bearer",
+          "narrativeRole": "identity_bearer",
+          "intensity": 2,
+          "intentionalOverlap": false
+        }
+      ]
+    },
+    {
+      "characterId": "P6",
+      "name": "方序",
+      "totalLoad": 1,
+      "roles": [
+        {
+          "blockId": "smb-mtpiyzoh-3kg5f",
+          "slotId": "knower",
+          "narrativeRole": "witness",
+          "intensity": 1,
+          "intentionalOverlap": false
+        }
+      ]
+    }
+  ]
+}

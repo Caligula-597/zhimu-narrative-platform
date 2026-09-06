@@ -1,0 +1,1377 @@
+{
+  "sourceSpecRevision": 1,
+  "candidates": [
+    {
+      "templateId": "M12-1",
+      "familyId": "M12",
+      "score": 1.02,
+      "reasons": [
+        "主轴命中 ROLEPLAY",
+        "次轴提供 EMOTIONAL（非主轴）",
+        "互动模式 NEGOTIATE",
+        "锚点候选 EARLY_AGENCY",
+        "锚点候选 OWNERSHIP_SHIFT",
+        "锚点候选 FLEXIBLE_RESOLUTION",
+        "结构承诺 RELATIONSHIP_BARGAIN"
+      ],
+      "matchedIntents": [
+        "ROLEPLAY",
+        "EMOTIONAL_SECONDARY"
+      ],
+      "warnings": [],
+      "fidelityScore": 1.02,
+      "provides": {
+        "primaryAxes": [
+          "ROLEPLAY"
+        ],
+        "secondaryAxes": [
+          "EMOTIONAL",
+          "SUSPICION",
+          "MECHANISM"
+        ],
+        "interactionModes": [
+          "NEGOTIATE",
+          "EXCHANGE",
+          "PROBE",
+          "CONCEAL",
+          "PUBLIC_CHOICE"
+        ],
+        "commitments": [
+          "RELATIONSHIP_BARGAIN"
+        ],
+        "anchors": [
+          "EARLY_AGENCY",
+          "OWNERSHIP_SHIFT",
+          "FLEXIBLE_RESOLUTION"
+        ],
+        "resolutionPressure": "OPEN"
+      },
+      "mismatchPenalties": []
+    },
+    {
+      "templateId": "M01-FRAMING",
+      "familyId": "M01",
+      "score": 0.66,
+      "reasons": [
+        "次轴提供 ROLEPLAY（非主轴）",
+        "主轴命中 DEDUCTION",
+        "锚点候选 EARLY_AGENCY",
+        "锚点候选 LATE_REINTERPRETATION",
+        "结构承诺 CRIME_FRAMING"
+      ],
+      "matchedIntents": [
+        "DEDUCTION",
+        "ROLEPLAY_SECONDARY"
+      ],
+      "warnings": [
+        "RESOLUTION_MODE_CAPTURE_RISK"
+      ],
+      "fidelityScore": 0.66,
+      "provides": {
+        "primaryAxes": [
+          "DEDUCTION",
+          "MISDIRECTION"
+        ],
+        "secondaryAxes": [
+          "SUSPICION",
+          "ROLEPLAY"
+        ],
+        "interactionModes": [
+          "PROBE",
+          "CONCEAL",
+          "SUSPECT"
+        ],
+        "commitments": [
+          "CRIME_FRAMING"
+        ],
+        "anchors": [
+          "EARLY_AGENCY",
+          "LATE_REINTERPRETATION"
+        ],
+        "resolutionPressure": "CULPRIT_CENTRIC_HIGH"
+      },
+      "mismatchPenalties": [
+        {
+          "code": "RESOLUTION_MODE_CAPTURE_RISK",
+          "message": "CULPRIT_CENTRIC_HIGH 与 FLEXIBLE_RESOLUTION 张力；不可静默吞掉"
+        }
+      ]
+    },
+    {
+      "templateId": "M07-1",
+      "familyId": "M07",
+      "score": 0.51,
+      "reasons": [
+        "次轴提供 ROLEPLAY（非主轴）",
+        "次轴提供 DEDUCTION（非主轴）",
+        "锚点候选 EARLY_AGENCY",
+        "锚点候选 LATE_REINTERPRETATION",
+        "结构承诺 HIDDEN_IDENTITY"
+      ],
+      "matchedIntents": [
+        "ROLEPLAY_SECONDARY",
+        "DEDUCTION_SECONDARY"
+      ],
+      "warnings": [],
+      "fidelityScore": 0.51,
+      "provides": {
+        "primaryAxes": [
+          "IDENTITY",
+          "SECRECY"
+        ],
+        "secondaryAxes": [
+          "ROLEPLAY",
+          "DEDUCTION",
+          "SUSPICION"
+        ],
+        "interactionModes": [
+          "CONCEAL",
+          "PROBE",
+          "SUSPECT"
+        ],
+        "commitments": [
+          "HIDDEN_IDENTITY"
+        ],
+        "anchors": [
+          "EARLY_AGENCY",
+          "LATE_REINTERPRETATION"
+        ],
+        "resolutionPressure": "IDENTITY_REVEAL"
+      },
+      "mismatchPenalties": [
+        {
+          "code": "DOMINANT_AXIS_MISMATCH",
+          "message": "模板主轴 IDENTITY/SECRECY 未覆盖用户主意图 ROLEPLAY/DEDUCTION/EMOTIONAL"
+        }
+      ]
+    },
+    {
+      "templateId": "M07-3",
+      "familyId": "M07",
+      "score": 0.51,
+      "reasons": [
+        "次轴提供 ROLEPLAY（非主轴）",
+        "次轴提供 DEDUCTION（非主轴）",
+        "锚点候选 EARLY_AGENCY",
+        "锚点候选 LATE_REINTERPRETATION",
+        "结构承诺 HIDDEN_IDENTITY"
+      ],
+      "matchedIntents": [
+        "ROLEPLAY_SECONDARY",
+        "DEDUCTION_SECONDARY"
+      ],
+      "warnings": [],
+      "fidelityScore": 0.51,
+      "provides": {
+        "primaryAxes": [
+          "IDENTITY",
+          "SECRECY"
+        ],
+        "secondaryAxes": [
+          "ROLEPLAY",
+          "DEDUCTION",
+          "SUSPICION"
+        ],
+        "interactionModes": [
+          "CONCEAL",
+          "PROBE",
+          "SUSPECT"
+        ],
+        "commitments": [
+          "HIDDEN_IDENTITY"
+        ],
+        "anchors": [
+          "EARLY_AGENCY",
+          "LATE_REINTERPRETATION"
+        ],
+        "resolutionPressure": "IDENTITY_REVEAL"
+      },
+      "mismatchPenalties": [
+        {
+          "code": "DOMINANT_AXIS_MISMATCH",
+          "message": "模板主轴 IDENTITY/SECRECY 未覆盖用户主意图 ROLEPLAY/DEDUCTION/EMOTIONAL"
+        }
+      ]
+    },
+    {
+      "templateId": "M07-4",
+      "familyId": "M07",
+      "score": 0.51,
+      "reasons": [
+        "次轴提供 ROLEPLAY（非主轴）",
+        "次轴提供 DEDUCTION（非主轴）",
+        "锚点候选 EARLY_AGENCY",
+        "锚点候选 LATE_REINTERPRETATION",
+        "结构承诺 HIDDEN_IDENTITY"
+      ],
+      "matchedIntents": [
+        "ROLEPLAY_SECONDARY",
+        "DEDUCTION_SECONDARY"
+      ],
+      "warnings": [],
+      "fidelityScore": 0.51,
+      "provides": {
+        "primaryAxes": [
+          "IDENTITY",
+          "SECRECY"
+        ],
+        "secondaryAxes": [
+          "ROLEPLAY",
+          "DEDUCTION",
+          "SUSPICION"
+        ],
+        "interactionModes": [
+          "CONCEAL",
+          "PROBE",
+          "SUSPECT"
+        ],
+        "commitments": [
+          "HIDDEN_IDENTITY"
+        ],
+        "anchors": [
+          "EARLY_AGENCY",
+          "LATE_REINTERPRETATION"
+        ],
+        "resolutionPressure": "IDENTITY_REVEAL"
+      },
+      "mismatchPenalties": [
+        {
+          "code": "DOMINANT_AXIS_MISMATCH",
+          "message": "模板主轴 IDENTITY/SECRECY 未覆盖用户主意图 ROLEPLAY/DEDUCTION/EMOTIONAL"
+        }
+      ]
+    },
+    {
+      "templateId": "M07-6",
+      "familyId": "M07",
+      "score": 0.51,
+      "reasons": [
+        "次轴提供 ROLEPLAY（非主轴）",
+        "次轴提供 DEDUCTION（非主轴）",
+        "锚点候选 EARLY_AGENCY",
+        "锚点候选 LATE_REINTERPRETATION",
+        "结构承诺 HIDDEN_IDENTITY"
+      ],
+      "matchedIntents": [
+        "ROLEPLAY_SECONDARY",
+        "DEDUCTION_SECONDARY"
+      ],
+      "warnings": [],
+      "fidelityScore": 0.51,
+      "provides": {
+        "primaryAxes": [
+          "IDENTITY",
+          "SECRECY"
+        ],
+        "secondaryAxes": [
+          "ROLEPLAY",
+          "DEDUCTION",
+          "SUSPICION"
+        ],
+        "interactionModes": [
+          "CONCEAL",
+          "PROBE",
+          "SUSPECT"
+        ],
+        "commitments": [
+          "HIDDEN_IDENTITY"
+        ],
+        "anchors": [
+          "EARLY_AGENCY",
+          "LATE_REINTERPRETATION"
+        ],
+        "resolutionPressure": "IDENTITY_REVEAL"
+      },
+      "mismatchPenalties": [
+        {
+          "code": "DOMINANT_AXIS_MISMATCH",
+          "message": "模板主轴 IDENTITY/SECRECY 未覆盖用户主意图 ROLEPLAY/DEDUCTION/EMOTIONAL"
+        }
+      ]
+    },
+    {
+      "templateId": "M07-7",
+      "familyId": "M07",
+      "score": 0.51,
+      "reasons": [
+        "次轴提供 ROLEPLAY（非主轴）",
+        "次轴提供 DEDUCTION（非主轴）",
+        "锚点候选 EARLY_AGENCY",
+        "锚点候选 LATE_REINTERPRETATION",
+        "结构承诺 HIDDEN_IDENTITY"
+      ],
+      "matchedIntents": [
+        "ROLEPLAY_SECONDARY",
+        "DEDUCTION_SECONDARY"
+      ],
+      "warnings": [],
+      "fidelityScore": 0.51,
+      "provides": {
+        "primaryAxes": [
+          "IDENTITY",
+          "SECRECY"
+        ],
+        "secondaryAxes": [
+          "ROLEPLAY",
+          "DEDUCTION",
+          "SUSPICION"
+        ],
+        "interactionModes": [
+          "CONCEAL",
+          "PROBE",
+          "SUSPECT"
+        ],
+        "commitments": [
+          "HIDDEN_IDENTITY"
+        ],
+        "anchors": [
+          "EARLY_AGENCY",
+          "LATE_REINTERPRETATION"
+        ],
+        "resolutionPressure": "IDENTITY_REVEAL"
+      },
+      "mismatchPenalties": [
+        {
+          "code": "DOMINANT_AXIS_MISMATCH",
+          "message": "模板主轴 IDENTITY/SECRECY 未覆盖用户主意图 ROLEPLAY/DEDUCTION/EMOTIONAL"
+        }
+      ]
+    },
+    {
+      "templateId": "M07-8",
+      "familyId": "M07",
+      "score": 0.51,
+      "reasons": [
+        "次轴提供 ROLEPLAY（非主轴）",
+        "次轴提供 DEDUCTION（非主轴）",
+        "锚点候选 EARLY_AGENCY",
+        "锚点候选 LATE_REINTERPRETATION",
+        "结构承诺 HIDDEN_IDENTITY"
+      ],
+      "matchedIntents": [
+        "ROLEPLAY_SECONDARY",
+        "DEDUCTION_SECONDARY"
+      ],
+      "warnings": [],
+      "fidelityScore": 0.51,
+      "provides": {
+        "primaryAxes": [
+          "IDENTITY",
+          "SECRECY"
+        ],
+        "secondaryAxes": [
+          "ROLEPLAY",
+          "DEDUCTION",
+          "SUSPICION"
+        ],
+        "interactionModes": [
+          "CONCEAL",
+          "PROBE",
+          "SUSPECT"
+        ],
+        "commitments": [
+          "HIDDEN_IDENTITY"
+        ],
+        "anchors": [
+          "EARLY_AGENCY",
+          "LATE_REINTERPRETATION"
+        ],
+        "resolutionPressure": "IDENTITY_REVEAL"
+      },
+      "mismatchPenalties": [
+        {
+          "code": "DOMINANT_AXIS_MISMATCH",
+          "message": "模板主轴 IDENTITY/SECRECY 未覆盖用户主意图 ROLEPLAY/DEDUCTION/EMOTIONAL"
+        }
+      ]
+    },
+    {
+      "templateId": "M07-2",
+      "familyId": "M07",
+      "score": 0.37,
+      "reasons": [
+        "次轴提供 DEDUCTION（非主轴）",
+        "锚点候选 EARLY_AGENCY",
+        "结构承诺 HIDDEN_IDENTITY"
+      ],
+      "matchedIntents": [
+        "DEDUCTION_SECONDARY"
+      ],
+      "warnings": [],
+      "fidelityScore": 0.37,
+      "provides": {
+        "primaryAxes": [
+          "IDENTITY",
+          "MECHANISM"
+        ],
+        "secondaryAxes": [
+          "SECRECY",
+          "DEDUCTION"
+        ],
+        "interactionModes": [
+          "PROBE",
+          "CONCEAL",
+          "SUSPECT"
+        ],
+        "commitments": [
+          "HIDDEN_IDENTITY"
+        ],
+        "anchors": [
+          "EARLY_AGENCY"
+        ],
+        "resolutionPressure": "IDENTITY_REVEAL"
+      },
+      "mismatchPenalties": [
+        {
+          "code": "DOMINANT_AXIS_MISMATCH",
+          "message": "模板主轴 IDENTITY/MECHANISM 未覆盖用户主意图 ROLEPLAY/DEDUCTION/EMOTIONAL"
+        }
+      ]
+    },
+    {
+      "templateId": "M07-5",
+      "familyId": "M07",
+      "score": 0.37,
+      "reasons": [
+        "次轴提供 DEDUCTION（非主轴）",
+        "锚点候选 EARLY_AGENCY",
+        "结构承诺 HIDDEN_IDENTITY"
+      ],
+      "matchedIntents": [
+        "DEDUCTION_SECONDARY"
+      ],
+      "warnings": [],
+      "fidelityScore": 0.37,
+      "provides": {
+        "primaryAxes": [
+          "IDENTITY",
+          "MECHANISM"
+        ],
+        "secondaryAxes": [
+          "SECRECY",
+          "DEDUCTION"
+        ],
+        "interactionModes": [
+          "PROBE",
+          "CONCEAL",
+          "SUSPECT"
+        ],
+        "commitments": [
+          "HIDDEN_IDENTITY"
+        ],
+        "anchors": [
+          "EARLY_AGENCY"
+        ],
+        "resolutionPressure": "IDENTITY_REVEAL"
+      },
+      "mismatchPenalties": [
+        {
+          "code": "DOMINANT_AXIS_MISMATCH",
+          "message": "模板主轴 IDENTITY/MECHANISM 未覆盖用户主意图 ROLEPLAY/DEDUCTION/EMOTIONAL"
+        }
+      ]
+    },
+    {
+      "templateId": "M01-1",
+      "familyId": "M01",
+      "score": 0,
+      "reasons": [
+        "EXPERIENCE_PROFILE_INCOMPLETE — 不参与 fidelity-complete 推荐"
+      ],
+      "matchedIntents": [],
+      "warnings": [
+        "EXPERIENCE_PROFILE_INCOMPLETE"
+      ],
+      "fidelityScore": 0,
+      "provides": {
+        "primaryAxes": [],
+        "secondaryAxes": [],
+        "interactionModes": [],
+        "commitments": [],
+        "anchors": []
+      },
+      "mismatchPenalties": []
+    },
+    {
+      "templateId": "M01-10",
+      "familyId": "M01",
+      "score": 0,
+      "reasons": [
+        "EXPERIENCE_PROFILE_INCOMPLETE — 不参与 fidelity-complete 推荐"
+      ],
+      "matchedIntents": [],
+      "warnings": [
+        "EXPERIENCE_PROFILE_INCOMPLETE"
+      ],
+      "fidelityScore": 0,
+      "provides": {
+        "primaryAxes": [],
+        "secondaryAxes": [],
+        "interactionModes": [],
+        "commitments": [],
+        "anchors": []
+      },
+      "mismatchPenalties": []
+    },
+    {
+      "templateId": "M08-1",
+      "familyId": "M08",
+      "score": 0,
+      "reasons": [
+        "次轴提供 ROLEPLAY（非主轴）",
+        "互动模式 NEGOTIATE",
+        "锚点候选 EARLY_AGENCY",
+        "同时引入 − FACTION_STRUCTURE",
+        "结论：不以 ROLEPLAY 作为首选理由；阵营线需作者显式接受"
+      ],
+      "matchedIntents": [
+        "ROLEPLAY_SECONDARY"
+      ],
+      "warnings": [
+        "UNWANTED_STRUCTURAL_COMMITMENT:FACTION_STRUCTURE",
+        "UNWANTED_STRUCTURAL_COMMITMENT:FACTION_STRUCTURE",
+        "NOT_ROLEPLAY_PRIMARY"
+      ],
+      "fidelityScore": 0,
+      "provides": {
+        "primaryAxes": [
+          "FACTION"
+        ],
+        "secondaryAxes": [
+          "ROLEPLAY",
+          "SUSPICION"
+        ],
+        "interactionModes": [
+          "CONCEAL",
+          "SUSPECT",
+          "NEGOTIATE"
+        ],
+        "commitments": [
+          "FACTION_STRUCTURE"
+        ],
+        "anchors": [
+          "EARLY_AGENCY"
+        ],
+        "resolutionPressure": "FACTION_SETTLE"
+      },
+      "mismatchPenalties": [
+        {
+          "code": "SECONDARY_ROLEPLAY_ON_FACTION_PRIMARY",
+          "message": "ROLEPLAY 仅为次轴，主轴是 FACTION；faction 权重低时不应当 ROLEPLAY 优选"
+        },
+        {
+          "code": "DOMINANT_AXIS_MISMATCH",
+          "message": "模板主轴 FACTION 未覆盖用户主意图 ROLEPLAY/DEDUCTION/EMOTIONAL"
+        },
+        {
+          "code": "UNWANTED_STRUCTURAL_COMMITMENT",
+          "commitment": "FACTION_STRUCTURE",
+          "message": "引入 FACTION_STRUCTURE，但用户对应体验权重偏低"
+        }
+      ]
+    },
+    {
+      "templateId": "M08-2",
+      "familyId": "M08",
+      "score": 0,
+      "reasons": [
+        "次轴提供 ROLEPLAY（非主轴）",
+        "互动模式 NEGOTIATE",
+        "锚点候选 EARLY_AGENCY",
+        "同时引入 − FACTION_STRUCTURE",
+        "结论：不以 ROLEPLAY 作为首选理由；阵营线需作者显式接受"
+      ],
+      "matchedIntents": [
+        "ROLEPLAY_SECONDARY"
+      ],
+      "warnings": [
+        "UNWANTED_STRUCTURAL_COMMITMENT:FACTION_STRUCTURE",
+        "UNWANTED_STRUCTURAL_COMMITMENT:FACTION_STRUCTURE",
+        "NOT_ROLEPLAY_PRIMARY"
+      ],
+      "fidelityScore": 0,
+      "provides": {
+        "primaryAxes": [
+          "FACTION"
+        ],
+        "secondaryAxes": [
+          "ROLEPLAY",
+          "SUSPICION"
+        ],
+        "interactionModes": [
+          "CONCEAL",
+          "SUSPECT",
+          "NEGOTIATE"
+        ],
+        "commitments": [
+          "FACTION_STRUCTURE"
+        ],
+        "anchors": [
+          "EARLY_AGENCY"
+        ],
+        "resolutionPressure": "FACTION_SETTLE"
+      },
+      "mismatchPenalties": [
+        {
+          "code": "SECONDARY_ROLEPLAY_ON_FACTION_PRIMARY",
+          "message": "ROLEPLAY 仅为次轴，主轴是 FACTION；faction 权重低时不应当 ROLEPLAY 优选"
+        },
+        {
+          "code": "DOMINANT_AXIS_MISMATCH",
+          "message": "模板主轴 FACTION 未覆盖用户主意图 ROLEPLAY/DEDUCTION/EMOTIONAL"
+        },
+        {
+          "code": "UNWANTED_STRUCTURAL_COMMITMENT",
+          "commitment": "FACTION_STRUCTURE",
+          "message": "引入 FACTION_STRUCTURE，但用户对应体验权重偏低"
+        }
+      ]
+    },
+    {
+      "templateId": "M08-3",
+      "familyId": "M08",
+      "score": 0,
+      "reasons": [
+        "次轴提供 ROLEPLAY（非主轴）",
+        "互动模式 NEGOTIATE",
+        "锚点候选 EARLY_AGENCY",
+        "同时引入 − FACTION_STRUCTURE",
+        "结论：不以 ROLEPLAY 作为首选理由；阵营线需作者显式接受"
+      ],
+      "matchedIntents": [
+        "ROLEPLAY_SECONDARY"
+      ],
+      "warnings": [
+        "UNWANTED_STRUCTURAL_COMMITMENT:FACTION_STRUCTURE",
+        "UNWANTED_STRUCTURAL_COMMITMENT:FACTION_STRUCTURE",
+        "NOT_ROLEPLAY_PRIMARY"
+      ],
+      "fidelityScore": 0,
+      "provides": {
+        "primaryAxes": [
+          "FACTION"
+        ],
+        "secondaryAxes": [
+          "ROLEPLAY",
+          "SUSPICION"
+        ],
+        "interactionModes": [
+          "CONCEAL",
+          "SUSPECT",
+          "NEGOTIATE"
+        ],
+        "commitments": [
+          "FACTION_STRUCTURE"
+        ],
+        "anchors": [
+          "EARLY_AGENCY"
+        ],
+        "resolutionPressure": "FACTION_SETTLE"
+      },
+      "mismatchPenalties": [
+        {
+          "code": "SECONDARY_ROLEPLAY_ON_FACTION_PRIMARY",
+          "message": "ROLEPLAY 仅为次轴，主轴是 FACTION；faction 权重低时不应当 ROLEPLAY 优选"
+        },
+        {
+          "code": "DOMINANT_AXIS_MISMATCH",
+          "message": "模板主轴 FACTION 未覆盖用户主意图 ROLEPLAY/DEDUCTION/EMOTIONAL"
+        },
+        {
+          "code": "UNWANTED_STRUCTURAL_COMMITMENT",
+          "commitment": "FACTION_STRUCTURE",
+          "message": "引入 FACTION_STRUCTURE，但用户对应体验权重偏低"
+        }
+      ]
+    },
+    {
+      "templateId": "M08-4",
+      "familyId": "M08",
+      "score": 0,
+      "reasons": [
+        "次轴提供 ROLEPLAY（非主轴）",
+        "互动模式 NEGOTIATE",
+        "锚点候选 EARLY_AGENCY",
+        "同时引入 − FACTION_STRUCTURE",
+        "结论：不以 ROLEPLAY 作为首选理由；阵营线需作者显式接受"
+      ],
+      "matchedIntents": [
+        "ROLEPLAY_SECONDARY"
+      ],
+      "warnings": [
+        "UNWANTED_STRUCTURAL_COMMITMENT:FACTION_STRUCTURE",
+        "UNWANTED_STRUCTURAL_COMMITMENT:FACTION_STRUCTURE",
+        "NOT_ROLEPLAY_PRIMARY"
+      ],
+      "fidelityScore": 0,
+      "provides": {
+        "primaryAxes": [
+          "FACTION"
+        ],
+        "secondaryAxes": [
+          "ROLEPLAY",
+          "SUSPICION"
+        ],
+        "interactionModes": [
+          "CONCEAL",
+          "SUSPECT",
+          "NEGOTIATE"
+        ],
+        "commitments": [
+          "FACTION_STRUCTURE"
+        ],
+        "anchors": [
+          "EARLY_AGENCY"
+        ],
+        "resolutionPressure": "FACTION_SETTLE"
+      },
+      "mismatchPenalties": [
+        {
+          "code": "SECONDARY_ROLEPLAY_ON_FACTION_PRIMARY",
+          "message": "ROLEPLAY 仅为次轴，主轴是 FACTION；faction 权重低时不应当 ROLEPLAY 优选"
+        },
+        {
+          "code": "DOMINANT_AXIS_MISMATCH",
+          "message": "模板主轴 FACTION 未覆盖用户主意图 ROLEPLAY/DEDUCTION/EMOTIONAL"
+        },
+        {
+          "code": "UNWANTED_STRUCTURAL_COMMITMENT",
+          "commitment": "FACTION_STRUCTURE",
+          "message": "引入 FACTION_STRUCTURE，但用户对应体验权重偏低"
+        }
+      ]
+    }
+  ],
+  "coverage": {
+    "deduction": 1,
+    "roleplay": 1,
+    "faction": 1,
+    "mechanism": 0.6666666666666666,
+    "emotional": 1
+  },
+  "intentEnvelope": {
+    "version": 1,
+    "sourceSpecId": "pcs-mtpiyznz-7t78l3",
+    "sourceSpecRevision": 1,
+    "experienceWeights": {
+      "deduction": 0.65,
+      "roleplay": 0.75,
+      "faction": 0.35,
+      "mechanism": 0.25,
+      "emotional": 0.55
+    },
+    "desiredPrimaryAxes": [
+      {
+        "axis": "ROLEPLAY",
+        "weight": 0.75,
+        "source": "roleplay"
+      },
+      {
+        "axis": "DEDUCTION",
+        "weight": 0.65,
+        "source": "deduction"
+      },
+      {
+        "axis": "EMOTIONAL",
+        "weight": 0.55,
+        "source": "emotional"
+      }
+    ],
+    "lowInterestAxes": [
+      {
+        "axis": "FACTION",
+        "weight": 0.35,
+        "source": "faction"
+      },
+      {
+        "axis": "MECHANISM",
+        "weight": 0.25,
+        "source": "mechanism"
+      }
+    ],
+    "dominantAxis": "ROLEPLAY",
+    "desiredInteractionModes": [
+      {
+        "mode": "NEGOTIATE",
+        "sourceGameplay": "NEGOTIATION"
+      }
+    ],
+    "confirmedAnchors": [
+      {
+        "anchor": "EARLY_AGENCY",
+        "sourceText": "前20分钟玩家就有事情想做",
+        "status": "CONFIRMED"
+      },
+      {
+        "anchor": "OWNERSHIP_SHIFT",
+        "sourceText": "中途至少一次资源或信息所有权变化",
+        "status": "CONFIRMED"
+      },
+      {
+        "anchor": "LATE_REINTERPRETATION",
+        "sourceText": "后半段需要重新理解前面发生过的一件事",
+        "status": "CONFIRMED"
+      },
+      {
+        "anchor": "FLEXIBLE_RESOLUTION",
+        "sourceText": "不要求传统唯一凶手",
+        "status": "CONFIRMED"
+      }
+    ],
+    "unresolvedExplicitIntents": [],
+    "avoidTexts": [
+      "照抄青楼流程",
+      "为塞机制而塞 GAME",
+      "必须唯一凶手"
+    ],
+    "fidelityGateHint": "READY",
+    "notes": [
+      "mustKeep 原文不自动 NLP 映射；须作者确认 ExperienceAnchor",
+      "ROLEPLAY 高 ≠ 自动接受 FACTION_STRUCTURE"
+    ]
+  },
+  "bundles": [
+    {
+      "blockTemplateIds": [
+        "M12-1",
+        "M07-1"
+      ],
+      "familyIds": [
+        "M12",
+        "M07"
+      ],
+      "fidelityScore": 0.767,
+      "primaryCoverage": 1,
+      "primaryStrictCoverage": 0.333,
+      "interactionCoverage": 1,
+      "anchorCoverage": 1,
+      "anchorStates": [
+        {
+          "anchor": "EARLY_AGENCY",
+          "status": "COVERED_BY_PROFILE"
+        },
+        {
+          "anchor": "OWNERSHIP_SHIFT",
+          "status": "COVERED_BY_PROFILE"
+        },
+        {
+          "anchor": "LATE_REINTERPRETATION",
+          "status": "COVERED_BY_PROFILE"
+        },
+        {
+          "anchor": "FLEXIBLE_RESOLUTION",
+          "status": "COVERED_BY_PROFILE"
+        }
+      ],
+      "introducedCommitments": [
+        "RELATIONSHIP_BARGAIN",
+        "HIDDEN_IDENTITY"
+      ],
+      "unwantedCommitments": [],
+      "missingIntents": [],
+      "missingInteractionModes": [],
+      "mismatchPenalties": [
+        {
+          "code": "DOMINANT_AXIS_MISMATCH",
+          "message": "模板主轴 IDENTITY/SECRECY 未覆盖用户主意图 ROLEPLAY/DEDUCTION/EMOTIONAL"
+        }
+      ],
+      "reasons": [
+        "主轴严格覆盖 0.333",
+        "互动覆盖 1",
+        "锚点覆盖 1",
+        "2-block bundle（允许）",
+        "引入承诺 RELATIONSHIP_BARGAIN",
+        "引入承诺 HIDDEN_IDENTITY"
+      ],
+      "warnings": [],
+      "familyDiversity": 2
+    },
+    {
+      "blockTemplateIds": [
+        "M12-1",
+        "M07-3"
+      ],
+      "familyIds": [
+        "M12",
+        "M07"
+      ],
+      "fidelityScore": 0.767,
+      "primaryCoverage": 1,
+      "primaryStrictCoverage": 0.333,
+      "interactionCoverage": 1,
+      "anchorCoverage": 1,
+      "anchorStates": [
+        {
+          "anchor": "EARLY_AGENCY",
+          "status": "COVERED_BY_PROFILE"
+        },
+        {
+          "anchor": "OWNERSHIP_SHIFT",
+          "status": "COVERED_BY_PROFILE"
+        },
+        {
+          "anchor": "LATE_REINTERPRETATION",
+          "status": "COVERED_BY_PROFILE"
+        },
+        {
+          "anchor": "FLEXIBLE_RESOLUTION",
+          "status": "COVERED_BY_PROFILE"
+        }
+      ],
+      "introducedCommitments": [
+        "RELATIONSHIP_BARGAIN",
+        "HIDDEN_IDENTITY"
+      ],
+      "unwantedCommitments": [],
+      "missingIntents": [],
+      "missingInteractionModes": [],
+      "mismatchPenalties": [
+        {
+          "code": "DOMINANT_AXIS_MISMATCH",
+          "message": "模板主轴 IDENTITY/SECRECY 未覆盖用户主意图 ROLEPLAY/DEDUCTION/EMOTIONAL"
+        }
+      ],
+      "reasons": [
+        "主轴严格覆盖 0.333",
+        "互动覆盖 1",
+        "锚点覆盖 1",
+        "2-block bundle（允许）",
+        "引入承诺 RELATIONSHIP_BARGAIN",
+        "引入承诺 HIDDEN_IDENTITY"
+      ],
+      "warnings": [],
+      "familyDiversity": 2
+    },
+    {
+      "blockTemplateIds": [
+        "M12-1",
+        "M07-4"
+      ],
+      "familyIds": [
+        "M12",
+        "M07"
+      ],
+      "fidelityScore": 0.767,
+      "primaryCoverage": 1,
+      "primaryStrictCoverage": 0.333,
+      "interactionCoverage": 1,
+      "anchorCoverage": 1,
+      "anchorStates": [
+        {
+          "anchor": "EARLY_AGENCY",
+          "status": "COVERED_BY_PROFILE"
+        },
+        {
+          "anchor": "OWNERSHIP_SHIFT",
+          "status": "COVERED_BY_PROFILE"
+        },
+        {
+          "anchor": "LATE_REINTERPRETATION",
+          "status": "COVERED_BY_PROFILE"
+        },
+        {
+          "anchor": "FLEXIBLE_RESOLUTION",
+          "status": "COVERED_BY_PROFILE"
+        }
+      ],
+      "introducedCommitments": [
+        "RELATIONSHIP_BARGAIN",
+        "HIDDEN_IDENTITY"
+      ],
+      "unwantedCommitments": [],
+      "missingIntents": [],
+      "missingInteractionModes": [],
+      "mismatchPenalties": [
+        {
+          "code": "DOMINANT_AXIS_MISMATCH",
+          "message": "模板主轴 IDENTITY/SECRECY 未覆盖用户主意图 ROLEPLAY/DEDUCTION/EMOTIONAL"
+        }
+      ],
+      "reasons": [
+        "主轴严格覆盖 0.333",
+        "互动覆盖 1",
+        "锚点覆盖 1",
+        "2-block bundle（允许）",
+        "引入承诺 RELATIONSHIP_BARGAIN",
+        "引入承诺 HIDDEN_IDENTITY"
+      ],
+      "warnings": [],
+      "familyDiversity": 2
+    },
+    {
+      "blockTemplateIds": [
+        "M12-1",
+        "M07-6"
+      ],
+      "familyIds": [
+        "M12",
+        "M07"
+      ],
+      "fidelityScore": 0.767,
+      "primaryCoverage": 1,
+      "primaryStrictCoverage": 0.333,
+      "interactionCoverage": 1,
+      "anchorCoverage": 1,
+      "anchorStates": [
+        {
+          "anchor": "EARLY_AGENCY",
+          "status": "COVERED_BY_PROFILE"
+        },
+        {
+          "anchor": "OWNERSHIP_SHIFT",
+          "status": "COVERED_BY_PROFILE"
+        },
+        {
+          "anchor": "LATE_REINTERPRETATION",
+          "status": "COVERED_BY_PROFILE"
+        },
+        {
+          "anchor": "FLEXIBLE_RESOLUTION",
+          "status": "COVERED_BY_PROFILE"
+        }
+      ],
+      "introducedCommitments": [
+        "RELATIONSHIP_BARGAIN",
+        "HIDDEN_IDENTITY"
+      ],
+      "unwantedCommitments": [],
+      "missingIntents": [],
+      "missingInteractionModes": [],
+      "mismatchPenalties": [
+        {
+          "code": "DOMINANT_AXIS_MISMATCH",
+          "message": "模板主轴 IDENTITY/SECRECY 未覆盖用户主意图 ROLEPLAY/DEDUCTION/EMOTIONAL"
+        }
+      ],
+      "reasons": [
+        "主轴严格覆盖 0.333",
+        "互动覆盖 1",
+        "锚点覆盖 1",
+        "2-block bundle（允许）",
+        "引入承诺 RELATIONSHIP_BARGAIN",
+        "引入承诺 HIDDEN_IDENTITY"
+      ],
+      "warnings": [],
+      "familyDiversity": 2
+    },
+    {
+      "blockTemplateIds": [
+        "M12-1"
+      ],
+      "familyIds": [
+        "M12"
+      ],
+      "fidelityScore": 0.683,
+      "primaryCoverage": 0.667,
+      "primaryStrictCoverage": 0.333,
+      "interactionCoverage": 1,
+      "anchorCoverage": 0.75,
+      "anchorStates": [
+        {
+          "anchor": "EARLY_AGENCY",
+          "status": "COVERED_BY_PROFILE"
+        },
+        {
+          "anchor": "OWNERSHIP_SHIFT",
+          "status": "COVERED_BY_PROFILE"
+        },
+        {
+          "anchor": "LATE_REINTERPRETATION",
+          "status": "UNCOVERED"
+        },
+        {
+          "anchor": "FLEXIBLE_RESOLUTION",
+          "status": "COVERED_BY_PROFILE"
+        }
+      ],
+      "introducedCommitments": [
+        "RELATIONSHIP_BARGAIN"
+      ],
+      "unwantedCommitments": [],
+      "missingIntents": [
+        "DEDUCTION"
+      ],
+      "missingInteractionModes": [],
+      "mismatchPenalties": [],
+      "reasons": [
+        "主轴严格覆盖 0.333",
+        "互动覆盖 1",
+        "锚点覆盖 0.75",
+        "1-block bundle",
+        "引入承诺 RELATIONSHIP_BARGAIN"
+      ],
+      "warnings": [
+        "ANCHOR_UNCOVERED:LATE_REINTERPRETATION"
+      ],
+      "familyDiversity": 1
+    },
+    {
+      "blockTemplateIds": [
+        "M12-1",
+        "M01-FRAMING"
+      ],
+      "familyIds": [
+        "M12",
+        "M01"
+      ],
+      "fidelityScore": 0.603,
+      "primaryCoverage": 1,
+      "primaryStrictCoverage": 0.667,
+      "interactionCoverage": 1,
+      "anchorCoverage": 1,
+      "anchorStates": [
+        {
+          "anchor": "EARLY_AGENCY",
+          "status": "COVERED_BY_PROFILE"
+        },
+        {
+          "anchor": "OWNERSHIP_SHIFT",
+          "status": "COVERED_BY_PROFILE"
+        },
+        {
+          "anchor": "LATE_REINTERPRETATION",
+          "status": "COVERED_BY_PROFILE"
+        },
+        {
+          "anchor": "FLEXIBLE_RESOLUTION",
+          "status": "COVERED_BY_PROFILE"
+        }
+      ],
+      "introducedCommitments": [
+        "RELATIONSHIP_BARGAIN",
+        "CRIME_FRAMING"
+      ],
+      "unwantedCommitments": [],
+      "missingIntents": [],
+      "missingInteractionModes": [],
+      "mismatchPenalties": [
+        {
+          "code": "RESOLUTION_MODE_CAPTURE_RISK",
+          "message": "CULPRIT_CENTRIC_HIGH 与 FLEXIBLE_RESOLUTION 张力；不可静默吞掉"
+        }
+      ],
+      "reasons": [
+        "主轴严格覆盖 0.667",
+        "互动覆盖 1",
+        "锚点覆盖 1",
+        "2-block bundle（允许）",
+        "引入承诺 RELATIONSHIP_BARGAIN",
+        "引入承诺 CRIME_FRAMING"
+      ],
+      "warnings": [
+        "RESOLUTION_MODE_CAPTURE"
+      ],
+      "familyDiversity": 2
+    },
+    {
+      "blockTemplateIds": [
+        "M12-1",
+        "M01-FRAMING",
+        "M07-1"
+      ],
+      "familyIds": [
+        "M12",
+        "M01",
+        "M07"
+      ],
+      "fidelityScore": 0.603,
+      "primaryCoverage": 1,
+      "primaryStrictCoverage": 0.667,
+      "interactionCoverage": 1,
+      "anchorCoverage": 1,
+      "anchorStates": [
+        {
+          "anchor": "EARLY_AGENCY",
+          "status": "COVERED_BY_PROFILE"
+        },
+        {
+          "anchor": "OWNERSHIP_SHIFT",
+          "status": "COVERED_BY_PROFILE"
+        },
+        {
+          "anchor": "LATE_REINTERPRETATION",
+          "status": "COVERED_BY_PROFILE"
+        },
+        {
+          "anchor": "FLEXIBLE_RESOLUTION",
+          "status": "COVERED_BY_PROFILE"
+        }
+      ],
+      "introducedCommitments": [
+        "RELATIONSHIP_BARGAIN",
+        "CRIME_FRAMING",
+        "HIDDEN_IDENTITY"
+      ],
+      "unwantedCommitments": [],
+      "missingIntents": [],
+      "missingInteractionModes": [],
+      "mismatchPenalties": [
+        {
+          "code": "RESOLUTION_MODE_CAPTURE_RISK",
+          "message": "CULPRIT_CENTRIC_HIGH 与 FLEXIBLE_RESOLUTION 张力；不可静默吞掉"
+        },
+        {
+          "code": "DOMINANT_AXIS_MISMATCH",
+          "message": "模板主轴 IDENTITY/SECRECY 未覆盖用户主意图 ROLEPLAY/DEDUCTION/EMOTIONAL"
+        }
+      ],
+      "reasons": [
+        "主轴严格覆盖 0.667",
+        "互动覆盖 1",
+        "锚点覆盖 1",
+        "3-block bundle",
+        "引入承诺 RELATIONSHIP_BARGAIN",
+        "引入承诺 CRIME_FRAMING",
+        "引入承诺 HIDDEN_IDENTITY"
+      ],
+      "warnings": [
+        "RESOLUTION_MODE_CAPTURE"
+      ],
+      "familyDiversity": 3
+    },
+    {
+      "blockTemplateIds": [
+        "M12-1",
+        "M01-FRAMING",
+        "M07-3"
+      ],
+      "familyIds": [
+        "M12",
+        "M01",
+        "M07"
+      ],
+      "fidelityScore": 0.603,
+      "primaryCoverage": 1,
+      "primaryStrictCoverage": 0.667,
+      "interactionCoverage": 1,
+      "anchorCoverage": 1,
+      "anchorStates": [
+        {
+          "anchor": "EARLY_AGENCY",
+          "status": "COVERED_BY_PROFILE"
+        },
+        {
+          "anchor": "OWNERSHIP_SHIFT",
+          "status": "COVERED_BY_PROFILE"
+        },
+        {
+          "anchor": "LATE_REINTERPRETATION",
+          "status": "COVERED_BY_PROFILE"
+        },
+        {
+          "anchor": "FLEXIBLE_RESOLUTION",
+          "status": "COVERED_BY_PROFILE"
+        }
+      ],
+      "introducedCommitments": [
+        "RELATIONSHIP_BARGAIN",
+        "CRIME_FRAMING",
+        "HIDDEN_IDENTITY"
+      ],
+      "unwantedCommitments": [],
+      "missingIntents": [],
+      "missingInteractionModes": [],
+      "mismatchPenalties": [
+        {
+          "code": "RESOLUTION_MODE_CAPTURE_RISK",
+          "message": "CULPRIT_CENTRIC_HIGH 与 FLEXIBLE_RESOLUTION 张力；不可静默吞掉"
+        },
+        {
+          "code": "DOMINANT_AXIS_MISMATCH",
+          "message": "模板主轴 IDENTITY/SECRECY 未覆盖用户主意图 ROLEPLAY/DEDUCTION/EMOTIONAL"
+        }
+      ],
+      "reasons": [
+        "主轴严格覆盖 0.667",
+        "互动覆盖 1",
+        "锚点覆盖 1",
+        "3-block bundle",
+        "引入承诺 RELATIONSHIP_BARGAIN",
+        "引入承诺 CRIME_FRAMING",
+        "引入承诺 HIDDEN_IDENTITY"
+      ],
+      "warnings": [
+        "RESOLUTION_MODE_CAPTURE"
+      ],
+      "familyDiversity": 3
+    }
+  ],
+  "recommendedBundle": {
+    "blockTemplateIds": [
+      "M12-1",
+      "M07-1"
+    ],
+    "familyIds": [
+      "M12",
+      "M07"
+    ],
+    "fidelityScore": 0.767,
+    "primaryCoverage": 1,
+    "primaryStrictCoverage": 0.333,
+    "interactionCoverage": 1,
+    "anchorCoverage": 1,
+    "anchorStates": [
+      {
+        "anchor": "EARLY_AGENCY",
+        "status": "COVERED_BY_PROFILE"
+      },
+      {
+        "anchor": "OWNERSHIP_SHIFT",
+        "status": "COVERED_BY_PROFILE"
+      },
+      {
+        "anchor": "LATE_REINTERPRETATION",
+        "status": "COVERED_BY_PROFILE"
+      },
+      {
+        "anchor": "FLEXIBLE_RESOLUTION",
+        "status": "COVERED_BY_PROFILE"
+      }
+    ],
+    "introducedCommitments": [
+      "RELATIONSHIP_BARGAIN",
+      "HIDDEN_IDENTITY"
+    ],
+    "unwantedCommitments": [],
+    "missingIntents": [],
+    "missingInteractionModes": [],
+    "mismatchPenalties": [
+      {
+        "code": "DOMINANT_AXIS_MISMATCH",
+        "message": "模板主轴 IDENTITY/SECRECY 未覆盖用户主意图 ROLEPLAY/DEDUCTION/EMOTIONAL"
+      }
+    ],
+    "reasons": [
+      "主轴严格覆盖 0.333",
+      "互动覆盖 1",
+      "锚点覆盖 1",
+      "2-block bundle（允许）",
+      "引入承诺 RELATIONSHIP_BARGAIN",
+      "引入承诺 HIDDEN_IDENTITY"
+    ],
+    "warnings": [],
+    "familyDiversity": 2
+  },
+  "recommendationStatus": "OK",
+  "coverageGaps": {
+    "missingInteractionModes": [],
+    "uncoveredAnchors": [],
+    "unwantedCommitments": []
+  },
+  "gameplayCandidates": [
+    {
+      "intentTag": "NEGOTIATION",
+      "internalFamilyHints": [
+        "M04",
+        "M06"
+      ],
+      "reasons": [
+        "用户偏好「NEGOTIATION」→ 内部候选族 M04/M06"
+      ],
+      "warnings": [
+        "P8.1 仅保留意图与候选提示；不做 stage placement / OutcomeBinding / Runtime"
+      ]
+    }
+  ]
+}

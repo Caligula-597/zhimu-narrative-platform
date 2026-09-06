@@ -1,0 +1,53 @@
+{
+  "status": "READY_WITH_WARNINGS",
+  "blockers": [],
+  "fillableGaps": [
+    {
+      "id": "warn-clue-ob-mtpiyzom-8ory",
+      "type": "MISSING_CLUE_DETAIL",
+      "severity": "info",
+      "message": "该剧情 beat 需要/产生事实接口，但模板尚未绑定具体线索内容。",
+      "stageIds": [
+        "act4"
+      ],
+      "beatIds": [
+        "ob-mtpiyzom-8ory"
+      ]
+    },
+    {
+      "id": "warn-clue-ob-mtpiyzom-njbm",
+      "type": "MISSING_CLUE_DETAIL",
+      "severity": "info",
+      "message": "该剧情 beat 需要/产生事实接口，但模板尚未绑定具体线索内容。",
+      "stageIds": [
+        "act4"
+      ],
+      "beatIds": [
+        "ob-mtpiyzom-njbm"
+      ]
+    }
+  ],
+  "advisories": [
+    {
+      "id": "warn-low-weave",
+      "type": "LOW_WEAVE_DENSITY",
+      "severity": "info",
+      "message": "整本存在较少真正交织关系；当前母稿主要由平行剧情 + 同场并列构成。P6 未伪造额外因果。",
+      "stageIds": [
+        "act1",
+        "act2",
+        "act3",
+        "act4"
+      ],
+      "beatIds": []
+    },
+    {
+      "id": "warn-parallel-heavy",
+      "type": "PARALLEL_HEAVY",
+      "severity": "info",
+      "message": "当前结构以平行线为主；这是诚实输出，不是失败。若需交织请在交织骨架提出调整。",
+      "stageIds": [],
+      "beatIds": []
+    }
+  ]
+}

@@ -1,0 +1,38 @@
+{
+  "trialId": "RPT-1B",
+  "title": "闭馆之后",
+  "trialVerdict": "TRIAL_PARTIAL",
+  "systemVerdict": "TRIAL_PARTIAL",
+  "changeVerdict": null,
+  "changeVerdictNote": "留给人工：P10.3 CHANGE PASS/FAIL；SYSTEM PARTIAL 不自动否定 CHANGE",
+  "comparison": {
+    "rpt1aRun": "2026-09-06T04-19-32-742Z",
+    "rpt1aBundle": ["M01-FRAMING", "M07-1", "M08-1"],
+    "rpt1bBundle": ["M12-1", "M07-1"],
+    "isolation": "same CreationSpec + deepseek-v4-flash; Writer/Context/PMD/P9.4 unchanged"
+  },
+  "writerMode": {
+    "mode": "real",
+    "adapterId": "deepseek-script-writer",
+    "modelId": "deepseek-v4-flash"
+  },
+  "quality": {
+    "status": "QUALITY_BLOCKED",
+    "totalScore": 69,
+    "hardBlockers": 1,
+    "hardBlockerTypes": ["HOST_CANNOT_RUN"],
+    "lowestDimensions": [
+      { "id": "E_AESTHETIC_VOICE", "score": 2 },
+      { "id": "F_ENDING_PAYOFF", "score": 2.5 },
+      { "id": "D_GAME_NARRATIVE_FUSION", "score": 3 }
+    ]
+  },
+  "humanIntervention": {
+    "authorConfirmations": 7,
+    "systemAuto": 8,
+    "developerFirefighting": 0
+  },
+  "modelCalls": 23,
+  "elapsedMs": 142092,
+  "artifactDir": "trials/rpt-1-closed-after-hours/runs/2026-09-06T08-03-37-863Z"
+}

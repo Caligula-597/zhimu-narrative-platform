@@ -64,5 +64,6 @@ node --test scripts/creation-intent-fidelity.test.mjs
 
 ## 下一步
 
-Gate 通过后 → **Full Real Production Trial 重跑**（真模型）。  
+Gate 已通过 → **RPT #1B Full Real-Model Rerun**（同 CreationSpec A/B）。  
+见 [`RPT1B_POST_P10_3_REAL_RERUN_ZH.md`](./RPT1B_POST_P10_3_REAL_RERUN_ZH.md)。  
 Writer V2 / Context Domain：**仍 NOT NOW。**

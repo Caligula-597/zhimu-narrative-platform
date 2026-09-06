@@ -1,0 +1,130 @@
+{
+  "trialId": "RPT-1B",
+  "title": "闭馆之后",
+  "version": 1,
+  "createdFor": "RPT #1B — Post-P10.3 Full Real-Model Rerun (A/B vs RPT #1A)",
+  "baseline": {
+    "rpt1aRun": "trials/rpt-1-closed-after-hours/runs/2026-09-06T04-19-32-742Z",
+    "p103Commit": "2b6c761",
+    "p102Commit": "db0b390",
+    "isolation": [
+      "same CreationSpec",
+      "same DeepSeek model",
+      "unchanged Writer/Context/PMD/P9.4/Host thresholds"
+    ]
+  },
+  "rules": {
+    "forbidDeveloperFirefighting": true,
+    "allowAuthorConfirmationsOnly": true,
+    "noGenFixture": true,
+    "noQinglouClone": true,
+    "noWriterV2": true,
+    "noContextFix": true,
+    "noHostFix": true
+  },
+  "creationSpec": {
+    "playerCount": 6,
+    "roleConfiguration": {
+      "genderPolicy": "FIXED_COUNTS",
+      "fixedCounts": {
+        "male": 3,
+        "female": 3
+      }
+    },
+    "setting": {
+      "era": "CONTEMPORARY"
+    },
+    "genreTags": [
+      "关系博弈",
+      "推理",
+      "美术馆",
+      "当代"
+    ],
+    "durationMinutes": 210,
+    "stagePreference": {
+      "mode": "AUTO"
+    },
+    "experience": {
+      "deduction": 0.65,
+      "roleplay": 0.75,
+      "faction": 0.35,
+      "mechanism": 0.25,
+      "emotional": 0.55
+    },
+    "gameplayPreferences": {
+      "preferred": [
+        "NEGOTIATION"
+      ],
+      "avoid": []
+    },
+    "premise": {
+      "shortIdea": "城市美术馆闭馆后的私人预展夜：关系博弈 + 推理；不要求传统唯一凶手。",
+      "mustKeep": [
+        "前20分钟玩家就有事情想做",
+        "中途至少一次资源或信息所有权变化",
+        "后半段需要重新理解前面发生过的一件事"
+      ],
+      "avoid": [
+        "照抄青楼流程",
+        "为塞机制而塞 GAME",
+        "必须唯一凶手"
+      ]
+    }
+  },
+  "authorConfirmedExperienceAnchors": [
+    {
+      "sourceText": "前20分钟玩家就有事情想做",
+      "anchor": "EARLY_AGENCY"
+    },
+    {
+      "sourceText": "中途至少一次资源或信息所有权变化",
+      "anchor": "OWNERSHIP_SHIFT"
+    },
+    {
+      "sourceText": "后半段需要重新理解前面发生过的一件事",
+      "anchor": "LATE_REINTERPRETATION"
+    },
+    {
+      "sourceText": "不要求传统唯一凶手",
+      "anchor": "FLEXIBLE_RESOLUTION"
+    }
+  ],
+  "authorPolicy": {
+    "acceptRecommendedBundle": true,
+    "intentionalOverlapFromSecondBlock": true,
+    "acceptIntentionalOverlapConflicts": true,
+    "acceptGameplayPlacementIfPreferred": true,
+    "characterNameSet": "CONTEMPORARY_GALLERY",
+    "explicitContextBindings": {
+      "venue": {
+        "kind": "LOCATION",
+        "label": "城市美术馆夜间展厅"
+      },
+      "core_object": {
+        "kind": "OBJECT",
+        "label": "未公开的预展目录册"
+      },
+      "access_record": {
+        "kind": "RECORD",
+        "label": "闭馆门禁与库房授权日志"
+      },
+      "credential": {
+        "kind": "CREDENTIAL",
+        "label": "私人预展邀请腕带"
+      }
+    }
+  },
+  "judgment": {
+    "SYSTEM_VERDICT": "原 P9.4 / Trial three-tier (PASS_CANDIDATE / PARTIAL / FAIL)",
+    "CHANGE_VERDICT": "P10.3 targeted improvement vs #1A (see HUMAN_REVIEW_PACKET)",
+    "P10_3_CHANGE_PASS": [
+      "正文主轴仍是关系议价，非秘密阵营",
+      "有具体 bargain stake",
+      "NEGOTIATE 发生在玩家之间",
+      "OWNERSHIP_SHIFT 由玩家行为造成",
+      "换手影响后续内容",
+      "未捕获成唯一凶手即一切",
+      "前20分钟欲望或幕间换挡至少一项比 #1A 明显↑"
+    ]
+  }
+}

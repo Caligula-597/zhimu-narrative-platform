@@ -1,0 +1,1916 @@
+{
+  "version": 1,
+  "id": "csp-writer-pmd-mod-mtpiyzoo-ble9",
+  "projectId": "rpt1-RPT-1B",
+  "source": {
+    "productionMasterDraftId": "pmd-mod-mtpiyzoo-ble9",
+    "productionMasterDraftRevision": "v1:mod-mtpiyzoo-ble9:act1@0:{ob-mtpiyzom-galw|smb-mtpiyzod-lbm0x|beat-setup,ob-mtpiyzom-fadl|smb-mtpiyzoh-3kg5f|beat-set",
+    "sourceStoryStateRevision": 0,
+    "sourceMasterOutlineRevision": "v1:mod-mtpiyzoo-ble9:act1@0:{ob-mtpiyzom-galw|smb-mtpiyzod-lbm0x|beat-setup,ob-mtpiyzom-fadl|smb-mtpiyzoh-3kg5f|beat-set"
+  },
+  "status": "INVALID",
+  "metadata": {
+    "title": "闭馆之后",
+    "premiseSummary": "关系博弈·推理·美术馆·当代 · CONTEMPORARY · 关系博弈 · 推理 · 美术馆 · 当代",
+    "revision": 1
+  },
+  "roles": [
+    {
+      "id": "role_host",
+      "name": "主持人",
+      "type": "HOST",
+      "playerAssignable": false
+    },
+    {
+      "id": "role_P1",
+      "name": "沈岚",
+      "type": "PLAYER",
+      "characterId": "P1",
+      "playerAssignable": true
+    },
+    {
+      "id": "role_P2",
+      "name": "梁赫",
+      "type": "PLAYER",
+      "characterId": "P2",
+      "playerAssignable": true
+    },
+    {
+      "id": "role_P5",
+      "name": "顾清",
+      "type": "PLAYER",
+      "characterId": "P5",
+      "playerAssignable": true
+    },
+    {
+      "id": "role_P6",
+      "name": "方序",
+      "type": "PLAYER",
+      "characterId": "P6",
+      "playerAssignable": true
+    },
+    {
+      "id": "role_P3",
+      "name": "白绫",
+      "type": "PLAYER",
+      "characterId": "P3",
+      "playerAssignable": true
+    },
+    {
+      "id": "role_P4",
+      "name": "周祁",
+      "type": "PLAYER",
+      "characterId": "P4",
+      "playerAssignable": true
+    }
+  ],
+  "stages": [
+    {
+      "id": "act1",
+      "order": 0,
+      "title": "铺垫",
+      "stageRole": "SETUP",
+      "enterCondition": {
+        "type": "HOST_START"
+      },
+      "exitCondition": {
+        "type": "HOST_ADVANCE"
+      },
+      "mechanismAnnotationIds": []
+    },
+    {
+      "id": "act2",
+      "order": 1,
+      "title": "加压",
+      "stageRole": "PRESSURE",
+      "enterCondition": {
+        "type": "HOST_ADVANCE"
+      },
+      "exitCondition": {
+        "type": "HOST_ADVANCE"
+      },
+      "mechanismAnnotationIds": []
+    },
+    {
+      "id": "act3",
+      "order": 2,
+      "title": "升级",
+      "stageRole": "ESCALATION",
+      "enterCondition": {
+        "type": "HOST_ADVANCE"
+      },
+      "exitCondition": {
+        "type": "HOST_ADVANCE"
+      },
+      "mechanismAnnotationIds": []
+    },
+    {
+      "id": "act4",
+      "order": 3,
+      "title": "收束",
+      "stageRole": "PAYOFF",
+      "enterCondition": {
+        "type": "HOST_ADVANCE"
+      },
+      "exitCondition": {
+        "type": "HOST_ADVANCE"
+      },
+      "mechanismAnnotationIds": []
+    }
+  ],
+  "hostScript": {
+    "documentId": "doc_host_manual",
+    "sections": [
+      {
+        "id": "sec-act1-opening",
+        "stageId": "act1",
+        "title": "第一幕 · 铺垫：试探与藏锋",
+        "paragraphs": [
+          "欢迎各位来到今晚的故事。此刻，你们各自带着尚未言明的目的，汇聚于此。空气中弥漫着一种微妙的试探气息——有人想摸清对方的底牌，有人则竭力维持着表面的平静。",
+          "沈岚，你正处在私下谈判的场合。你试图探知 bargainB 对可交换标的的掌握范围与要价，看看对方究竟愿意交换到什么程度。你每抛出一个话题，都在观察对方的反应，试图让对方的条件逐渐清晰。",
+          "顾清，你清楚地知道自己不能过早暴露。你按着伪装行事，维持着当前的身份表象，每一步都小心翼翼，避免让任何人看穿你的真实意图。你的身份仍未被公开，这是你此刻最大的筹码。",
+          "请各位玩家开始行动，以你们的言行推动这场试探与隐藏的博弈。本阶段结束时，沈岚将看到对方条件开始可见，而顾清的身份仍未公开。"
+        ],
+        "roleIds": [],
+        "provenance": {
+          "sourceBeatIds": [
+            "ob-mtpiyzom-galw",
+            "ob-mtpiyzom-fadl"
+          ],
+          "sourceClueIds": [
+            "smb-mtpiyzod-lbm0x-stake_hint-0",
+            "smb-mtpiyzoh-3kg5f-foreshadow-0"
+          ],
+          "sourceFactIds": [
+            "fact:smb-mtpiyzod-lbm0x:beat-setup:bargain_terms_visible:P1",
+            "fact:smb-mtpiyzoh-3kg5f:beat-setup:identity_latent:P5"
+          ]
+        }
+      },
+      {
+        "id": "sec-act2-opening",
+        "stageId": "act2",
+        "title": "第二幕 · 加压：开出条件与等待时机",
+        "paragraphs": [
+          "第一轮交锋过后，局势开始升温。沈岚已经窥见了对方条件的轮廓，而顾清依旧保持着神秘。现在，新的压力降临。",
+          "梁赫，你站在谈判的中心。你深知自己的真正底线绝不可轻易示人，但你必须提出一个可谈判的交换条件，以推动事情向前。你权衡着哪些可以让步，哪些必须死守，最终开出了一份可供对方回应的交换要约。",
+          "顾清，你等待的时机已到。你按照约定，前往那个封存着事实的地方，领取与你身份记录相关的线索。你接收到的每一片段都可能是拼图的关键，但你仍需谨慎对待。",
+          "请各位继续行动。本阶段结束时，场上应出现一份可回应的交换要约，以及一条与身份记录相关的线索。"
+        ],
+        "roleIds": [],
+        "provenance": {
+          "sourceBeatIds": [
+            "ob-mtpiyzom-ho6r",
+            "ob-mtpiyzom-65mb"
+          ],
+          "sourceClueIds": [
+            "smb-mtpiyzod-lbm0x-stake_hint-0",
+            "smb-mtpiyzoh-3kg5f-foreshadow-0"
+          ],
+          "sourceFactIds": [
+            "fact:smb-mtpiyzod-lbm0x:beat-develop:bargain_offer:P2",
+            "fact:smb-mtpiyzoh-3kg5f:beat-develop:identity_clue:P5"
+          ]
+        }
+      },
+      {
+        "id": "sec-act3-opening",
+        "stageId": "act3",
+        "title": "第三幕 · 升级：换手与确认",
+        "paragraphs": [
+          "局势进入关键阶段。交换要约已经摆在桌上，身份线索也已浮现。现在，是决定性的时刻。",
+          "沈岚，你拥有了改写或接受要约的机会。你必须以行动完成可交换标的的换手。当你做出选择，标的的所有权与权限将随之变化，而你也将获得换手完成的凭证。",
+          "顾清，你手中的身份线索指向一个真相。现在，你需要核对身份记录，确认你的真实身份，并决定是否公开。这个选择将决定你的家族与资格状态，也将影响所有人的关系。",
+          "请注意，本阶段将陆续出现多条线索：对方底线/条件外泄、换手完成凭证、记忆碎片、身份暗示、误导、确认，乃至决定性揭示。请主持人根据玩家行动适时发放。",
+          "本阶段结束时，可交换标的所有权/权限应已变化，换手凭证已交付；身份已确认，家族/资格状态明确。"
+        ],
+        "roleIds": [],
+        "provenance": {
+          "sourceBeatIds": [
+            "ob-mtpiyzom-z9lg",
+            "ob-mtpiyzom-qtrm"
+          ],
+          "sourceClueIds": [
+            "smb-mtpiyzod-lbm0x-term_leak-1",
+            "smb-mtpiyzod-lbm0x-transfer_proof-2",
+            "smb-mtpiyzoh-3kg5f-memory_fragment-1",
+            "smb-mtpiyzoh-3kg5f-identity_hint-2",
+            "smb-mtpiyzoh-3kg5f-misdirection-3",
+            "smb-mtpiyzoh-3kg5f-confirmation-4",
+            "smb-mtpiyzoh-3kg5f-decisive_reveal-5"
+          ],
+          "sourceFactIds": [
+            "fact:smb-mtpiyzod-lbm0x:beat-climax:stake_transferred:P1",
+            "fact:smb-mtpiyzod-lbm0x:beat-climax:access_proof:P1",
+            "fact:smb-mtpiyzoh-3kg5f:beat-climax:identity_confirmed:P5",
+            "fact:smb-mtpiyzoh-3kg5f:beat-climax:family_status:P5"
+          ]
+        }
+      },
+      {
+        "id": "sec-act4-opening",
+        "stageId": "act4",
+        "title": "第四幕 · 收束：重谈与后果",
+        "paragraphs": [
+          "尘埃渐落，但余波未平。换手已经完成，身份也已确认。现在，是面对后果、处理关系的时候。",
+          "梁赫，换手后的关系需要重新谈判。你必须决定：是公开这次交换，继续合作，还是撕毁承诺？你的选择将定义你们之间的新关系状态。",
+          "顾清，你的身份已进入公开层。现在，你必须承受身份公开后的关系后果，面对知情者与阵营/调查方的反应。你的每一步都将影响最终的结局。",
+          "请各位进行最后的行动，为这段故事画上句号。本阶段结束后，故事将进入终幕，不再有强制性的下一阶段。"
+        ],
+        "roleIds": [],
+        "provenance": {
+          "sourceBeatIds": [
+            "ob-mtpiyzom-8ory",
+            "ob-mtpiyzom-njbm"
+          ],
+          "sourceClueIds": [
+            "fact-interface:ob-mtpiyzom-8ory",
+            "fact-interface:ob-mtpiyzom-njbm"
+          ],
+          "sourceFactIds": [
+            "fact:smb-mtpiyzod-lbm0x:beat-res:bargain_aftermath:P2",
+            "fact:smb-mtpiyzoh-3kg5f:beat-res:identity_public:P5"
+          ]
+        }
+      }
+    ]
+  },
+  "roleScripts": {
+    "role_P1": [
+      {
+        "id": "sec-act1",
+        "stageId": "act1",
+        "title": "试探底线",
+        "paragraphs": [
+          "你身处一个可以私下谈判的场所，空气中弥漫着一种微妙的紧张感。你知道今天必须摸清对方的底线——那些可以交换的东西，究竟哪些是对方真正愿意放手的。",
+          "你仔细观察对方的言行，试图从每一个细微的表情和措辞中捕捉到对方掌握的范围和真正的要价。每一次试探都像在刀尖上跳舞，你既要显得有诚意，又不能暴露自己的全部底牌。",
+          "渐渐地，对方的条件开始变得清晰可见，就像迷雾中浮现的轮廓。你心中暗自盘算，下一步该如何推进这场交易。"
+        ],
+        "roleIds": [],
+        "provenance": {
+          "sourceBeatIds": [
+            "ob-mtpiyzom-galw"
+          ],
+          "sourceClueIds": [],
+          "sourceFactIds": []
+        }
+      },
+      {
+        "id": "sec-act2",
+        "stageId": "act2",
+        "title": "交换的代价",
+        "paragraphs": [
+          "梁赫似乎也在盘算着如何在这场谈判中占据上风。他提出了一些交换的代价，试图用这些条件来掩盖他真正不可让步的底线。你明白，这不过是谈判的策略，但依然需要你仔细判断哪些是可以接受的。",
+          "与此同时，顾清在等待一个约定的阶段，似乎有些心不在焉。你注意到他似乎在等待着什么被封存的事实被交付，但那与你无关，你专注于自己的目标。",
+          "你继续与梁赫周旋，心中权衡着每一个条件的利弊。这场交换的代价，远比你最初想象的要复杂。"
+        ],
+        "roleIds": [],
+        "provenance": {
+          "sourceBeatIds": [
+            "ob-mtpiyzom-ho6r",
+            "ob-mtpiyzom-65mb"
+          ],
+          "sourceClueIds": [],
+          "sourceFactIds": []
+        }
+      },
+      {
+        "id": "sec-act3",
+        "stageId": "act3",
+        "title": "完成换手",
+        "paragraphs": [
+          "时机已到，你决定接受或改写梁赫的要约，完成这场交换的交接。你谨慎地处理每一个细节，确保自己取得换手凭证——这是交易完成的证明。",
+          "在交接的瞬间，你感到一种微妙的权力转移，可交换标的所有权或权限已经发生了变化。你握紧手中的凭证，知道这将成为日后谈判的筹码。",
+          "顾清也在同一时刻核对他的身份记录，他似乎做出了某种决定，但你并不关心他的选择，因为你的目标已经达成。"
+        ],
+        "roleIds": [],
+        "provenance": {
+          "sourceBeatIds": [
+            "ob-mtpiyzom-z9lg",
+            "ob-mtpiyzom-qtrm"
+          ],
+          "sourceClueIds": [],
+          "sourceFactIds": []
+        }
+      },
+      {
+        "id": "sec-act4",
+        "stageId": "act4",
+        "title": "余波",
+        "paragraphs": [
+          "换手之后，一切并未尘埃落定。梁赫面临着关系重谈的抉择，他可以选择公开这次交换，继续合作，或者干脆撕毁承诺。你冷眼旁观，心中盘算着这将对你的地位产生何种影响。",
+          "顾清则承受着身份公开后的种种后果，知情者与阵营的反应接踵而来。你注意到他的处境变得微妙，但你没有多余的同情心去理会。",
+          "你清楚，这场交易只是开始，未来的路还很长。你握紧换手凭证，准备迎接接下来的挑战。"
+        ],
+        "roleIds": [],
+        "provenance": {
+          "sourceBeatIds": [
+            "ob-mtpiyzom-8ory",
+            "ob-mtpiyzom-njbm"
+          ],
+          "sourceClueIds": [],
+          "sourceFactIds": []
+        }
+      }
+    ],
+    "role_P2": [
+      {
+        "id": "act1",
+        "stageId": "act1",
+        "title": "开场试探",
+        "paragraphs": [
+          "你（梁赫）与沈岚一同出现在私下谈判的场所。沈岚正试图试探对方（bargainB）对可交换标的的底线，你作为同场参与者，观察并配合这场试探。",
+          "你注意到对方条件开始可见，标的存在暗示隐约浮现，似乎有早期伏笔值得留意。",
+          "此刻你的目标是：不暴露自己的真正意图，仅作为同场参与者，观察对方掌握范围与要价。"
+        ],
+        "roleIds": [],
+        "provenance": {
+          "sourceBeatIds": [
+            "ob-mtpiyzom-galw"
+          ],
+          "sourceClueIds": [
+            "smb-mtpiyzod-lbm0x-stake_hint-0",
+            "smb-mtpiyzoh-3kg5f-foreshadow-0"
+          ],
+          "sourceFactIds": [
+            "fact:smb-mtpiyzod-lbm0x:beat-setup:bargain_terms_visible:P1"
+          ]
+        }
+      },
+      {
+        "id": "act2",
+        "stageId": "act2",
+        "title": "开出条件",
+        "paragraphs": [
+          "轮到你主导这一步：你提出交换代价，但必须隐瞒不可让步项。你的真正底线绝不能暴露。",
+          "你开出的条件看似可谈判，实则留有余地，同时你获得一份可回应的交换要约。",
+          "对方底线/条件有外泄迹象，你需判断哪些是真实、哪些是试探。"
+        ],
+        "roleIds": [],
+        "provenance": {
+          "sourceBeatIds": [
+            "ob-mtpiyzom-ho6r"
+          ],
+          "sourceClueIds": [
+            "smb-mtpiyzod-lbm0x-term_leak-1"
+          ],
+          "sourceFactIds": [
+            "fact:smb-mtpiyzod-lbm0x:beat-develop:bargain_offer:P2",
+            "fact:smb-mtpiyzod-lbm0x:beat-develop:bargain_terms_visible:P2"
+          ]
+        }
+      },
+      {
+        "id": "act3",
+        "stageId": "act3",
+        "title": "完成换手",
+        "paragraphs": [
+          "沈岚主导推进换手，你作为参与者接受或改写要约，完成交接并取得换手凭证。",
+          "标的已换手，所有权/权限已变化，换手凭证已交付。你手中有这份凭证，它可能成为后续的关键。",
+          "同时，你隐约捕捉到一些记忆碎片和身份暗示，但尚不确定其指向——或许与现场其他人有关，但此刻不宜深究。",
+          "存在误导信息，你需要保持警惕，不要被表象带偏。"
+        ],
+        "roleIds": [],
+        "provenance": {
+          "sourceBeatIds": [
+            "ob-mtpiyzom-z9lg"
+          ],
+          "sourceClueIds": [
+            "smb-mtpiyzod-lbm0x-transfer_proof-2",
+            "smb-mtpiyzoh-3kg5f-memory_fragment-1",
+            "smb-mtpiyzoh-3kg5f-identity_hint-2",
+            "smb-mtpiyzoh-3kg5f-misdirection-3",
+            "smb-mtpiyzoh-3kg5f-confirmation-4",
+            "smb-mtpiyzoh-3kg5f-decisive_reveal-5"
+          ],
+          "sourceFactIds": [
+            "fact:smb-mtpiyzod-lbm0x:beat-climax:stake_transferred:P1",
+            "fact:smb-mtpiyzod-lbm0x:beat-climax:access_proof:P1",
+            "fact:smb-mtpiyzod-lbm0x:beat-climax:bargain_offer:P1"
+          ]
+        }
+      },
+      {
+        "id": "act4",
+        "stageId": "act4",
+        "title": "收束抉择",
+        "paragraphs": [
+          "换手完成，你面对新的局面：是否公开交换、继续合作或撕毁承诺？",
+          "你掌握着换手后的关系状态，同时你手中有换手凭证，它可能影响后续博弈。",
+          "你的决定将决定这段关系的走向，也可能牵动更大的局面。"
+        ],
+        "roleIds": [],
+        "provenance": {
+          "sourceBeatIds": [
+            "ob-mtpiyzom-8ory"
+          ],
+          "sourceClueIds": [
+            "smb-mtpiyzod-lbm0x-stake_hint-0",
+            "smb-mtpiyzod-lbm0x-term_leak-1",
+            "smb-mtpiyzod-lbm0x-transfer_proof-2"
+          ],
+          "sourceFactIds": [
+            "fact:smb-mtpiyzod-lbm0x:beat-res:bargain_aftermath:P2",
+            "fact:smb-mtpiyzod-lbm0x:beat-res:stake_transferred:P2"
+          ]
+        }
+      }
+    ],
+    "role_P5": [
+      {
+        "id": "act1",
+        "stageId": "act1",
+        "title": "序幕：守秘之人",
+        "paragraphs": [
+          "你叫顾清，此刻你正以一种自己都说不清的方式，存在于这场故事的开端。你感觉自己像是站在一扇半掩的门前，门后是与你有关的过往，但你还不能、也不该推门进去。",
+          "你有一种模糊的直觉：你的身份并非表面这般简单，但眼下它仍是隐秘的。你知道，过早暴露自己会打乱某种微妙的平衡，因此你选择按兵不动，维持现状。",
+          "周围的人们似乎还没有注意到你的异常，这让你稍感安心。你提醒自己：现在不是揭开真相的时候，你要等待合适的时机。"
+        ],
+        "roleIds": [],
+        "provenance": {
+          "sourceBeatIds": [
+            "ob-mtpiyzom-fadl"
+          ],
+          "sourceClueIds": [
+            "smb-mtpiyzod-lbm0x-stake_hint-0",
+            "smb-mtpiyzoh-3kg5f-foreshadow-0",
+            "smb-mtpiyzoh-3kg5f-memory_fragment-1",
+            "smb-mtpiyzoh-3kg5f-identity_hint-2",
+            "smb-mtpiyzoh-3kg5f-misdirection-3",
+            "smb-mtpiyzoh-3kg5f-confirmation-4",
+            "smb-mtpiyzoh-3kg5f-decisive_reveal-5",
+            "fact-interface:ob-mtpiyzom-njbm"
+          ],
+          "sourceFactIds": [
+            "fact:smb-mtpiyzoh-3kg5f:beat-setup:identity_latent:P5"
+          ]
+        }
+      },
+      {
+        "id": "act2",
+        "stageId": "act2",
+        "title": "发展：静待时机",
+        "paragraphs": [
+          "随着事态的发展，你意识到某些与身份记录相关的线索正在浮现。但你并不急于追逐它们，你知道，这些线索会在约定的阶段被正式交付给你。",
+          "你与某些人同处一室，但这仅仅是空间上的巧合，并不意味着你们之间有什么因果关联。你保持着警觉，不主动透露任何信息，只是静观其变。",
+          "你感到一种无形的压力：一方面，你渴望真相；另一方面，你担心真相会破坏你目前维持的表象。你告诉自己：再等等，等时机成熟。"
+        ],
+        "roleIds": [],
+        "provenance": {
+          "sourceBeatIds": [
+            "ob-mtpiyzom-65mb"
+          ],
+          "sourceClueIds": [
+            "smb-mtpiyzod-lbm0x-stake_hint-0",
+            "smb-mtpiyzoh-3kg5f-foreshadow-0",
+            "smb-mtpiyzoh-3kg5f-memory_fragment-1",
+            "smb-mtpiyzoh-3kg5f-identity_hint-2",
+            "smb-mtpiyzoh-3kg5f-misdirection-3",
+            "smb-mtpiyzoh-3kg5f-confirmation-4",
+            "smb-mtpiyzoh-3kg5f-decisive_reveal-5",
+            "fact-interface:ob-mtpiyzom-njbm"
+          ],
+          "sourceFactIds": [
+            "fact:smb-mtpiyzoh-3kg5f:beat-develop:identity_clue:P5",
+            "fact:smb-mtpiyzoh-3kg5f:beat-develop:site_accessible:P5"
+          ]
+        }
+      },
+      {
+        "id": "act3",
+        "stageId": "act3",
+        "title": "高潮：真相抉择",
+        "paragraphs": [
+          "现在，你终于站在了关键节点。你握有足以确认自己真实身份的记录，也清楚你的家族背景与资格状态。你必须在公开与隐瞒之间做出选择。",
+          "你感到心跳加速。公开，意味着你将直面所有人的目光，承受由此带来的后果；隐瞒，则意味着你将继续活在伪装之下，但那层外壳已出现裂痕。",
+          "你环顾四周，注意到一些线索：有人似乎对你的身份有所察觉，也有人试图误导你。你明白，这一刻的决定将改变一切。"
+        ],
+        "roleIds": [],
+        "provenance": {
+          "sourceBeatIds": [
+            "ob-mtpiyzom-qtrm"
+          ],
+          "sourceClueIds": [
+            "smb-mtpiyzoh-3kg5f-foreshadow-0",
+            "smb-mtpiyzod-lbm0x-term_leak-1",
+            "smb-mtpiyzod-lbm0x-transfer_proof-2",
+            "smb-mtpiyzoh-3kg5f-memory_fragment-1",
+            "smb-mtpiyzoh-3kg5f-identity_hint-2",
+            "smb-mtpiyzoh-3kg5f-misdirection-3",
+            "smb-mtpiyzoh-3kg5f-confirmation-4",
+            "smb-mtpiyzoh-3kg5f-decisive_reveal-5",
+            "fact-interface:ob-mtpiyzom-njbm"
+          ],
+          "sourceFactIds": [
+            "fact:smb-mtpiyzoh-3kg5f:beat-climax:identity_confirmed:P5",
+            "fact:smb-mtpiyzoh-3kg5f:beat-climax:family_status:P5",
+            "fact:smb-mtpiyzoh-3kg5f:beat-climax:identity_clue:P5"
+          ]
+        }
+      },
+      {
+        "id": "act4",
+        "stageId": "act4",
+        "title": "结局：公开之后",
+        "paragraphs": [
+          "你的身份终究还是进入了公开层。无论你做出了怎样的选择，此刻你都必须面对知情者、你的阵营，以及那些调查你的人的反应。",
+          "你能感受到周围目光的变化——有的带着审视，有的带着理解，有的则充满敌意。你不再是那个可以隐于暗处的人，你的每一步都将被注视。",
+          "你深吸一口气，准备迎接这公开所带来的关系后果。你知道，这既是结束，也是新的开始。"
+        ],
+        "roleIds": [],
+        "provenance": {
+          "sourceBeatIds": [
+            "ob-mtpiyzom-njbm"
+          ],
+          "sourceClueIds": [
+            "smb-mtpiyzoh-3kg5f-foreshadow-0",
+            "smb-mtpiyzoh-3kg5f-memory_fragment-1",
+            "smb-mtpiyzoh-3kg5f-identity_hint-2",
+            "smb-mtpiyzoh-3kg5f-misdirection-3",
+            "smb-mtpiyzoh-3kg5f-confirmation-4",
+            "smb-mtpiyzoh-3kg5f-decisive_reveal-5",
+            "fact-interface:ob-mtpiyzom-8ory",
+            "fact-interface:ob-mtpiyzom-njbm"
+          ],
+          "sourceFactIds": [
+            "fact:smb-mtpiyzoh-3kg5f:beat-res:identity_public:P5",
+            "fact:smb-mtpiyzoh-3kg5f:beat-res:identity_confirmed:P5"
+          ]
+        }
+      }
+    ],
+    "role_P6": [
+      {
+        "id": "act1",
+        "stageId": "act1",
+        "title": "隐藏身份的开端",
+        "paragraphs": [
+          "你，方序，正身处一个需要小心行事的局面。你意识到自己当前的身份表象必须被维持，不能过早暴露真实面目。你知道有人正在观察你，而你的每一个举动都可能被解读。你选择按伪装行动，避免任何可能引起怀疑的言行。",
+          "你感到一种隐约的紧张，但更多的是冷静的计算。你清楚，过早暴露会带来不可预料的后果，因此你刻意保持低调。你注意到周围环境中存在一些暗示，它们似乎指向某种被隐藏的真相，但你选择暂时不去触碰。",
+          "你的目标很简单：维持现状，不让任何人看穿你的伪装。你相信，只要保持耐心，等待合适的时机，一切都会明朗。"
+        ],
+        "roleIds": [],
+        "provenance": {
+          "sourceBeatIds": [
+            "ob-mtpiyzom-fadl"
+          ],
+          "sourceClueIds": [
+            "smb-mtpiyzod-lbm0x-stake_hint-0",
+            "smb-mtpiyzoh-3kg5f-foreshadow-0",
+            "smb-mtpiyzoh-3kg5f-memory_fragment-1",
+            "smb-mtpiyzoh-3kg5f-identity_hint-2",
+            "smb-mtpiyzoh-3kg5f-misdirection-3",
+            "smb-mtpiyzoh-3kg5f-confirmation-4",
+            "smb-mtpiyzoh-3kg5f-decisive_reveal-5"
+          ],
+          "sourceFactIds": []
+        }
+      },
+      {
+        "id": "act2",
+        "stageId": "act2",
+        "title": "等待与接收",
+        "paragraphs": [
+          "你继续维持着伪装，等待着那个被约定好的时刻。你知道，有一个被封存的事实将在特定阶段被揭示，而你必须等到那一刻。你耐心地观察着周围，注意着任何可能出现的线索。",
+          "你意识到，有些信息正在逐步浮现，它们与你的身份记录相关。你保持警觉，但并未主动去触碰那些线索，因为你相信时机未到。你只希望一切按计划进行，而你能够顺利接收到那同一个事实片段。",
+          "此刻，你与他人同处一个空间，但这并不意味着你们之间存在因果联系。你专注于自己的目标，避免任何不必要的互动。"
+        ],
+        "roleIds": [],
+        "provenance": {
+          "sourceBeatIds": [
+            "ob-mtpiyzom-65mb"
+          ],
+          "sourceClueIds": [
+            "smb-mtpiyzoh-3kg5f-foreshadow-0",
+            "smb-mtpiyzoh-3kg5f-memory_fragment-1",
+            "smb-mtpiyzoh-3kg5f-identity_hint-2",
+            "smb-mtpiyzoh-3kg5f-misdirection-3",
+            "smb-mtpiyzoh-3kg5f-confirmation-4",
+            "smb-mtpiyzoh-3kg5f-decisive_reveal-5"
+          ],
+          "sourceFactIds": []
+        }
+      },
+      {
+        "id": "act3",
+        "stageId": "act3",
+        "title": "核对与抉择",
+        "paragraphs": [
+          "约定的时刻终于来临。你开始核对身份记录，确认自己的真实身份。你感到一种前所未有的清晰，所有碎片拼凑在一起，你明白了自己是谁。",
+          "现在，你面临一个选择：公开你的身份，还是继续隐瞒。你意识到这个决定将影响你与周围人的关系，以及你在整个局势中的位置。你权衡着利弊，内心充满挣扎。",
+          "你注意到一些新的线索出现，它们可能改变你的决定。你仔细审视着这些信息，试图找出最稳妥的路径。你不想过早暴露，但也不愿永远隐藏下去。"
+        ],
+        "roleIds": [],
+        "provenance": {
+          "sourceBeatIds": [
+            "ob-mtpiyzom-qtrm"
+          ],
+          "sourceClueIds": [
+            "smb-mtpiyzoh-3kg5f-foreshadow-0",
+            "smb-mtpiyzod-lbm0x-term_leak-1",
+            "smb-mtpiyzod-lbm0x-transfer_proof-2",
+            "smb-mtpiyzoh-3kg5f-memory_fragment-1",
+            "smb-mtpiyzoh-3kg5f-identity_hint-2",
+            "smb-mtpiyzoh-3kg5f-misdirection-3",
+            "smb-mtpiyzoh-3kg5f-confirmation-4",
+            "smb-mtpiyzoh-3kg5f-decisive_reveal-5"
+          ],
+          "sourceFactIds": []
+        }
+      },
+      {
+        "id": "act4",
+        "stageId": "act4",
+        "title": "公开后的余波",
+        "paragraphs": [
+          "你的身份已经公开，你不得不面对随之而来的后果。知情者、阵营、调查方……各方反应不一，你感到压力重重。你意识到，关系正在重组，而你必须适应这个新的局面。",
+          "你回想起那些曾经隐藏的线索，它们如今都有了新的意义。你明白，一切并未结束，而是新的开始。你准备承担起责任，面对未来的挑战。",
+          "你观察着周围人的态度，试图理解他们的立场。你感到孤独，但也决意坚定。你相信，无论后果如何，你都将勇敢面对。"
+        ],
+        "roleIds": [],
+        "provenance": {
+          "sourceBeatIds": [
+            "ob-mtpiyzom-njbm"
+          ],
+          "sourceClueIds": [
+            "smb-mtpiyzoh-3kg5f-foreshadow-0",
+            "smb-mtpiyzoh-3kg5f-memory_fragment-1",
+            "smb-mtpiyzoh-3kg5f-identity_hint-2",
+            "smb-mtpiyzoh-3kg5f-misdirection-3",
+            "smb-mtpiyzoh-3kg5f-confirmation-4",
+            "smb-mtpiyzoh-3kg5f-decisive_reveal-5"
+          ],
+          "sourceFactIds": []
+        }
+      }
+    ],
+    "role_P3": [
+      {
+        "id": "act2",
+        "stageId": "act2",
+        "title": "第二幕：白绫的角色本",
+        "paragraphs": [
+          "你，白绫，身处这场交换的现场。梁赫正在提出交换代价，但你清楚他真正想隐瞒的底线并未摆上桌面。你观察着，明白他开出的只是可谈判的条件，而不可让步项被巧妙地藏了起来。你并不点破，只是静静在场，等待事态发展。",
+          "另一边，顾清似乎也在等待某个约定好的阶段，他需要领取被封存的事实。你注意到他的目光偶尔投向某个方向，仿佛在确认时机。你意识到，他等待的是一份与身份记录相关的线索，而这份线索将在合适的时刻才会被揭示。",
+          "你作为旁观者，既不插手也不急于表态。你知道，这两条线索——交换的代价与身份的记录——终将交织在一起，而你需要在适当的时候做出自己的选择。"
+        ],
+        "roleIds": [],
+        "provenance": {
+          "sourceBeatIds": [
+            "ob-mtpiyzom-ho6r",
+            "ob-mtpiyzom-65mb"
+          ],
+          "sourceClueIds": [
+            "smb-mtpiyzod-lbm0x-stake_hint-0",
+            "smb-mtpiyzoh-3kg5f-foreshadow-0"
+          ],
+          "sourceFactIds": [
+            "fact:smb-mtpiyzod-lbm0x:beat-develop:bargain_offer:P2",
+            "fact:smb-mtpiyzod-lbm0x:beat-develop:bargain_terms_visible:P2",
+            "fact:smb-mtpiyzoh-3kg5f:beat-develop:identity_clue:P5",
+            "fact:smb-mtpiyzoh-3kg5f:beat-develop:site_accessible:P5"
+          ]
+        }
+      },
+      {
+        "id": "act3",
+        "stageId": "act3",
+        "title": "第三幕：白绫的角色本",
+        "paragraphs": [
+          "此刻，沈岚正主导着交换的高潮。她以玩家的行动为依托，推动着可交换标的的换手。你看到她在接受或改写要约，最终完成了交接，并取得了换手的凭证。你注意到那份凭证象征着所有权的转移，也意味着某些关系即将改变。",
+          "与此同时，顾清也在核对他的身份记录。他似乎在确认真实身份，并思考是否要公开。你感到他内心的挣扎，公开与否将影响他未来的一切。你作为在场者，感受着这股张力，却并不急于介入。",
+          "你明白，这些行动背后隐藏着更深的动机。换手凭证不仅是交易完成的证明，更可能牵涉到案发现场或其他关键线索。你保持警觉，准备在下一步中做出反应。"
+        ],
+        "roleIds": [],
+        "provenance": {
+          "sourceBeatIds": [
+            "ob-mtpiyzom-z9lg",
+            "ob-mtpiyzom-qtrm"
+          ],
+          "sourceClueIds": [
+            "smb-mtpiyzod-lbm0x-transfer_proof-2",
+            "smb-mtpiyzoh-3kg5f-confirmation-4"
+          ],
+          "sourceFactIds": [
+            "fact:smb-mtpiyzod-lbm0x:beat-climax:stake_transferred:P1",
+            "fact:smb-mtpiyzod-lbm0x:beat-climax:access_proof:P1",
+            "fact:smb-mtpiyzod-lbm0x:beat-climax:bargain_offer:P1",
+            "fact:smb-mtpiyzoh-3kg5f:beat-climax:identity_confirmed:P5",
+            "fact:smb-mtpiyzoh-3kg5f:beat-climax:family_status:P5",
+            "fact:smb-mtpiyzoh-3kg5f:beat-climax:identity_clue:P5"
+          ]
+        }
+      },
+      {
+        "id": "act4",
+        "stageId": "act4",
+        "title": "第四幕：白绫的角色本",
+        "paragraphs": [
+          "尘埃落定，梁赫正面临换手后的关系重谈。他必须决定是否公开交换、继续合作，或是撕毁承诺。你看到他内心的权衡，这关系到他的立场与未来的博弈。",
+          "顾清则承受着身份公开后的关系后果。知情者与阵营/调查方都在注视着他，他必须面对由此带来的连锁反应。你身处其中，感受到局势的紧张。",
+          "你，白绫，此刻需要做出自己的决定。你观察着所有人的行动，思考着如何在接下来的互动中定位自己。也许你会选择协助某一方，也许你会保持中立，但无论如何，你已准备好迎接最后的挑战。"
+        ],
+        "roleIds": [],
+        "provenance": {
+          "sourceBeatIds": [
+            "ob-mtpiyzom-8ory",
+            "ob-mtpiyzom-njbm"
+          ],
+          "sourceClueIds": [
+            "smb-mtpiyzod-lbm0x-decisive_reveal-5",
+            "smb-mtpiyzoh-3kg5f-decisive_reveal-5"
+          ],
+          "sourceFactIds": [
+            "fact:smb-mtpiyzod-lbm0x:beat-res:bargain_aftermath:P2",
+            "fact:smb-mtpiyzod-lbm0x:beat-res:stake_transferred:P2",
+            "fact:smb-mtpiyzoh-3kg5f:beat-res:identity_public:P5",
+            "fact:smb-mtpiyzoh-3kg5f:beat-res:identity_confirmed:P5"
+          ]
+        }
+      }
+    ],
+    "role_P4": [
+      {
+        "id": "act2-experience",
+        "stageId": "act2",
+        "title": "交换的暗流：我在场，却看不清",
+        "paragraphs": [
+          "我周祁，站在这个交换的场合里，看着梁赫和顾清之间无声的角力。梁赫提出一个交换条件，明面上是可谈判的代价，可我能感觉到，他真正底线被藏得很深，就像水面下的礁石。顾清则一直等着某个约定好的阶段，他似乎要领取一份被封存的事实，与身份记录有关，但他说得含混，我也无从追问。",
+          "我注意到一些细节：标的存在暗示，早期伏笔，对方底线的外泄，还有换手完成的凭证——但这些线索像碎片一样散在桌上，没有一块能拼出全貌。我知道梁赫在隐瞒不可让步项，顾清在等待时机，可他们各自的目标是什么，我仍看不透。我只是同场者，而非主导者，我的处境微妙：既不能完全置身事外，也没有足够信息去介入。",
+          "我记忆里有些东西在翻涌——住户登记档案、物业档案室、门禁权限、物业核验码——这些词像旧钥匙，却打不开当下的锁。我隐约觉得这些与顾清等待的身份记录有关，但我不敢确定。我的压力在于：我可能被卷入一场我不完全理解的交换，而我的一举一动，或许会影响别人的算盘。"
+        ],
+        "roleIds": [],
+        "provenance": {
+          "sourceBeatIds": [
+            "ob-mtpiyzom-ho6r",
+            "ob-mtpiyzom-65mb"
+          ],
+          "sourceClueIds": [
+            "smb-mtpiyzod-lbm0x-stake_hint-0",
+            "smb-mtpiyzoh-3kg5f-foreshadow-0",
+            "smb-mtpiyzod-lbm0x-term_leak-1",
+            "smb-mtpiyzod-lbm0x-transfer_proof-2",
+            "smb-mtpiyzoh-3kg5f-memory_fragment-1",
+            "smb-mtpiyzoh-3kg5f-identity_hint-2"
+          ],
+          "sourceFactIds": []
+        }
+      },
+      {
+        "id": "act3-experience",
+        "stageId": "act3",
+        "title": "高潮迫近：换手与身份的对撞",
+        "paragraphs": [
+          "局势陡然紧张。沈岚接过梁赫的要约，似乎要完成一次可交换标的的换手——她接受或改写要约，完成交接，并取得换手凭证。我能看见那凭证在灯光下反着光，却碰不到。与此同时，顾清开始核对身份记录，他似乎在确认真实身份，并决定是否公开。这两条线在我面前交汇，像两条河流撞在一起。",
+          "我仍然只是参与者，而非主导者。我观察到可交换标的所有权或权限已经变化，换手凭证已交付，而顾清那边，身份已确认，家族或资格状态似乎也浮出水面。这些线索——标的存在暗示、早期伏笔、对方底线外泄、记忆碎片、身份暗示——此刻都指向一个更大的真相，但我仍看不清全貌。",
+          "我的压力在增加：沈岚和顾清的行动会改变局面，而我夹在中间，既不能阻止，也无法推动。我意识到，我可能只是这场交换的见证者，但见证者也可能被卷入后果。我手里没有关键筹码，只有一些线索碎片，比如关键账册、私下会合点、成员暗号——这些或许能让我在关键时刻自保，或影响他人。"
+        ],
+        "roleIds": [],
+        "provenance": {
+          "sourceBeatIds": [
+            "ob-mtpiyzom-z9lg",
+            "ob-mtpiyzom-qtrm"
+          ],
+          "sourceClueIds": [
+            "smb-mtpiyzod-lbm0x-stake_hint-0",
+            "smb-mtpiyzoh-3kg5f-foreshadow-0",
+            "smb-mtpiyzod-lbm0x-term_leak-1",
+            "smb-mtpiyzod-lbm0x-transfer_proof-2",
+            "smb-mtpiyzoh-3kg5f-memory_fragment-1",
+            "smb-mtpiyzoh-3kg5f-identity_hint-2",
+            "smb-mtpiyzoh-3kg5f-misdirection-3",
+            "smb-mtpiyzoh-3kg5f-confirmation-4"
+          ],
+          "sourceFactIds": []
+        }
+      },
+      {
+        "id": "act4-experience",
+        "stageId": "act4",
+        "title": "收束之后：关系破裂或重组的边缘",
+        "paragraphs": [
+          "尘埃落定，但余波未平。梁赫面对换手后的关系，必须决定是否公开交换、继续合作或撕毁承诺。顾清则要承受身份公开后的关系后果，面对知情者与阵营或调查方的反应。我站在一旁，看着这些决定如何重塑我们之间的关系。",
+          "我知道标已换手，换手后的关系状态变得脆弱；身份已确认，并进入公开层。这些线索——决定性揭示、标的已换手、身份公开——让我意识到，这场交换的代价远不止表面。梁赫和顾清的选择会波及所有人，包括我。",
+          "我的目标变得清晰：我必须决定自己在这场关系重组中的位置。是继续旁观，还是主动介入？我有一些线索碎片——关键私人文书、城市美术馆夜间展厅、未公开的预展目录册、闭馆门禁与库房授权日志、私人预展邀请腕带——这些或许能让我在开放收束中找到一个立足点。但我的压力在于，我的选择可能使我成为下一个被交换的筹码。"
+        ],
+        "roleIds": [],
+        "provenance": {
+          "sourceBeatIds": [
+            "ob-mtpiyzom-8ory",
+            "ob-mtpiyzom-njbm"
+          ],
+          "sourceClueIds": [
+            "smb-mtpiyzod-lbm0x-stake_hint-0",
+            "smb-mtpiyzoh-3kg5f-foreshadow-0",
+            "smb-mtpiyzod-lbm0x-term_leak-1",
+            "smb-mtpiyzod-lbm0x-transfer_proof-2",
+            "smb-mtpiyzoh-3kg5f-memory_fragment-1",
+            "smb-mtpiyzoh-3kg5f-identity_hint-2",
+            "smb-mtpiyzoh-3kg5f-misdirection-3",
+            "smb-mtpiyzoh-3kg5f-confirmation-4",
+            "smb-mtpiyzoh-3kg5f-decisive_reveal-5"
+          ],
+          "sourceFactIds": []
+        }
+      }
+    ]
+  },
+  "sharedScripts": [],
+  "publicScripts": [
+    {
+      "id": "act1-intro",
+      "stageId": "act1",
+      "title": "序幕：试探与伪装",
+      "paragraphs": [
+        "夜色渐浓，城市的一隅，几处不起眼的场所正等待着那些心怀各异的人。此刻，没有惊天动地的冲突，只有暗流涌动的试探。",
+        "在某个可私下交谈的角落，你与对方相对而坐，言语间你来我往，试图勾勒出对方掌握的轮廓，以及达成默契所需的价码。这并非摊牌，只是一场心照不宣的摸底。",
+        "与此同时，你并未完全展露自己。身份如同未拆封的信笺，藏着掖着，你的一举一动都刻意模糊，以免过早暴露真实的意图。",
+        "记住：此刻的沉默与伪装，是为了在未来的棋局中占得先机。不要急于亮出底牌，观察，倾听，再决定下一步。"
+      ],
+      "roleIds": [],
+      "provenance": {
+        "sourceBeatIds": [
+          "ob-mtpiyzom-galw",
+          "ob-mtpiyzom-fadl"
+        ],
+        "sourceClueIds": [],
+        "sourceFactIds": [
+          "fact:smb-mtpiyzod-lbm0x:beat-setup:bargain_terms_visible:P1",
+          "fact:smb-mtpiyzoh-3kg5f:beat-setup:identity_latent:P5"
+        ]
+      }
+    },
+    {
+      "id": "act1-guidance",
+      "stageId": "act1",
+      "title": "行动指引",
+      "paragraphs": [
+        "当前阶段，你的主要目标是探知对方掌握的范围与要价，同时隐藏自己的真实状态。",
+        "寻找合适的私下场合进行试探，但不要透露关键信息。保持模糊与伪装，避免过早暴露身份或立场。",
+        "留意环境中的细节，但不要急于深入调查。此阶段的核心是建立初步认知与周旋空间。"
+      ],
+      "roleIds": [],
+      "provenance": {
+        "sourceBeatIds": [
+          "ob-mtpiyzom-galw",
+          "ob-mtpiyzom-fadl"
+        ],
+        "sourceClueIds": [],
+        "sourceFactIds": [
+          "fact:smb-mtpiyzod-lbm0x:beat-setup:bargain_terms_visible:P1",
+          "fact:smb-mtpiyzoh-3kg5f:beat-setup:identity_latent:P5"
+        ]
+      }
+    },
+    {
+      "id": "act2-pressure",
+      "stageId": "act2",
+      "title": "加压",
+      "paragraphs": [
+        "夜色渐深，会面的气氛开始绷紧。你提出交换的代价，要求对方拿出足以匹配的筹码，同时把那些不可让步的条件留在心底——此刻不必言明，也无需暗示因果。",
+        "等待的时刻被拉长，同一事实片段将在阶段到达时落到双方手中，你只需保持姿态，等待它揭开。",
+        "每一步都踩在彼此试探的边缘，但你知道，有些底线一旦亮出，棋局便不再由你掌控。"
+      ],
+      "roleIds": [],
+      "provenance": {
+        "sourceBeatIds": [
+          "ob-mtpiyzom-ho6r",
+          "ob-mtpiyzom-65mb"
+        ],
+        "sourceClueIds": [],
+        "sourceFactIds": [
+          "fact:smb-mtpiyzod-lbm0x:beat-develop:bargain_offer:P2",
+          "fact:smb-mtpiyzod-lbm0x:beat-develop:bargain_terms_visible:P2",
+          "fact:smb-mtpiyzoh-3kg5f:beat-develop:identity_clue:P5",
+          "fact:smb-mtpiyzoh-3kg5f:beat-develop:site_accessible:P5"
+        ]
+      }
+    },
+    {
+      "id": "public-act3-escalation",
+      "stageId": "act3",
+      "title": "升级",
+      "paragraphs": [
+        "夜色中，一笔关键交接正在推进。你手中有足以撬动局面的东西——一份尚未敲定的要约，一份可能改变归属的凭证。此刻，你必须决定：是接受眼前的条件，还是改写它，让它更有利于你？无论你如何选择，换手的凭证都将成为你下一步行动的钥匙。",
+        "另一条线同时展开：身份记录已经核对完毕，档案上的名字与面孔是否一致，取决于你此刻的决定。你可以选择公开一切，让真相大白；也可以选择隐瞒，让秘密继续发酵。但请记住，每一次选择都会留下痕迹。",
+        "两股暗流在此交汇，升级的态势已经形成。你的行动将决定后续的走向，但此刻你只需做出自己的选择，并取得对应的凭证。"
+      ],
+      "roleIds": [],
+      "provenance": {
+        "sourceBeatIds": [
+          "ob-mtpiyzom-z9lg",
+          "ob-mtpiyzom-qtrm"
+        ],
+        "sourceClueIds": [],
+        "sourceFactIds": [
+          "fact:smb-mtpiyzod-lbm0x:beat-climax:stake_transferred:P1",
+          "fact:smb-mtpiyzod-lbm0x:beat-climax:access_proof:P1",
+          "fact:smb-mtpiyzod-lbm0x:beat-climax:bargain_offer:P1",
+          "fact:smb-mtpiyzoh-3kg5f:beat-climax:identity_confirmed:P5",
+          "fact:smb-mtpiyzoh-3kg5f:beat-climax:family_status:P5",
+          "fact:smb-mtpiyzoh-3kg5f:beat-climax:identity_clue:P5"
+        ]
+      }
+    },
+    {
+      "id": "act4-payoff-exchange",
+      "stageId": "act4",
+      "title": "收束：交换与背弃",
+      "paragraphs": [
+        "灯光下，你与同场之人交换着最后的目光。有人仍攥着那份交易，有人已将筹码摊开。此刻，公开交换、继续合作或撕毁承诺——每一步都只关乎此刻的抉择，不牵扯过往的因果。",
+        "那些曾共享的知情者、阵营与调查方，正以各自的姿态回应你的选择。他们的反应并非来自某个隐藏的剧本，而是源于你此刻的言行。空气里弥漫着试探与决断，每一句话都可能让局面转向。",
+        "你手中的东西——无论是一份承诺、一个秘密，还是一张底牌——此刻都成了天平上的砝码。你会将它交付，换取同场的信任；还是收紧掌心，让它在沉默中失效？",
+        "收束的时刻没有对错，只有选择。当帷幕落下，你所做的决定将定义这场同场的余音。"
+      ],
+      "roleIds": [],
+      "provenance": {
+        "sourceBeatIds": [
+          "ob-mtpiyzom-8ory",
+          "ob-mtpiyzom-njbm"
+        ],
+        "sourceClueIds": [],
+        "sourceFactIds": []
+      }
+    },
+    {
+      "id": "act4-payoff-reactions",
+      "stageId": "act4",
+      "title": "收束：面对知情者与阵营",
+      "paragraphs": [
+        "知情者的目光如影随形，他们或许已看透你的底细，或许仍在试探。阵营与调查方的反应并非预设的剧本，而是由你此刻的立场与言辞自然引发。",
+        "你曾依赖的登记档案、物业档案室、门禁权限与核验码，如今只是背景中的静物。真正关键的，是你在这些知情者面前如何自处——是坦荡，还是闪躲？",
+        "若你选择公开，那些私下会合点与成员暗号便不再隐秘；若你选择沉默，公共应急任务与关键文书将成为你最后的屏障。但无论如何，这些物证本身不会主动发声，它们只在你手中获得意义。",
+        "此刻，没有既定的结局。你面对的是人，而非机关。你的每一个回应，都在塑造他们眼中的你。"
+      ],
+      "roleIds": [],
+      "provenance": {
+        "sourceBeatIds": [],
+        "sourceClueIds": [],
+        "sourceFactIds": [
+          "fact:smb-mtpiyzod-lbm0x:beat-res:bargain_aftermath:P2",
+          "fact:smb-mtpiyzod-lbm0x:beat-res:stake_transferred:P2",
+          "fact:smb-mtpiyzoh-3kg5f:beat-res:identity_public:P5",
+          "fact:smb-mtpiyzoh-3kg5f:beat-res:identity_confirmed:P5"
+        ]
+      }
+    }
+  ],
+  "clues": [
+    {
+      "id": "smb-mtpiyzod-lbm0x-stake_hint-0",
+      "title": "标的存在暗示",
+      "stageId": "act1",
+      "delivery": "HOST_RELEASE",
+      "visibility": "PUBLIC",
+      "paragraphs": [
+        "在物业档案室的住户登记档案夹层里，夹着一本封面沾有咖啡渍的册子，封面上印着『城市美术馆夜间展厅』的烫金字样。",
+        "翻开内页，是一份未公开的预展目录册，其中一页被折角，页边有人用铅笔潦草写着：『闭馆门禁与库房授权日志』。",
+        "折角页对应的展品编号旁，有一行小字批注：『私人预展邀请腕带——凭此入场，可获门禁权限与物业核验码。』",
+        "册子的最后几页夹着一张便签，字迹像是匆忙写下：『关键账册不在库房，就在那件标的旁边。』"
+      ],
+      "documentId": "doc_smb-mtpiyzod-lbm0x-stake_hint-0",
+      "roleIds": [
+        "role_P1",
+        "role_P2",
+        "role_P3",
+        "role_P4"
+      ],
+      "isMisleading": false,
+      "isDecisive": false,
+      "supportsFact": "标的存在暗示",
+      "provenance": {
+        "sourceClueId": "smb-mtpiyzod-lbm0x-stake_hint-0",
+        "sourceBeatIds": [
+          "ob-mtpiyzom-galw",
+          "ob-mtpiyzom-ho6r"
+        ]
+      }
+    },
+    {
+      "id": "smb-mtpiyzoh-3kg5f-foreshadow-0",
+      "title": "早期伏笔",
+      "stageId": "act1",
+      "delivery": "HOST_RELEASE",
+      "visibility": "PUBLIC",
+      "paragraphs": [
+        "在物业档案室最底层的铁皮柜里，压着一本边缘卷曲、封皮上留着圆形烟渍的记事本。纸页泛黄，字迹潦草，像是某位夜班保安随手记下的日常。",
+        "翻到中间一页，夹着一张被撕下的住户登记档案复印件。复印件上的名字被水渍洇开，但旁边用铅笔写着一行小字：‘夜里三点，美术馆后门，门禁权限只认腕带不认人。’",
+        "再往下几行，是同一支笔补上的记录：‘物业核验码今天换过，旧码作废——但库房授权日志里还留着昨晚的进出记录，时间是闭馆后一小时。’字迹到这里戛然而止，页面底部有一道被指甲划过的深痕。"
+      ],
+      "documentId": "doc_smb-mtpiyzoh-3kg5f-foreshadow-0",
+      "roleIds": [
+        "role_P5",
+        "role_P6",
+        "role_P3",
+        "role_P4",
+        "role_P1"
+      ],
+      "isMisleading": false,
+      "isDecisive": false,
+      "supportsFact": "早期伏笔",
+      "provenance": {
+        "sourceClueId": "smb-mtpiyzoh-3kg5f-foreshadow-0",
+        "sourceBeatIds": [
+          "ob-mtpiyzom-fadl",
+          "ob-mtpiyzom-65mb"
+        ]
+      }
+    },
+    {
+      "id": "smb-mtpiyzod-lbm0x-term_leak-1",
+      "title": "对方底线/条件外泄",
+      "stageId": "act3",
+      "delivery": "HOST_RELEASE",
+      "visibility": "PUBLIC",
+      "paragraphs": [
+        "在物业档案室的一沓住户登记档案中，夹着一张对折的便条，纸质普通，字迹潦草。",
+        "便条内容为：『对方底线已摸清：只要拿到门禁权限与物业核验码，就答应转交关键账册。明晚闭馆后，在城市美术馆夜间展厅碰头，带上私人预展邀请腕带。』",
+        "便条背面用铅笔草草画了美术馆库房授权日志的简图，并标注『闭馆门禁已搞定』。"
+      ],
+      "documentId": "doc_smb-mtpiyzod-lbm0x-term_leak-1",
+      "roleIds": [
+        "role_P1",
+        "role_P2",
+        "role_P3",
+        "role_P4"
+      ],
+      "isMisleading": false,
+      "isDecisive": false,
+      "supportsFact": "对方底线/条件外泄",
+      "provenance": {
+        "sourceClueId": "smb-mtpiyzod-lbm0x-term_leak-1",
+        "sourceBeatIds": [
+          "ob-mtpiyzom-z9lg"
+        ]
+      }
+    },
+    {
+      "id": "smb-mtpiyzod-lbm0x-transfer_proof-2",
+      "title": "换手完成凭证",
+      "stageId": "act3",
+      "delivery": "HOST_RELEASE",
+      "visibility": "PUBLIC",
+      "paragraphs": [
+        "在物业档案室的铁皮柜中，一份用牛皮纸信封装着的文件被压在《住户登记档案》最底层。信封上印着物业的圆形公章，落款日期是本周三。",
+        "展开信纸，是一张《门禁权限移交流水单》，表格里填写着：移交人——原持有者；接收人——新持有者；事由——住户登记变更；核验码——与物业核验码一致。",
+        "纸张边缘有折痕，似乎被人反复翻阅过，但字迹清晰。在备注栏里，用蓝色圆珠笔潦草地写着：“已当面核验，换手完成。”"
+      ],
+      "documentId": "doc_smb-mtpiyzod-lbm0x-transfer_proof-2",
+      "roleIds": [
+        "role_P1",
+        "role_P2",
+        "role_P3",
+        "role_P4"
+      ],
+      "isMisleading": false,
+      "isDecisive": false,
+      "supportsFact": "换手完成凭证",
+      "provenance": {
+        "sourceClueId": "smb-mtpiyzod-lbm0x-transfer_proof-2",
+        "sourceBeatIds": [
+          "ob-mtpiyzom-z9lg"
+        ]
+      }
+    },
+    {
+      "id": "smb-mtpiyzoh-3kg5f-memory_fragment-1",
+      "title": "记忆碎片",
+      "stageId": "act3",
+      "delivery": "HOST_RELEASE",
+      "visibility": "PUBLIC",
+      "paragraphs": [
+        "在物业档案室的一角，一只积灰的铁皮盒被打开，里面是一卷用橡皮筋捆住的旧照片与几页手写笔记。照片边缘卷曲，其中一张是深夜的城市美术馆侧门，门缝里透出冷白的光，门旁停着一辆黑色轿车。",
+        "笔记的字迹匆忙，有一行被反复描粗：『夜展预展目录册，库房授权日志，腕带颜色不对。』下方潦草地画着门禁卡和腕带的简图，旁边标注着『物业核验码』与『闭馆门禁』。",
+        "另一页纸上贴着半张撕碎的住户登记表，姓名栏被水渍晕开，只能辨认出姓氏的偏旁与一个模糊的日期。纸背有用铅笔写的几组数字，像是门禁权限的编号。"
+      ],
+      "documentId": "doc_smb-mtpiyzoh-3kg5f-memory_fragment-1",
+      "roleIds": [
+        "role_P5",
+        "role_P6",
+        "role_P3",
+        "role_P4",
+        "role_P1"
+      ],
+      "isMisleading": false,
+      "isDecisive": false,
+      "supportsFact": "记忆碎片",
+      "provenance": {
+        "sourceClueId": "smb-mtpiyzoh-3kg5f-memory_fragment-1",
+        "sourceBeatIds": [
+          "ob-mtpiyzom-qtrm"
+        ]
+      }
+    },
+    {
+      "id": "smb-mtpiyzoh-3kg5f-identity_hint-2",
+      "title": "身份暗示",
+      "stageId": "act3",
+      "delivery": "HOST_RELEASE",
+      "visibility": "PUBLIC",
+      "paragraphs": [
+        "物业档案室靠窗第三排铁皮柜最底层，压着一本墨绿色硬皮《住户登记档案》借阅登记簿。翻到本周三那一页，靠近装订线的位置被人折了一个小角，折角正对着的登记条目是：'P5，下午14:20-14:35，调阅：城市美术馆夜间展厅相关住户档案'。条目下方没有签名，只有一行用铅笔写的、几乎要磨掉的备注：'重点看闭馆门禁与库房授权日志上登记的临时腕带编号。'",
+        "档案室管理员老周记得那天下午P5来得很急，说是在查'未公开的预展目录册'的事，但实际翻得最多的却是那几卷贴着'物业核验码'红签的住户登记册。P5离开前把登记簿随手搁在窗台上，窗台外正好是排风口，风把那一页吹得哗哗响。老周顺手压平，发现折角处还夹着一片美术馆私人预展邀请腕带的碎边——深蓝色绒面，印着半截烫金编号。",
+        "档案室角落的监控拍不到借阅登记簿的具体内容，但门口的值班日志上，P5离馆时间被记录为14:38，比正常借阅流程多用了近十分钟。那十分钟里，档案室东侧那排存放'住户登记档案'复印件的柜子门锁有被拨动过的痕迹，锁孔周围留有一点深蓝色纤维。"
+      ],
+      "documentId": "doc_smb-mtpiyzoh-3kg5f-identity_hint-2",
+      "roleIds": [
+        "role_P5",
+        "role_P6",
+        "role_P3",
+        "role_P4",
+        "role_P1"
+      ],
+      "isMisleading": false,
+      "isDecisive": false,
+      "supportsFact": "身份暗示",
+      "provenance": {
+        "sourceClueId": "smb-mtpiyzoh-3kg5f-identity_hint-2",
+        "sourceBeatIds": []
+      }
+    },
+    {
+      "id": "smb-mtpiyzoh-3kg5f-misdirection-3",
+      "title": "误导",
+      "stageId": "act3",
+      "delivery": "HOST_RELEASE",
+      "visibility": "PUBLIC",
+      "paragraphs": [
+        "你推开物业档案室的门，手电筒的光扫过一排铁皮柜。角落里那个标着「旧城区搬迁户」的纸箱已经受潮发霉，抽出最上面那本硬壳登记簿时，封面的烫金字早已剥落，只留下「住户登记档案」的凹痕。",
+        "翻到夹着回形针的那一页，纸页脆得几乎要碎裂。上面用蓝黑钢笔写着：「城东老宅，产权人：林守正，登记日期：1998年3月17日。附注：此人已于同年迁出，档案转交北区街道办。」字迹旁边有一道很深的指甲掐痕，像是有人反复确认过这一栏。",
+        "档案末尾贴着一张泛黄的便签，边缘卷曲，墨迹被水渍洇开：「此户与美术馆夜间展厅的闭馆门禁授权有关，钥匙曾由库房管理员代管，后因私人预展邀请腕带遗失而作废。」便签背面是铅笔草写的几个数字，像是某次门禁权限核验码的残码。",
+        "你注意到档案袋底部还有一张撕了一半的收据，抬头是「城市美术馆」，项目栏写「未公开的预展目录册（补印）」，日期恰好是案发前一周。收据上没有签字，只在角落用圆珠笔写了「P5」三个字符，旁边画了个潦草的圆圈。"
+      ],
+      "documentId": "doc_smb-mtpiyzoh-3kg5f-misdirection-3",
+      "roleIds": [
+        "role_P5",
+        "role_P6",
+        "role_P3",
+        "role_P4",
+        "role_P1"
+      ],
+      "isMisleading": true,
+      "isDecisive": false,
+      "supportsFact": "误导",
+      "provenance": {
+        "sourceClueId": "smb-mtpiyzoh-3kg5f-misdirection-3",
+        "sourceBeatIds": [
+          "ob-mtpiyzom-qtrm"
+        ]
+      }
+    },
+    {
+      "id": "smb-mtpiyzoh-3kg5f-confirmation-4",
+      "title": "确认",
+      "stageId": "act3",
+      "delivery": "HOST_RELEASE",
+      "visibility": "PUBLIC",
+      "paragraphs": [
+        "在物业档案室的铁皮柜第三层，夹在一沓住户登记表之间，露出一角淡黄色的回执单。纸张边缘有被反复摩挲过的痕迹，折痕处微微泛白。",
+        "回执单抬头印着「城市美术馆夜间展厅·闭馆门禁与库房授权日志」的编号栏，下方却手写着一行物业核验码，墨迹是新添的，与打印体格格不入。",
+        "核验码下压着一张对折的住户登记档案复印件，姓名栏被人用铅笔轻轻圈过，旁边标注了一个问号。复印件背面是几行潦草的笔记，写着「与闭馆门禁授权记录比对，身份吻合，但腕带编号未录入系统」——字迹与档案室常用值班日志上的笔迹相同。",
+        "档案柜门内侧贴着一张「公共应急任务」的旧通知，通知底部有人用圆珠笔添了一行小字：「私人预展邀请腕带若与登记档案主体不符，需上报核验。」那行字被划了两道线，却未完全涂掉。"
+      ],
+      "documentId": "doc_smb-mtpiyzoh-3kg5f-confirmation-4",
+      "roleIds": [
+        "role_P5",
+        "role_P6",
+        "role_P3",
+        "role_P4",
+        "role_P1"
+      ],
+      "isMisleading": false,
+      "isDecisive": false,
+      "supportsFact": "确认",
+      "provenance": {
+        "sourceClueId": "smb-mtpiyzoh-3kg5f-confirmation-4",
+        "sourceBeatIds": [
+          "ob-mtpiyzom-qtrm"
+        ]
+      }
+    },
+    {
+      "id": "smb-mtpiyzoh-3kg5f-decisive_reveal-5",
+      "title": "决定性揭示",
+      "stageId": "act3",
+      "delivery": "HOST_RELEASE",
+      "visibility": "PUBLIC",
+      "paragraphs": [
+        "在物业档案室的铁皮柜最底层，一份被水渍洇过的住户登记档案被翻了出来。封面写着“城市美术馆夜间展厅·员工及住户临时登记”，日期正是案发前一周。",
+        "翻到第7页，有一行被圆珠笔重重描过的记录：姓名栏填着“P5”，备注栏却潦草地写着“身份核实异常——登记照片与门禁系统留存影像不符，物业核验码已失效”。旁边还贴着一张皱巴巴的便签：“已通知安保复核，勿删。”",
+        "档案背面夹着一张从未公开的预展目录册撕下的扉页，上边印着P5的名字，与登记档案上的笔迹完全一致。扉页边缘有被反复折叠的痕迹，像是被人贴身携带了很久。",
+        "最关键的是一张门禁授权日志打印件：闭馆门禁与库房授权日志显示，在案发时段，P5的私人预展邀请腕带曾两次刷开库房通道，但系统里登记的却是另一名住户的编号。物业核验码的比对结果在日志末尾被红笔圈出：“腕带持有人与登记人身份不符。”"
+      ],
+      "documentId": "doc_smb-mtpiyzoh-3kg5f-decisive_reveal-5",
+      "roleIds": [
+        "role_P5",
+        "role_P6",
+        "role_P3",
+        "role_P4",
+        "role_P1"
+      ],
+      "isMisleading": false,
+      "isDecisive": true,
+      "supportsFact": "决定性揭示",
+      "provenance": {
+        "sourceClueId": "smb-mtpiyzoh-3kg5f-decisive_reveal-5",
+        "sourceBeatIds": [
+          "ob-mtpiyzom-qtrm"
+        ]
+      }
+    },
+    {
+      "id": "fact-interface:ob-mtpiyzom-8ory",
+      "title": "标的已换手；换手后的关系状态",
+      "stageId": "act4",
+      "delivery": "HOST_RELEASE",
+      "visibility": "PUBLIC",
+      "paragraphs": [
+        "物业档案室的住户登记档案被翻到了最新一页，上面盖着今天的日期章。在「标的物」一栏，原业主的名字已被划去，旁边用蓝黑色钢笔写下了新的持有者姓名，笔迹刚干不久。",
+        "档案页边缘贴着一条打印的物业核验码，扫描后显示：门禁权限已于昨夜 23:47 完成转移，新持有人持有的门禁卡编号与旧卡不同，生效时间正是换手记录上的时刻。",
+        "档案柜的抽屉没有完全关严，露出一角手写的便签，上面潦草地写着：「钥匙已交，旧卡作废，明天起走新门禁。」落款是物业值班员的代号缩写。"
+      ],
+      "documentId": "doc_fact-interface:ob-mtpiyzom-8ory",
+      "roleIds": [
+        "role_P2",
+        "role_P1",
+        "role_P3",
+        "role_P4"
+      ],
+      "isMisleading": false,
+      "isDecisive": false,
+      "supportsFact": "标的已换手；换手后的关系状态",
+      "provenance": {
+        "sourceClueId": "fact-interface:ob-mtpiyzom-8ory",
+        "sourceBeatIds": []
+      }
+    },
+    {
+      "id": "fact-interface:ob-mtpiyzom-njbm",
+      "title": "身份确认；身份进入公开层",
+      "stageId": "act4",
+      "delivery": "HOST_RELEASE",
+      "visibility": "PUBLIC",
+      "paragraphs": [
+        "在物业档案室的一角，积灰的住户登记档案被翻到了最新一页。这一页的边角有被反复摩挲的痕迹，上面用黑色墨水写着住户姓名，旁边贴着物业核验码的存根。",
+        "档案下方夹着一张便签，笔迹匆忙，写着：‘门禁权限已更新，请用物业核验码在闭馆前完成身份确认。’便签背面是城市美术馆夜间展厅的闭馆门禁与库房授权日志的复印件，其中一行标注了‘私人预展邀请腕带’的领取记录。",
+        "档案页的页眉处盖着‘身份确认’的红色印章，但日期尚未填写。旁边有人用铅笔轻轻画了一个圈，指向未公开的预展目录册中一个被多次借阅的名称。整份档案与案发现场的证物袋放在同一层架子上，但袋口并未封紧。"
+      ],
+      "documentId": "doc_fact-interface:ob-mtpiyzom-njbm",
+      "roleIds": [
+        "role_P5",
+        "role_P6",
+        "role_P3",
+        "role_P4",
+        "role_P1"
+      ],
+      "isMisleading": false,
+      "isDecisive": false,
+      "supportsFact": "身份确认；身份进入公开层",
+      "provenance": {
+        "sourceClueId": "fact-interface:ob-mtpiyzom-njbm",
+        "sourceBeatIds": []
+      }
+    }
+  ],
+  "endingContent": {
+    "finalStageId": "act4",
+    "resolutionMode": "IDENTITY_SETTLEMENT",
+    "sections": [
+      {
+        "id": "ending-settlement",
+        "stageId": "act4",
+        "title": "终局结算：表决与真相",
+        "paragraphs": [
+          "在最后的表决中，玩家们依据各自掌握的线索与立场作出选择。多数票所指向的结论，成为当晚公开记录中的“共识版本”。然而，共识并不等于事实，真相仍以调查中确证的关键证据为准。",
+          "关键证据——那件能够揭示顾清真实身份的证物——已被找到并确认。它指向一个明确的结论：顾清的真实身份确凿无疑，且这一事实已在事件进程中逐步浮出水面。",
+          "与此相对，其他若干议题——如沈岚试探可交换标的底线的具体范围、梁赫在交换条件中隐瞒的不可让步项、以及换手后各方关系的最终走向——未能形成决定性证据。它们仍是开放性的存疑点，留待后续的互动或补充调查去厘清。",
+          "需要特别说明的是：玩家的表决结果仅作为公开呈现的“多数意见”，它不会改写已确认的真相。真相由 decisiveClues 与 truthEvents 共同锚定，独立于表决而存在。"
+        ],
+        "roleIds": [],
+        "provenance": {
+          "sourceBeatIds": [
+            "ob-mtpiyzom-galw",
+            "ob-mtpiyzom-fadl",
+            "ob-mtpiyzom-ho6r",
+            "ob-mtpiyzom-65mb",
+            "ob-mtpiyzom-z9lg",
+            "ob-mtpiyzom-qtrm",
+            "ob-mtpiyzom-8ory",
+            "ob-mtpiyzom-njbm"
+          ],
+          "sourceClueIds": [
+            "smb-mtpiyzoh-3kg5f-decisive_reveal-5"
+          ],
+          "sourceFactIds": [
+            "fact:smb-mtpiyzoh-3kg5f:beat-climax:identity_confirmed:P5",
+            "fact:smb-mtpiyzoh-3kg5f:beat-res:identity_public:P5"
+          ]
+        }
+      },
+      {
+        "id": "ending-truth-recap",
+        "stageId": "act4",
+        "title": "真相回顾",
+        "paragraphs": [
+          "在事件进程中，顾清的真实身份得到了确认。她并非最初所呈现的表象，而是另有身份——这一真相通过关键证据被坐实，并已在后续阶段公开。",
+          "围绕可交换标的的试探与换手，沈岚与梁赫之间发生过一系列交涉。这些交涉的具体细节及其底牌，未能全部转化为确证事实，仍存有模糊地带。",
+          "梁赫在提出交换条件时，曾隐瞒某些不可让步项；顾清则在等待阶段领取了被封存的身份记录。这些行为均真实发生，但其背后动机与完整影响，并未完全公开。",
+          "随着身份公开，顾清与各方的关系面临重组。梁赫在换手后是否公开交换、继续合作或撕毁承诺，仍是一个开放选择，未形成定论。"
+        ],
+        "roleIds": [],
+        "provenance": {
+          "sourceBeatIds": [
+            "ob-mtpiyzom-qtrm",
+            "ob-mtpiyzom-z9lg",
+            "ob-mtpiyzom-ho6r",
+            "ob-mtpiyzom-65mb",
+            "ob-mtpiyzom-8ory",
+            "ob-mtpiyzom-njbm"
+          ],
+          "sourceClueIds": [
+            "smb-mtpiyzoh-3kg5f-decisive_reveal-5"
+          ],
+          "sourceFactIds": [
+            "fact:smb-mtpiyzoh-3kg5f:beat-climax:identity_confirmed:P5",
+            "fact:smb-mtpiyzoh-3kg5f:beat-res:identity_public:P5",
+            "fact:smb-mtpiyzod-lbm0x:beat-climax:stake_transferred:P1",
+            "fact:smb-mtpiyzod-lbm0x:beat-res:stake_transferred:P2"
+          ]
+        }
+      },
+      {
+        "id": "ending-open-threads",
+        "stageId": "act4",
+        "title": "遗留的开放线索",
+        "paragraphs": [
+          "以下议题因缺乏决定性证据，仍处于开放状态，可能成为后续调查或扩展的切入点：沈岚对可交换标的底线的试探范围；梁赫所隐瞒的不可让步项的具体内容；换手后各方关系的最终走向。",
+          "这些开放线索并不影响已确认的真相，但它们为未来的叙事保留了空间。玩家若有意深入，可基于现有线索继续挖掘。"
+        ],
+        "roleIds": [],
+        "provenance": {
+          "sourceBeatIds": [
+            "ob-mtpiyzom-galw",
+            "ob-mtpiyzom-ho6r",
+            "ob-mtpiyzom-8ory",
+            "ob-mtpiyzom-njbm"
+          ],
+          "sourceClueIds": [],
+          "sourceFactIds": []
+        }
+      }
+    ]
+  },
+  "mechanismAnnotations": [],
+  "permissions": [],
+  "provenanceIndex": {
+    "sec-act1-opening": {
+      "sourceBeatIds": [
+        "ob-mtpiyzom-galw",
+        "ob-mtpiyzom-fadl"
+      ],
+      "sourceClueIds": [
+        "smb-mtpiyzod-lbm0x-stake_hint-0",
+        "smb-mtpiyzoh-3kg5f-foreshadow-0"
+      ],
+      "sourceFactIds": [
+        "fact:smb-mtpiyzod-lbm0x:beat-setup:bargain_terms_visible:P1",
+        "fact:smb-mtpiyzoh-3kg5f:beat-setup:identity_latent:P5"
+      ],
+      "sectionStatus": "GENERATED"
+    },
+    "sec-act2-opening": {
+      "sourceBeatIds": [
+        "ob-mtpiyzom-ho6r",
+        "ob-mtpiyzom-65mb"
+      ],
+      "sourceClueIds": [
+        "smb-mtpiyzod-lbm0x-stake_hint-0",
+        "smb-mtpiyzoh-3kg5f-foreshadow-0"
+      ],
+      "sourceFactIds": [
+        "fact:smb-mtpiyzod-lbm0x:beat-develop:bargain_offer:P2",
+        "fact:smb-mtpiyzoh-3kg5f:beat-develop:identity_clue:P5"
+      ],
+      "sectionStatus": "GENERATED"
+    },
+    "sec-act3-opening": {
+      "sourceBeatIds": [
+        "ob-mtpiyzom-z9lg",
+        "ob-mtpiyzom-qtrm"
+      ],
+      "sourceClueIds": [
+        "smb-mtpiyzod-lbm0x-term_leak-1",
+        "smb-mtpiyzod-lbm0x-transfer_proof-2",
+        "smb-mtpiyzoh-3kg5f-memory_fragment-1",
+        "smb-mtpiyzoh-3kg5f-identity_hint-2",
+        "smb-mtpiyzoh-3kg5f-misdirection-3",
+        "smb-mtpiyzoh-3kg5f-confirmation-4",
+        "smb-mtpiyzoh-3kg5f-decisive_reveal-5"
+      ],
+      "sourceFactIds": [
+        "fact:smb-mtpiyzod-lbm0x:beat-climax:stake_transferred:P1",
+        "fact:smb-mtpiyzod-lbm0x:beat-climax:access_proof:P1",
+        "fact:smb-mtpiyzoh-3kg5f:beat-climax:identity_confirmed:P5",
+        "fact:smb-mtpiyzoh-3kg5f:beat-climax:family_status:P5"
+      ],
+      "sectionStatus": "GENERATED"
+    },
+    "sec-act4-opening": {
+      "sourceBeatIds": [
+        "ob-mtpiyzom-8ory",
+        "ob-mtpiyzom-njbm"
+      ],
+      "sourceClueIds": [
+        "fact-interface:ob-mtpiyzom-8ory",
+        "fact-interface:ob-mtpiyzom-njbm"
+      ],
+      "sourceFactIds": [
+        "fact:smb-mtpiyzod-lbm0x:beat-res:bargain_aftermath:P2",
+        "fact:smb-mtpiyzoh-3kg5f:beat-res:identity_public:P5"
+      ],
+      "sectionStatus": "GENERATED"
+    },
+    "act1-intro": {
+      "sourceBeatIds": [
+        "ob-mtpiyzom-galw",
+        "ob-mtpiyzom-fadl"
+      ],
+      "sourceClueIds": [],
+      "sourceFactIds": [
+        "fact:smb-mtpiyzod-lbm0x:beat-setup:bargain_terms_visible:P1",
+        "fact:smb-mtpiyzoh-3kg5f:beat-setup:identity_latent:P5"
+      ],
+      "sectionStatus": "GENERATED"
+    },
+    "act1-guidance": {
+      "sourceBeatIds": [
+        "ob-mtpiyzom-galw",
+        "ob-mtpiyzom-fadl"
+      ],
+      "sourceClueIds": [],
+      "sourceFactIds": [
+        "fact:smb-mtpiyzod-lbm0x:beat-setup:bargain_terms_visible:P1",
+        "fact:smb-mtpiyzoh-3kg5f:beat-setup:identity_latent:P5"
+      ],
+      "sectionStatus": "GENERATED"
+    },
+    "act2-pressure": {
+      "sourceBeatIds": [
+        "ob-mtpiyzom-ho6r",
+        "ob-mtpiyzom-65mb"
+      ],
+      "sourceClueIds": [],
+      "sourceFactIds": [
+        "fact:smb-mtpiyzod-lbm0x:beat-develop:bargain_offer:P2",
+        "fact:smb-mtpiyzod-lbm0x:beat-develop:bargain_terms_visible:P2",
+        "fact:smb-mtpiyzoh-3kg5f:beat-develop:identity_clue:P5",
+        "fact:smb-mtpiyzoh-3kg5f:beat-develop:site_accessible:P5"
+      ],
+      "sectionStatus": "GENERATED"
+    },
+    "public-act3-escalation": {
+      "sourceBeatIds": [
+        "ob-mtpiyzom-z9lg",
+        "ob-mtpiyzom-qtrm"
+      ],
+      "sourceClueIds": [],
+      "sourceFactIds": [
+        "fact:smb-mtpiyzod-lbm0x:beat-climax:stake_transferred:P1",
+        "fact:smb-mtpiyzod-lbm0x:beat-climax:access_proof:P1",
+        "fact:smb-mtpiyzod-lbm0x:beat-climax:bargain_offer:P1",
+        "fact:smb-mtpiyzoh-3kg5f:beat-climax:identity_confirmed:P5",
+        "fact:smb-mtpiyzoh-3kg5f:beat-climax:family_status:P5",
+        "fact:smb-mtpiyzoh-3kg5f:beat-climax:identity_clue:P5"
+      ],
+      "sectionStatus": "GENERATED"
+    },
+    "act4-payoff-exchange": {
+      "sourceBeatIds": [
+        "ob-mtpiyzom-8ory",
+        "ob-mtpiyzom-njbm"
+      ],
+      "sourceClueIds": [],
+      "sourceFactIds": [],
+      "sectionStatus": "GENERATED"
+    },
+    "act4-payoff-reactions": {
+      "sourceBeatIds": [],
+      "sourceClueIds": [],
+      "sourceFactIds": [
+        "fact:smb-mtpiyzod-lbm0x:beat-res:bargain_aftermath:P2",
+        "fact:smb-mtpiyzod-lbm0x:beat-res:stake_transferred:P2",
+        "fact:smb-mtpiyzoh-3kg5f:beat-res:identity_public:P5",
+        "fact:smb-mtpiyzoh-3kg5f:beat-res:identity_confirmed:P5"
+      ],
+      "sectionStatus": "GENERATED"
+    },
+    "ending-settlement": {
+      "sourceBeatIds": [
+        "ob-mtpiyzom-galw",
+        "ob-mtpiyzom-fadl",
+        "ob-mtpiyzom-ho6r",
+        "ob-mtpiyzom-65mb",
+        "ob-mtpiyzom-z9lg",
+        "ob-mtpiyzom-qtrm",
+        "ob-mtpiyzom-8ory",
+        "ob-mtpiyzom-njbm"
+      ],
+      "sourceClueIds": [
+        "smb-mtpiyzoh-3kg5f-decisive_reveal-5"
+      ],
+      "sourceFactIds": [
+        "fact:smb-mtpiyzoh-3kg5f:beat-climax:identity_confirmed:P5",
+        "fact:smb-mtpiyzoh-3kg5f:beat-res:identity_public:P5"
+      ],
+      "sectionStatus": "GENERATED"
+    },
+    "ending-truth-recap": {
+      "sourceBeatIds": [
+        "ob-mtpiyzom-qtrm",
+        "ob-mtpiyzom-z9lg",
+        "ob-mtpiyzom-ho6r",
+        "ob-mtpiyzom-65mb",
+        "ob-mtpiyzom-8ory",
+        "ob-mtpiyzom-njbm"
+      ],
+      "sourceClueIds": [
+        "smb-mtpiyzoh-3kg5f-decisive_reveal-5"
+      ],
+      "sourceFactIds": [
+        "fact:smb-mtpiyzoh-3kg5f:beat-climax:identity_confirmed:P5",
+        "fact:smb-mtpiyzoh-3kg5f:beat-res:identity_public:P5",
+        "fact:smb-mtpiyzod-lbm0x:beat-climax:stake_transferred:P1",
+        "fact:smb-mtpiyzod-lbm0x:beat-res:stake_transferred:P2"
+      ],
+      "sectionStatus": "GENERATED"
+    },
+    "ending-open-threads": {
+      "sourceBeatIds": [
+        "ob-mtpiyzom-galw",
+        "ob-mtpiyzom-ho6r",
+        "ob-mtpiyzom-8ory",
+        "ob-mtpiyzom-njbm"
+      ],
+      "sourceClueIds": [],
+      "sourceFactIds": [],
+      "sectionStatus": "GENERATED"
+    },
+    "sec-act1": {
+      "sourceCharacterId": "P1",
+      "sourceBeatIds": [
+        "ob-mtpiyzom-galw"
+      ],
+      "sourceClueIds": [],
+      "sourceFactIds": [],
+      "sectionStatus": "GENERATED"
+    },
+    "sec-act2": {
+      "sourceCharacterId": "P1",
+      "sourceBeatIds": [
+        "ob-mtpiyzom-ho6r",
+        "ob-mtpiyzom-65mb"
+      ],
+      "sourceClueIds": [],
+      "sourceFactIds": [],
+      "sectionStatus": "GENERATED"
+    },
+    "sec-act3": {
+      "sourceCharacterId": "P1",
+      "sourceBeatIds": [
+        "ob-mtpiyzom-z9lg",
+        "ob-mtpiyzom-qtrm"
+      ],
+      "sourceClueIds": [],
+      "sourceFactIds": [],
+      "sectionStatus": "GENERATED"
+    },
+    "sec-act4": {
+      "sourceCharacterId": "P1",
+      "sourceBeatIds": [
+        "ob-mtpiyzom-8ory",
+        "ob-mtpiyzom-njbm"
+      ],
+      "sourceClueIds": [],
+      "sourceFactIds": [],
+      "sectionStatus": "GENERATED"
+    },
+    "act1": {
+      "sourceCharacterId": "P6",
+      "sourceBeatIds": [
+        "ob-mtpiyzom-fadl"
+      ],
+      "sourceClueIds": [
+        "smb-mtpiyzod-lbm0x-stake_hint-0",
+        "smb-mtpiyzoh-3kg5f-foreshadow-0",
+        "smb-mtpiyzoh-3kg5f-memory_fragment-1",
+        "smb-mtpiyzoh-3kg5f-identity_hint-2",
+        "smb-mtpiyzoh-3kg5f-misdirection-3",
+        "smb-mtpiyzoh-3kg5f-confirmation-4",
+        "smb-mtpiyzoh-3kg5f-decisive_reveal-5"
+      ],
+      "sourceFactIds": [],
+      "sectionStatus": "GENERATED"
+    },
+    "act2": {
+      "sourceCharacterId": "P3",
+      "sourceBeatIds": [
+        "ob-mtpiyzom-ho6r",
+        "ob-mtpiyzom-65mb"
+      ],
+      "sourceClueIds": [
+        "smb-mtpiyzod-lbm0x-stake_hint-0",
+        "smb-mtpiyzoh-3kg5f-foreshadow-0"
+      ],
+      "sourceFactIds": [
+        "fact:smb-mtpiyzod-lbm0x:beat-develop:bargain_offer:P2",
+        "fact:smb-mtpiyzod-lbm0x:beat-develop:bargain_terms_visible:P2",
+        "fact:smb-mtpiyzoh-3kg5f:beat-develop:identity_clue:P5",
+        "fact:smb-mtpiyzoh-3kg5f:beat-develop:site_accessible:P5"
+      ],
+      "sectionStatus": "INVALID"
+    },
+    "act3": {
+      "sourceCharacterId": "P3",
+      "sourceBeatIds": [
+        "ob-mtpiyzom-z9lg",
+        "ob-mtpiyzom-qtrm"
+      ],
+      "sourceClueIds": [
+        "smb-mtpiyzod-lbm0x-transfer_proof-2",
+        "smb-mtpiyzoh-3kg5f-confirmation-4"
+      ],
+      "sourceFactIds": [
+        "fact:smb-mtpiyzod-lbm0x:beat-climax:stake_transferred:P1",
+        "fact:smb-mtpiyzod-lbm0x:beat-climax:access_proof:P1",
+        "fact:smb-mtpiyzod-lbm0x:beat-climax:bargain_offer:P1",
+        "fact:smb-mtpiyzoh-3kg5f:beat-climax:identity_confirmed:P5",
+        "fact:smb-mtpiyzoh-3kg5f:beat-climax:family_status:P5",
+        "fact:smb-mtpiyzoh-3kg5f:beat-climax:identity_clue:P5"
+      ],
+      "sectionStatus": "INVALID"
+    },
+    "act4": {
+      "sourceCharacterId": "P3",
+      "sourceBeatIds": [
+        "ob-mtpiyzom-8ory",
+        "ob-mtpiyzom-njbm"
+      ],
+      "sourceClueIds": [
+        "smb-mtpiyzod-lbm0x-decisive_reveal-5",
+        "smb-mtpiyzoh-3kg5f-decisive_reveal-5"
+      ],
+      "sourceFactIds": [
+        "fact:smb-mtpiyzod-lbm0x:beat-res:bargain_aftermath:P2",
+        "fact:smb-mtpiyzod-lbm0x:beat-res:stake_transferred:P2",
+        "fact:smb-mtpiyzoh-3kg5f:beat-res:identity_public:P5",
+        "fact:smb-mtpiyzoh-3kg5f:beat-res:identity_confirmed:P5"
+      ],
+      "sectionStatus": "INVALID"
+    },
+    "act2-experience": {
+      "sourceCharacterId": "P4",
+      "sourceBeatIds": [
+        "ob-mtpiyzom-ho6r",
+        "ob-mtpiyzom-65mb"
+      ],
+      "sourceClueIds": [
+        "smb-mtpiyzod-lbm0x-stake_hint-0",
+        "smb-mtpiyzoh-3kg5f-foreshadow-0",
+        "smb-mtpiyzod-lbm0x-term_leak-1",
+        "smb-mtpiyzod-lbm0x-transfer_proof-2",
+        "smb-mtpiyzoh-3kg5f-memory_fragment-1",
+        "smb-mtpiyzoh-3kg5f-identity_hint-2"
+      ],
+      "sourceFactIds": [],
+      "sectionStatus": "GENERATED"
+    },
+    "act3-experience": {
+      "sourceCharacterId": "P4",
+      "sourceBeatIds": [
+        "ob-mtpiyzom-z9lg",
+        "ob-mtpiyzom-qtrm"
+      ],
+      "sourceClueIds": [
+        "smb-mtpiyzod-lbm0x-stake_hint-0",
+        "smb-mtpiyzoh-3kg5f-foreshadow-0",
+        "smb-mtpiyzod-lbm0x-term_leak-1",
+        "smb-mtpiyzod-lbm0x-transfer_proof-2",
+        "smb-mtpiyzoh-3kg5f-memory_fragment-1",
+        "smb-mtpiyzoh-3kg5f-identity_hint-2",
+        "smb-mtpiyzoh-3kg5f-misdirection-3",
+        "smb-mtpiyzoh-3kg5f-confirmation-4"
+      ],
+      "sourceFactIds": [],
+      "sectionStatus": "GENERATED"
+    },
+    "act4-experience": {
+      "sourceCharacterId": "P4",
+      "sourceBeatIds": [
+        "ob-mtpiyzom-8ory",
+        "ob-mtpiyzom-njbm"
+      ],
+      "sourceClueIds": [
+        "smb-mtpiyzod-lbm0x-stake_hint-0",
+        "smb-mtpiyzoh-3kg5f-foreshadow-0",
+        "smb-mtpiyzod-lbm0x-term_leak-1",
+        "smb-mtpiyzod-lbm0x-transfer_proof-2",
+        "smb-mtpiyzoh-3kg5f-memory_fragment-1",
+        "smb-mtpiyzoh-3kg5f-identity_hint-2",
+        "smb-mtpiyzoh-3kg5f-misdirection-3",
+        "smb-mtpiyzoh-3kg5f-confirmation-4",
+        "smb-mtpiyzoh-3kg5f-decisive_reveal-5"
+      ],
+      "sourceFactIds": [],
+      "sectionStatus": "GENERATED"
+    },
+    "clue:smb-mtpiyzod-lbm0x-stake_hint-0": {
+      "sourceClueId": "smb-mtpiyzod-lbm0x-stake_hint-0",
+      "sourceBeatIds": [
+        "ob-mtpiyzom-galw",
+        "ob-mtpiyzom-ho6r"
+      ],
+      "sourceClueIds": [
+        "smb-mtpiyzod-lbm0x-stake_hint-0"
+      ],
+      "sourceFactIds": [
+        "fact:smb-mtpiyzod-lbm0x:beat-setup:bargain_terms_visible:P1",
+        "fact:smb-mtpiyzod-lbm0x:beat-develop:bargain_offer:P2",
+        "fact:smb-mtpiyzod-lbm0x:beat-develop:bargain_terms_visible:P2"
+      ],
+      "sectionStatus": "GENERATED"
+    },
+    "clue:smb-mtpiyzoh-3kg5f-foreshadow-0": {
+      "sourceClueId": "smb-mtpiyzoh-3kg5f-foreshadow-0",
+      "sourceBeatIds": [
+        "ob-mtpiyzom-fadl",
+        "ob-mtpiyzom-65mb"
+      ],
+      "sourceClueIds": [
+        "smb-mtpiyzoh-3kg5f-foreshadow-0"
+      ],
+      "sourceFactIds": [
+        "fact:smb-mtpiyzoh-3kg5f:beat-setup:identity_latent:P5",
+        "fact:smb-mtpiyzoh-3kg5f:beat-develop:identity_clue:P5",
+        "fact:smb-mtpiyzoh-3kg5f:beat-develop:site_accessible:P5"
+      ],
+      "sectionStatus": "GENERATED"
+    },
+    "clue:smb-mtpiyzod-lbm0x-term_leak-1": {
+      "sourceClueId": "smb-mtpiyzod-lbm0x-term_leak-1",
+      "sourceBeatIds": [
+        "ob-mtpiyzom-z9lg"
+      ],
+      "sourceClueIds": [
+        "smb-mtpiyzod-lbm0x-term_leak-1"
+      ],
+      "sourceFactIds": [
+        "fact:smb-mtpiyzod-lbm0x:beat-climax:stake_transferred:P1",
+        "fact:smb-mtpiyzod-lbm0x:beat-climax:access_proof:P1",
+        "fact:smb-mtpiyzod-lbm0x:beat-climax:bargain_offer:P1"
+      ],
+      "sectionStatus": "GENERATED"
+    },
+    "clue:smb-mtpiyzod-lbm0x-transfer_proof-2": {
+      "sourceClueId": "smb-mtpiyzod-lbm0x-transfer_proof-2",
+      "sourceBeatIds": [
+        "ob-mtpiyzom-z9lg"
+      ],
+      "sourceClueIds": [
+        "smb-mtpiyzod-lbm0x-transfer_proof-2"
+      ],
+      "sourceFactIds": [
+        "fact:smb-mtpiyzod-lbm0x:beat-climax:stake_transferred:P1",
+        "fact:smb-mtpiyzod-lbm0x:beat-climax:access_proof:P1",
+        "fact:smb-mtpiyzod-lbm0x:beat-climax:bargain_offer:P1"
+      ],
+      "sectionStatus": "GENERATED"
+    },
+    "clue:smb-mtpiyzoh-3kg5f-memory_fragment-1": {
+      "sourceClueId": "smb-mtpiyzoh-3kg5f-memory_fragment-1",
+      "sourceBeatIds": [
+        "ob-mtpiyzom-qtrm"
+      ],
+      "sourceClueIds": [
+        "smb-mtpiyzoh-3kg5f-memory_fragment-1"
+      ],
+      "sourceFactIds": [
+        "fact:smb-mtpiyzoh-3kg5f:beat-climax:identity_confirmed:P5",
+        "fact:smb-mtpiyzoh-3kg5f:beat-climax:family_status:P5",
+        "fact:smb-mtpiyzoh-3kg5f:beat-climax:identity_clue:P5"
+      ],
+      "sectionStatus": "GENERATED"
+    },
+    "clue:smb-mtpiyzoh-3kg5f-identity_hint-2": {
+      "sourceClueId": "smb-mtpiyzoh-3kg5f-identity_hint-2",
+      "sourceBeatIds": [],
+      "sourceClueIds": [],
+      "sourceFactIds": [],
+      "sectionStatus": "INVALID"
+    },
+    "clue:smb-mtpiyzoh-3kg5f-misdirection-3": {
+      "sourceClueId": "smb-mtpiyzoh-3kg5f-misdirection-3",
+      "sourceBeatIds": [
+        "ob-mtpiyzom-qtrm"
+      ],
+      "sourceClueIds": [
+        "smb-mtpiyzoh-3kg5f-misdirection-3"
+      ],
+      "sourceFactIds": [
+        "fact:smb-mtpiyzoh-3kg5f:beat-climax:identity_confirmed:P5",
+        "fact:smb-mtpiyzoh-3kg5f:beat-climax:family_status:P5",
+        "fact:smb-mtpiyzoh-3kg5f:beat-climax:identity_clue:P5"
+      ],
+      "sectionStatus": "GENERATED"
+    },
+    "clue:smb-mtpiyzoh-3kg5f-confirmation-4": {
+      "sourceClueId": "smb-mtpiyzoh-3kg5f-confirmation-4",
+      "sourceBeatIds": [
+        "ob-mtpiyzom-qtrm"
+      ],
+      "sourceClueIds": [
+        "smb-mtpiyzoh-3kg5f-confirmation-4"
+      ],
+      "sourceFactIds": [
+        "fact:smb-mtpiyzoh-3kg5f:beat-climax:identity_confirmed:P5",
+        "fact:smb-mtpiyzoh-3kg5f:beat-climax:family_status:P5",
+        "fact:smb-mtpiyzoh-3kg5f:beat-climax:identity_clue:P5"
+      ],
+      "sectionStatus": "GENERATED"
+    },
+    "clue:smb-mtpiyzoh-3kg5f-decisive_reveal-5": {
+      "sourceClueId": "smb-mtpiyzoh-3kg5f-decisive_reveal-5",
+      "sourceBeatIds": [
+        "ob-mtpiyzom-qtrm"
+      ],
+      "sourceClueIds": [
+        "smb-mtpiyzoh-3kg5f-decisive_reveal-5"
+      ],
+      "sourceFactIds": [
+        "fact:smb-mtpiyzoh-3kg5f:beat-climax:identity_confirmed:P5",
+        "fact:smb-mtpiyzoh-3kg5f:beat-climax:family_status:P5",
+        "fact:smb-mtpiyzoh-3kg5f:beat-climax:identity_clue:P5"
+      ],
+      "sectionStatus": "GENERATED"
+    },
+    "clue:fact-interface:ob-mtpiyzom-8ory": {
+      "sourceClueId": "fact-interface:ob-mtpiyzom-8ory",
+      "sourceBeatIds": [],
+      "sourceClueIds": [
+        "fact-interface:ob-mtpiyzom-8ory"
+      ],
+      "sourceFactIds": [],
+      "sectionStatus": "GENERATED"
+    },
+    "clue:fact-interface:ob-mtpiyzom-njbm": {
+      "sourceClueId": "fact-interface:ob-mtpiyzom-njbm",
+      "sourceBeatIds": [],
+      "sourceClueIds": [
+        "fact-interface:ob-mtpiyzom-njbm"
+      ],
+      "sourceFactIds": [],
+      "sectionStatus": "GENERATED"
+    }
+  },
+  "diagnostics": [
+    {
+      "id": "warn-clue-ob-mtpiyzom-8ory",
+      "type": "MISSING_CLUE_DETAIL",
+      "severity": "info",
+      "message": "该剧情 beat 需要/产生事实接口，但模板尚未绑定具体线索内容。",
+      "stageIds": [
+        "act4"
+      ],
+      "beatIds": [
+        "ob-mtpiyzom-8ory"
+      ],
+      "lane": "fillable"
+    },
+    {
+      "id": "warn-clue-ob-mtpiyzom-njbm",
+      "type": "MISSING_CLUE_DETAIL",
+      "severity": "info",
+      "message": "该剧情 beat 需要/产生事实接口，但模板尚未绑定具体线索内容。",
+      "stageIds": [
+        "act4"
+      ],
+      "beatIds": [
+        "ob-mtpiyzom-njbm"
+      ],
+      "lane": "fillable"
+    },
+    {
+      "code": "UNKNOWN_CLUE",
+      "message": "未知 clue smb-mtpiyzod-lbm0x-decisive_reveal-5",
+      "lane": "writer",
+      "sectionId": "role:P3"
+    },
+    {
+      "code": "NO_PROVENANCE",
+      "message": "identity_hint_2_act3 缺 provenance",
+      "lane": "writer",
+      "sectionId": "clue:smb-mtpiyzoh-3kg5f-identity_hint-2"
+    }
+  ],
+  "revision": 1,
+  "updatedAt": "2026-09-06T08:05:59.943Z"
+}
