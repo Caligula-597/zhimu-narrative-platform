@@ -174,6 +174,8 @@ instructionLeak         7 → 0
 - 靠症状式 Writer prompt 补丁当唯一手段  
 - 无限 regenerate loop  
 
+**上游机制缺口（Formation vs Resolution）不在 P10.5 修：** 见 [`STORY_MECHANISM_FORMATIONATION_GAP_ZH.md`](./STORY_MECHANISM_FORMATIONATION_GAP_ZH.md)。
+
 ## 验收位置
 
 纯后端 / 离线脚本切片，无新 UI。位置不变：创作流水线 Writer 后自动 gate；本刀用 probe/replay 脚本验收。
