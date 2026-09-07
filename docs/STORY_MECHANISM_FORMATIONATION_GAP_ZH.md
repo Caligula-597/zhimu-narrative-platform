@@ -1,9 +1,10 @@
 # STORY 机制缺口 — Formation vs Resolution
 
-> 状态：**骨架 + 官方分级已冻结；下一刀 = M12 Formation Contract V1**  
+> 状态：**Concept PASS · Gold Sample ⚠️ PARTIAL（v1.1 修补中，未落地）**  
 > 触发：RPT #1C《闭馆之后》暴露 M12 只有谈判桌、没有坐上桌子的因果  
 > 上游已冻结：P10.2–P10.4 · P10.5.0 Diff · P10.5.1 Repair（Rendering）  
 > **官方分级基线：** [`STORY_MECHANISM_FORMATIONATION_GRADING_ZH.md`](./STORY_MECHANISM_FORMATIONATION_GRADING_ZH.md) @ **`16716ab`**  
+> **M12 规格：** [`M12_FORMATIONATION_CONTRACT_V1_ZH.md`](./M12_FORMATIONATION_CONTRACT_V1_ZH.md) — Concept ✅ · Sample ⚠️ PARTIAL_PASS · **NOT READY FOR IMPLEMENTATION**  
 > **本文件不是 Voice V2，也不重开 Projection / Writer 文学性。不改 pack。**
 
 ## 一句话判断
@@ -73,9 +74,9 @@ M12 Formation V1     ← NOW（规格文档；不改 pack / Writer）
 
 1. ~~骨架~~  
 2. ~~机制表人工分级~~ → 官方冻结 @ `16716ab`  
-3. **M12 Formation Contract V1** → [`M12_FORMATIONATION_CONTRACT_V1_ZH.md`](./M12_FORMATIONATION_CONTRACT_V1_ZH.md)  
-4. （以后）再谈跨族字段 / Pre-Writer Gate / 真模型  
-5. 真模型重跑 **远晚于** 合同与示范链
+3. ~~M12 Formation Contract V1 Concept~~ → ✅ PASS  
+4. **Gold Sample v1.1 再审**（N8/N10/N11b/可达性）→ 未 Full PASS 前 **不落地**  
+5. （以后）pack / Gate / 真模型 · 跨族 schema 更晚
 
 ---
 
