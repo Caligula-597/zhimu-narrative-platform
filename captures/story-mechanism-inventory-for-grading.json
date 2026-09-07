@@ -1,0 +1,6342 @@
+{
+  "generatedAt": "2026-09-07T05:54:40.191Z",
+  "count": 39,
+  "rows": [
+    {
+      "id": "M01-FRAMING",
+      "familyId": "M01",
+      "title": "嫁祸型追凶",
+      "purpose": "让玩家先形成一个有证据支撑的错误嫌疑，再通过反证推翻嫁祸并锁定真凶。",
+      "maturity": "COMPLETE",
+      "stages": "SETUP → CRIME_DISCOVERY → FALSE_DIRECTION → CONTRADICTION → TRUTH_REVEAL",
+      "roles": [
+        {
+          "slot": "victim",
+          "required": true,
+          "narrativeRole": "victim",
+          "label": "死者/被害关联"
+        },
+        {
+          "slot": "culprit",
+          "required": true,
+          "narrativeRole": "killer",
+          "label": "真凶"
+        },
+        {
+          "slot": "framedCharacter",
+          "required": true,
+          "narrativeRole": "framed",
+          "label": "被嫁祸者"
+        },
+        {
+          "slot": "discoverer",
+          "required": false,
+          "narrativeRole": "discoverer",
+          "label": "发现异常者"
+        }
+      ],
+      "plots": [
+        {
+          "slot": "trueMotive",
+          "label": "真实动机",
+          "required": true,
+          "presets": [
+            "掩盖十年前的私吞行为",
+            "争夺继承权",
+            "灭口以免旧案曝光"
+          ]
+        },
+        {
+          "slot": "trueMethod",
+          "label": "真实手法",
+          "required": true,
+          "presets": [
+            "勒杀",
+            "投毒",
+            "钝器击打"
+          ]
+        },
+        {
+          "slot": "plantedEvidence",
+          "label": "栽赃/误导物",
+          "required": true,
+          "presets": [
+            "玉佩",
+            "账册残页",
+            "带血手帕"
+          ]
+        },
+        {
+          "slot": "apparentConclusion",
+          "label": "第一层错误判断",
+          "required": true,
+          "presets": [
+            "被嫁祸者进入过现场并与死者起过冲突"
+          ]
+        },
+        {
+          "slot": "contradiction",
+          "label": "反证",
+          "required": true,
+          "presets": []
+        },
+        {
+          "slot": "decisiveEvidence",
+          "label": "关键突破",
+          "required": true,
+          "presets": []
+        },
+        {
+          "slot": "concealmentMethod",
+          "label": "掩饰方式",
+          "required": true,
+          "presets": []
+        }
+      ],
+      "clues": [
+        {
+          "id": "FALSE_LEAD",
+          "purpose": "误导",
+          "type": "FALSE_LEAD",
+          "stageHint": "FALSE_DIRECTION"
+        },
+        {
+          "id": "CONTRADICTION",
+          "purpose": "反证",
+          "type": "CONTRADICTION",
+          "stageHint": "CONTRADICTION"
+        },
+        {
+          "id": "TRUE_EVIDENCE",
+          "purpose": "真手法",
+          "type": "TRUE_EVIDENCE",
+          "stageHint": "TRUTH_REVEAL"
+        },
+        {
+          "id": "DECISIVE_EVIDENCE",
+          "purpose": "突破",
+          "type": "DECISIVE_EVIDENCE",
+          "stageHint": "TRUTH_REVEAL"
+        }
+      ],
+      "owners": [
+        "culprit",
+        "discoverer"
+      ],
+      "phases": [
+        "0",
+        "1",
+        "2",
+        "3",
+        "4"
+      ],
+      "profile": {
+        "status": "READY",
+        "commitments": [
+          "CRIME_FRAMING"
+        ],
+        "modes": [
+          "PROBE",
+          "CONCEAL",
+          "SUSPECT"
+        ],
+        "anchors": [
+          "EARLY_AGENCY",
+          "LATE_REINTERPRETATION"
+        ],
+        "resolutionPressure": "CULPRIT_CENTRIC_HIGH",
+        "ownershipShift": null
+      }
+    },
+    {
+      "id": "M07-1",
+      "familyId": "M07",
+      "title": "固定阶段开放",
+      "purpose": "保证关键记忆/身份相关内容在指定剧情阶段自动到达接收者，建立可控的信息节奏，而不依赖主持临场发挥。",
+      "maturity": "COMPLETE",
+      "stages": "HIDDEN → FIRST_ANOMALY → PARTIAL_REVEAL → CONTRADICTION → CONFIRMATION → CONSEQUENCE",
+      "roles": [
+        {
+          "slot": "bearer",
+          "required": true,
+          "narrativeRole": "identity_bearer",
+          "label": "核心身份/记忆承担者"
+        },
+        {
+          "slot": "knower",
+          "required": false,
+          "narrativeRole": "witness",
+          "label": "知情者"
+        },
+        {
+          "slot": "misled",
+          "required": false,
+          "narrativeRole": "misled",
+          "label": "被误导者"
+        },
+        {
+          "slot": "revealer",
+          "required": false,
+          "narrativeRole": "discoverer",
+          "label": "揭示推动者"
+        },
+        {
+          "slot": "related",
+          "required": false,
+          "narrativeRole": "support",
+          "label": "关联人物"
+        }
+      ],
+      "plots": [
+        {
+          "slot": "surfaceBelief",
+          "label": "表面认知",
+          "required": true,
+          "presets": [
+            "承担者只是普通客人/职员",
+            "众人相信既有公开身世"
+          ]
+        },
+        {
+          "slot": "hiddenContent",
+          "label": "隐藏内容",
+          "required": true,
+          "presets": [
+            "一段被封闭的关键记忆",
+            "一个未公开的真实身份事实"
+          ]
+        },
+        {
+          "slot": "trueContent",
+          "label": "真实内容",
+          "required": true,
+          "presets": [
+            "可被证据验证的真实版本",
+            "与表面认知冲突的客观事实"
+          ]
+        },
+        {
+          "slot": "concealmentReason",
+          "label": "隐藏原因",
+          "required": true,
+          "presets": [
+            "保护他人免受牵连",
+            "逃避旧案追责",
+            "维持当前身份所依赖的社会位置"
+          ]
+        },
+        {
+          "slot": "misdirectionForm",
+          "label": "误导方式",
+          "required": false,
+          "presets": [
+            "伪造身世文书",
+            "栽赃他人身份线索",
+            "故意散播错误称谓"
+          ]
+        },
+        {
+          "slot": "firstAnomaly",
+          "label": "第一次异常",
+          "required": true,
+          "presets": [
+            "称谓口误",
+            "对某地过度熟悉",
+            "对某物的异常反应"
+          ]
+        },
+        {
+          "slot": "midFragment",
+          "label": "中期证据/记忆碎片",
+          "required": true,
+          "presets": [
+            "半截旧信",
+            "残缺名册",
+            "与公开身份不符的私人物件"
+          ]
+        },
+        {
+          "slot": "decisiveReveal",
+          "label": "决定性揭示",
+          "required": true,
+          "presets": [
+            "物件对读",
+            "知情者被迫开口",
+            "公开记录被调出"
+          ]
+        },
+        {
+          "slot": "revealConsequence",
+          "label": "揭示后的影响",
+          "required": true,
+          "presets": [
+            "改变信任关系",
+            "开放新权限或关闭旧权限",
+            "推翻此前一项公开判断"
+          ]
+        },
+        {
+          "slot": "knowerSource",
+          "label": "知情来源",
+          "required": false,
+          "presets": [
+            "亲历旧事件",
+            "保管关键文书",
+            "受人之托保密"
+          ]
+        },
+        {
+          "slot": "identityProofForm",
+          "label": "身份证明形式",
+          "required": false,
+          "presets": [
+            "私人物件",
+            "身体特征",
+            "家族记录"
+          ]
+        },
+        {
+          "slot": "openStageLabel",
+          "label": "计划开放阶段名",
+          "required": true,
+          "presets": [
+            "第二幕末",
+            "第三幕初",
+            "搜证结束后"
+          ]
+        }
+      ],
+      "clues": [
+        {
+          "id": "FORESHADOW",
+          "purpose": "早期伏笔",
+          "type": "FORESHADOW",
+          "stageHint": "HIDDEN"
+        },
+        {
+          "id": "MEMORY_FRAGMENT",
+          "purpose": "记忆碎片",
+          "type": "MEMORY_FRAGMENT",
+          "stageHint": "PARTIAL_REVEAL"
+        },
+        {
+          "id": "IDENTITY_HINT",
+          "purpose": "身份暗示",
+          "type": "IDENTITY_HINT",
+          "stageHint": "FIRST_ANOMALY"
+        },
+        {
+          "id": "MISDIRECTION",
+          "purpose": "误导",
+          "type": "MISDIRECTION",
+          "stageHint": "PARTIAL_REVEAL"
+        },
+        {
+          "id": "CONFIRMATION",
+          "purpose": "确认",
+          "type": "CONFIRMATION",
+          "stageHint": "CONFIRMATION"
+        },
+        {
+          "id": "DECISIVE_REVEAL",
+          "purpose": "决定性揭示",
+          "type": "DECISIVE_REVEAL",
+          "stageHint": "CONFIRMATION"
+        }
+      ],
+      "owners": [
+        "bearer"
+      ],
+      "phases": [
+        "0",
+        "1",
+        "2",
+        "3"
+      ],
+      "profile": {
+        "status": "READY",
+        "commitments": [
+          "HIDDEN_IDENTITY"
+        ],
+        "modes": [
+          "CONCEAL",
+          "PROBE",
+          "SUSPECT"
+        ],
+        "anchors": [
+          "EARLY_AGENCY",
+          "LATE_REINTERPRETATION"
+        ],
+        "resolutionPressure": "IDENTITY_REVEAL",
+        "ownershipShift": null
+      }
+    },
+    {
+      "id": "M07-2",
+      "familyId": "M07",
+      "title": "条件触发开放",
+      "purpose": "让隐藏内容在正式状态满足时由系统发放，建立“做对事才看到”的认知奖励，同时保证必要内容有超时出口。",
+      "maturity": "COMPLETE",
+      "stages": "HIDDEN → FIRST_ANOMALY → PARTIAL_REVEAL → CONTRADICTION → CONFIRMATION → CONSEQUENCE",
+      "roles": [
+        {
+          "slot": "bearer",
+          "required": true,
+          "narrativeRole": "identity_bearer",
+          "label": "核心身份/记忆承担者"
+        },
+        {
+          "slot": "knower",
+          "required": false,
+          "narrativeRole": "witness",
+          "label": "知情者"
+        },
+        {
+          "slot": "misled",
+          "required": false,
+          "narrativeRole": "misled",
+          "label": "被误导者"
+        },
+        {
+          "slot": "revealer",
+          "required": false,
+          "narrativeRole": "discoverer",
+          "label": "揭示推动者"
+        },
+        {
+          "slot": "related",
+          "required": false,
+          "narrativeRole": "support",
+          "label": "关联人物"
+        }
+      ],
+      "plots": [
+        {
+          "slot": "surfaceBelief",
+          "label": "表面认知",
+          "required": true,
+          "presets": [
+            "承担者只是普通客人/职员",
+            "众人相信既有公开身世"
+          ]
+        },
+        {
+          "slot": "hiddenContent",
+          "label": "隐藏内容",
+          "required": true,
+          "presets": [
+            "一段被封闭的关键记忆",
+            "一个未公开的真实身份事实"
+          ]
+        },
+        {
+          "slot": "trueContent",
+          "label": "真实内容",
+          "required": true,
+          "presets": [
+            "可被证据验证的真实版本",
+            "与表面认知冲突的客观事实"
+          ]
+        },
+        {
+          "slot": "concealmentReason",
+          "label": "隐藏原因",
+          "required": true,
+          "presets": [
+            "保护他人免受牵连",
+            "逃避旧案追责",
+            "维持当前身份所依赖的社会位置"
+          ]
+        },
+        {
+          "slot": "misdirectionForm",
+          "label": "误导方式",
+          "required": false,
+          "presets": [
+            "伪造身世文书",
+            "栽赃他人身份线索",
+            "故意散播错误称谓"
+          ]
+        },
+        {
+          "slot": "firstAnomaly",
+          "label": "第一次异常",
+          "required": true,
+          "presets": [
+            "称谓口误",
+            "对某地过度熟悉",
+            "对某物的异常反应"
+          ]
+        },
+        {
+          "slot": "midFragment",
+          "label": "中期证据/记忆碎片",
+          "required": true,
+          "presets": [
+            "半截旧信",
+            "残缺名册",
+            "与公开身份不符的私人物件"
+          ]
+        },
+        {
+          "slot": "decisiveReveal",
+          "label": "决定性揭示",
+          "required": true,
+          "presets": [
+            "物件对读",
+            "知情者被迫开口",
+            "公开记录被调出"
+          ]
+        },
+        {
+          "slot": "revealConsequence",
+          "label": "揭示后的影响",
+          "required": true,
+          "presets": [
+            "改变信任关系",
+            "开放新权限或关闭旧权限",
+            "推翻此前一项公开判断"
+          ]
+        },
+        {
+          "slot": "knowerSource",
+          "label": "知情来源",
+          "required": false,
+          "presets": [
+            "亲历旧事件",
+            "保管关键文书",
+            "受人之托保密"
+          ]
+        },
+        {
+          "slot": "identityProofForm",
+          "label": "身份证明形式",
+          "required": false,
+          "presets": [
+            "私人物件",
+            "身体特征",
+            "家族记录"
+          ]
+        },
+        {
+          "slot": "triggerCondition",
+          "label": "正式触发条件",
+          "required": true,
+          "presets": [
+            "获得指定结算码",
+            "使用指定权限",
+            "完成指定组合"
+          ]
+        },
+        {
+          "slot": "timeoutFallback",
+          "label": "超时替代路径",
+          "required": true,
+          "presets": [
+            "降级内容包",
+            "公共摘要",
+            "下一阶段强制保底"
+          ]
+        }
+      ],
+      "clues": [
+        {
+          "id": "FORESHADOW",
+          "purpose": "早期伏笔",
+          "type": "FORESHADOW",
+          "stageHint": "HIDDEN"
+        },
+        {
+          "id": "MEMORY_FRAGMENT",
+          "purpose": "记忆碎片",
+          "type": "MEMORY_FRAGMENT",
+          "stageHint": "PARTIAL_REVEAL"
+        },
+        {
+          "id": "IDENTITY_HINT",
+          "purpose": "身份暗示",
+          "type": "IDENTITY_HINT",
+          "stageHint": "FIRST_ANOMALY"
+        },
+        {
+          "id": "MISDIRECTION",
+          "purpose": "误导",
+          "type": "MISDIRECTION",
+          "stageHint": "PARTIAL_REVEAL"
+        },
+        {
+          "id": "CONFIRMATION",
+          "purpose": "确认",
+          "type": "CONFIRMATION",
+          "stageHint": "CONFIRMATION"
+        },
+        {
+          "id": "DECISIVE_REVEAL",
+          "purpose": "决定性揭示",
+          "type": "DECISIVE_REVEAL",
+          "stageHint": "CONFIRMATION"
+        }
+      ],
+      "owners": [
+        "bearer"
+      ],
+      "phases": [
+        "0",
+        "1",
+        "2",
+        "3"
+      ],
+      "profile": {
+        "status": "READY",
+        "commitments": [
+          "HIDDEN_IDENTITY"
+        ],
+        "modes": [
+          "PROBE",
+          "CONCEAL",
+          "SUSPECT"
+        ],
+        "anchors": [
+          "EARLY_AGENCY"
+        ],
+        "resolutionPressure": "IDENTITY_REVEAL",
+        "ownershipShift": null
+      }
+    },
+    {
+      "id": "M07-3",
+      "familyId": "M07",
+      "title": "多路径开放",
+      "purpose": "同一关键内容至少两条真正不同的到达路径，让玩家用调查/交换/拼接/选择等不同方式抵达同一真相，避免单点卡死。",
+      "maturity": "COMPLETE",
+      "stages": "HIDDEN → FIRST_ANOMALY → PARTIAL_REVEAL → CONTRADICTION → CONFIRMATION → CONSEQUENCE",
+      "roles": [
+        {
+          "slot": "bearer",
+          "required": true,
+          "narrativeRole": "identity_bearer",
+          "label": "核心身份/记忆承担者"
+        },
+        {
+          "slot": "knower",
+          "required": false,
+          "narrativeRole": "witness",
+          "label": "知情者"
+        },
+        {
+          "slot": "misled",
+          "required": false,
+          "narrativeRole": "misled",
+          "label": "被误导者"
+        },
+        {
+          "slot": "revealer",
+          "required": false,
+          "narrativeRole": "discoverer",
+          "label": "揭示推动者"
+        },
+        {
+          "slot": "related",
+          "required": false,
+          "narrativeRole": "support",
+          "label": "关联人物"
+        }
+      ],
+      "plots": [
+        {
+          "slot": "surfaceBelief",
+          "label": "表面认知",
+          "required": true,
+          "presets": [
+            "承担者只是普通客人/职员",
+            "众人相信既有公开身世"
+          ]
+        },
+        {
+          "slot": "hiddenContent",
+          "label": "隐藏内容",
+          "required": true,
+          "presets": [
+            "一段被封闭的关键记忆",
+            "一个未公开的真实身份事实"
+          ]
+        },
+        {
+          "slot": "trueContent",
+          "label": "真实内容",
+          "required": true,
+          "presets": [
+            "可被证据验证的真实版本",
+            "与表面认知冲突的客观事实"
+          ]
+        },
+        {
+          "slot": "concealmentReason",
+          "label": "隐藏原因",
+          "required": true,
+          "presets": [
+            "保护他人免受牵连",
+            "逃避旧案追责",
+            "维持当前身份所依赖的社会位置"
+          ]
+        },
+        {
+          "slot": "misdirectionForm",
+          "label": "误导方式",
+          "required": false,
+          "presets": [
+            "伪造身世文书",
+            "栽赃他人身份线索",
+            "故意散播错误称谓"
+          ]
+        },
+        {
+          "slot": "firstAnomaly",
+          "label": "第一次异常",
+          "required": true,
+          "presets": [
+            "称谓口误",
+            "对某地过度熟悉",
+            "对某物的异常反应"
+          ]
+        },
+        {
+          "slot": "midFragment",
+          "label": "中期证据/记忆碎片",
+          "required": true,
+          "presets": [
+            "半截旧信",
+            "残缺名册",
+            "与公开身份不符的私人物件"
+          ]
+        },
+        {
+          "slot": "decisiveReveal",
+          "label": "决定性揭示",
+          "required": true,
+          "presets": [
+            "物件对读",
+            "知情者被迫开口",
+            "公开记录被调出"
+          ]
+        },
+        {
+          "slot": "revealConsequence",
+          "label": "揭示后的影响",
+          "required": true,
+          "presets": [
+            "改变信任关系",
+            "开放新权限或关闭旧权限",
+            "推翻此前一项公开判断"
+          ]
+        },
+        {
+          "slot": "knowerSource",
+          "label": "知情来源",
+          "required": false,
+          "presets": [
+            "亲历旧事件",
+            "保管关键文书",
+            "受人之托保密"
+          ]
+        },
+        {
+          "slot": "identityProofForm",
+          "label": "身份证明形式",
+          "required": false,
+          "presets": [
+            "私人物件",
+            "身体特征",
+            "家族记录"
+          ]
+        },
+        {
+          "slot": "pathA",
+          "label": "路径A形式",
+          "required": true,
+          "presets": [
+            "调查搜证",
+            "资源交换",
+            "内容拼接"
+          ]
+        },
+        {
+          "slot": "pathB",
+          "label": "路径B形式",
+          "required": true,
+          "presets": [
+            "资源交换",
+            "正式选择",
+            "权限使用"
+          ]
+        }
+      ],
+      "clues": [
+        {
+          "id": "FORESHADOW",
+          "purpose": "早期伏笔",
+          "type": "FORESHADOW",
+          "stageHint": "HIDDEN"
+        },
+        {
+          "id": "MEMORY_FRAGMENT",
+          "purpose": "记忆碎片",
+          "type": "MEMORY_FRAGMENT",
+          "stageHint": "PARTIAL_REVEAL"
+        },
+        {
+          "id": "IDENTITY_HINT",
+          "purpose": "身份暗示",
+          "type": "IDENTITY_HINT",
+          "stageHint": "FIRST_ANOMALY"
+        },
+        {
+          "id": "MISDIRECTION",
+          "purpose": "误导",
+          "type": "MISDIRECTION",
+          "stageHint": "PARTIAL_REVEAL"
+        },
+        {
+          "id": "CONFIRMATION",
+          "purpose": "确认",
+          "type": "CONFIRMATION",
+          "stageHint": "CONFIRMATION"
+        },
+        {
+          "id": "DECISIVE_REVEAL",
+          "purpose": "决定性揭示",
+          "type": "DECISIVE_REVEAL",
+          "stageHint": "CONFIRMATION"
+        }
+      ],
+      "owners": [
+        "bearer"
+      ],
+      "phases": [
+        "0",
+        "1",
+        "2",
+        "3"
+      ],
+      "profile": {
+        "status": "READY",
+        "commitments": [
+          "HIDDEN_IDENTITY"
+        ],
+        "modes": [
+          "CONCEAL",
+          "PROBE",
+          "SUSPECT"
+        ],
+        "anchors": [
+          "EARLY_AGENCY",
+          "LATE_REINTERPRETATION"
+        ],
+        "resolutionPressure": "IDENTITY_REVEAL",
+        "ownershipShift": null
+      }
+    },
+    {
+      "id": "M07-4",
+      "familyId": "M07",
+      "title": "个人记忆分层",
+      "purpose": "为承担者建立不对称的记忆层级：先给最低可玩层，再按本人正式状态递进，制造隐瞒/公开/误述的社交空间。",
+      "maturity": "COMPLETE",
+      "stages": "HIDDEN → FIRST_ANOMALY → PARTIAL_REVEAL → CONTRADICTION → CONFIRMATION → CONSEQUENCE",
+      "roles": [
+        {
+          "slot": "bearer",
+          "required": true,
+          "narrativeRole": "identity_bearer",
+          "label": "核心身份/记忆承担者"
+        },
+        {
+          "slot": "knower",
+          "required": false,
+          "narrativeRole": "witness",
+          "label": "知情者"
+        },
+        {
+          "slot": "misled",
+          "required": false,
+          "narrativeRole": "misled",
+          "label": "被误导者"
+        },
+        {
+          "slot": "revealer",
+          "required": false,
+          "narrativeRole": "discoverer",
+          "label": "揭示推动者"
+        },
+        {
+          "slot": "related",
+          "required": false,
+          "narrativeRole": "support",
+          "label": "关联人物"
+        }
+      ],
+      "plots": [
+        {
+          "slot": "surfaceBelief",
+          "label": "表面认知",
+          "required": true,
+          "presets": [
+            "承担者只是普通客人/职员",
+            "众人相信既有公开身世"
+          ]
+        },
+        {
+          "slot": "hiddenContent",
+          "label": "隐藏内容",
+          "required": true,
+          "presets": [
+            "一段被封闭的关键记忆",
+            "一个未公开的真实身份事实"
+          ]
+        },
+        {
+          "slot": "trueContent",
+          "label": "真实内容",
+          "required": true,
+          "presets": [
+            "可被证据验证的真实版本",
+            "与表面认知冲突的客观事实"
+          ]
+        },
+        {
+          "slot": "concealmentReason",
+          "label": "隐藏原因",
+          "required": true,
+          "presets": [
+            "保护他人免受牵连",
+            "逃避旧案追责",
+            "维持当前身份所依赖的社会位置"
+          ]
+        },
+        {
+          "slot": "misdirectionForm",
+          "label": "误导方式",
+          "required": false,
+          "presets": [
+            "伪造身世文书",
+            "栽赃他人身份线索",
+            "故意散播错误称谓"
+          ]
+        },
+        {
+          "slot": "firstAnomaly",
+          "label": "第一次异常",
+          "required": true,
+          "presets": [
+            "称谓口误",
+            "对某地过度熟悉",
+            "对某物的异常反应"
+          ]
+        },
+        {
+          "slot": "midFragment",
+          "label": "中期证据/记忆碎片",
+          "required": true,
+          "presets": [
+            "半截旧信",
+            "残缺名册",
+            "与公开身份不符的私人物件"
+          ]
+        },
+        {
+          "slot": "decisiveReveal",
+          "label": "决定性揭示",
+          "required": true,
+          "presets": [
+            "物件对读",
+            "知情者被迫开口",
+            "公开记录被调出"
+          ]
+        },
+        {
+          "slot": "revealConsequence",
+          "label": "揭示后的影响",
+          "required": true,
+          "presets": [
+            "改变信任关系",
+            "开放新权限或关闭旧权限",
+            "推翻此前一项公开判断"
+          ]
+        },
+        {
+          "slot": "knowerSource",
+          "label": "知情来源",
+          "required": false,
+          "presets": [
+            "亲历旧事件",
+            "保管关键文书",
+            "受人之托保密"
+          ]
+        },
+        {
+          "slot": "identityProofForm",
+          "label": "身份证明形式",
+          "required": false,
+          "presets": [
+            "私人物件",
+            "身体特征",
+            "家族记录"
+          ]
+        },
+        {
+          "slot": "layerCount",
+          "label": "记忆层数",
+          "required": true,
+          "presets": [
+            "2",
+            "3",
+            "4"
+          ]
+        },
+        {
+          "slot": "memoryLossForm",
+          "label": "记忆缺失/封闭形式",
+          "required": false,
+          "presets": [
+            "创伤性封闭",
+            "人为药物/仪式阻断",
+            "第三者篡改叙述"
+          ]
+        }
+      ],
+      "clues": [
+        {
+          "id": "FORESHADOW",
+          "purpose": "早期伏笔",
+          "type": "FORESHADOW",
+          "stageHint": "HIDDEN"
+        },
+        {
+          "id": "MEMORY_FRAGMENT",
+          "purpose": "记忆碎片",
+          "type": "MEMORY_FRAGMENT",
+          "stageHint": "PARTIAL_REVEAL"
+        },
+        {
+          "id": "IDENTITY_HINT",
+          "purpose": "身份暗示",
+          "type": "IDENTITY_HINT",
+          "stageHint": "FIRST_ANOMALY"
+        },
+        {
+          "id": "MISDIRECTION",
+          "purpose": "误导",
+          "type": "MISDIRECTION",
+          "stageHint": "PARTIAL_REVEAL"
+        },
+        {
+          "id": "CONFIRMATION",
+          "purpose": "确认",
+          "type": "CONFIRMATION",
+          "stageHint": "CONFIRMATION"
+        },
+        {
+          "id": "DECISIVE_REVEAL",
+          "purpose": "决定性揭示",
+          "type": "DECISIVE_REVEAL",
+          "stageHint": "CONFIRMATION"
+        }
+      ],
+      "owners": [
+        "bearer"
+      ],
+      "phases": [
+        "0",
+        "1",
+        "2",
+        "3"
+      ],
+      "profile": {
+        "status": "READY",
+        "commitments": [
+          "HIDDEN_IDENTITY"
+        ],
+        "modes": [
+          "CONCEAL",
+          "PROBE",
+          "SUSPECT"
+        ],
+        "anchors": [
+          "EARLY_AGENCY",
+          "LATE_REINTERPRETATION"
+        ],
+        "resolutionPressure": "IDENTITY_REVEAL",
+        "ownershipShift": null
+      }
+    },
+    {
+      "id": "M07-5",
+      "familyId": "M07",
+      "title": "身份权限变化",
+      "purpose": "先让身份内容显现，再按预声明规则启用界面权限，使“我是谁”转化为“我现在能做什么”，并禁止万能补丁能力。",
+      "maturity": "COMPLETE",
+      "stages": "HIDDEN → FIRST_ANOMALY → PARTIAL_REVEAL → CONTRADICTION → CONFIRMATION → CONSEQUENCE",
+      "roles": [
+        {
+          "slot": "bearer",
+          "required": true,
+          "narrativeRole": "identity_bearer",
+          "label": "核心身份/记忆承担者"
+        },
+        {
+          "slot": "knower",
+          "required": false,
+          "narrativeRole": "witness",
+          "label": "知情者"
+        },
+        {
+          "slot": "misled",
+          "required": false,
+          "narrativeRole": "misled",
+          "label": "被误导者"
+        },
+        {
+          "slot": "revealer",
+          "required": false,
+          "narrativeRole": "discoverer",
+          "label": "揭示推动者"
+        },
+        {
+          "slot": "related",
+          "required": false,
+          "narrativeRole": "support",
+          "label": "关联人物"
+        }
+      ],
+      "plots": [
+        {
+          "slot": "surfaceBelief",
+          "label": "表面认知",
+          "required": true,
+          "presets": [
+            "承担者只是普通客人/职员",
+            "众人相信既有公开身世"
+          ]
+        },
+        {
+          "slot": "hiddenContent",
+          "label": "隐藏内容",
+          "required": true,
+          "presets": [
+            "一段被封闭的关键记忆",
+            "一个未公开的真实身份事实"
+          ]
+        },
+        {
+          "slot": "trueContent",
+          "label": "真实内容",
+          "required": true,
+          "presets": [
+            "可被证据验证的真实版本",
+            "与表面认知冲突的客观事实"
+          ]
+        },
+        {
+          "slot": "concealmentReason",
+          "label": "隐藏原因",
+          "required": true,
+          "presets": [
+            "保护他人免受牵连",
+            "逃避旧案追责",
+            "维持当前身份所依赖的社会位置"
+          ]
+        },
+        {
+          "slot": "misdirectionForm",
+          "label": "误导方式",
+          "required": false,
+          "presets": [
+            "伪造身世文书",
+            "栽赃他人身份线索",
+            "故意散播错误称谓"
+          ]
+        },
+        {
+          "slot": "firstAnomaly",
+          "label": "第一次异常",
+          "required": true,
+          "presets": [
+            "称谓口误",
+            "对某地过度熟悉",
+            "对某物的异常反应"
+          ]
+        },
+        {
+          "slot": "midFragment",
+          "label": "中期证据/记忆碎片",
+          "required": true,
+          "presets": [
+            "半截旧信",
+            "残缺名册",
+            "与公开身份不符的私人物件"
+          ]
+        },
+        {
+          "slot": "decisiveReveal",
+          "label": "决定性揭示",
+          "required": true,
+          "presets": [
+            "物件对读",
+            "知情者被迫开口",
+            "公开记录被调出"
+          ]
+        },
+        {
+          "slot": "revealConsequence",
+          "label": "揭示后的影响",
+          "required": true,
+          "presets": [
+            "改变信任关系",
+            "开放新权限或关闭旧权限",
+            "推翻此前一项公开判断"
+          ]
+        },
+        {
+          "slot": "knowerSource",
+          "label": "知情来源",
+          "required": false,
+          "presets": [
+            "亲历旧事件",
+            "保管关键文书",
+            "受人之托保密"
+          ]
+        },
+        {
+          "slot": "identityProofForm",
+          "label": "身份证明形式",
+          "required": false,
+          "presets": [
+            "私人物件",
+            "身体特征",
+            "家族记录"
+          ]
+        },
+        {
+          "slot": "permissionScope",
+          "label": "新权限范围",
+          "required": true,
+          "presets": [
+            "一次查阅权",
+            "区域通行",
+            "表决加权"
+          ]
+        },
+        {
+          "slot": "permissionExpiry",
+          "label": "权限失效节点",
+          "required": true,
+          "presets": [
+            "本幕结束",
+            "使用一次后",
+            "被公开承认后"
+          ]
+        },
+        {
+          "slot": "cognitionConflict",
+          "label": "认知冲突形式",
+          "required": false,
+          "presets": [
+            "早期行为与后期设定冲突",
+            "知情者本应阻止却未阻止",
+            "表面关系与真实血缘冲突"
+          ]
+        }
+      ],
+      "clues": [
+        {
+          "id": "FORESHADOW",
+          "purpose": "早期伏笔",
+          "type": "FORESHADOW",
+          "stageHint": "HIDDEN"
+        },
+        {
+          "id": "MEMORY_FRAGMENT",
+          "purpose": "记忆碎片",
+          "type": "MEMORY_FRAGMENT",
+          "stageHint": "PARTIAL_REVEAL"
+        },
+        {
+          "id": "IDENTITY_HINT",
+          "purpose": "身份暗示",
+          "type": "IDENTITY_HINT",
+          "stageHint": "FIRST_ANOMALY"
+        },
+        {
+          "id": "MISDIRECTION",
+          "purpose": "误导",
+          "type": "MISDIRECTION",
+          "stageHint": "PARTIAL_REVEAL"
+        },
+        {
+          "id": "CONFIRMATION",
+          "purpose": "确认",
+          "type": "CONFIRMATION",
+          "stageHint": "CONFIRMATION"
+        },
+        {
+          "id": "DECISIVE_REVEAL",
+          "purpose": "决定性揭示",
+          "type": "DECISIVE_REVEAL",
+          "stageHint": "CONFIRMATION"
+        }
+      ],
+      "owners": [
+        "bearer"
+      ],
+      "phases": [
+        "0",
+        "1",
+        "2",
+        "3"
+      ],
+      "profile": {
+        "status": "READY",
+        "commitments": [
+          "HIDDEN_IDENTITY"
+        ],
+        "modes": [
+          "PROBE",
+          "CONCEAL",
+          "SUSPECT"
+        ],
+        "anchors": [
+          "EARLY_AGENCY"
+        ],
+        "resolutionPressure": "IDENTITY_REVEAL",
+        "ownershipShift": null
+      }
+    },
+    {
+      "id": "M07-6",
+      "familyId": "M07",
+      "title": "旧事实重新解释",
+      "purpose": "在不改写早期客观动作的前提下，追加后期语境，迫使玩家重估已发生事件的意义，并自动拦截“早该知道却装不知道”的冲突。",
+      "maturity": "COMPLETE",
+      "stages": "HIDDEN → FIRST_ANOMALY → PARTIAL_REVEAL → CONTRADICTION → CONFIRMATION → CONSEQUENCE",
+      "roles": [
+        {
+          "slot": "bearer",
+          "required": true,
+          "narrativeRole": "identity_bearer",
+          "label": "核心身份/记忆承担者"
+        },
+        {
+          "slot": "knower",
+          "required": false,
+          "narrativeRole": "witness",
+          "label": "知情者"
+        },
+        {
+          "slot": "misled",
+          "required": false,
+          "narrativeRole": "misled",
+          "label": "被误导者"
+        },
+        {
+          "slot": "revealer",
+          "required": false,
+          "narrativeRole": "discoverer",
+          "label": "揭示推动者"
+        },
+        {
+          "slot": "related",
+          "required": false,
+          "narrativeRole": "support",
+          "label": "关联人物"
+        }
+      ],
+      "plots": [
+        {
+          "slot": "surfaceBelief",
+          "label": "表面认知",
+          "required": true,
+          "presets": [
+            "承担者只是普通客人/职员",
+            "众人相信既有公开身世"
+          ]
+        },
+        {
+          "slot": "hiddenContent",
+          "label": "隐藏内容",
+          "required": true,
+          "presets": [
+            "一段被封闭的关键记忆",
+            "一个未公开的真实身份事实"
+          ]
+        },
+        {
+          "slot": "trueContent",
+          "label": "真实内容",
+          "required": true,
+          "presets": [
+            "可被证据验证的真实版本",
+            "与表面认知冲突的客观事实"
+          ]
+        },
+        {
+          "slot": "concealmentReason",
+          "label": "隐藏原因",
+          "required": true,
+          "presets": [
+            "保护他人免受牵连",
+            "逃避旧案追责",
+            "维持当前身份所依赖的社会位置"
+          ]
+        },
+        {
+          "slot": "misdirectionForm",
+          "label": "误导方式",
+          "required": false,
+          "presets": [
+            "伪造身世文书",
+            "栽赃他人身份线索",
+            "故意散播错误称谓"
+          ]
+        },
+        {
+          "slot": "firstAnomaly",
+          "label": "第一次异常",
+          "required": true,
+          "presets": [
+            "称谓口误",
+            "对某地过度熟悉",
+            "对某物的异常反应"
+          ]
+        },
+        {
+          "slot": "midFragment",
+          "label": "中期证据/记忆碎片",
+          "required": true,
+          "presets": [
+            "半截旧信",
+            "残缺名册",
+            "与公开身份不符的私人物件"
+          ]
+        },
+        {
+          "slot": "decisiveReveal",
+          "label": "决定性揭示",
+          "required": true,
+          "presets": [
+            "物件对读",
+            "知情者被迫开口",
+            "公开记录被调出"
+          ]
+        },
+        {
+          "slot": "revealConsequence",
+          "label": "揭示后的影响",
+          "required": true,
+          "presets": [
+            "改变信任关系",
+            "开放新权限或关闭旧权限",
+            "推翻此前一项公开判断"
+          ]
+        },
+        {
+          "slot": "knowerSource",
+          "label": "知情来源",
+          "required": false,
+          "presets": [
+            "亲历旧事件",
+            "保管关键文书",
+            "受人之托保密"
+          ]
+        },
+        {
+          "slot": "identityProofForm",
+          "label": "身份证明形式",
+          "required": false,
+          "presets": [
+            "私人物件",
+            "身体特征",
+            "家族记录"
+          ]
+        },
+        {
+          "slot": "objectiveEvent",
+          "label": "客观事件（不可改写）",
+          "required": true,
+          "presets": [
+            "某人在某时某地做了某可验证动作"
+          ]
+        },
+        {
+          "slot": "earlyInterpretation",
+          "label": "早期解释",
+          "required": true,
+          "presets": [
+            "出于善意",
+            "出于敌意",
+            "出于偶然"
+          ]
+        },
+        {
+          "slot": "laterContext",
+          "label": "后期语境",
+          "required": true,
+          "presets": [
+            "保护性隐瞒",
+            "另有交易",
+            "被胁迫"
+          ]
+        },
+        {
+          "slot": "cognitionConflict",
+          "label": "知情冲突形式",
+          "required": false,
+          "presets": [
+            "早期行为与后期设定冲突",
+            "知情者本应阻止却未阻止",
+            "表面关系与真实血缘冲突"
+          ]
+        }
+      ],
+      "clues": [
+        {
+          "id": "FORESHADOW",
+          "purpose": "早期伏笔",
+          "type": "FORESHADOW",
+          "stageHint": "HIDDEN"
+        },
+        {
+          "id": "MEMORY_FRAGMENT",
+          "purpose": "记忆碎片",
+          "type": "MEMORY_FRAGMENT",
+          "stageHint": "PARTIAL_REVEAL"
+        },
+        {
+          "id": "IDENTITY_HINT",
+          "purpose": "身份暗示",
+          "type": "IDENTITY_HINT",
+          "stageHint": "FIRST_ANOMALY"
+        },
+        {
+          "id": "MISDIRECTION",
+          "purpose": "误导",
+          "type": "MISDIRECTION",
+          "stageHint": "PARTIAL_REVEAL"
+        },
+        {
+          "id": "CONFIRMATION",
+          "purpose": "确认",
+          "type": "CONFIRMATION",
+          "stageHint": "CONFIRMATION"
+        },
+        {
+          "id": "DECISIVE_REVEAL",
+          "purpose": "决定性揭示",
+          "type": "DECISIVE_REVEAL",
+          "stageHint": "CONFIRMATION"
+        }
+      ],
+      "owners": [
+        "bearer"
+      ],
+      "phases": [
+        "0",
+        "1",
+        "2",
+        "3"
+      ],
+      "profile": {
+        "status": "READY",
+        "commitments": [
+          "HIDDEN_IDENTITY"
+        ],
+        "modes": [
+          "CONCEAL",
+          "PROBE",
+          "SUSPECT"
+        ],
+        "anchors": [
+          "EARLY_AGENCY",
+          "LATE_REINTERPRETATION"
+        ],
+        "resolutionPressure": "IDENTITY_REVEAL",
+        "ownershipShift": null
+      }
+    },
+    {
+      "id": "M07-7",
+      "familyId": "M07",
+      "title": "主动选择保留或恢复",
+      "purpose": "让玩家在多份既有内容中主动选择优先开放或付费扩选，把“记起什么/公开什么”变成可玩决策，同时保证未选项不含唯一主线钥匙。",
+      "maturity": "COMPLETE",
+      "stages": "HIDDEN → FIRST_ANOMALY → PARTIAL_REVEAL → CONTRADICTION → CONFIRMATION → CONSEQUENCE",
+      "roles": [
+        {
+          "slot": "bearer",
+          "required": true,
+          "narrativeRole": "identity_bearer",
+          "label": "核心身份/记忆承担者"
+        },
+        {
+          "slot": "knower",
+          "required": false,
+          "narrativeRole": "witness",
+          "label": "知情者"
+        },
+        {
+          "slot": "misled",
+          "required": false,
+          "narrativeRole": "misled",
+          "label": "被误导者"
+        },
+        {
+          "slot": "revealer",
+          "required": false,
+          "narrativeRole": "discoverer",
+          "label": "揭示推动者"
+        },
+        {
+          "slot": "related",
+          "required": false,
+          "narrativeRole": "support",
+          "label": "关联人物"
+        }
+      ],
+      "plots": [
+        {
+          "slot": "surfaceBelief",
+          "label": "表面认知",
+          "required": true,
+          "presets": [
+            "承担者只是普通客人/职员",
+            "众人相信既有公开身世"
+          ]
+        },
+        {
+          "slot": "hiddenContent",
+          "label": "隐藏内容",
+          "required": true,
+          "presets": [
+            "一段被封闭的关键记忆",
+            "一个未公开的真实身份事实"
+          ]
+        },
+        {
+          "slot": "trueContent",
+          "label": "真实内容",
+          "required": true,
+          "presets": [
+            "可被证据验证的真实版本",
+            "与表面认知冲突的客观事实"
+          ]
+        },
+        {
+          "slot": "concealmentReason",
+          "label": "隐藏原因",
+          "required": true,
+          "presets": [
+            "保护他人免受牵连",
+            "逃避旧案追责",
+            "维持当前身份所依赖的社会位置"
+          ]
+        },
+        {
+          "slot": "misdirectionForm",
+          "label": "误导方式",
+          "required": false,
+          "presets": [
+            "伪造身世文书",
+            "栽赃他人身份线索",
+            "故意散播错误称谓"
+          ]
+        },
+        {
+          "slot": "firstAnomaly",
+          "label": "第一次异常",
+          "required": true,
+          "presets": [
+            "称谓口误",
+            "对某地过度熟悉",
+            "对某物的异常反应"
+          ]
+        },
+        {
+          "slot": "midFragment",
+          "label": "中期证据/记忆碎片",
+          "required": true,
+          "presets": [
+            "半截旧信",
+            "残缺名册",
+            "与公开身份不符的私人物件"
+          ]
+        },
+        {
+          "slot": "decisiveReveal",
+          "label": "决定性揭示",
+          "required": true,
+          "presets": [
+            "物件对读",
+            "知情者被迫开口",
+            "公开记录被调出"
+          ]
+        },
+        {
+          "slot": "revealConsequence",
+          "label": "揭示后的影响",
+          "required": true,
+          "presets": [
+            "改变信任关系",
+            "开放新权限或关闭旧权限",
+            "推翻此前一项公开判断"
+          ]
+        },
+        {
+          "slot": "knowerSource",
+          "label": "知情来源",
+          "required": false,
+          "presets": [
+            "亲历旧事件",
+            "保管关键文书",
+            "受人之托保密"
+          ]
+        },
+        {
+          "slot": "identityProofForm",
+          "label": "身份证明形式",
+          "required": false,
+          "presets": [
+            "私人物件",
+            "身体特征",
+            "家族记录"
+          ]
+        },
+        {
+          "slot": "candidateCount",
+          "label": "候选数量",
+          "required": true,
+          "presets": [
+            "2",
+            "3",
+            "4"
+          ]
+        },
+        {
+          "slot": "expandCost",
+          "label": "扩选代价形式",
+          "required": false,
+          "presets": [
+            "正式资源",
+            "权限次数",
+            "暴露风险"
+          ]
+        }
+      ],
+      "clues": [
+        {
+          "id": "FORESHADOW",
+          "purpose": "早期伏笔",
+          "type": "FORESHADOW",
+          "stageHint": "HIDDEN"
+        },
+        {
+          "id": "MEMORY_FRAGMENT",
+          "purpose": "记忆碎片",
+          "type": "MEMORY_FRAGMENT",
+          "stageHint": "PARTIAL_REVEAL"
+        },
+        {
+          "id": "IDENTITY_HINT",
+          "purpose": "身份暗示",
+          "type": "IDENTITY_HINT",
+          "stageHint": "FIRST_ANOMALY"
+        },
+        {
+          "id": "MISDIRECTION",
+          "purpose": "误导",
+          "type": "MISDIRECTION",
+          "stageHint": "PARTIAL_REVEAL"
+        },
+        {
+          "id": "CONFIRMATION",
+          "purpose": "确认",
+          "type": "CONFIRMATION",
+          "stageHint": "CONFIRMATION"
+        },
+        {
+          "id": "DECISIVE_REVEAL",
+          "purpose": "决定性揭示",
+          "type": "DECISIVE_REVEAL",
+          "stageHint": "CONFIRMATION"
+        }
+      ],
+      "owners": [
+        "bearer"
+      ],
+      "phases": [
+        "0",
+        "1",
+        "2",
+        "3"
+      ],
+      "profile": {
+        "status": "READY",
+        "commitments": [
+          "HIDDEN_IDENTITY"
+        ],
+        "modes": [
+          "CONCEAL",
+          "PROBE",
+          "SUSPECT"
+        ],
+        "anchors": [
+          "EARLY_AGENCY",
+          "LATE_REINTERPRETATION"
+        ],
+        "resolutionPressure": "IDENTITY_REVEAL",
+        "ownershipShift": null
+      }
+    },
+    {
+      "id": "M07-8",
+      "familyId": "M07",
+      "title": "集合属性探测",
+      "purpose": "在不点名个人的前提下，用聚合结果压缩身份候选空间，制造谨慎组队与信息预算压力。",
+      "maturity": "COMPLETE",
+      "stages": "HIDDEN → FIRST_ANOMALY → PARTIAL_REVEAL → CONTRADICTION → CONFIRMATION → CONSEQUENCE",
+      "roles": [
+        {
+          "slot": "bearer",
+          "required": true,
+          "narrativeRole": "identity_bearer",
+          "label": "核心身份/记忆承担者"
+        },
+        {
+          "slot": "knower",
+          "required": false,
+          "narrativeRole": "witness",
+          "label": "知情者"
+        },
+        {
+          "slot": "misled",
+          "required": false,
+          "narrativeRole": "misled",
+          "label": "被误导者"
+        },
+        {
+          "slot": "revealer",
+          "required": false,
+          "narrativeRole": "discoverer",
+          "label": "揭示推动者"
+        },
+        {
+          "slot": "related",
+          "required": false,
+          "narrativeRole": "support",
+          "label": "关联人物"
+        },
+        {
+          "slot": "probeLead",
+          "required": true,
+          "narrativeRole": "discoverer",
+          "label": "探测发起者"
+        }
+      ],
+      "plots": [
+        {
+          "slot": "surfaceBelief",
+          "label": "表面认知",
+          "required": true,
+          "presets": [
+            "承担者只是普通客人/职员",
+            "众人相信既有公开身世"
+          ]
+        },
+        {
+          "slot": "hiddenContent",
+          "label": "隐藏内容",
+          "required": true,
+          "presets": [
+            "一段被封闭的关键记忆",
+            "一个未公开的真实身份事实"
+          ]
+        },
+        {
+          "slot": "trueContent",
+          "label": "真实内容",
+          "required": true,
+          "presets": [
+            "可被证据验证的真实版本",
+            "与表面认知冲突的客观事实"
+          ]
+        },
+        {
+          "slot": "concealmentReason",
+          "label": "隐藏原因",
+          "required": true,
+          "presets": [
+            "保护他人免受牵连",
+            "逃避旧案追责",
+            "维持当前身份所依赖的社会位置"
+          ]
+        },
+        {
+          "slot": "misdirectionForm",
+          "label": "误导方式",
+          "required": false,
+          "presets": [
+            "伪造身世文书",
+            "栽赃他人身份线索",
+            "故意散播错误称谓"
+          ]
+        },
+        {
+          "slot": "firstAnomaly",
+          "label": "第一次异常",
+          "required": true,
+          "presets": [
+            "称谓口误",
+            "对某地过度熟悉",
+            "对某物的异常反应"
+          ]
+        },
+        {
+          "slot": "midFragment",
+          "label": "中期证据/记忆碎片",
+          "required": true,
+          "presets": [
+            "半截旧信",
+            "残缺名册",
+            "与公开身份不符的私人物件"
+          ]
+        },
+        {
+          "slot": "decisiveReveal",
+          "label": "决定性揭示",
+          "required": true,
+          "presets": [
+            "物件对读",
+            "知情者被迫开口",
+            "公开记录被调出"
+          ]
+        },
+        {
+          "slot": "revealConsequence",
+          "label": "揭示后的影响",
+          "required": true,
+          "presets": [
+            "改变信任关系",
+            "开放新权限或关闭旧权限",
+            "推翻此前一项公开判断"
+          ]
+        },
+        {
+          "slot": "knowerSource",
+          "label": "知情来源",
+          "required": false,
+          "presets": [
+            "亲历旧事件",
+            "保管关键文书",
+            "受人之托保密"
+          ]
+        },
+        {
+          "slot": "identityProofForm",
+          "label": "身份证明形式",
+          "required": false,
+          "presets": [
+            "私人物件",
+            "身体特征",
+            "家族记录"
+          ]
+        },
+        {
+          "slot": "targetTrait",
+          "label": "被探测正式属性",
+          "required": true,
+          "presets": [
+            "隐藏阵营标记",
+            "身份权限位",
+            "知情者标记"
+          ]
+        },
+        {
+          "slot": "probeOutputMode",
+          "label": "聚合输出模式",
+          "required": true,
+          "presets": [
+            "MAJORITY",
+            "EXACT_COUNT",
+            "COUNT_RANGE"
+          ]
+        },
+        {
+          "slot": "snapshotRule",
+          "label": "快照规则",
+          "required": true,
+          "presets": [
+            "CURRENT",
+            "STAGE_LOCKED"
+          ]
+        },
+        {
+          "slot": "groupSize",
+          "label": "集合大小",
+          "required": true,
+          "presets": [
+            "2-3",
+            "3",
+            "3-5"
+          ]
+        }
+      ],
+      "clues": [
+        {
+          "id": "FORESHADOW",
+          "purpose": "早期伏笔",
+          "type": "FORESHADOW",
+          "stageHint": "HIDDEN"
+        },
+        {
+          "id": "MEMORY_FRAGMENT",
+          "purpose": "记忆碎片",
+          "type": "MEMORY_FRAGMENT",
+          "stageHint": "PARTIAL_REVEAL"
+        },
+        {
+          "id": "IDENTITY_HINT",
+          "purpose": "身份暗示",
+          "type": "IDENTITY_HINT",
+          "stageHint": "FIRST_ANOMALY"
+        },
+        {
+          "id": "MISDIRECTION",
+          "purpose": "误导",
+          "type": "MISDIRECTION",
+          "stageHint": "PARTIAL_REVEAL"
+        },
+        {
+          "id": "CONFIRMATION",
+          "purpose": "确认",
+          "type": "CONFIRMATION",
+          "stageHint": "CONFIRMATION"
+        },
+        {
+          "id": "DECISIVE_REVEAL",
+          "purpose": "决定性揭示",
+          "type": "DECISIVE_REVEAL",
+          "stageHint": "CONFIRMATION"
+        }
+      ],
+      "owners": [
+        "bearer",
+        "probeLead"
+      ],
+      "phases": [
+        "0",
+        "1",
+        "2",
+        "3"
+      ],
+      "profile": {
+        "status": "READY",
+        "commitments": [
+          "HIDDEN_IDENTITY"
+        ],
+        "modes": [
+          "CONCEAL",
+          "PROBE",
+          "SUSPECT"
+        ],
+        "anchors": [
+          "EARLY_AGENCY",
+          "LATE_REINTERPRETATION"
+        ],
+        "resolutionPressure": "IDENTITY_REVEAL",
+        "ownershipShift": null
+      }
+    },
+    {
+      "id": "M08-1",
+      "familyId": "M08",
+      "title": "固定公开阵营",
+      "purpose": "开场即公开归属与目标，用可观察行动差异制造阵营博弈与公共任务张力。",
+      "maturity": "COMPLETE",
+      "stages": "LATENT → CONTACT → FORMATION → RECRUITMENT → SUSPICION → PRESSURE → SPLIT → BETRAYAL → EXPOSURE → CONFRONTATION → RESOLUTION → CONSEQUENCE",
+      "roles": [
+        {
+          "slot": "factionLead",
+          "required": true,
+          "narrativeRole": "faction_lead",
+          "label": "阵营领袖"
+        },
+        {
+          "slot": "memberA",
+          "required": true,
+          "narrativeRole": "member",
+          "label": "核心成员甲"
+        },
+        {
+          "slot": "memberB",
+          "required": false,
+          "narrativeRole": "member",
+          "label": "核心成员乙"
+        },
+        {
+          "slot": "outsider",
+          "required": false,
+          "narrativeRole": "outsider",
+          "label": "局外观察者"
+        },
+        {
+          "slot": "rivalLead",
+          "required": false,
+          "narrativeRole": "rival_lead",
+          "label": "对立阵营领袖"
+        },
+        {
+          "slot": "defector",
+          "required": false,
+          "narrativeRole": "defector",
+          "label": "叛离/摇摆者"
+        }
+      ],
+      "plots": [
+        {
+          "slot": "factionIdentity",
+          "label": "阵营身份/名义",
+          "required": true,
+          "presets": [
+            "公开同盟",
+            "隐秘结社",
+            "临时同盟"
+          ]
+        },
+        {
+          "slot": "factionGoal",
+          "label": "阵营真实目标",
+          "required": true,
+          "presets": [
+            "夺取关键资源",
+            "保全共同秘密",
+            "推翻既有秩序"
+          ]
+        },
+        {
+          "slot": "publicGoal",
+          "label": "公开宣称目标",
+          "required": false,
+          "presets": [
+            "维护秩序",
+            "追查真相",
+            "保全利益"
+          ]
+        },
+        {
+          "slot": "hiddenGoal",
+          "label": "隐藏目标",
+          "required": false,
+          "presets": [
+            "公开目标",
+            "成员共享秘密目标",
+            "每人理解不同"
+          ]
+        },
+        {
+          "slot": "formationReason",
+          "label": "成形原因",
+          "required": true,
+          "presets": [
+            "共同敌人",
+            "共同利益",
+            "血缘或组织归属"
+          ]
+        },
+        {
+          "slot": "recruitmentMethod",
+          "label": "招募方式",
+          "required": false,
+          "presets": [
+            "私下邀请",
+            "任务考验",
+            "信物确认"
+          ]
+        },
+        {
+          "slot": "joiningCondition",
+          "label": "加入条件",
+          "required": false,
+          "presets": [
+            "完成考验",
+            "交出信物",
+            "共享秘密"
+          ]
+        },
+        {
+          "slot": "leavingCondition",
+          "label": "退出条件",
+          "required": false,
+          "presets": [
+            "支付代价",
+            "公开切割",
+            "被驱逐"
+          ]
+        },
+        {
+          "slot": "loyaltyConflict",
+          "label": "忠诚冲突",
+          "required": false,
+          "presets": [
+            "个人目标冲突",
+            "道德底线",
+            "被牺牲风险"
+          ]
+        },
+        {
+          "slot": "betrayalTrigger",
+          "label": "背叛触发",
+          "required": false,
+          "presets": [
+            "利益冲突",
+            "身份揭露",
+            "重要人物死亡"
+          ]
+        },
+        {
+          "slot": "betrayalCost",
+          "label": "背叛代价",
+          "required": false,
+          "presets": [
+            "失去资源",
+            "失去庇护",
+            "暴露身份"
+          ]
+        },
+        {
+          "slot": "exposureRisk",
+          "label": "暴露风险",
+          "required": false,
+          "presets": [
+            "行动失败",
+            "信物流失",
+            "证词"
+          ]
+        },
+        {
+          "slot": "secrecyRule",
+          "label": "保密/互认规则",
+          "required": true,
+          "presets": [
+            "成员互认全名单",
+            "只认领袖",
+            "只认直接联系人"
+          ]
+        },
+        {
+          "slot": "communicationRule",
+          "label": "沟通规则",
+          "required": false,
+          "presets": [
+            "仅领袖串联",
+            "点对点",
+            "公开协调"
+          ]
+        },
+        {
+          "slot": "membershipVisibility",
+          "label": "归属可见性",
+          "required": true,
+          "presets": [
+            "PUBLIC",
+            "PRIVATE",
+            "PARTIAL"
+          ]
+        },
+        {
+          "slot": "decisiveChoice",
+          "label": "决定性选择",
+          "required": false,
+          "presets": [
+            "公开站队",
+            "牺牲同伴",
+            "交出目标"
+          ]
+        },
+        {
+          "slot": "consequence",
+          "label": "剧情后果",
+          "required": true,
+          "presets": [
+            "阵营公开",
+            "阵营分裂",
+            "目标易手"
+          ]
+        }
+      ],
+      "clues": [
+        {
+          "id": "FACTION_FORESHADOW",
+          "purpose": "阵营伏笔",
+          "type": "FACTION_FORESHADOW",
+          "stageHint": "LATENT"
+        },
+        {
+          "id": "MEMBERSHIP_HINT",
+          "purpose": "成员暗示",
+          "type": "MEMBERSHIP_HINT",
+          "stageHint": "CONTACT"
+        },
+        {
+          "id": "SECRET_SIGNAL",
+          "purpose": "秘密信号",
+          "type": "SECRET_SIGNAL",
+          "stageHint": "FORMATION"
+        },
+        {
+          "id": "RECRUITMENT_EVIDENCE",
+          "purpose": "招募证据",
+          "type": "RECRUITMENT_EVIDENCE",
+          "stageHint": "RECRUITMENT"
+        },
+        {
+          "id": "LOYALTY_TEST",
+          "purpose": "忠诚考验",
+          "type": "LOYALTY_TEST",
+          "stageHint": "PRESSURE"
+        },
+        {
+          "id": "BETRAYAL_HINT",
+          "purpose": "背叛暗示",
+          "type": "BETRAYAL_HINT",
+          "stageHint": "BETRAYAL"
+        },
+        {
+          "id": "INTERNAL_CONFLICT",
+          "purpose": "内部冲突",
+          "type": "INTERNAL_CONFLICT",
+          "stageHint": "SPLIT"
+        },
+        {
+          "id": "HIDDEN_GOAL_HINT",
+          "purpose": "隐藏目标暗示",
+          "type": "HIDDEN_GOAL_HINT",
+          "stageHint": "PRESSURE"
+        },
+        {
+          "id": "MEMBERSHIP_CONFIRMATION",
+          "purpose": "归属确认",
+          "type": "MEMBERSHIP_CONFIRMATION",
+          "stageHint": "EXPOSURE"
+        },
+        {
+          "id": "FACTION_EXPOSURE",
+          "purpose": "阵营暴露",
+          "type": "FACTION_EXPOSURE",
+          "stageHint": "EXPOSURE"
+        }
+      ],
+      "owners": [
+        "factionLead",
+        "defector"
+      ],
+      "phases": [
+        "0",
+        "1",
+        "2",
+        "3"
+      ],
+      "profile": {
+        "status": "READY",
+        "commitments": [
+          "FACTION_STRUCTURE"
+        ],
+        "modes": [
+          "CONCEAL",
+          "SUSPECT",
+          "NEGOTIATE"
+        ],
+        "anchors": [
+          "EARLY_AGENCY"
+        ],
+        "resolutionPressure": "FACTION_SETTLE",
+        "ownershipShift": null
+      }
+    },
+    {
+      "id": "M08-2",
+      "familyId": "M08",
+      "title": "固定隐藏阵营",
+      "purpose": "归属固定但仅本人可见；必须存在可观察行动差异，而非只能猜身份。",
+      "maturity": "COMPLETE",
+      "stages": "LATENT → CONTACT → FORMATION → RECRUITMENT → SUSPICION → PRESSURE → SPLIT → BETRAYAL → EXPOSURE → CONFRONTATION → RESOLUTION → CONSEQUENCE",
+      "roles": [
+        {
+          "slot": "factionLead",
+          "required": true,
+          "narrativeRole": "faction_lead",
+          "label": "阵营领袖"
+        },
+        {
+          "slot": "memberA",
+          "required": true,
+          "narrativeRole": "member",
+          "label": "核心成员甲"
+        },
+        {
+          "slot": "memberB",
+          "required": false,
+          "narrativeRole": "member",
+          "label": "核心成员乙"
+        },
+        {
+          "slot": "hiddenMember",
+          "required": false,
+          "narrativeRole": "hidden_member",
+          "label": "潜伏成员"
+        },
+        {
+          "slot": "outsider",
+          "required": false,
+          "narrativeRole": "outsider",
+          "label": "局外观察者"
+        },
+        {
+          "slot": "rivalLead",
+          "required": false,
+          "narrativeRole": "rival_lead",
+          "label": "对立阵营领袖"
+        },
+        {
+          "slot": "defector",
+          "required": false,
+          "narrativeRole": "defector",
+          "label": "叛离/摇摆者"
+        },
+        {
+          "slot": "witness",
+          "required": false,
+          "narrativeRole": "witness",
+          "label": "知情见证者"
+        }
+      ],
+      "plots": [
+        {
+          "slot": "factionIdentity",
+          "label": "阵营身份/名义",
+          "required": true,
+          "presets": [
+            "公开同盟",
+            "隐秘结社",
+            "临时同盟"
+          ]
+        },
+        {
+          "slot": "factionGoal",
+          "label": "阵营真实目标",
+          "required": true,
+          "presets": [
+            "夺取关键资源",
+            "保全共同秘密",
+            "推翻既有秩序"
+          ]
+        },
+        {
+          "slot": "publicGoal",
+          "label": "公开宣称目标",
+          "required": false,
+          "presets": [
+            "维护秩序",
+            "追查真相",
+            "保全利益"
+          ]
+        },
+        {
+          "slot": "hiddenGoal",
+          "label": "隐藏目标",
+          "required": false,
+          "presets": [
+            "公开目标",
+            "成员共享秘密目标",
+            "每人理解不同"
+          ]
+        },
+        {
+          "slot": "formationReason",
+          "label": "成形原因",
+          "required": true,
+          "presets": [
+            "共同敌人",
+            "共同利益",
+            "血缘或组织归属"
+          ]
+        },
+        {
+          "slot": "recruitmentMethod",
+          "label": "招募方式",
+          "required": false,
+          "presets": [
+            "私下邀请",
+            "任务考验",
+            "信物确认"
+          ]
+        },
+        {
+          "slot": "joiningCondition",
+          "label": "加入条件",
+          "required": false,
+          "presets": [
+            "完成考验",
+            "交出信物",
+            "共享秘密"
+          ]
+        },
+        {
+          "slot": "leavingCondition",
+          "label": "退出条件",
+          "required": false,
+          "presets": [
+            "支付代价",
+            "公开切割",
+            "被驱逐"
+          ]
+        },
+        {
+          "slot": "loyaltyConflict",
+          "label": "忠诚冲突",
+          "required": false,
+          "presets": [
+            "个人目标冲突",
+            "道德底线",
+            "被牺牲风险"
+          ]
+        },
+        {
+          "slot": "betrayalTrigger",
+          "label": "背叛触发",
+          "required": false,
+          "presets": [
+            "利益冲突",
+            "身份揭露",
+            "重要人物死亡"
+          ]
+        },
+        {
+          "slot": "betrayalCost",
+          "label": "背叛代价",
+          "required": false,
+          "presets": [
+            "失去资源",
+            "失去庇护",
+            "暴露身份"
+          ]
+        },
+        {
+          "slot": "exposureRisk",
+          "label": "暴露风险",
+          "required": false,
+          "presets": [
+            "行动失败",
+            "信物流失",
+            "证词"
+          ]
+        },
+        {
+          "slot": "secrecyRule",
+          "label": "保密/互认规则",
+          "required": true,
+          "presets": [
+            "成员互认全名单",
+            "只认领袖",
+            "只认直接联系人"
+          ]
+        },
+        {
+          "slot": "communicationRule",
+          "label": "沟通规则",
+          "required": false,
+          "presets": [
+            "仅领袖串联",
+            "点对点",
+            "公开协调"
+          ]
+        },
+        {
+          "slot": "membershipVisibility",
+          "label": "归属可见性",
+          "required": true,
+          "presets": [
+            "PUBLIC",
+            "PRIVATE",
+            "PARTIAL"
+          ]
+        },
+        {
+          "slot": "decisiveChoice",
+          "label": "决定性选择",
+          "required": false,
+          "presets": [
+            "公开站队",
+            "牺牲同伴",
+            "交出目标"
+          ]
+        },
+        {
+          "slot": "consequence",
+          "label": "剧情后果",
+          "required": true,
+          "presets": [
+            "阵营公开",
+            "阵营分裂",
+            "目标易手"
+          ]
+        }
+      ],
+      "clues": [
+        {
+          "id": "FACTION_FORESHADOW",
+          "purpose": "阵营伏笔",
+          "type": "FACTION_FORESHADOW",
+          "stageHint": "LATENT"
+        },
+        {
+          "id": "MEMBERSHIP_HINT",
+          "purpose": "成员暗示",
+          "type": "MEMBERSHIP_HINT",
+          "stageHint": "CONTACT"
+        },
+        {
+          "id": "SECRET_SIGNAL",
+          "purpose": "秘密信号",
+          "type": "SECRET_SIGNAL",
+          "stageHint": "FORMATION"
+        },
+        {
+          "id": "RECRUITMENT_EVIDENCE",
+          "purpose": "招募证据",
+          "type": "RECRUITMENT_EVIDENCE",
+          "stageHint": "RECRUITMENT"
+        },
+        {
+          "id": "LOYALTY_TEST",
+          "purpose": "忠诚考验",
+          "type": "LOYALTY_TEST",
+          "stageHint": "PRESSURE"
+        },
+        {
+          "id": "BETRAYAL_HINT",
+          "purpose": "背叛暗示",
+          "type": "BETRAYAL_HINT",
+          "stageHint": "BETRAYAL"
+        },
+        {
+          "id": "INTERNAL_CONFLICT",
+          "purpose": "内部冲突",
+          "type": "INTERNAL_CONFLICT",
+          "stageHint": "SPLIT"
+        },
+        {
+          "id": "HIDDEN_GOAL_HINT",
+          "purpose": "隐藏目标暗示",
+          "type": "HIDDEN_GOAL_HINT",
+          "stageHint": "PRESSURE"
+        },
+        {
+          "id": "MEMBERSHIP_CONFIRMATION",
+          "purpose": "归属确认",
+          "type": "MEMBERSHIP_CONFIRMATION",
+          "stageHint": "EXPOSURE"
+        },
+        {
+          "id": "FACTION_EXPOSURE",
+          "purpose": "阵营暴露",
+          "type": "FACTION_EXPOSURE",
+          "stageHint": "EXPOSURE"
+        }
+      ],
+      "owners": [
+        "factionLead",
+        "defector"
+      ],
+      "phases": [
+        "0",
+        "1",
+        "2",
+        "3"
+      ],
+      "profile": {
+        "status": "READY",
+        "commitments": [
+          "FACTION_STRUCTURE"
+        ],
+        "modes": [
+          "CONCEAL",
+          "SUSPECT",
+          "NEGOTIATE"
+        ],
+        "anchors": [
+          "EARLY_AGENCY"
+        ],
+        "resolutionPressure": "FACTION_SETTLE",
+        "ownershipShift": null
+      }
+    },
+    {
+      "id": "M08-3",
+      "familyId": "M08",
+      "title": "非对称阵营",
+      "purpose": "各阵营不同操作接口、资源与成功条件；允许同时成功或同时失败。",
+      "maturity": "COMPLETE",
+      "stages": "LATENT → CONTACT → FORMATION → RECRUITMENT → SUSPICION → PRESSURE → SPLIT → BETRAYAL → EXPOSURE → CONFRONTATION → RESOLUTION → CONSEQUENCE",
+      "roles": [
+        {
+          "slot": "factionLead",
+          "required": true,
+          "narrativeRole": "faction_lead",
+          "label": "阵营领袖"
+        },
+        {
+          "slot": "memberA",
+          "required": true,
+          "narrativeRole": "member",
+          "label": "核心成员甲"
+        },
+        {
+          "slot": "memberB",
+          "required": false,
+          "narrativeRole": "member",
+          "label": "核心成员乙"
+        },
+        {
+          "slot": "rivalLead",
+          "required": false,
+          "narrativeRole": "rival_lead",
+          "label": "对立阵营领袖"
+        },
+        {
+          "slot": "outsider",
+          "required": false,
+          "narrativeRole": "outsider",
+          "label": "局外观察者"
+        },
+        {
+          "slot": "recruiter",
+          "required": false,
+          "narrativeRole": "recruiter",
+          "label": "招募者"
+        },
+        {
+          "slot": "mediator",
+          "required": false,
+          "narrativeRole": "mediator",
+          "label": "调停者"
+        },
+        {
+          "slot": "defector",
+          "required": false,
+          "narrativeRole": "defector",
+          "label": "叛离/摇摆者"
+        }
+      ],
+      "plots": [
+        {
+          "slot": "factionIdentity",
+          "label": "阵营身份/名义",
+          "required": true,
+          "presets": [
+            "公开同盟",
+            "隐秘结社",
+            "临时同盟"
+          ]
+        },
+        {
+          "slot": "factionGoal",
+          "label": "阵营真实目标",
+          "required": true,
+          "presets": [
+            "夺取关键资源",
+            "保全共同秘密",
+            "推翻既有秩序"
+          ]
+        },
+        {
+          "slot": "publicGoal",
+          "label": "公开宣称目标",
+          "required": false,
+          "presets": [
+            "维护秩序",
+            "追查真相",
+            "保全利益"
+          ]
+        },
+        {
+          "slot": "hiddenGoal",
+          "label": "隐藏目标",
+          "required": false,
+          "presets": [
+            "公开目标",
+            "成员共享秘密目标",
+            "每人理解不同"
+          ]
+        },
+        {
+          "slot": "formationReason",
+          "label": "成形原因",
+          "required": true,
+          "presets": [
+            "共同敌人",
+            "共同利益",
+            "血缘或组织归属"
+          ]
+        },
+        {
+          "slot": "recruitmentMethod",
+          "label": "招募方式",
+          "required": false,
+          "presets": [
+            "私下邀请",
+            "任务考验",
+            "信物确认"
+          ]
+        },
+        {
+          "slot": "joiningCondition",
+          "label": "加入条件",
+          "required": false,
+          "presets": [
+            "完成考验",
+            "交出信物",
+            "共享秘密"
+          ]
+        },
+        {
+          "slot": "leavingCondition",
+          "label": "退出条件",
+          "required": false,
+          "presets": [
+            "支付代价",
+            "公开切割",
+            "被驱逐"
+          ]
+        },
+        {
+          "slot": "loyaltyConflict",
+          "label": "忠诚冲突",
+          "required": false,
+          "presets": [
+            "个人目标冲突",
+            "道德底线",
+            "被牺牲风险"
+          ]
+        },
+        {
+          "slot": "betrayalTrigger",
+          "label": "背叛触发",
+          "required": false,
+          "presets": [
+            "利益冲突",
+            "身份揭露",
+            "重要人物死亡"
+          ]
+        },
+        {
+          "slot": "betrayalCost",
+          "label": "背叛代价",
+          "required": false,
+          "presets": [
+            "失去资源",
+            "失去庇护",
+            "暴露身份"
+          ]
+        },
+        {
+          "slot": "exposureRisk",
+          "label": "暴露风险",
+          "required": false,
+          "presets": [
+            "行动失败",
+            "信物流失",
+            "证词"
+          ]
+        },
+        {
+          "slot": "secrecyRule",
+          "label": "保密/互认规则",
+          "required": true,
+          "presets": [
+            "成员互认全名单",
+            "只认领袖",
+            "只认直接联系人"
+          ]
+        },
+        {
+          "slot": "communicationRule",
+          "label": "沟通规则",
+          "required": false,
+          "presets": [
+            "仅领袖串联",
+            "点对点",
+            "公开协调"
+          ]
+        },
+        {
+          "slot": "membershipVisibility",
+          "label": "归属可见性",
+          "required": true,
+          "presets": [
+            "PUBLIC",
+            "PRIVATE",
+            "PARTIAL"
+          ]
+        },
+        {
+          "slot": "decisiveChoice",
+          "label": "决定性选择",
+          "required": false,
+          "presets": [
+            "公开站队",
+            "牺牲同伴",
+            "交出目标"
+          ]
+        },
+        {
+          "slot": "consequence",
+          "label": "剧情后果",
+          "required": true,
+          "presets": [
+            "阵营公开",
+            "阵营分裂",
+            "目标易手"
+          ]
+        },
+        {
+          "slot": "rivalGoal",
+          "label": "对立阵营目标",
+          "required": true,
+          "presets": [
+            "夺取关键资源",
+            "公开真相",
+            "阻止保全"
+          ]
+        },
+        {
+          "slot": "asymmetricInterface",
+          "label": "非对称接口差异",
+          "required": true,
+          "presets": [
+            "信息接口",
+            "行动接口",
+            "否决接口"
+          ]
+        }
+      ],
+      "clues": [
+        {
+          "id": "FACTION_FORESHADOW",
+          "purpose": "阵营伏笔",
+          "type": "FACTION_FORESHADOW",
+          "stageHint": "LATENT"
+        },
+        {
+          "id": "MEMBERSHIP_HINT",
+          "purpose": "成员暗示",
+          "type": "MEMBERSHIP_HINT",
+          "stageHint": "CONTACT"
+        },
+        {
+          "id": "SECRET_SIGNAL",
+          "purpose": "秘密信号",
+          "type": "SECRET_SIGNAL",
+          "stageHint": "FORMATION"
+        },
+        {
+          "id": "RECRUITMENT_EVIDENCE",
+          "purpose": "招募证据",
+          "type": "RECRUITMENT_EVIDENCE",
+          "stageHint": "RECRUITMENT"
+        },
+        {
+          "id": "LOYALTY_TEST",
+          "purpose": "忠诚考验",
+          "type": "LOYALTY_TEST",
+          "stageHint": "PRESSURE"
+        },
+        {
+          "id": "BETRAYAL_HINT",
+          "purpose": "背叛暗示",
+          "type": "BETRAYAL_HINT",
+          "stageHint": "BETRAYAL"
+        },
+        {
+          "id": "INTERNAL_CONFLICT",
+          "purpose": "内部冲突",
+          "type": "INTERNAL_CONFLICT",
+          "stageHint": "SPLIT"
+        },
+        {
+          "id": "HIDDEN_GOAL_HINT",
+          "purpose": "隐藏目标暗示",
+          "type": "HIDDEN_GOAL_HINT",
+          "stageHint": "PRESSURE"
+        },
+        {
+          "id": "MEMBERSHIP_CONFIRMATION",
+          "purpose": "归属确认",
+          "type": "MEMBERSHIP_CONFIRMATION",
+          "stageHint": "EXPOSURE"
+        },
+        {
+          "id": "FACTION_EXPOSURE",
+          "purpose": "阵营暴露",
+          "type": "FACTION_EXPOSURE",
+          "stageHint": "EXPOSURE"
+        }
+      ],
+      "owners": [
+        "factionLead",
+        "defector"
+      ],
+      "phases": [
+        "0",
+        "1",
+        "2",
+        "3"
+      ],
+      "profile": {
+        "status": "READY",
+        "commitments": [
+          "FACTION_STRUCTURE"
+        ],
+        "modes": [
+          "CONCEAL",
+          "SUSPECT",
+          "NEGOTIATE"
+        ],
+        "anchors": [
+          "EARLY_AGENCY"
+        ],
+        "resolutionPressure": "FACTION_SETTLE",
+        "ownershipShift": null
+      }
+    },
+    {
+      "id": "M08-4",
+      "familyId": "M08",
+      "title": "动态阵营",
+      "purpose": "只在预设节点因选择、结算或身份恢复改变归属；保存历史归属，旧贡献按当时阵营解释。",
+      "maturity": "COMPLETE",
+      "stages": "LATENT → CONTACT → FORMATION → RECRUITMENT → SUSPICION → PRESSURE → SPLIT → BETRAYAL → EXPOSURE → CONFRONTATION → RESOLUTION → CONSEQUENCE",
+      "roles": [
+        {
+          "slot": "factionLead",
+          "required": true,
+          "narrativeRole": "faction_lead",
+          "label": "阵营领袖"
+        },
+        {
+          "slot": "memberA",
+          "required": true,
+          "narrativeRole": "member",
+          "label": "核心成员甲"
+        },
+        {
+          "slot": "memberB",
+          "required": false,
+          "narrativeRole": "member",
+          "label": "核心成员乙"
+        },
+        {
+          "slot": "rivalLead",
+          "required": false,
+          "narrativeRole": "rival_lead",
+          "label": "对立阵营领袖"
+        },
+        {
+          "slot": "defector",
+          "required": false,
+          "narrativeRole": "defector",
+          "label": "叛离/摇摆者"
+        },
+        {
+          "slot": "outsider",
+          "required": false,
+          "narrativeRole": "outsider",
+          "label": "局外观察者"
+        }
+      ],
+      "plots": [
+        {
+          "slot": "factionIdentity",
+          "label": "阵营身份/名义",
+          "required": true,
+          "presets": [
+            "公开同盟",
+            "隐秘结社",
+            "临时同盟"
+          ]
+        },
+        {
+          "slot": "factionGoal",
+          "label": "阵营真实目标",
+          "required": true,
+          "presets": [
+            "夺取关键资源",
+            "保全共同秘密",
+            "推翻既有秩序"
+          ]
+        },
+        {
+          "slot": "publicGoal",
+          "label": "公开宣称目标",
+          "required": false,
+          "presets": [
+            "维护秩序",
+            "追查真相",
+            "保全利益"
+          ]
+        },
+        {
+          "slot": "hiddenGoal",
+          "label": "隐藏目标",
+          "required": false,
+          "presets": [
+            "公开目标",
+            "成员共享秘密目标",
+            "每人理解不同"
+          ]
+        },
+        {
+          "slot": "formationReason",
+          "label": "成形原因",
+          "required": true,
+          "presets": [
+            "共同敌人",
+            "共同利益",
+            "血缘或组织归属"
+          ]
+        },
+        {
+          "slot": "recruitmentMethod",
+          "label": "招募方式",
+          "required": false,
+          "presets": [
+            "私下邀请",
+            "任务考验",
+            "信物确认"
+          ]
+        },
+        {
+          "slot": "joiningCondition",
+          "label": "加入条件",
+          "required": false,
+          "presets": [
+            "完成考验",
+            "交出信物",
+            "共享秘密"
+          ]
+        },
+        {
+          "slot": "leavingCondition",
+          "label": "退出条件",
+          "required": false,
+          "presets": [
+            "支付代价",
+            "公开切割",
+            "被驱逐"
+          ]
+        },
+        {
+          "slot": "loyaltyConflict",
+          "label": "忠诚冲突",
+          "required": false,
+          "presets": [
+            "个人目标冲突",
+            "道德底线",
+            "被牺牲风险"
+          ]
+        },
+        {
+          "slot": "betrayalTrigger",
+          "label": "背叛触发",
+          "required": false,
+          "presets": [
+            "利益冲突",
+            "身份揭露",
+            "重要人物死亡"
+          ]
+        },
+        {
+          "slot": "betrayalCost",
+          "label": "背叛代价",
+          "required": false,
+          "presets": [
+            "失去资源",
+            "失去庇护",
+            "暴露身份"
+          ]
+        },
+        {
+          "slot": "exposureRisk",
+          "label": "暴露风险",
+          "required": false,
+          "presets": [
+            "行动失败",
+            "信物流失",
+            "证词"
+          ]
+        },
+        {
+          "slot": "secrecyRule",
+          "label": "保密/互认规则",
+          "required": true,
+          "presets": [
+            "成员互认全名单",
+            "只认领袖",
+            "只认直接联系人"
+          ]
+        },
+        {
+          "slot": "communicationRule",
+          "label": "沟通规则",
+          "required": false,
+          "presets": [
+            "仅领袖串联",
+            "点对点",
+            "公开协调"
+          ]
+        },
+        {
+          "slot": "membershipVisibility",
+          "label": "归属可见性",
+          "required": true,
+          "presets": [
+            "PUBLIC",
+            "PRIVATE",
+            "PARTIAL"
+          ]
+        },
+        {
+          "slot": "decisiveChoice",
+          "label": "决定性选择",
+          "required": false,
+          "presets": [
+            "公开站队",
+            "牺牲同伴",
+            "交出目标"
+          ]
+        },
+        {
+          "slot": "consequence",
+          "label": "剧情后果",
+          "required": true,
+          "presets": [
+            "阵营公开",
+            "阵营分裂",
+            "目标易手"
+          ]
+        },
+        {
+          "slot": "changeNode",
+          "label": "预设改变节点",
+          "required": true,
+          "presets": [
+            "中期选择",
+            "结算后",
+            "身份揭示后"
+          ]
+        },
+        {
+          "slot": "historyRule",
+          "label": "历史归属规则",
+          "required": true,
+          "presets": [
+            "保存双轨",
+            "旧贡献冻结",
+            "知情分层"
+          ]
+        }
+      ],
+      "clues": [
+        {
+          "id": "FACTION_FORESHADOW",
+          "purpose": "阵营伏笔",
+          "type": "FACTION_FORESHADOW",
+          "stageHint": "LATENT"
+        },
+        {
+          "id": "MEMBERSHIP_HINT",
+          "purpose": "成员暗示",
+          "type": "MEMBERSHIP_HINT",
+          "stageHint": "CONTACT"
+        },
+        {
+          "id": "SECRET_SIGNAL",
+          "purpose": "秘密信号",
+          "type": "SECRET_SIGNAL",
+          "stageHint": "FORMATION"
+        },
+        {
+          "id": "RECRUITMENT_EVIDENCE",
+          "purpose": "招募证据",
+          "type": "RECRUITMENT_EVIDENCE",
+          "stageHint": "RECRUITMENT"
+        },
+        {
+          "id": "LOYALTY_TEST",
+          "purpose": "忠诚考验",
+          "type": "LOYALTY_TEST",
+          "stageHint": "PRESSURE"
+        },
+        {
+          "id": "BETRAYAL_HINT",
+          "purpose": "背叛暗示",
+          "type": "BETRAYAL_HINT",
+          "stageHint": "BETRAYAL"
+        },
+        {
+          "id": "INTERNAL_CONFLICT",
+          "purpose": "内部冲突",
+          "type": "INTERNAL_CONFLICT",
+          "stageHint": "SPLIT"
+        },
+        {
+          "id": "HIDDEN_GOAL_HINT",
+          "purpose": "隐藏目标暗示",
+          "type": "HIDDEN_GOAL_HINT",
+          "stageHint": "PRESSURE"
+        },
+        {
+          "id": "MEMBERSHIP_CONFIRMATION",
+          "purpose": "归属确认",
+          "type": "MEMBERSHIP_CONFIRMATION",
+          "stageHint": "EXPOSURE"
+        },
+        {
+          "id": "FACTION_EXPOSURE",
+          "purpose": "阵营暴露",
+          "type": "FACTION_EXPOSURE",
+          "stageHint": "EXPOSURE"
+        }
+      ],
+      "owners": [
+        "factionLead",
+        "defector"
+      ],
+      "phases": [
+        "0",
+        "1",
+        "2",
+        "3"
+      ],
+      "profile": {
+        "status": "READY",
+        "commitments": [
+          "FACTION_STRUCTURE"
+        ],
+        "modes": [
+          "CONCEAL",
+          "SUSPECT",
+          "NEGOTIATE"
+        ],
+        "anchors": [
+          "EARLY_AGENCY"
+        ],
+        "resolutionPressure": "FACTION_SETTLE",
+        "ownershipShift": null
+      }
+    },
+    {
+      "id": "M08-5",
+      "familyId": "M08",
+      "title": "个人目标叠加阵营目标",
+      "purpose": "阵营与个人分别结算，可同时成败；个人目标不要求全部背叛阵营。",
+      "maturity": "COMPLETE",
+      "stages": "LATENT → CONTACT → FORMATION → RECRUITMENT → SUSPICION → PRESSURE → SPLIT → BETRAYAL → EXPOSURE → CONFRONTATION → RESOLUTION → CONSEQUENCE",
+      "roles": [
+        {
+          "slot": "factionLead",
+          "required": true,
+          "narrativeRole": "faction_lead",
+          "label": "阵营领袖"
+        },
+        {
+          "slot": "memberA",
+          "required": true,
+          "narrativeRole": "member",
+          "label": "核心成员甲"
+        },
+        {
+          "slot": "memberB",
+          "required": false,
+          "narrativeRole": "member",
+          "label": "核心成员乙"
+        },
+        {
+          "slot": "defector",
+          "required": false,
+          "narrativeRole": "defector",
+          "label": "叛离/摇摆者"
+        },
+        {
+          "slot": "outsider",
+          "required": false,
+          "narrativeRole": "outsider",
+          "label": "局外观察者"
+        }
+      ],
+      "plots": [
+        {
+          "slot": "factionIdentity",
+          "label": "阵营身份/名义",
+          "required": true,
+          "presets": [
+            "公开同盟",
+            "隐秘结社",
+            "临时同盟"
+          ]
+        },
+        {
+          "slot": "factionGoal",
+          "label": "阵营真实目标",
+          "required": true,
+          "presets": [
+            "夺取关键资源",
+            "保全共同秘密",
+            "推翻既有秩序"
+          ]
+        },
+        {
+          "slot": "publicGoal",
+          "label": "公开宣称目标",
+          "required": false,
+          "presets": [
+            "维护秩序",
+            "追查真相",
+            "保全利益"
+          ]
+        },
+        {
+          "slot": "hiddenGoal",
+          "label": "隐藏目标",
+          "required": false,
+          "presets": [
+            "公开目标",
+            "成员共享秘密目标",
+            "每人理解不同"
+          ]
+        },
+        {
+          "slot": "formationReason",
+          "label": "成形原因",
+          "required": true,
+          "presets": [
+            "共同敌人",
+            "共同利益",
+            "血缘或组织归属"
+          ]
+        },
+        {
+          "slot": "recruitmentMethod",
+          "label": "招募方式",
+          "required": false,
+          "presets": [
+            "私下邀请",
+            "任务考验",
+            "信物确认"
+          ]
+        },
+        {
+          "slot": "joiningCondition",
+          "label": "加入条件",
+          "required": false,
+          "presets": [
+            "完成考验",
+            "交出信物",
+            "共享秘密"
+          ]
+        },
+        {
+          "slot": "leavingCondition",
+          "label": "退出条件",
+          "required": false,
+          "presets": [
+            "支付代价",
+            "公开切割",
+            "被驱逐"
+          ]
+        },
+        {
+          "slot": "loyaltyConflict",
+          "label": "忠诚冲突",
+          "required": false,
+          "presets": [
+            "个人目标冲突",
+            "道德底线",
+            "被牺牲风险"
+          ]
+        },
+        {
+          "slot": "betrayalTrigger",
+          "label": "背叛触发",
+          "required": false,
+          "presets": [
+            "利益冲突",
+            "身份揭露",
+            "重要人物死亡"
+          ]
+        },
+        {
+          "slot": "betrayalCost",
+          "label": "背叛代价",
+          "required": false,
+          "presets": [
+            "失去资源",
+            "失去庇护",
+            "暴露身份"
+          ]
+        },
+        {
+          "slot": "exposureRisk",
+          "label": "暴露风险",
+          "required": false,
+          "presets": [
+            "行动失败",
+            "信物流失",
+            "证词"
+          ]
+        },
+        {
+          "slot": "secrecyRule",
+          "label": "保密/互认规则",
+          "required": true,
+          "presets": [
+            "成员互认全名单",
+            "只认领袖",
+            "只认直接联系人"
+          ]
+        },
+        {
+          "slot": "communicationRule",
+          "label": "沟通规则",
+          "required": false,
+          "presets": [
+            "仅领袖串联",
+            "点对点",
+            "公开协调"
+          ]
+        },
+        {
+          "slot": "membershipVisibility",
+          "label": "归属可见性",
+          "required": true,
+          "presets": [
+            "PUBLIC",
+            "PRIVATE",
+            "PARTIAL"
+          ]
+        },
+        {
+          "slot": "decisiveChoice",
+          "label": "决定性选择",
+          "required": false,
+          "presets": [
+            "公开站队",
+            "牺牲同伴",
+            "交出目标"
+          ]
+        },
+        {
+          "slot": "consequence",
+          "label": "剧情后果",
+          "required": true,
+          "presets": [
+            "阵营公开",
+            "阵营分裂",
+            "目标易手"
+          ]
+        },
+        {
+          "slot": "personalGoal",
+          "label": "个人叠加目标",
+          "required": true,
+          "presets": [
+            "保全某人",
+            "取得信物",
+            "隐藏罪责"
+          ]
+        },
+        {
+          "slot": "personalSettleRule",
+          "label": "个人结算规则",
+          "required": true,
+          "presets": [
+            "只读正式状态",
+            "可与阵营同成同败",
+            "不强制背叛"
+          ]
+        }
+      ],
+      "clues": [
+        {
+          "id": "FACTION_FORESHADOW",
+          "purpose": "阵营伏笔",
+          "type": "FACTION_FORESHADOW",
+          "stageHint": "LATENT"
+        },
+        {
+          "id": "MEMBERSHIP_HINT",
+          "purpose": "成员暗示",
+          "type": "MEMBERSHIP_HINT",
+          "stageHint": "CONTACT"
+        },
+        {
+          "id": "SECRET_SIGNAL",
+          "purpose": "秘密信号",
+          "type": "SECRET_SIGNAL",
+          "stageHint": "FORMATION"
+        },
+        {
+          "id": "RECRUITMENT_EVIDENCE",
+          "purpose": "招募证据",
+          "type": "RECRUITMENT_EVIDENCE",
+          "stageHint": "RECRUITMENT"
+        },
+        {
+          "id": "LOYALTY_TEST",
+          "purpose": "忠诚考验",
+          "type": "LOYALTY_TEST",
+          "stageHint": "PRESSURE"
+        },
+        {
+          "id": "BETRAYAL_HINT",
+          "purpose": "背叛暗示",
+          "type": "BETRAYAL_HINT",
+          "stageHint": "BETRAYAL"
+        },
+        {
+          "id": "INTERNAL_CONFLICT",
+          "purpose": "内部冲突",
+          "type": "INTERNAL_CONFLICT",
+          "stageHint": "SPLIT"
+        },
+        {
+          "id": "HIDDEN_GOAL_HINT",
+          "purpose": "隐藏目标暗示",
+          "type": "HIDDEN_GOAL_HINT",
+          "stageHint": "PRESSURE"
+        },
+        {
+          "id": "MEMBERSHIP_CONFIRMATION",
+          "purpose": "归属确认",
+          "type": "MEMBERSHIP_CONFIRMATION",
+          "stageHint": "EXPOSURE"
+        },
+        {
+          "id": "FACTION_EXPOSURE",
+          "purpose": "阵营暴露",
+          "type": "FACTION_EXPOSURE",
+          "stageHint": "EXPOSURE"
+        }
+      ],
+      "owners": [
+        "factionLead",
+        "defector"
+      ],
+      "phases": [
+        "0",
+        "1",
+        "2",
+        "3"
+      ],
+      "profile": {
+        "status": "READY",
+        "commitments": [
+          "FACTION_STRUCTURE"
+        ],
+        "modes": [
+          "CONCEAL",
+          "SUSPECT",
+          "NEGOTIATE"
+        ],
+        "anchors": [
+          "EARLY_AGENCY"
+        ],
+        "resolutionPressure": "FACTION_SETTLE",
+        "ownershipShift": null
+      }
+    },
+    {
+      "id": "M08-6",
+      "familyId": "M08",
+      "title": "临时联盟",
+      "purpose": "规定节点双确认建立联盟；设持续时间、共享范围与退出成本；不自动共享私人内容。",
+      "maturity": "COMPLETE",
+      "stages": "LATENT → CONTACT → FORMATION → RECRUITMENT → SUSPICION → PRESSURE → SPLIT → BETRAYAL → EXPOSURE → CONFRONTATION → RESOLUTION → CONSEQUENCE",
+      "roles": [
+        {
+          "slot": "factionLead",
+          "required": true,
+          "narrativeRole": "faction_lead",
+          "label": "阵营领袖"
+        },
+        {
+          "slot": "memberA",
+          "required": true,
+          "narrativeRole": "member",
+          "label": "核心成员甲"
+        },
+        {
+          "slot": "memberB",
+          "required": false,
+          "narrativeRole": "member",
+          "label": "核心成员乙"
+        },
+        {
+          "slot": "rivalLead",
+          "required": false,
+          "narrativeRole": "rival_lead",
+          "label": "对立阵营领袖"
+        },
+        {
+          "slot": "mediator",
+          "required": false,
+          "narrativeRole": "mediator",
+          "label": "调停者"
+        },
+        {
+          "slot": "outsider",
+          "required": false,
+          "narrativeRole": "outsider",
+          "label": "局外观察者"
+        },
+        {
+          "slot": "defector",
+          "required": false,
+          "narrativeRole": "defector",
+          "label": "叛离/摇摆者"
+        }
+      ],
+      "plots": [
+        {
+          "slot": "factionIdentity",
+          "label": "阵营身份/名义",
+          "required": true,
+          "presets": [
+            "公开同盟",
+            "隐秘结社",
+            "临时同盟"
+          ]
+        },
+        {
+          "slot": "factionGoal",
+          "label": "阵营真实目标",
+          "required": true,
+          "presets": [
+            "夺取关键资源",
+            "保全共同秘密",
+            "推翻既有秩序"
+          ]
+        },
+        {
+          "slot": "publicGoal",
+          "label": "公开宣称目标",
+          "required": false,
+          "presets": [
+            "维护秩序",
+            "追查真相",
+            "保全利益"
+          ]
+        },
+        {
+          "slot": "hiddenGoal",
+          "label": "隐藏目标",
+          "required": false,
+          "presets": [
+            "公开目标",
+            "成员共享秘密目标",
+            "每人理解不同"
+          ]
+        },
+        {
+          "slot": "formationReason",
+          "label": "成形原因",
+          "required": true,
+          "presets": [
+            "共同敌人",
+            "共同利益",
+            "血缘或组织归属"
+          ]
+        },
+        {
+          "slot": "recruitmentMethod",
+          "label": "招募方式",
+          "required": false,
+          "presets": [
+            "私下邀请",
+            "任务考验",
+            "信物确认"
+          ]
+        },
+        {
+          "slot": "joiningCondition",
+          "label": "加入条件",
+          "required": false,
+          "presets": [
+            "完成考验",
+            "交出信物",
+            "共享秘密"
+          ]
+        },
+        {
+          "slot": "leavingCondition",
+          "label": "退出条件",
+          "required": false,
+          "presets": [
+            "支付代价",
+            "公开切割",
+            "被驱逐"
+          ]
+        },
+        {
+          "slot": "loyaltyConflict",
+          "label": "忠诚冲突",
+          "required": false,
+          "presets": [
+            "个人目标冲突",
+            "道德底线",
+            "被牺牲风险"
+          ]
+        },
+        {
+          "slot": "betrayalTrigger",
+          "label": "背叛触发",
+          "required": false,
+          "presets": [
+            "利益冲突",
+            "身份揭露",
+            "重要人物死亡"
+          ]
+        },
+        {
+          "slot": "betrayalCost",
+          "label": "背叛代价",
+          "required": false,
+          "presets": [
+            "失去资源",
+            "失去庇护",
+            "暴露身份"
+          ]
+        },
+        {
+          "slot": "exposureRisk",
+          "label": "暴露风险",
+          "required": false,
+          "presets": [
+            "行动失败",
+            "信物流失",
+            "证词"
+          ]
+        },
+        {
+          "slot": "secrecyRule",
+          "label": "保密/互认规则",
+          "required": true,
+          "presets": [
+            "成员互认全名单",
+            "只认领袖",
+            "只认直接联系人"
+          ]
+        },
+        {
+          "slot": "communicationRule",
+          "label": "沟通规则",
+          "required": false,
+          "presets": [
+            "仅领袖串联",
+            "点对点",
+            "公开协调"
+          ]
+        },
+        {
+          "slot": "membershipVisibility",
+          "label": "归属可见性",
+          "required": true,
+          "presets": [
+            "PUBLIC",
+            "PRIVATE",
+            "PARTIAL"
+          ]
+        },
+        {
+          "slot": "decisiveChoice",
+          "label": "决定性选择",
+          "required": false,
+          "presets": [
+            "公开站队",
+            "牺牲同伴",
+            "交出目标"
+          ]
+        },
+        {
+          "slot": "consequence",
+          "label": "剧情后果",
+          "required": true,
+          "presets": [
+            "阵营公开",
+            "阵营分裂",
+            "目标易手"
+          ]
+        },
+        {
+          "slot": "allianceDuration",
+          "label": "联盟持续时间",
+          "required": true,
+          "presets": [
+            "一阶段",
+            "至危机解除",
+            "至任务完成"
+          ]
+        },
+        {
+          "slot": "shareScope",
+          "label": "共享范围",
+          "required": true,
+          "presets": [
+            "仅资源",
+            "仅行动结果",
+            "有限情报"
+          ]
+        },
+        {
+          "slot": "exitCost",
+          "label": "退出成本",
+          "required": true,
+          "presets": [
+            "失去资源",
+            "暴露部分归属",
+            "关系惩罚"
+          ]
+        }
+      ],
+      "clues": [
+        {
+          "id": "FACTION_FORESHADOW",
+          "purpose": "阵营伏笔",
+          "type": "FACTION_FORESHADOW",
+          "stageHint": "LATENT"
+        },
+        {
+          "id": "MEMBERSHIP_HINT",
+          "purpose": "成员暗示",
+          "type": "MEMBERSHIP_HINT",
+          "stageHint": "CONTACT"
+        },
+        {
+          "id": "SECRET_SIGNAL",
+          "purpose": "秘密信号",
+          "type": "SECRET_SIGNAL",
+          "stageHint": "FORMATION"
+        },
+        {
+          "id": "RECRUITMENT_EVIDENCE",
+          "purpose": "招募证据",
+          "type": "RECRUITMENT_EVIDENCE",
+          "stageHint": "RECRUITMENT"
+        },
+        {
+          "id": "LOYALTY_TEST",
+          "purpose": "忠诚考验",
+          "type": "LOYALTY_TEST",
+          "stageHint": "PRESSURE"
+        },
+        {
+          "id": "BETRAYAL_HINT",
+          "purpose": "背叛暗示",
+          "type": "BETRAYAL_HINT",
+          "stageHint": "BETRAYAL"
+        },
+        {
+          "id": "INTERNAL_CONFLICT",
+          "purpose": "内部冲突",
+          "type": "INTERNAL_CONFLICT",
+          "stageHint": "SPLIT"
+        },
+        {
+          "id": "HIDDEN_GOAL_HINT",
+          "purpose": "隐藏目标暗示",
+          "type": "HIDDEN_GOAL_HINT",
+          "stageHint": "PRESSURE"
+        },
+        {
+          "id": "MEMBERSHIP_CONFIRMATION",
+          "purpose": "归属确认",
+          "type": "MEMBERSHIP_CONFIRMATION",
+          "stageHint": "EXPOSURE"
+        },
+        {
+          "id": "FACTION_EXPOSURE",
+          "purpose": "阵营暴露",
+          "type": "FACTION_EXPOSURE",
+          "stageHint": "EXPOSURE"
+        }
+      ],
+      "owners": [
+        "factionLead",
+        "mediator",
+        "defector"
+      ],
+      "phases": [
+        "0",
+        "1",
+        "2",
+        "3"
+      ],
+      "profile": {
+        "status": "READY",
+        "commitments": [
+          "FACTION_STRUCTURE",
+          "RESOURCE_CONTEST"
+        ],
+        "modes": [
+          "NEGOTIATE",
+          "CONCEAL",
+          "SUSPECT",
+          "PUBLIC_CHOICE"
+        ],
+        "anchors": [
+          "EARLY_AGENCY",
+          "OWNERSHIP_SHIFT"
+        ],
+        "resolutionPressure": "FACTION_SETTLE",
+        "ownershipShift": null
+      }
+    },
+    {
+      "id": "M08-7",
+      "familyId": "M08",
+      "title": "阵营影响公共任务",
+      "purpose": "先定义独立可运行的公共任务，再定义各阵营希望其成功、失败、延迟或换方案；破坏须有次数与成本。",
+      "maturity": "COMPLETE",
+      "stages": "LATENT → CONTACT → FORMATION → RECRUITMENT → SUSPICION → PRESSURE → SPLIT → BETRAYAL → EXPOSURE → CONFRONTATION → RESOLUTION → CONSEQUENCE",
+      "roles": [
+        {
+          "slot": "factionLead",
+          "required": true,
+          "narrativeRole": "faction_lead",
+          "label": "阵营领袖"
+        },
+        {
+          "slot": "memberA",
+          "required": true,
+          "narrativeRole": "member",
+          "label": "核心成员甲"
+        },
+        {
+          "slot": "memberB",
+          "required": false,
+          "narrativeRole": "member",
+          "label": "核心成员乙"
+        },
+        {
+          "slot": "rivalLead",
+          "required": false,
+          "narrativeRole": "rival_lead",
+          "label": "对立阵营领袖"
+        },
+        {
+          "slot": "defector",
+          "required": false,
+          "narrativeRole": "defector",
+          "label": "叛离/摇摆者"
+        },
+        {
+          "slot": "outsider",
+          "required": false,
+          "narrativeRole": "outsider",
+          "label": "局外观察者"
+        }
+      ],
+      "plots": [
+        {
+          "slot": "factionIdentity",
+          "label": "阵营身份/名义",
+          "required": true,
+          "presets": [
+            "公开同盟",
+            "隐秘结社",
+            "临时同盟"
+          ]
+        },
+        {
+          "slot": "factionGoal",
+          "label": "阵营真实目标",
+          "required": true,
+          "presets": [
+            "夺取关键资源",
+            "保全共同秘密",
+            "推翻既有秩序"
+          ]
+        },
+        {
+          "slot": "publicGoal",
+          "label": "公开宣称目标",
+          "required": false,
+          "presets": [
+            "维护秩序",
+            "追查真相",
+            "保全利益"
+          ]
+        },
+        {
+          "slot": "hiddenGoal",
+          "label": "隐藏目标",
+          "required": false,
+          "presets": [
+            "公开目标",
+            "成员共享秘密目标",
+            "每人理解不同"
+          ]
+        },
+        {
+          "slot": "formationReason",
+          "label": "成形原因",
+          "required": true,
+          "presets": [
+            "共同敌人",
+            "共同利益",
+            "血缘或组织归属"
+          ]
+        },
+        {
+          "slot": "recruitmentMethod",
+          "label": "招募方式",
+          "required": false,
+          "presets": [
+            "私下邀请",
+            "任务考验",
+            "信物确认"
+          ]
+        },
+        {
+          "slot": "joiningCondition",
+          "label": "加入条件",
+          "required": false,
+          "presets": [
+            "完成考验",
+            "交出信物",
+            "共享秘密"
+          ]
+        },
+        {
+          "slot": "leavingCondition",
+          "label": "退出条件",
+          "required": false,
+          "presets": [
+            "支付代价",
+            "公开切割",
+            "被驱逐"
+          ]
+        },
+        {
+          "slot": "loyaltyConflict",
+          "label": "忠诚冲突",
+          "required": false,
+          "presets": [
+            "个人目标冲突",
+            "道德底线",
+            "被牺牲风险"
+          ]
+        },
+        {
+          "slot": "betrayalTrigger",
+          "label": "背叛触发",
+          "required": false,
+          "presets": [
+            "利益冲突",
+            "身份揭露",
+            "重要人物死亡"
+          ]
+        },
+        {
+          "slot": "betrayalCost",
+          "label": "背叛代价",
+          "required": false,
+          "presets": [
+            "失去资源",
+            "失去庇护",
+            "暴露身份"
+          ]
+        },
+        {
+          "slot": "exposureRisk",
+          "label": "暴露风险",
+          "required": false,
+          "presets": [
+            "行动失败",
+            "信物流失",
+            "证词"
+          ]
+        },
+        {
+          "slot": "secrecyRule",
+          "label": "保密/互认规则",
+          "required": true,
+          "presets": [
+            "成员互认全名单",
+            "只认领袖",
+            "只认直接联系人"
+          ]
+        },
+        {
+          "slot": "communicationRule",
+          "label": "沟通规则",
+          "required": false,
+          "presets": [
+            "仅领袖串联",
+            "点对点",
+            "公开协调"
+          ]
+        },
+        {
+          "slot": "membershipVisibility",
+          "label": "归属可见性",
+          "required": true,
+          "presets": [
+            "PUBLIC",
+            "PRIVATE",
+            "PARTIAL"
+          ]
+        },
+        {
+          "slot": "decisiveChoice",
+          "label": "决定性选择",
+          "required": false,
+          "presets": [
+            "公开站队",
+            "牺牲同伴",
+            "交出目标"
+          ]
+        },
+        {
+          "slot": "consequence",
+          "label": "剧情后果",
+          "required": true,
+          "presets": [
+            "阵营公开",
+            "阵营分裂",
+            "目标易手"
+          ]
+        },
+        {
+          "slot": "publicTask",
+          "label": "公共任务",
+          "required": true,
+          "presets": [
+            "护送",
+            "搜证",
+            "封印"
+          ]
+        },
+        {
+          "slot": "stancePreference",
+          "label": "阵营立场偏好",
+          "required": true,
+          "presets": [
+            "希望成功",
+            "希望失败",
+            "希望延迟"
+          ]
+        },
+        {
+          "slot": "sabotageRule",
+          "label": "正式破坏规则",
+          "required": true,
+          "presets": [
+            "有次数",
+            "有成本",
+            "可观察后果"
+          ]
+        }
+      ],
+      "clues": [
+        {
+          "id": "FACTION_FORESHADOW",
+          "purpose": "阵营伏笔",
+          "type": "FACTION_FORESHADOW",
+          "stageHint": "LATENT"
+        },
+        {
+          "id": "MEMBERSHIP_HINT",
+          "purpose": "成员暗示",
+          "type": "MEMBERSHIP_HINT",
+          "stageHint": "CONTACT"
+        },
+        {
+          "id": "SECRET_SIGNAL",
+          "purpose": "秘密信号",
+          "type": "SECRET_SIGNAL",
+          "stageHint": "FORMATION"
+        },
+        {
+          "id": "RECRUITMENT_EVIDENCE",
+          "purpose": "招募证据",
+          "type": "RECRUITMENT_EVIDENCE",
+          "stageHint": "RECRUITMENT"
+        },
+        {
+          "id": "LOYALTY_TEST",
+          "purpose": "忠诚考验",
+          "type": "LOYALTY_TEST",
+          "stageHint": "PRESSURE"
+        },
+        {
+          "id": "BETRAYAL_HINT",
+          "purpose": "背叛暗示",
+          "type": "BETRAYAL_HINT",
+          "stageHint": "BETRAYAL"
+        },
+        {
+          "id": "INTERNAL_CONFLICT",
+          "purpose": "内部冲突",
+          "type": "INTERNAL_CONFLICT",
+          "stageHint": "SPLIT"
+        },
+        {
+          "id": "HIDDEN_GOAL_HINT",
+          "purpose": "隐藏目标暗示",
+          "type": "HIDDEN_GOAL_HINT",
+          "stageHint": "PRESSURE"
+        },
+        {
+          "id": "MEMBERSHIP_CONFIRMATION",
+          "purpose": "归属确认",
+          "type": "MEMBERSHIP_CONFIRMATION",
+          "stageHint": "EXPOSURE"
+        },
+        {
+          "id": "FACTION_EXPOSURE",
+          "purpose": "阵营暴露",
+          "type": "FACTION_EXPOSURE",
+          "stageHint": "EXPOSURE"
+        }
+      ],
+      "owners": [
+        "factionLead",
+        "defector"
+      ],
+      "phases": [
+        "0",
+        "1",
+        "2",
+        "3"
+      ],
+      "profile": {
+        "status": "READY",
+        "commitments": [
+          "FACTION_STRUCTURE"
+        ],
+        "modes": [
+          "PROBE",
+          "CONCEAL",
+          "SUSPECT"
+        ],
+        "anchors": [
+          "EARLY_AGENCY"
+        ],
+        "resolutionPressure": "FACTION_SETTLE",
+        "ownershipShift": null
+      }
+    },
+    {
+      "id": "M08-8",
+      "familyId": "M08",
+      "title": "多阵营并存",
+      "purpose": "推荐三阵营非对称；条件表结算，不强制单一冠军；须防两盟永久无成本压制第三方。",
+      "maturity": "COMPLETE",
+      "stages": "LATENT → CONTACT → FORMATION → RECRUITMENT → SUSPICION → PRESSURE → SPLIT → BETRAYAL → EXPOSURE → CONFRONTATION → RESOLUTION → CONSEQUENCE",
+      "roles": [
+        {
+          "slot": "factionLead",
+          "required": true,
+          "narrativeRole": "faction_lead",
+          "label": "阵营领袖"
+        },
+        {
+          "slot": "memberA",
+          "required": true,
+          "narrativeRole": "member",
+          "label": "核心成员甲"
+        },
+        {
+          "slot": "memberB",
+          "required": false,
+          "narrativeRole": "member",
+          "label": "核心成员乙"
+        },
+        {
+          "slot": "rivalLead",
+          "required": false,
+          "narrativeRole": "rival_lead",
+          "label": "对立阵营领袖"
+        },
+        {
+          "slot": "thirdLead",
+          "required": false,
+          "narrativeRole": "faction_lead",
+          "label": "第三方阵营领袖"
+        },
+        {
+          "slot": "outsider",
+          "required": false,
+          "narrativeRole": "outsider",
+          "label": "局外观察者"
+        },
+        {
+          "slot": "hiddenMember",
+          "required": false,
+          "narrativeRole": "hidden_member",
+          "label": "潜伏成员"
+        },
+        {
+          "slot": "mediator",
+          "required": false,
+          "narrativeRole": "mediator",
+          "label": "调停者"
+        },
+        {
+          "slot": "defector",
+          "required": false,
+          "narrativeRole": "defector",
+          "label": "叛离/摇摆者"
+        }
+      ],
+      "plots": [
+        {
+          "slot": "factionIdentity",
+          "label": "阵营身份/名义",
+          "required": true,
+          "presets": [
+            "公开同盟",
+            "隐秘结社",
+            "临时同盟"
+          ]
+        },
+        {
+          "slot": "factionGoal",
+          "label": "阵营真实目标",
+          "required": true,
+          "presets": [
+            "夺取关键资源",
+            "保全共同秘密",
+            "推翻既有秩序"
+          ]
+        },
+        {
+          "slot": "publicGoal",
+          "label": "公开宣称目标",
+          "required": false,
+          "presets": [
+            "维护秩序",
+            "追查真相",
+            "保全利益"
+          ]
+        },
+        {
+          "slot": "hiddenGoal",
+          "label": "隐藏目标",
+          "required": false,
+          "presets": [
+            "公开目标",
+            "成员共享秘密目标",
+            "每人理解不同"
+          ]
+        },
+        {
+          "slot": "formationReason",
+          "label": "成形原因",
+          "required": true,
+          "presets": [
+            "共同敌人",
+            "共同利益",
+            "血缘或组织归属"
+          ]
+        },
+        {
+          "slot": "recruitmentMethod",
+          "label": "招募方式",
+          "required": false,
+          "presets": [
+            "私下邀请",
+            "任务考验",
+            "信物确认"
+          ]
+        },
+        {
+          "slot": "joiningCondition",
+          "label": "加入条件",
+          "required": false,
+          "presets": [
+            "完成考验",
+            "交出信物",
+            "共享秘密"
+          ]
+        },
+        {
+          "slot": "leavingCondition",
+          "label": "退出条件",
+          "required": false,
+          "presets": [
+            "支付代价",
+            "公开切割",
+            "被驱逐"
+          ]
+        },
+        {
+          "slot": "loyaltyConflict",
+          "label": "忠诚冲突",
+          "required": false,
+          "presets": [
+            "个人目标冲突",
+            "道德底线",
+            "被牺牲风险"
+          ]
+        },
+        {
+          "slot": "betrayalTrigger",
+          "label": "背叛触发",
+          "required": false,
+          "presets": [
+            "利益冲突",
+            "身份揭露",
+            "重要人物死亡"
+          ]
+        },
+        {
+          "slot": "betrayalCost",
+          "label": "背叛代价",
+          "required": false,
+          "presets": [
+            "失去资源",
+            "失去庇护",
+            "暴露身份"
+          ]
+        },
+        {
+          "slot": "exposureRisk",
+          "label": "暴露风险",
+          "required": false,
+          "presets": [
+            "行动失败",
+            "信物流失",
+            "证词"
+          ]
+        },
+        {
+          "slot": "secrecyRule",
+          "label": "保密/互认规则",
+          "required": true,
+          "presets": [
+            "成员互认全名单",
+            "只认领袖",
+            "只认直接联系人"
+          ]
+        },
+        {
+          "slot": "communicationRule",
+          "label": "沟通规则",
+          "required": false,
+          "presets": [
+            "仅领袖串联",
+            "点对点",
+            "公开协调"
+          ]
+        },
+        {
+          "slot": "membershipVisibility",
+          "label": "归属可见性",
+          "required": true,
+          "presets": [
+            "PUBLIC",
+            "PRIVATE",
+            "PARTIAL"
+          ]
+        },
+        {
+          "slot": "decisiveChoice",
+          "label": "决定性选择",
+          "required": false,
+          "presets": [
+            "公开站队",
+            "牺牲同伴",
+            "交出目标"
+          ]
+        },
+        {
+          "slot": "consequence",
+          "label": "剧情后果",
+          "required": true,
+          "presets": [
+            "阵营公开",
+            "阵营分裂",
+            "目标易手"
+          ]
+        },
+        {
+          "slot": "conditionTable",
+          "label": "多营条件表摘要",
+          "required": true,
+          "presets": [
+            "三档并存",
+            "两成一败",
+            "部分成功渔利"
+          ]
+        },
+        {
+          "slot": "campCountRule",
+          "label": "阵营数约束",
+          "required": true,
+          "presets": [
+            "远小于玩家数",
+            "推荐三营",
+            "禁止接近人数"
+          ]
+        }
+      ],
+      "clues": [
+        {
+          "id": "FACTION_FORESHADOW",
+          "purpose": "阵营伏笔",
+          "type": "FACTION_FORESHADOW",
+          "stageHint": "LATENT"
+        },
+        {
+          "id": "MEMBERSHIP_HINT",
+          "purpose": "成员暗示",
+          "type": "MEMBERSHIP_HINT",
+          "stageHint": "CONTACT"
+        },
+        {
+          "id": "SECRET_SIGNAL",
+          "purpose": "秘密信号",
+          "type": "SECRET_SIGNAL",
+          "stageHint": "FORMATION"
+        },
+        {
+          "id": "RECRUITMENT_EVIDENCE",
+          "purpose": "招募证据",
+          "type": "RECRUITMENT_EVIDENCE",
+          "stageHint": "RECRUITMENT"
+        },
+        {
+          "id": "LOYALTY_TEST",
+          "purpose": "忠诚考验",
+          "type": "LOYALTY_TEST",
+          "stageHint": "PRESSURE"
+        },
+        {
+          "id": "BETRAYAL_HINT",
+          "purpose": "背叛暗示",
+          "type": "BETRAYAL_HINT",
+          "stageHint": "BETRAYAL"
+        },
+        {
+          "id": "INTERNAL_CONFLICT",
+          "purpose": "内部冲突",
+          "type": "INTERNAL_CONFLICT",
+          "stageHint": "SPLIT"
+        },
+        {
+          "id": "HIDDEN_GOAL_HINT",
+          "purpose": "隐藏目标暗示",
+          "type": "HIDDEN_GOAL_HINT",
+          "stageHint": "PRESSURE"
+        },
+        {
+          "id": "MEMBERSHIP_CONFIRMATION",
+          "purpose": "归属确认",
+          "type": "MEMBERSHIP_CONFIRMATION",
+          "stageHint": "EXPOSURE"
+        },
+        {
+          "id": "FACTION_EXPOSURE",
+          "purpose": "阵营暴露",
+          "type": "FACTION_EXPOSURE",
+          "stageHint": "EXPOSURE"
+        }
+      ],
+      "owners": [
+        "factionLead",
+        "thirdLead",
+        "defector"
+      ],
+      "phases": [
+        "0",
+        "1",
+        "2",
+        "3"
+      ],
+      "profile": {
+        "status": "READY",
+        "commitments": [
+          "FACTION_STRUCTURE"
+        ],
+        "modes": [
+          "CONCEAL",
+          "SUSPECT",
+          "NEGOTIATE"
+        ],
+        "anchors": [
+          "EARLY_AGENCY"
+        ],
+        "resolutionPressure": "FACTION_SETTLE",
+        "ownershipShift": null
+      }
+    },
+    {
+      "id": "M12-1",
+      "familyId": "M12",
+      "title": "双边关系议价",
+      "purpose": "让两名（或多名）玩家围绕具体标的进行试探、隐瞒、谈判与交换；玩家行为造成 owner/access/knowledge 真实换手，并改变后续选择。",
+      "maturity": "COMPLETE",
+      "stages": "PROBE → NEGOTIATE → EXCHANGE → AFTERMATH",
+      "roles": [
+        {
+          "slot": "bargainA",
+          "required": true,
+          "narrativeRole": "seeker",
+          "label": "需求方"
+        },
+        {
+          "slot": "bargainB",
+          "required": true,
+          "narrativeRole": "holder",
+          "label": "掌握方"
+        },
+        {
+          "slot": "stakeholder",
+          "required": false,
+          "narrativeRole": "stakeholder",
+          "label": "利害相关者"
+        },
+        {
+          "slot": "witness",
+          "required": false,
+          "narrativeRole": "witness",
+          "label": "见证者"
+        }
+      ],
+      "plots": [
+        {
+          "slot": "contestedStake",
+          "label": "争夺标的（资源/信息/权利）",
+          "required": true,
+          "presets": [
+            "一份未公开的名录或通行权限",
+            "可改变他人处境的关键物件",
+            "一段只有掌握方能证实的信息"
+          ]
+        },
+        {
+          "slot": "initialOwner",
+          "label": "开场掌握方",
+          "required": true,
+          "presets": [
+            "bargainB 独占",
+            "bargainB 与第三方共管，实际控制在 bargainB"
+          ]
+        },
+        {
+          "slot": "seekerNeed",
+          "label": "需求方要它的理由",
+          "required": true,
+          "presets": [
+            "保护自己或盟友",
+            "换取另一项关键承诺",
+            "阻止对方滥用"
+          ]
+        },
+        {
+          "slot": "holderPrice",
+          "label": "掌握方开出的代价",
+          "required": true,
+          "presets": [
+            "公开一个秘密",
+            "转让另一项小权限",
+            "站队或背书"
+          ]
+        },
+        {
+          "slot": "exchangeTerms",
+          "label": "可成交的交换条件",
+          "required": true,
+          "presets": [
+            "信息换物件",
+            "承诺换权限",
+            "作证换免责"
+          ]
+        },
+        {
+          "slot": "afterOwner",
+          "label": "换手后的新掌握方",
+          "required": true,
+          "presets": [
+            "bargainA 独占",
+            "双方共持但权限翻转",
+            "stakeholder 临时代管"
+          ]
+        },
+        {
+          "slot": "aftermathChoice",
+          "label": "换手后被迫重谈的关系选择",
+          "required": true,
+          "presets": [
+            "是否公开交换事实",
+            "是否继续合作",
+            "是否撕毁原承诺"
+          ]
+        }
+      ],
+      "clues": [
+        {
+          "id": "STAKE_HINT",
+          "purpose": "标的存在暗示",
+          "type": "FORESHADOW",
+          "stageHint": "PROBE"
+        },
+        {
+          "id": "TERM_LEAK",
+          "purpose": "对方底线/条件外泄",
+          "type": "IDENTITY_HINT",
+          "stageHint": "NEGOTIATE"
+        },
+        {
+          "id": "TRANSFER_PROOF",
+          "purpose": "换手完成凭证",
+          "type": "CONFIRMATION",
+          "stageHint": "EXCHANGE"
+        }
+      ],
+      "owners": [
+        "bargainA",
+        "bargainB"
+      ],
+      "phases": [
+        "0",
+        "1",
+        "2",
+        "3"
+      ],
+      "profile": {
+        "status": "READY",
+        "commitments": [
+          "RELATIONSHIP_BARGAIN"
+        ],
+        "modes": [
+          "NEGOTIATE",
+          "EXCHANGE",
+          "PROBE",
+          "CONCEAL",
+          "PUBLIC_CHOICE"
+        ],
+        "anchors": [
+          "EARLY_AGENCY",
+          "OWNERSHIP_SHIFT",
+          "FLEXIBLE_RESOLUTION"
+        ],
+        "resolutionPressure": "OPEN",
+        "ownershipShift": null
+      }
+    },
+    {
+      "id": "M01-1",
+      "familyId": "M01",
+      "title": "行为人判断",
+      "purpose": "对谁实施了决定性行为作出可验证判断",
+      "maturity": "FOUNDATION",
+      "stages": "SETUP → DEVELOP → RESOLVE",
+      "roles": [
+        {
+          "slot": "investigator",
+          "required": true,
+          "narrativeRole": "investigator",
+          "label": "主调查者"
+        },
+        {
+          "slot": "subject",
+          "required": true,
+          "narrativeRole": "subject",
+          "label": "判断对象相关人"
+        }
+      ],
+      "plots": [
+        {
+          "slot": "judgmentQuestion",
+          "label": "待判断问题",
+          "required": true,
+          "presets": [
+            "关于「行为人判断」的核心问题",
+            "谁做了决定性的事？"
+          ]
+        },
+        {
+          "slot": "trueAnswer",
+          "label": "客观答案要点",
+          "required": true,
+          "presets": [
+            "由既有事实路径支持的答案",
+            "可被两条路径验证的结论"
+          ]
+        },
+        {
+          "slot": "falseLead",
+          "label": "误导方向",
+          "required": false,
+          "presets": [
+            "表面动机误导",
+            "时间窗误导"
+          ]
+        }
+      ],
+      "clues": [
+        {
+          "id": "HOOK",
+          "purpose": "引入",
+          "type": "HOOK",
+          "stageHint": "SETUP"
+        },
+        {
+          "id": "PAYOFF",
+          "purpose": "回收",
+          "type": "PAYOFF",
+          "stageHint": "RESOLVE"
+        }
+      ],
+      "owners": [],
+      "phases": [],
+      "profile": {
+        "status": "EXPERIENCE_PROFILE_INCOMPLETE",
+        "commitments": [],
+        "modes": [],
+        "anchors": [],
+        "resolutionPressure": "OPEN",
+        "ownershipShift": null
+      }
+    },
+    {
+      "id": "M01-2",
+      "familyId": "M01",
+      "title": "真实原因判断",
+      "purpose": "对表面结果的真实原因作判断",
+      "maturity": "FOUNDATION",
+      "stages": "SETUP → DEVELOP → RESOLVE",
+      "roles": [
+        {
+          "slot": "investigator",
+          "required": true,
+          "narrativeRole": "investigator",
+          "label": "主调查者"
+        },
+        {
+          "slot": "subject",
+          "required": true,
+          "narrativeRole": "subject",
+          "label": "判断对象相关人"
+        }
+      ],
+      "plots": [
+        {
+          "slot": "judgmentQuestion",
+          "label": "待判断问题",
+          "required": true,
+          "presets": [
+            "关于「真实原因判断」的核心问题",
+            "谁做了决定性的事？"
+          ]
+        },
+        {
+          "slot": "trueAnswer",
+          "label": "客观答案要点",
+          "required": true,
+          "presets": [
+            "由既有事实路径支持的答案",
+            "可被两条路径验证的结论"
+          ]
+        },
+        {
+          "slot": "falseLead",
+          "label": "误导方向",
+          "required": false,
+          "presets": [
+            "表面动机误导",
+            "时间窗误导"
+          ]
+        }
+      ],
+      "clues": [
+        {
+          "id": "HOOK",
+          "purpose": "引入",
+          "type": "HOOK",
+          "stageHint": "SETUP"
+        },
+        {
+          "id": "PAYOFF",
+          "purpose": "回收",
+          "type": "PAYOFF",
+          "stageHint": "RESOLVE"
+        }
+      ],
+      "owners": [],
+      "phases": [],
+      "profile": {
+        "status": "EXPERIENCE_PROFILE_INCOMPLETE",
+        "commitments": [],
+        "modes": [],
+        "anchors": [],
+        "resolutionPressure": "OPEN",
+        "ownershipShift": null
+      }
+    },
+    {
+      "id": "M01-3",
+      "familyId": "M01",
+      "title": "决定性行为判断",
+      "purpose": "判断哪一行为是决定性的",
+      "maturity": "FOUNDATION",
+      "stages": "SETUP → DEVELOP → RESOLVE",
+      "roles": [
+        {
+          "slot": "investigator",
+          "required": true,
+          "narrativeRole": "investigator",
+          "label": "主调查者"
+        },
+        {
+          "slot": "subject",
+          "required": true,
+          "narrativeRole": "subject",
+          "label": "判断对象相关人"
+        }
+      ],
+      "plots": [
+        {
+          "slot": "judgmentQuestion",
+          "label": "待判断问题",
+          "required": true,
+          "presets": [
+            "关于「决定性行为判断」的核心问题",
+            "谁做了决定性的事？"
+          ]
+        },
+        {
+          "slot": "trueAnswer",
+          "label": "客观答案要点",
+          "required": true,
+          "presets": [
+            "由既有事实路径支持的答案",
+            "可被两条路径验证的结论"
+          ]
+        },
+        {
+          "slot": "falseLead",
+          "label": "误导方向",
+          "required": false,
+          "presets": [
+            "表面动机误导",
+            "时间窗误导"
+          ]
+        }
+      ],
+      "clues": [
+        {
+          "id": "HOOK",
+          "purpose": "引入",
+          "type": "HOOK",
+          "stageHint": "SETUP"
+        },
+        {
+          "id": "PAYOFF",
+          "purpose": "回收",
+          "type": "PAYOFF",
+          "stageHint": "RESOLVE"
+        }
+      ],
+      "owners": [],
+      "phases": [],
+      "profile": {
+        "status": "EXPERIENCE_PROFILE_INCOMPLETE",
+        "commitments": [],
+        "modes": [],
+        "anchors": [],
+        "resolutionPressure": "OPEN",
+        "ownershipShift": null
+      }
+    },
+    {
+      "id": "M01-4",
+      "familyId": "M01",
+      "title": "行动顺序判断",
+      "purpose": "重建关键行动顺序",
+      "maturity": "FOUNDATION",
+      "stages": "SETUP → DEVELOP → RESOLVE",
+      "roles": [
+        {
+          "slot": "investigator",
+          "required": true,
+          "narrativeRole": "investigator",
+          "label": "主调查者"
+        },
+        {
+          "slot": "subject",
+          "required": true,
+          "narrativeRole": "subject",
+          "label": "判断对象相关人"
+        }
+      ],
+      "plots": [
+        {
+          "slot": "judgmentQuestion",
+          "label": "待判断问题",
+          "required": true,
+          "presets": [
+            "关于「行动顺序判断」的核心问题",
+            "谁做了决定性的事？"
+          ]
+        },
+        {
+          "slot": "trueAnswer",
+          "label": "客观答案要点",
+          "required": true,
+          "presets": [
+            "由既有事实路径支持的答案",
+            "可被两条路径验证的结论"
+          ]
+        },
+        {
+          "slot": "falseLead",
+          "label": "误导方向",
+          "required": false,
+          "presets": [
+            "表面动机误导",
+            "时间窗误导"
+          ]
+        }
+      ],
+      "clues": [
+        {
+          "id": "HOOK",
+          "purpose": "引入",
+          "type": "HOOK",
+          "stageHint": "SETUP"
+        },
+        {
+          "id": "PAYOFF",
+          "purpose": "回收",
+          "type": "PAYOFF",
+          "stageHint": "RESOLVE"
+        }
+      ],
+      "owners": [],
+      "phases": [],
+      "profile": {
+        "status": "EXPERIENCE_PROFILE_INCOMPLETE",
+        "commitments": [],
+        "modes": [],
+        "anchors": [],
+        "resolutionPressure": "OPEN",
+        "ownershipShift": null
+      }
+    },
+    {
+      "id": "M01-5",
+      "familyId": "M01",
+      "title": "意图判断",
+      "purpose": "在证据允许范围内判断意图类别",
+      "maturity": "FOUNDATION",
+      "stages": "SETUP → DEVELOP → RESOLVE",
+      "roles": [
+        {
+          "slot": "investigator",
+          "required": true,
+          "narrativeRole": "investigator",
+          "label": "主调查者"
+        },
+        {
+          "slot": "subject",
+          "required": true,
+          "narrativeRole": "subject",
+          "label": "判断对象相关人"
+        }
+      ],
+      "plots": [
+        {
+          "slot": "judgmentQuestion",
+          "label": "待判断问题",
+          "required": true,
+          "presets": [
+            "关于「意图判断」的核心问题",
+            "谁做了决定性的事？"
+          ]
+        },
+        {
+          "slot": "trueAnswer",
+          "label": "客观答案要点",
+          "required": true,
+          "presets": [
+            "由既有事实路径支持的答案",
+            "可被两条路径验证的结论"
+          ]
+        },
+        {
+          "slot": "falseLead",
+          "label": "误导方向",
+          "required": false,
+          "presets": [
+            "表面动机误导",
+            "时间窗误导"
+          ]
+        }
+      ],
+      "clues": [
+        {
+          "id": "HOOK",
+          "purpose": "引入",
+          "type": "HOOK",
+          "stageHint": "SETUP"
+        },
+        {
+          "id": "PAYOFF",
+          "purpose": "回收",
+          "type": "PAYOFF",
+          "stageHint": "RESOLVE"
+        }
+      ],
+      "owners": [],
+      "phases": [],
+      "profile": {
+        "status": "EXPERIENCE_PROFILE_INCOMPLETE",
+        "commitments": [],
+        "modes": [],
+        "anchors": [],
+        "resolutionPressure": "OPEN",
+        "ownershipShift": null
+      }
+    },
+    {
+      "id": "M01-6",
+      "familyId": "M01",
+      "title": "责任划分",
+      "purpose": "划分可验证的责任归属",
+      "maturity": "FOUNDATION",
+      "stages": "SETUP → DEVELOP → RESOLVE",
+      "roles": [
+        {
+          "slot": "investigator",
+          "required": true,
+          "narrativeRole": "investigator",
+          "label": "主调查者"
+        },
+        {
+          "slot": "subject",
+          "required": true,
+          "narrativeRole": "subject",
+          "label": "判断对象相关人"
+        }
+      ],
+      "plots": [
+        {
+          "slot": "judgmentQuestion",
+          "label": "待判断问题",
+          "required": true,
+          "presets": [
+            "关于「责任划分」的核心问题",
+            "谁做了决定性的事？"
+          ]
+        },
+        {
+          "slot": "trueAnswer",
+          "label": "客观答案要点",
+          "required": true,
+          "presets": [
+            "由既有事实路径支持的答案",
+            "可被两条路径验证的结论"
+          ]
+        },
+        {
+          "slot": "falseLead",
+          "label": "误导方向",
+          "required": false,
+          "presets": [
+            "表面动机误导",
+            "时间窗误导"
+          ]
+        }
+      ],
+      "clues": [
+        {
+          "id": "HOOK",
+          "purpose": "引入",
+          "type": "HOOK",
+          "stageHint": "SETUP"
+        },
+        {
+          "id": "PAYOFF",
+          "purpose": "回收",
+          "type": "PAYOFF",
+          "stageHint": "RESOLVE"
+        }
+      ],
+      "owners": [],
+      "phases": [],
+      "profile": {
+        "status": "EXPERIENCE_PROFILE_INCOMPLETE",
+        "commitments": [],
+        "modes": [],
+        "anchors": [],
+        "resolutionPressure": "OPEN",
+        "ownershipShift": null
+      }
+    },
+    {
+      "id": "M01-7",
+      "familyId": "M01",
+      "title": "公开说法核验",
+      "purpose": "核验公开说法与既有事实是否一致",
+      "maturity": "FOUNDATION",
+      "stages": "SETUP → DEVELOP → RESOLVE",
+      "roles": [
+        {
+          "slot": "investigator",
+          "required": true,
+          "narrativeRole": "investigator",
+          "label": "主调查者"
+        },
+        {
+          "slot": "subject",
+          "required": true,
+          "narrativeRole": "subject",
+          "label": "判断对象相关人"
+        }
+      ],
+      "plots": [
+        {
+          "slot": "judgmentQuestion",
+          "label": "待判断问题",
+          "required": true,
+          "presets": [
+            "关于「公开说法核验」的核心问题",
+            "谁做了决定性的事？"
+          ]
+        },
+        {
+          "slot": "trueAnswer",
+          "label": "客观答案要点",
+          "required": true,
+          "presets": [
+            "由既有事实路径支持的答案",
+            "可被两条路径验证的结论"
+          ]
+        },
+        {
+          "slot": "falseLead",
+          "label": "误导方向",
+          "required": false,
+          "presets": [
+            "表面动机误导",
+            "时间窗误导"
+          ]
+        }
+      ],
+      "clues": [
+        {
+          "id": "HOOK",
+          "purpose": "引入",
+          "type": "HOOK",
+          "stageHint": "SETUP"
+        },
+        {
+          "id": "PAYOFF",
+          "purpose": "回收",
+          "type": "PAYOFF",
+          "stageHint": "RESOLVE"
+        }
+      ],
+      "owners": [],
+      "phases": [],
+      "profile": {
+        "status": "EXPERIENCE_PROFILE_INCOMPLETE",
+        "commitments": [],
+        "modes": [],
+        "anchors": [],
+        "resolutionPressure": "OPEN",
+        "ownershipShift": null
+      }
+    },
+    {
+      "id": "M01-8",
+      "familyId": "M01",
+      "title": "单幕追凶",
+      "purpose": "单幕内完成一次可结算的追凶判断",
+      "maturity": "FOUNDATION",
+      "stages": "SETUP → DEVELOP → RESOLVE",
+      "roles": [
+        {
+          "slot": "investigator",
+          "required": true,
+          "narrativeRole": "investigator",
+          "label": "主调查者"
+        },
+        {
+          "slot": "subject",
+          "required": true,
+          "narrativeRole": "subject",
+          "label": "判断对象相关人"
+        }
+      ],
+      "plots": [
+        {
+          "slot": "judgmentQuestion",
+          "label": "待判断问题",
+          "required": true,
+          "presets": [
+            "关于「单幕追凶」的核心问题",
+            "谁做了决定性的事？"
+          ]
+        },
+        {
+          "slot": "trueAnswer",
+          "label": "客观答案要点",
+          "required": true,
+          "presets": [
+            "由既有事实路径支持的答案",
+            "可被两条路径验证的结论"
+          ]
+        },
+        {
+          "slot": "falseLead",
+          "label": "误导方向",
+          "required": false,
+          "presets": [
+            "表面动机误导",
+            "时间窗误导"
+          ]
+        }
+      ],
+      "clues": [
+        {
+          "id": "HOOK",
+          "purpose": "引入",
+          "type": "HOOK",
+          "stageHint": "SETUP"
+        },
+        {
+          "id": "PAYOFF",
+          "purpose": "回收",
+          "type": "PAYOFF",
+          "stageHint": "RESOLVE"
+        }
+      ],
+      "owners": [],
+      "phases": [],
+      "profile": {
+        "status": "EXPERIENCE_PROFILE_INCOMPLETE",
+        "commitments": [],
+        "modes": [],
+        "anchors": [],
+        "resolutionPressure": "OPEN",
+        "ownershipShift": null
+      }
+    },
+    {
+      "id": "M01-9",
+      "familyId": "M01",
+      "title": "贯穿式追凶",
+      "purpose": "多幕贯穿的追凶结构",
+      "maturity": "FOUNDATION",
+      "stages": "SETUP → DEVELOP → RESOLVE",
+      "roles": [
+        {
+          "slot": "investigator",
+          "required": true,
+          "narrativeRole": "investigator",
+          "label": "主调查者"
+        },
+        {
+          "slot": "subject",
+          "required": true,
+          "narrativeRole": "subject",
+          "label": "判断对象相关人"
+        }
+      ],
+      "plots": [
+        {
+          "slot": "judgmentQuestion",
+          "label": "待判断问题",
+          "required": true,
+          "presets": [
+            "关于「贯穿式追凶」的核心问题",
+            "谁做了决定性的事？"
+          ]
+        },
+        {
+          "slot": "trueAnswer",
+          "label": "客观答案要点",
+          "required": true,
+          "presets": [
+            "由既有事实路径支持的答案",
+            "可被两条路径验证的结论"
+          ]
+        },
+        {
+          "slot": "falseLead",
+          "label": "误导方向",
+          "required": false,
+          "presets": [
+            "表面动机误导",
+            "时间窗误导"
+          ]
+        }
+      ],
+      "clues": [
+        {
+          "id": "HOOK",
+          "purpose": "引入",
+          "type": "HOOK",
+          "stageHint": "SETUP"
+        },
+        {
+          "id": "PAYOFF",
+          "purpose": "回收",
+          "type": "PAYOFF",
+          "stageHint": "RESOLVE"
+        }
+      ],
+      "owners": [],
+      "phases": [],
+      "profile": {
+        "status": "EXPERIENCE_PROFILE_INCOMPLETE",
+        "commitments": [],
+        "modes": [],
+        "anchors": [],
+        "resolutionPressure": "OPEN",
+        "ownershipShift": null
+      }
+    },
+    {
+      "id": "M01-10",
+      "familyId": "M01",
+      "title": "动态现场调查",
+      "purpose": "读取可变现场后的调查判断",
+      "maturity": "FOUNDATION",
+      "stages": "SETUP → DEVELOP → RESOLVE",
+      "roles": [
+        {
+          "slot": "investigator",
+          "required": true,
+          "narrativeRole": "investigator",
+          "label": "主调查者"
+        },
+        {
+          "slot": "subject",
+          "required": true,
+          "narrativeRole": "subject",
+          "label": "判断对象相关人"
+        }
+      ],
+      "plots": [
+        {
+          "slot": "judgmentQuestion",
+          "label": "待判断问题",
+          "required": true,
+          "presets": [
+            "关于「动态现场调查」的核心问题",
+            "谁做了决定性的事？"
+          ]
+        },
+        {
+          "slot": "trueAnswer",
+          "label": "客观答案要点",
+          "required": true,
+          "presets": [
+            "由既有事实路径支持的答案",
+            "可被两条路径验证的结论"
+          ]
+        },
+        {
+          "slot": "falseLead",
+          "label": "误导方向",
+          "required": false,
+          "presets": [
+            "表面动机误导",
+            "时间窗误导"
+          ]
+        }
+      ],
+      "clues": [
+        {
+          "id": "HOOK",
+          "purpose": "引入",
+          "type": "HOOK",
+          "stageHint": "SETUP"
+        },
+        {
+          "id": "PAYOFF",
+          "purpose": "回收",
+          "type": "PAYOFF",
+          "stageHint": "RESOLVE"
+        }
+      ],
+      "owners": [],
+      "phases": [],
+      "profile": {
+        "status": "EXPERIENCE_PROFILE_INCOMPLETE",
+        "commitments": [],
+        "modes": [],
+        "anchors": [],
+        "resolutionPressure": "OPEN",
+        "ownershipShift": null
+      }
+    },
+    {
+      "id": "M10-1",
+      "familyId": "M10",
+      "title": "单项正式选择",
+      "purpose": "单项正式选择映射结局",
+      "maturity": "FOUNDATION",
+      "stages": "SETUP → DEVELOP → RESOLVE",
+      "roles": [
+        {
+          "slot": "decisionMaker",
+          "required": true,
+          "narrativeRole": "decision_maker",
+          "label": "关键抉择者"
+        }
+      ],
+      "plots": [
+        {
+          "slot": "choicePrompt",
+          "label": "抉择题干",
+          "required": true,
+          "presets": [
+            "是否公开真相",
+            "是否放过某人"
+          ]
+        },
+        {
+          "slot": "endingA",
+          "label": "结局分支A",
+          "required": true,
+          "presets": [
+            "公开后的共同体结局",
+            "保守沉默的结局"
+          ]
+        },
+        {
+          "slot": "endingB",
+          "label": "结局分支B",
+          "required": true,
+          "presets": [
+            "对抗升级结局",
+            "和解代价结局"
+          ]
+        }
+      ],
+      "clues": [
+        {
+          "id": "HOOK",
+          "purpose": "引入",
+          "type": "HOOK",
+          "stageHint": "SETUP"
+        },
+        {
+          "id": "PAYOFF",
+          "purpose": "回收",
+          "type": "PAYOFF",
+          "stageHint": "RESOLVE"
+        }
+      ],
+      "owners": [],
+      "phases": [],
+      "profile": {
+        "status": "EXPERIENCE_PROFILE_INCOMPLETE",
+        "commitments": [],
+        "modes": [],
+        "anchors": [],
+        "resolutionPressure": "OPEN",
+        "ownershipShift": null
+      }
+    },
+    {
+      "id": "M10-2",
+      "familyId": "M10",
+      "title": "多项优先级选择",
+      "purpose": "多项按优先级映射",
+      "maturity": "FOUNDATION",
+      "stages": "SETUP → DEVELOP → RESOLVE",
+      "roles": [
+        {
+          "slot": "decisionMaker",
+          "required": true,
+          "narrativeRole": "decision_maker",
+          "label": "关键抉择者"
+        }
+      ],
+      "plots": [
+        {
+          "slot": "choicePrompt",
+          "label": "抉择题干",
+          "required": true,
+          "presets": [
+            "是否公开真相",
+            "是否放过某人"
+          ]
+        },
+        {
+          "slot": "endingA",
+          "label": "结局分支A",
+          "required": true,
+          "presets": [
+            "公开后的共同体结局",
+            "保守沉默的结局"
+          ]
+        },
+        {
+          "slot": "endingB",
+          "label": "结局分支B",
+          "required": true,
+          "presets": [
+            "对抗升级结局",
+            "和解代价结局"
+          ]
+        }
+      ],
+      "clues": [
+        {
+          "id": "HOOK",
+          "purpose": "引入",
+          "type": "HOOK",
+          "stageHint": "SETUP"
+        },
+        {
+          "id": "PAYOFF",
+          "purpose": "回收",
+          "type": "PAYOFF",
+          "stageHint": "RESOLVE"
+        }
+      ],
+      "owners": [],
+      "phases": [],
+      "profile": {
+        "status": "EXPERIENCE_PROFILE_INCOMPLETE",
+        "commitments": [],
+        "modes": [],
+        "anchors": [],
+        "resolutionPressure": "OPEN",
+        "ownershipShift": null
+      }
+    },
+    {
+      "id": "M10-3",
+      "familyId": "M10",
+      "title": "成对或分组问答",
+      "purpose": "成对/分组问答映射",
+      "maturity": "FOUNDATION",
+      "stages": "SETUP → DEVELOP → RESOLVE",
+      "roles": [
+        {
+          "slot": "decisionMaker",
+          "required": true,
+          "narrativeRole": "decision_maker",
+          "label": "关键抉择者"
+        }
+      ],
+      "plots": [
+        {
+          "slot": "choicePrompt",
+          "label": "抉择题干",
+          "required": true,
+          "presets": [
+            "是否公开真相",
+            "是否放过某人"
+          ]
+        },
+        {
+          "slot": "endingA",
+          "label": "结局分支A",
+          "required": true,
+          "presets": [
+            "公开后的共同体结局",
+            "保守沉默的结局"
+          ]
+        },
+        {
+          "slot": "endingB",
+          "label": "结局分支B",
+          "required": true,
+          "presets": [
+            "对抗升级结局",
+            "和解代价结局"
+          ]
+        }
+      ],
+      "clues": [
+        {
+          "id": "HOOK",
+          "purpose": "引入",
+          "type": "HOOK",
+          "stageHint": "SETUP"
+        },
+        {
+          "id": "PAYOFF",
+          "purpose": "回收",
+          "type": "PAYOFF",
+          "stageHint": "RESOLVE"
+        }
+      ],
+      "owners": [],
+      "phases": [],
+      "profile": {
+        "status": "EXPERIENCE_PROFILE_INCOMPLETE",
+        "commitments": [],
+        "modes": [],
+        "anchors": [],
+        "resolutionPressure": "OPEN",
+        "ownershipShift": null
+      }
+    },
+    {
+      "id": "M10-4",
+      "familyId": "M10",
+      "title": "条件式结局矩阵",
+      "purpose": "条件矩阵决定结局",
+      "maturity": "FOUNDATION",
+      "stages": "SETUP → DEVELOP → RESOLVE",
+      "roles": [
+        {
+          "slot": "decisionMaker",
+          "required": true,
+          "narrativeRole": "decision_maker",
+          "label": "关键抉择者"
+        }
+      ],
+      "plots": [
+        {
+          "slot": "choicePrompt",
+          "label": "抉择题干",
+          "required": true,
+          "presets": [
+            "是否公开真相",
+            "是否放过某人"
+          ]
+        },
+        {
+          "slot": "endingA",
+          "label": "结局分支A",
+          "required": true,
+          "presets": [
+            "公开后的共同体结局",
+            "保守沉默的结局"
+          ]
+        },
+        {
+          "slot": "endingB",
+          "label": "结局分支B",
+          "required": true,
+          "presets": [
+            "对抗升级结局",
+            "和解代价结局"
+          ]
+        }
+      ],
+      "clues": [
+        {
+          "id": "HOOK",
+          "purpose": "引入",
+          "type": "HOOK",
+          "stageHint": "SETUP"
+        },
+        {
+          "id": "PAYOFF",
+          "purpose": "回收",
+          "type": "PAYOFF",
+          "stageHint": "RESOLVE"
+        }
+      ],
+      "owners": [],
+      "phases": [],
+      "profile": {
+        "status": "EXPERIENCE_PROFILE_INCOMPLETE",
+        "commitments": [],
+        "modes": [],
+        "anchors": [],
+        "resolutionPressure": "OPEN",
+        "ownershipShift": null
+      }
+    },
+    {
+      "id": "M10-5",
+      "familyId": "M10",
+      "title": "个人与公共结果并行",
+      "purpose": "个人结果与公共结果并行",
+      "maturity": "FOUNDATION",
+      "stages": "SETUP → DEVELOP → RESOLVE",
+      "roles": [
+        {
+          "slot": "decisionMaker",
+          "required": true,
+          "narrativeRole": "decision_maker",
+          "label": "关键抉择者"
+        }
+      ],
+      "plots": [
+        {
+          "slot": "choicePrompt",
+          "label": "抉择题干",
+          "required": true,
+          "presets": [
+            "是否公开真相",
+            "是否放过某人"
+          ]
+        },
+        {
+          "slot": "endingA",
+          "label": "结局分支A",
+          "required": true,
+          "presets": [
+            "公开后的共同体结局",
+            "保守沉默的结局"
+          ]
+        },
+        {
+          "slot": "endingB",
+          "label": "结局分支B",
+          "required": true,
+          "presets": [
+            "对抗升级结局",
+            "和解代价结局"
+          ]
+        }
+      ],
+      "clues": [
+        {
+          "id": "HOOK",
+          "purpose": "引入",
+          "type": "HOOK",
+          "stageHint": "SETUP"
+        },
+        {
+          "id": "PAYOFF",
+          "purpose": "回收",
+          "type": "PAYOFF",
+          "stageHint": "RESOLVE"
+        }
+      ],
+      "owners": [],
+      "phases": [],
+      "profile": {
+        "status": "EXPERIENCE_PROFILE_INCOMPLETE",
+        "commitments": [],
+        "modes": [],
+        "anchors": [],
+        "resolutionPressure": "OPEN",
+        "ownershipShift": null
+      }
+    },
+    {
+      "id": "M10-6",
+      "familyId": "M10",
+      "title": "延迟结算",
+      "purpose": "选择与结算分离",
+      "maturity": "FOUNDATION",
+      "stages": "SETUP → DEVELOP → RESOLVE",
+      "roles": [
+        {
+          "slot": "decisionMaker",
+          "required": true,
+          "narrativeRole": "decision_maker",
+          "label": "关键抉择者"
+        }
+      ],
+      "plots": [
+        {
+          "slot": "choicePrompt",
+          "label": "抉择题干",
+          "required": true,
+          "presets": [
+            "是否公开真相",
+            "是否放过某人"
+          ]
+        },
+        {
+          "slot": "endingA",
+          "label": "结局分支A",
+          "required": true,
+          "presets": [
+            "公开后的共同体结局",
+            "保守沉默的结局"
+          ]
+        },
+        {
+          "slot": "endingB",
+          "label": "结局分支B",
+          "required": true,
+          "presets": [
+            "对抗升级结局",
+            "和解代价结局"
+          ]
+        }
+      ],
+      "clues": [
+        {
+          "id": "HOOK",
+          "purpose": "引入",
+          "type": "HOOK",
+          "stageHint": "SETUP"
+        },
+        {
+          "id": "PAYOFF",
+          "purpose": "回收",
+          "type": "PAYOFF",
+          "stageHint": "RESOLVE"
+        }
+      ],
+      "owners": [],
+      "phases": [],
+      "profile": {
+        "status": "EXPERIENCE_PROFILE_INCOMPLETE",
+        "commitments": [],
+        "modes": [],
+        "anchors": [],
+        "resolutionPressure": "OPEN",
+        "ownershipShift": null
+      }
+    },
+    {
+      "id": "M11-1",
+      "familyId": "M11",
+      "title": "可变现场",
+      "purpose": "现场可被改写但不改客观历史",
+      "maturity": "FOUNDATION",
+      "stages": "SETUP → DEVELOP → RESOLVE",
+      "roles": [
+        {
+          "slot": "actor",
+          "required": true,
+          "narrativeRole": "actor",
+          "label": "状态作用角色"
+        },
+        {
+          "slot": "observer",
+          "required": false,
+          "narrativeRole": "observer",
+          "label": "见证者"
+        }
+      ],
+      "plots": [
+        {
+          "slot": "stateChange",
+          "label": "可变状态变化",
+          "required": true,
+          "presets": [
+            "物件被移动",
+            "现场被部分毁坏"
+          ]
+        },
+        {
+          "slot": "immutableBoundary",
+          "label": "不可改写边界",
+          "required": true,
+          "presets": [
+            "客观死亡事实不可改",
+            "既成时间戳不可改"
+          ]
+        }
+      ],
+      "clues": [
+        {
+          "id": "HOOK",
+          "purpose": "引入",
+          "type": "HOOK",
+          "stageHint": "SETUP"
+        },
+        {
+          "id": "PAYOFF",
+          "purpose": "回收",
+          "type": "PAYOFF",
+          "stageHint": "RESOLVE"
+        }
+      ],
+      "owners": [],
+      "phases": [],
+      "profile": {
+        "status": "EXPERIENCE_PROFILE_INCOMPLETE",
+        "commitments": [],
+        "modes": [],
+        "anchors": [],
+        "resolutionPressure": "OPEN",
+        "ownershipShift": null
+      }
+    },
+    {
+      "id": "M11-2",
+      "familyId": "M11",
+      "title": "有源伪造",
+      "purpose": "新增与篡改对象须有来源",
+      "maturity": "FOUNDATION",
+      "stages": "SETUP → DEVELOP → RESOLVE",
+      "roles": [
+        {
+          "slot": "actor",
+          "required": true,
+          "narrativeRole": "actor",
+          "label": "状态作用角色"
+        },
+        {
+          "slot": "observer",
+          "required": false,
+          "narrativeRole": "observer",
+          "label": "见证者"
+        }
+      ],
+      "plots": [
+        {
+          "slot": "stateChange",
+          "label": "可变状态变化",
+          "required": true,
+          "presets": [
+            "物件被移动",
+            "现场被部分毁坏"
+          ]
+        },
+        {
+          "slot": "immutableBoundary",
+          "label": "不可改写边界",
+          "required": true,
+          "presets": [
+            "客观死亡事实不可改",
+            "既成时间戳不可改"
+          ]
+        }
+      ],
+      "clues": [
+        {
+          "id": "HOOK",
+          "purpose": "引入",
+          "type": "HOOK",
+          "stageHint": "SETUP"
+        },
+        {
+          "id": "PAYOFF",
+          "purpose": "回收",
+          "type": "PAYOFF",
+          "stageHint": "RESOLVE"
+        }
+      ],
+      "owners": [],
+      "phases": [],
+      "profile": {
+        "status": "EXPERIENCE_PROFILE_INCOMPLETE",
+        "commitments": [],
+        "modes": [],
+        "anchors": [],
+        "resolutionPressure": "OPEN",
+        "ownershipShift": null
+      }
+    },
+    {
+      "id": "M11-3",
+      "familyId": "M11",
+      "title": "剧情状态传播",
+      "purpose": "正式状态改变后续可行动作",
+      "maturity": "FOUNDATION",
+      "stages": "SETUP → DEVELOP → RESOLVE",
+      "roles": [
+        {
+          "slot": "actor",
+          "required": true,
+          "narrativeRole": "actor",
+          "label": "状态作用角色"
+        },
+        {
+          "slot": "observer",
+          "required": false,
+          "narrativeRole": "observer",
+          "label": "见证者"
+        }
+      ],
+      "plots": [
+        {
+          "slot": "stateChange",
+          "label": "可变状态变化",
+          "required": true,
+          "presets": [
+            "物件被移动",
+            "现场被部分毁坏"
+          ]
+        },
+        {
+          "slot": "immutableBoundary",
+          "label": "不可改写边界",
+          "required": true,
+          "presets": [
+            "客观死亡事实不可改",
+            "既成时间戳不可改"
+          ]
+        }
+      ],
+      "clues": [
+        {
+          "id": "HOOK",
+          "purpose": "引入",
+          "type": "HOOK",
+          "stageHint": "SETUP"
+        },
+        {
+          "id": "PAYOFF",
+          "purpose": "回收",
+          "type": "PAYOFF",
+          "stageHint": "RESOLVE"
+        }
+      ],
+      "owners": [],
+      "phases": [],
+      "profile": {
+        "status": "EXPERIENCE_PROFILE_INCOMPLETE",
+        "commitments": [],
+        "modes": [],
+        "anchors": [],
+        "resolutionPressure": "OPEN",
+        "ownershipShift": null
+      }
+    },
+    {
+      "id": "M11-4",
+      "familyId": "M11",
+      "title": "现场快照与版本读取",
+      "purpose": "时点见证与版本读取",
+      "maturity": "FOUNDATION",
+      "stages": "SETUP → DEVELOP → RESOLVE",
+      "roles": [
+        {
+          "slot": "actor",
+          "required": true,
+          "narrativeRole": "actor",
+          "label": "状态作用角色"
+        },
+        {
+          "slot": "observer",
+          "required": false,
+          "narrativeRole": "observer",
+          "label": "见证者"
+        }
+      ],
+      "plots": [
+        {
+          "slot": "stateChange",
+          "label": "可变状态变化",
+          "required": true,
+          "presets": [
+            "物件被移动",
+            "现场被部分毁坏"
+          ]
+        },
+        {
+          "slot": "immutableBoundary",
+          "label": "不可改写边界",
+          "required": true,
+          "presets": [
+            "客观死亡事实不可改",
+            "既成时间戳不可改"
+          ]
+        }
+      ],
+      "clues": [
+        {
+          "id": "HOOK",
+          "purpose": "引入",
+          "type": "HOOK",
+          "stageHint": "SETUP"
+        },
+        {
+          "id": "PAYOFF",
+          "purpose": "回收",
+          "type": "PAYOFF",
+          "stageHint": "RESOLVE"
+        }
+      ],
+      "owners": [],
+      "phases": [],
+      "profile": {
+        "status": "EXPERIENCE_PROFILE_INCOMPLETE",
+        "commitments": [],
+        "modes": [],
+        "anchors": [],
+        "resolutionPressure": "OPEN",
+        "ownershipShift": null
+      }
+    },
+    {
+      "id": "M11-5",
+      "familyId": "M11",
+      "title": "世界状态恢复",
+      "purpose": "合法复原可变状态",
+      "maturity": "FOUNDATION",
+      "stages": "SETUP → DEVELOP → RESOLVE",
+      "roles": [
+        {
+          "slot": "actor",
+          "required": true,
+          "narrativeRole": "actor",
+          "label": "状态作用角色"
+        },
+        {
+          "slot": "observer",
+          "required": false,
+          "narrativeRole": "observer",
+          "label": "见证者"
+        }
+      ],
+      "plots": [
+        {
+          "slot": "stateChange",
+          "label": "可变状态变化",
+          "required": true,
+          "presets": [
+            "物件被移动",
+            "现场被部分毁坏"
+          ]
+        },
+        {
+          "slot": "immutableBoundary",
+          "label": "不可改写边界",
+          "required": true,
+          "presets": [
+            "客观死亡事实不可改",
+            "既成时间戳不可改"
+          ]
+        }
+      ],
+      "clues": [
+        {
+          "id": "HOOK",
+          "purpose": "引入",
+          "type": "HOOK",
+          "stageHint": "SETUP"
+        },
+        {
+          "id": "PAYOFF",
+          "purpose": "回收",
+          "type": "PAYOFF",
+          "stageHint": "RESOLVE"
+        }
+      ],
+      "owners": [],
+      "phases": [],
+      "profile": {
+        "status": "EXPERIENCE_PROFILE_INCOMPLETE",
+        "commitments": [],
+        "modes": [],
+        "anchors": [],
+        "resolutionPressure": "OPEN",
+        "ownershipShift": null
+      }
+    }
+  ]
+}

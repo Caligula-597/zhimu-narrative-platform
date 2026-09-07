@@ -168,8 +168,10 @@ P10.5 Rendering       ✅ Writer 不改规则 —— 仍冻结
 
 ## 待填（下一轮整理机制时勾掉）
 
+- [x] **标注工作簿已生成** → [`STORY_MECHANISM_FORMATIONATION_GRADING_WORKBOOK_ZH.md`](./STORY_MECHANISM_FORMATIONATION_GRADING_WORKBOOK_ZH.md) + `captures/story-mechanism-inventory-for-grading.json`
+- [ ] 人工：COMPLETE 逐条填 Formation / Resolution 等级
+- [ ] 人工：FOUNDATION 粗标
 - [ ] M12-1：现有 clue/plot/stage 逐字段对照 8 问（哪些槽假装覆盖了 Formation）
 - [ ] M01-FRAMING：把追凶链映射成 Formation 同构表（作为「做得相对好」的参照）
-- [ ] M07×8 / M08×8：各一页「开放/阵营」Formation 缺口等级
-- [ ] M10 / M11：标明「本层不负责 Formation」vs「调用方必须另有 Formation」
 - [ ] 产出统一字段：是否升格进 template schema，还是只做 Gate 清单
+- [ ] **标注完成前不改 pack / Writer**
