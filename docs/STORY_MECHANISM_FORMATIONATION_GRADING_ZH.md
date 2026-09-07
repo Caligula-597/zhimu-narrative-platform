@@ -5,7 +5,7 @@
 > 来源工作簿：仓库根目录 `STORY_MECHANISM_FORMATIONATION_GRADING_WORKBOOK_ZH_FILLED.md`（人工标注原稿）  
 > 证据快照：`captures/story-mechanism-inventory-for-grading.json`  
 > 配套骨架：[`STORY_MECHANISM_FORMATIONATION_GAP_ZH.md`](./STORY_MECHANISM_FORMATIONATION_GAP_ZH.md)  
-> 下一刀规格：[`M12_FORMATIONATION_CONTRACT_V1_ZH.md`](./M12_FORMATIONATION_CONTRACT_V1_ZH.md)  
+> M12 目标规格（pack 未回写；库内 M12-1 仍标 GAP_HIGH）：[`M12_FORMATIONATION_CONTRACT_V1_ZH.md`](./M12_FORMATIONATION_CONTRACT_V1_ZH.md) ✅ GOLDEN  
 > 范围：STORY COMPLETE 18 + FOUNDATION 21（不含 GAME M02–M06/M09）  
 > **本文件冻结分级结论。不修改 pack / planner / writer / gate / runtime。**
 
