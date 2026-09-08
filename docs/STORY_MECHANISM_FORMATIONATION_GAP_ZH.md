@@ -4,8 +4,9 @@
 > 触发：RPT #1C《闭馆之后》暴露 M12 只有谈判桌、没有坐上桌子的因果  
 > 上游已冻结：P10.2–P10.4 · P10.5.0 Diff · P10.5.1 Repair（Rendering）  
 > **官方分级基线：** [`STORY_MECHANISM_FORMATIONATION_GRADING_ZH.md`](./STORY_MECHANISM_FORMATIONATION_GRADING_ZH.md) @ **`16716ab`**  
-> **M12 规格 + 黄金样本：** [`M12_FORMATIONATION_CONTRACT_V1_ZH.md`](./M12_FORMATIONATION_CONTRACT_V1_ZH.md) — **✅ FULL PASS / GOLDEN**  
-> **本文件不是 Voice V2。不改 pack（除非另开落地切片）。**
+> **M12 规格 + 黄金样本：** [`M12_FORMATIONATION_CONTRACT_V1_ZH.md`](./M12_FORMATIONATION_CONTRACT_V1_ZH.md) — **✅ FULL PASS / GOLDEN** @ `05164fe`  
+> **下一刀路线（未开工）：** [`M12_FORMATIONATION_PRODUCTION_SLICE_V1_ZH.md`](./M12_FORMATIONATION_PRODUCTION_SLICE_V1_ZH.md) — F1→F5 Implementation · F6 Survival · F7 #1D  
+> **本文件不是 Voice V2。不改 pack（除非另开落地切片并明确授权）。**
 
 ## 一句话判断
 
@@ -68,10 +69,10 @@ Full Cast Experience Gold   🚫 另验
 
 ## 工作序
 
-1. ~~骨架 / 分级冻结 / M12 Concept / Sample 修补~~  
-2. ~~Gold Sample Full PASS~~  
-3. **下一刀（若开）：** M12 Formation 落地切片（pack 或 artifact 或 Gate）— 需另授权  
-4. 更晚：跨族推广 / Full Cast / 真模型  
+1. ~~骨架 / 分级冻结 / M12 Concept / Sample 修补 / Gold Sample Full PASS~~  
+2. ~~Production Slice 路线冻结~~ → [`M12_FORMATIONATION_PRODUCTION_SLICE_V1_ZH.md`](./M12_FORMATIONATION_PRODUCTION_SLICE_V1_ZH.md)  
+3. **下一刀（需明确授权）：** F1 Artifact → … → F5 Replay  
+4. 更晚：F6 Projection Survival → F7 RPT #1D → 再重评 GAP_HIGH  
 
 ---
 
@@ -80,6 +81,6 @@ Full Cast Experience Gold   🚫 另验
 | 项目 | 说明 |
 |---|---|
 | 视图 | 仓库文档 |
-| 区域 | 分级 @ `16716ab` · M12 Contract GOLDEN |
-| 操作 | 确认状态；确认未改 pack |
-| 文件 | 本文；`STORY_MECHANISM_FORMATIONATION_GRADING_ZH.md`；`M12_FORMATIONATION_CONTRACT_V1_ZH.md` |
+| 区域 | 分级 @ `16716ab` · M12 Contract GOLDEN @ `05164fe` · Production Slice 路线 |
+| 操作 | 确认分层；确认未改 pack；落地须另授权 |
+| 文件 | 本文；`STORY_MECHANISM_FORMATIONATION_GRADING_ZH.md`；`M12_FORMATIONATION_CONTRACT_V1_ZH.md`；`M12_FORMATIONATION_PRODUCTION_SLICE_V1_ZH.md` |

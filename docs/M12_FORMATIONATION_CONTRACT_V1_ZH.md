@@ -239,8 +239,9 @@ formationProof:
 
 ## 下一步（仅讨论，未授权实施）
 
-落地若开刀，候选方向（需另开切片）：pack 增补 Formation 槽 / 独立 formation artifact / Pre-Writer Gate。  
-**本文件冻结的是合同与黄金样本，不是实现。**
+落地路线已冻结：[`M12_FORMATIONATION_PRODUCTION_SLICE_V1_ZH.md`](./M12_FORMATIONATION_PRODUCTION_SLICE_V1_ZH.md)（F1 Artifact → … → F5 · 再 F6/F7）。  
+**开始写代码须明确授权「开始 M12 Formation 落地」或「开始 F1」。**  
+本文件冻结的是合同与黄金样本，不是实现。
 
 ## 验收位置
 
