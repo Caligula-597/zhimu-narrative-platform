@@ -1,9 +1,9 @@
 # M12 Formation Production Slice V1
 
-> **状态：路线冻结 · Implementation NOT STARTED**  
+> **状态：F1 授权开工 · F2+ 未开**  
 > 规格基线：[`M12_FORMATIONATION_CONTRACT_V1_ZH.md`](./M12_FORMATIONATION_CONTRACT_V1_ZH.md) ✅ GOLDEN @ `05164fe`  
 > 分级基线：[`STORY_MECHANISM_FORMATIONATION_GRADING_ZH.md`](./STORY_MECHANISM_FORMATIONATION_GRADING_ZH.md) @ `16716ab`  
-> **规格层 GOLDEN ≠ 生产层已具备。pack 内 M12-1 仍 = GAP_HIGH，直至落地验证后才可重评。**
+> **规格层 GOLDEN ≠ 生产层已具备。pack 内 M12-1 仍 = GAP_HIGH。**
 
 ## 一句话
 
@@ -57,7 +57,7 @@ PMD / Packet 能看到信息来源与接触理由
 
 | ID | 名称 | 产出 | 本阶段 |
 |---|---|---|---|
-| **F1** | Formation Artifact 合同 | `shared/m12-formation-contracts.js` 等 | ← 授权后第一刀 |
+| **F1** | Formation Artifact 合同 | `shared/m12-formation-contracts.js` · `fixtures/m12-formation/` | ✅ 本刀 |
 | **F2** | Blueprint + Builder | pack blueprint + `buildM12FormationArtifact` | 紧随 F1 |
 | **F3** | Validator / Gate | 结构错误码 → `FORMATION_READY` / `REVIEW_REQUIRED` | |
 | **F4** | Integrator Formation Beats | `formationNodes` ≠ `formationBeats`；接到 PROBE 前 | |
@@ -268,9 +268,18 @@ Intent → STORY → Formation → Resolution → Integrator → PMD → Packet 
 ## 授权协议
 
 ```text
-本文件 = 路线冻结
-开始写代码 = 需要明确：「开始 M12 Formation 落地」或「开始 F1」
-默认第一刀 = F1 Artifact 合同 + 最小 contracts 模块
+F1 = 已授权并落地（Artifact 合同 + Gold fixture + ProjectStoryState sidecar）
+开始 F2 = 需要明确：「开始 F2」或「开始 M12 Formation Blueprint + Builder」
+```
+
+## F1 落地清单
+
+```text
+✅ shared/m12-formation-contracts.js
+✅ ProjectStoryState.m12FormationArtifacts[]
+✅ fixtures/m12-formation/closed-after-hours-gold.json
+✅ scripts/m12-formation-artifact.test.mjs
+🚫 Builder / Gate / Integrator / Writer（F2+）
 ```
 
 ## 验收位置

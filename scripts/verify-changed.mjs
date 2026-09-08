@@ -401,7 +401,7 @@ if (files.some((f) =>
 }
 
 if (files.some((f) =>
-  /^shared\/(context-|project-context|story-beat-semantics|story-semantic-fidelity|complete-beat-semantics|story-mechanism-(engine|contracts|m07|m08|m12)|game-narrative|real-script-writer|script-writer-|script-production-|content-quality-|generated-script-quality|production-master-draft|production-projection-|real-production-trial|deepseek-script-writer|creation-intent-|story-experience-|creation-candidate-planner|creation-catalog-metadata)/.test(f)
+  /^shared\/(context-|project-context|story-beat-semantics|story-semantic-fidelity|complete-beat-semantics|story-mechanism-(engine|contracts|m07|m08|m12)|m12-formation-|game-narrative|real-script-writer|script-writer-|script-production-|content-quality-|generated-script-quality|production-master-draft|production-projection-|real-production-trial|deepseek-script-writer|creation-intent-|story-experience-|creation-candidate-planner|creation-catalog-metadata)/.test(f)
   || f === "scripts/context-instantiation.test.mjs"
   || f === "scripts/story-semantic-fidelity.test.mjs"
   || f === "scripts/game-narrative-binding.test.mjs"
@@ -417,16 +417,19 @@ if (files.some((f) =>
   || f === "scripts/p10-4-rpt1b-packet-probe.mjs"
   || f === "scripts/p10-5-writer-rendering-adherence.test.mjs"
   || f === "scripts/p10-5-writer-rendering-repair.test.mjs"
+  || f === "scripts/m12-formation-artifact.test.mjs"
   || f === "scripts/p10-5-rpt1c-adherence-probe.mjs"
   || f === "scripts/p10-5-rpt1c-section-repair-replay.mjs"
   || f === "shared/script-writer-rendering-repair.js"
+  || f === "shared/m12-formation-contracts.js"
+  || /^fixtures\/m12-formation\//.test(f)
   || f === "shared/rpt1c-p104-survival-probe.js"
   || f === "shared/rpt1b-m12-survival-probe.js"
   || /^trials\/rpt-1-/.test(f)
 )) {
   run(
     "P9/P10 content factory + trial harness",
-    "node --test scripts/context-instantiation.test.mjs scripts/story-semantic-fidelity.test.mjs scripts/game-narrative-binding.test.mjs scripts/real-script-writer.test.mjs scripts/content-quality-gate.test.mjs scripts/generated-script-quality-audit.test.mjs scripts/owner-binding-closure.test.mjs scripts/creation-intent-fidelity.test.mjs scripts/real-production-trial-1.test.mjs scripts/p10-4-production-projection.test.mjs scripts/p10-5-writer-rendering-adherence.test.mjs scripts/p10-5-writer-rendering-repair.test.mjs",
+    "node --test scripts/context-instantiation.test.mjs scripts/story-semantic-fidelity.test.mjs scripts/game-narrative-binding.test.mjs scripts/real-script-writer.test.mjs scripts/content-quality-gate.test.mjs scripts/generated-script-quality-audit.test.mjs scripts/owner-binding-closure.test.mjs scripts/creation-intent-fidelity.test.mjs scripts/real-production-trial-1.test.mjs scripts/p10-4-production-projection.test.mjs scripts/p10-5-writer-rendering-adherence.test.mjs scripts/p10-5-writer-rendering-repair.test.mjs scripts/m12-formation-artifact.test.mjs",
   );
   run("P10.4 RPT1B packet probe", "node scripts/p10-4-rpt1b-packet-probe.mjs");
   run("P10.5 RPT1C adherence probe", "node scripts/p10-5-rpt1c-adherence-probe.mjs");

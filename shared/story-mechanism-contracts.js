@@ -19,6 +19,10 @@ import { normalizeStoryFactBridge } from "./semantic-fact.js";
 import { normalizePlayableCreationSpec } from "./playable-creation-spec.js";
 import { normalizeProjectContextProfile } from "./project-context-profile.js";
 import { normalizeGameNarrativePlan } from "./game-narrative-plan.js";
+import {
+  normalizeM12FormationArtifact,
+  refreshM12FormationArtifactStaleStatus,
+} from "./m12-formation-contracts.js";
 
 export const STORY_MECHANISM_CONTRACT_VERSION = 1;
 
@@ -307,6 +311,12 @@ export function createProjectStoryState(input = {}) {
     /** P9.2 — GAME narrative sidecar (null = legacy / unset) */
     gameNarrativePlan:
       src.gameNarrativePlan != null ? normalizeGameNarrativePlan(src.gameNarrativePlan) : null,
+    /** F1 — M12 Formation sidecar (not cross-family schema) */
+    m12FormationArtifacts: asArray(src.m12FormationArtifacts)
+      .map(normalizeM12FormationArtifact)
+      .map((a) =>
+        refreshM12FormationArtifactStaleStatus(a, asArray(src.mechanismBlocks)),
+      ),
     masterOutlineDraft: normalizeMasterOutlineDraft(src.masterOutlineDraft),
     productionMasterDraft: (() => {
       const draft = normalizeProductionMasterDraft(src.productionMasterDraft);

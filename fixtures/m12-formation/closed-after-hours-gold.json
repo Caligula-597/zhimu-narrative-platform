@@ -1,0 +1,366 @@
+{
+  "version": 1,
+  "id": "m12f-closed-after-hours-gold",
+  "projectId": "rpt-1c-closed-after-hours",
+  "sourceBlockId": "smb-m12-closed-after-hours",
+  "sourceBlockRevision": 1,
+  "templateId": "M12-1",
+  "participants": {
+    "seekerId": "P1",
+    "holderId": "P2"
+  },
+  "stake": {
+    "ref": "preexhibit-catalog",
+    "label": "未公开的预展目录册"
+  },
+  "formation": {
+    "valueSource": { "nodeIds": ["N1", "N2"] },
+    "existenceSource": { "nodeIds": ["N3"] },
+    "knowledgePath": { "nodeIds": ["N4"] },
+    "locatorPath": { "nodeIds": ["N5", "N6", "N7", "N8", "N9"] },
+    "counterpartLeverage": { "nodeIds": ["N10"] },
+    "leverageProvenance": { "nodeIds": ["N10"] },
+    "counterpartNeed": { "nodeIds": ["N11", "N11b"] },
+    "trigger": { "nodeIds": ["N12"] }
+  },
+  "nodes": [
+    {
+      "id": "N1",
+      "kind": "FACT",
+      "holderIds": [],
+      "visibleToIds": ["P1", "P2", "P3", "P4", "P5", "P6"],
+      "reveals": ["若干本应上正式预展清单的藏品被临时撤下"],
+      "requiresNodeIds": [],
+      "acquisition": {
+        "mode": "GUARANTEED",
+        "whoCanAcquireIds": ["P1", "P2", "P3", "P4", "P5", "P6"],
+        "how": "展厅公开可观察",
+        "availableStage": "act1"
+      },
+      "provenance": {
+        "type": "PUBLIC_WORLD_RULE",
+        "sourceRefs": ["gold:N1"],
+        "summary": "开场即可见的撤展异常"
+      }
+    },
+    {
+      "id": "N2",
+      "kind": "MEMORY",
+      "holderIds": ["P1"],
+      "visibleToIds": ["P1"],
+      "reveals": ["半月前私人闭馆观摩时，馆方工作人员口头称该件捐赠来自某基金会；沈岚清楚实际经手人不是该基金会"],
+      "requiresNodeIds": ["N1"],
+      "acquisition": {
+        "mode": "OPENING_OWNED",
+        "whoCanAcquireIds": ["P1"],
+        "how": "开场角色记忆",
+        "availableStage": "act1"
+      },
+      "provenance": {
+        "type": "CHARACTER_HISTORY",
+        "sourceRefs": ["gold:N2"],
+        "summary": "半月前私人闭馆观摩 + 基金会来源不一致"
+      }
+    },
+    {
+      "id": "N3",
+      "kind": "INFERENCE",
+      "holderIds": ["P1"],
+      "visibleToIds": ["P1"],
+      "subjectCharacterId": "P1",
+      "confidence": "ACTIONABLE",
+      "reveals": ["可能另有内部/未公开目录（仍不知在谁手里）"],
+      "requiresNodeIds": ["N1", "N2"],
+      "acquisition": {
+        "mode": "GUARANTEED",
+        "whoCanAcquireIds": ["P1"],
+        "how": "由 N1+N2 推断，非发放答案",
+        "availableStage": "act1"
+      },
+      "provenance": {
+        "type": "LOCKED_FACT",
+        "sourceRefs": ["gold:N3"],
+        "summary": "存在假说，非 holder 答案"
+      }
+    },
+    {
+      "id": "N4",
+      "kind": "RECORD",
+      "holderIds": [],
+      "visibleToIds": [],
+      "reveals": ["梁赫签字参与预展资料整理 → 可能知道内部目录"],
+      "requiresNodeIds": ["N3"],
+      "acquisition": {
+        "mode": "GUARANTEED",
+        "whoCanAcquireIds": ["P1", "P2", "P3", "P4", "P5", "P6"],
+        "how": "在筹备资料台翻阅签名页",
+        "availableStage": "act1"
+      },
+      "provenance": {
+        "type": "LOCKED_FACT",
+        "sourceRefs": ["gold:N4"],
+        "summary": "资料台对全员可达，不依赖白绫"
+      }
+    },
+    {
+      "id": "N5",
+      "kind": "RECORD",
+      "holderIds": [],
+      "visibleToIds": [],
+      "reveals": ["昨晚有人用与梁赫绑定的授权进库"],
+      "requiresNodeIds": ["N4"],
+      "acquisition": {
+        "mode": "GUARANTEED",
+        "whoCanAcquireIds": ["P1", "P2", "P3", "P4", "P5", "P6"],
+        "how": "展厅安保台公开可取的昨晚异常进出摘要条",
+        "availableStage": "act1"
+      },
+      "provenance": {
+        "type": "LOCKED_FACT",
+        "sourceRefs": ["gold:N5"],
+        "summary": "摘要条公开可取"
+      }
+    },
+    {
+      "id": "N6",
+      "kind": "INFO",
+      "holderIds": ["P4"],
+      "visibleToIds": ["P4"],
+      "reveals": ["该授权昨晚可能被借用 → 持有 vs 只知去向未决"],
+      "requiresNodeIds": ["N5"],
+      "acquisition": {
+        "mode": "CONFIDENCE_BOOST",
+        "whoCanAcquireIds": ["P4"],
+        "how": "周祁开场知情；他人需问到他",
+        "availableStage": "act1"
+      },
+      "provenance": {
+        "type": "CHARACTER_HISTORY",
+        "sourceRefs": ["gold:N6"],
+        "summary": "增强不确定性，非发答案"
+      }
+    },
+    {
+      "id": "N7",
+      "kind": "INFO",
+      "holderIds": ["P3"],
+      "visibleToIds": ["P3"],
+      "reveals": ["白绫看见梁赫离库时夹走一份文件"],
+      "requiresNodeIds": ["N5"],
+      "acquisition": {
+        "mode": "CONFIDENCE_BOOST",
+        "whoCanAcquireIds": ["P3"],
+        "how": "白绫开场知情；不预设告诉谁",
+        "availableStage": "act1"
+      },
+      "provenance": {
+        "type": "CHARACTER_HISTORY",
+        "sourceRefs": ["gold:N7"],
+        "summary": "过去固定目击"
+      }
+    },
+    {
+      "id": "N8a",
+      "kind": "INFO",
+      "holderIds": ["P1"],
+      "visibleToIds": ["P1"],
+      "reveals": ["昨天下午缺席收藏家电话托沈岚留意「被抽掉的那一页到底写了谁」"],
+      "requiresNodeIds": [],
+      "acquisition": {
+        "mode": "OPENING_OWNED",
+        "whoCanAcquireIds": ["P1"],
+        "how": "昨天电话委托",
+        "availableStage": "act1"
+      },
+      "provenance": {
+        "type": "CHARACTER_HISTORY",
+        "sourceRefs": ["gold:N8a"],
+        "summary": "筹码来源，不是成交"
+      }
+    },
+    {
+      "id": "N8b",
+      "kind": "INFO",
+      "holderIds": ["P3"],
+      "visibleToIds": ["P3"],
+      "reveals": ["白绫想搞清抽页去向"],
+      "requiresNodeIds": [],
+      "acquisition": {
+        "mode": "OPENING_OWNED",
+        "whoCanAcquireIds": ["P3"],
+        "how": "开场动机",
+        "availableStage": "act1"
+      },
+      "provenance": {
+        "type": "CHARACTER_HISTORY",
+        "sourceRefs": ["gold:N8b"],
+        "summary": "白绫需要「谁在找抽页」类信息"
+      }
+    },
+    {
+      "id": "N8",
+      "kind": "LEVERAGE_EDGE",
+      "holderIds": [],
+      "visibleToIds": [],
+      "reveals": ["沈岚有 N8a 且白绫需要；白绫有 N7 且沈岚需要；成交开放"],
+      "requiresNodeIds": ["N7", "N8a", "N8b"],
+      "acquisition": {
+        "mode": "CONFIDENCE_BOOST",
+        "whoCanAcquireIds": ["P1", "P3"],
+        "how": "现场骗/套/换/拒/旁敲全开放",
+        "availableStage": "act1"
+      },
+      "provenance": {
+        "type": "LOCKED_FACT",
+        "sourceRefs": ["gold:N8"],
+        "summary": "关系边，非 EXCHANGE_EVENT"
+      },
+      "sideA": {
+        "characterId": "P1",
+        "possessesNodeIds": ["N8a"],
+        "wantsNodeIds": ["N7"]
+      },
+      "sideB": {
+        "characterId": "P3",
+        "possessesNodeIds": ["N7"],
+        "wantsNodeIds": ["N8a"]
+      },
+      "resolution": "OPEN"
+    },
+    {
+      "id": "N9",
+      "kind": "INFERENCE",
+      "holderIds": ["P1"],
+      "visibleToIds": ["P1"],
+      "subjectCharacterId": "P1",
+      "confidence": "ACTIONABLE",
+      "reveals": ["目录册大概率在梁赫手里（足以促使接近，非 100%）"],
+      "requiresNodeIds": ["N3", "N4", "N5"],
+      "acquisition": {
+        "mode": "GUARANTEED",
+        "whoCanAcquireIds": ["P1"],
+        "how": "最低 N3+N4+N5 推断；N6/N7/N8 可选增强",
+        "availableStage": "act1"
+      },
+      "provenance": {
+        "type": "LOCKED_FACT",
+        "sourceRefs": ["gold:N9"],
+        "summary": "INFERENCE ≠ Canon initialOwner 事实"
+      }
+    },
+    {
+      "id": "N10",
+      "kind": "OBJECT",
+      "holderIds": ["P1"],
+      "visibleToIds": ["P1"],
+      "reveals": ["私人预展邀请腕带已在沈岚处"],
+      "requiresNodeIds": [],
+      "acquisition": {
+        "mode": "OPENING_OWNED",
+        "whoCanAcquireIds": ["P1"],
+        "how": "开场持有",
+        "availableStage": "act1"
+      },
+      "provenance": {
+        "type": "CHARACTER_HISTORY",
+        "sourceRefs": ["gold:N10"],
+        "summary": "昨天下午缺席收藏家委托转交赠品并当场交托本人腕带，以便代为出入第二轮私人区办交接"
+      }
+    },
+    {
+      "id": "N11a",
+      "kind": "FACT",
+      "holderIds": [],
+      "visibleToIds": ["P1", "P2", "P3", "P4", "P5", "P6"],
+      "reveals": ["第二轮后进入某私人展厅必须持该规格腕带"],
+      "requiresNodeIds": [],
+      "acquisition": {
+        "mode": "GUARANTEED",
+        "whoCanAcquireIds": ["P1", "P2", "P3", "P4", "P5", "P6"],
+        "how": "门厅告示",
+        "availableStage": "act1"
+      },
+      "provenance": {
+        "type": "PUBLIC_WORLD_RULE",
+        "sourceRefs": ["gold:N11a"],
+        "summary": "世界规则可查"
+      }
+    },
+    {
+      "id": "N11b",
+      "kind": "OBSERVABLE",
+      "holderIds": ["P1"],
+      "visibleToIds": ["P1"],
+      "reveals": ["沈岚亲眼看见梁赫在私人展厅门口因没有腕带被工作人员拦下"],
+      "requiresNodeIds": ["N11a"],
+      "acquisition": {
+        "mode": "GUARANTEED",
+        "whoCanAcquireIds": ["P1"],
+        "how": "act1 场内目击",
+        "availableStage": "act1"
+      },
+      "provenance": {
+        "type": "LOCKED_FACT",
+        "sourceRefs": ["gold:N11b"],
+        "summary": "seeker 识别对方需求的路径"
+      }
+    },
+    {
+      "id": "N11",
+      "kind": "NEED",
+      "holderIds": ["P2"],
+      "visibleToIds": ["P2"],
+      "reveals": ["梁赫要核验的藏品在该私人展厅内 → 需要腕带"],
+      "requiresNodeIds": ["N11a"],
+      "acquisition": {
+        "mode": "OPENING_OWNED",
+        "whoCanAcquireIds": ["P2"],
+        "how": "梁赫开场目标；对外经 N11b 才可被利用",
+        "availableStage": "act1"
+      },
+      "provenance": {
+        "type": "CHARACTER_HISTORY",
+        "sourceRefs": ["gold:N11"],
+        "summary": "holder 内部需求"
+      }
+    },
+    {
+      "id": "N12",
+      "kind": "TRIGGER",
+      "holderIds": [],
+      "visibleToIds": ["P1", "P2", "P3", "P4", "P5", "P6"],
+      "reveals": ["第二轮/私人展厅时窗临近 → 拖过则梁赫核验失败风险上升"],
+      "requiresNodeIds": ["N9", "N10", "N11", "N11b"],
+      "acquisition": {
+        "mode": "GUARANTEED",
+        "whoCanAcquireIds": ["P1", "P2", "P3", "P4", "P5", "P6"],
+        "how": "广播倒计时/工作人员催场",
+        "availableStage": "act2"
+      },
+      "provenance": {
+        "type": "PUBLIC_WORLD_RULE",
+        "sourceRefs": ["gold:N12"],
+        "summary": "world trigger，非幕标签"
+      }
+    }
+  ],
+  "proof": {
+    "guaranteedPathToContactReason": [
+      "N1", "N2", "N3", "N4", "N5", "N9", "N10", "N11a", "N11b", "N12"
+    ],
+    "optionalConfidence": ["N6", "N7", "N8"],
+    "bilateralLeverage": {
+      "seekerLeverageNodeIds": ["N10"],
+      "holderNeedNodeIds": ["N11"],
+      "seekerRecognitionNodeIds": ["N11b"]
+    },
+    "noPreWrittenDeal": true,
+    "noUnsourcedAnswer": true
+  },
+  "status": "READY_FOR_VALIDATION",
+  "revision": 1,
+  "meta": {
+    "goldSpecCommit": "05164fe",
+    "note": "F1 fixture: proves Artifact can express Gold Spec. Does not prove Gate."
+  }
+}
