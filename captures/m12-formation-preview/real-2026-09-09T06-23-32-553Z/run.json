@@ -1,0 +1,75 @@
+{
+  "experiment": "M12_FORMATION_CONTENT_GENERATION_PREVIEW_V1",
+  "mode": "real",
+  "model": "deepseek-v4-flash",
+  "fixture": "fixtures\\m12-formation\\closed-after-hours-gold.json",
+  "context": "fixtures\\m12-formation\\closed-after-hours-context.json",
+  "artifactId": "m12f-closed-after-hours-gold",
+  "gateDecision": "FORMATION_READY",
+  "audiences": [
+    {
+      "audienceId": "P1",
+      "label": "沈岚角色本",
+      "ok": true,
+      "diagnostics": {
+        "parseOk": true,
+        "metaPromptHits": [],
+        "prewrittenDealHits": [],
+        "sectionCount": 3,
+        "modelUsage": {
+          "prompt_tokens": 2606,
+          "completion_tokens": 668,
+          "total_tokens": 3274,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          },
+          "prompt_cache_hit_tokens": 0,
+          "prompt_cache_miss_tokens": 2606
+        }
+      }
+    },
+    {
+      "audienceId": "P2",
+      "label": "梁赫角色本",
+      "ok": true,
+      "diagnostics": {
+        "parseOk": true,
+        "metaPromptHits": [],
+        "prewrittenDealHits": [],
+        "sectionCount": 3,
+        "modelUsage": {
+          "prompt_tokens": 1993,
+          "completion_tokens": 371,
+          "total_tokens": 2364,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          },
+          "prompt_cache_hit_tokens": 0,
+          "prompt_cache_miss_tokens": 1993
+        }
+      }
+    },
+    {
+      "audienceId": "HOST",
+      "label": "主持手册",
+      "ok": true,
+      "diagnostics": {
+        "parseOk": true,
+        "metaPromptHits": [],
+        "prewrittenDealHits": [],
+        "sectionCount": 4,
+        "modelUsage": {
+          "prompt_tokens": 1751,
+          "completion_tokens": 597,
+          "total_tokens": 2348,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          },
+          "prompt_cache_hit_tokens": 0,
+          "prompt_cache_miss_tokens": 1751
+        }
+      }
+    }
+  ],
+  "allOk": true
+}

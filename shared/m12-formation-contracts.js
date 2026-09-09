@@ -141,6 +141,13 @@ export function normalizeFormationNode(value = {}) {
     kind,
     holderIds: uniqueIds(src.holderIds),
     visibleToIds: uniqueIds(src.visibleToIds),
+    /**
+     * F4A — 事实主体（additive，缺省 [] = 未声明，投影退化为原文，无默认语义）。
+     * 含义：该节点 canonical 事实直接描述其行为/状态的角色（≠ INFERENCE 的推断者）。
+     * 用途：Role-relative projection 判定「audience 是否为事实主体」→ 主体受众剥离
+     * inline 推断（如 N4 的「→ 可能知道内部目录」），防止 Writer 视角升级。
+     */
+    subjectCharacterIds: uniqueIds(src.subjectCharacterIds),
     reveals: asArray(src.reveals).map((r) => cleanText(r, 400)).filter(Boolean),
     requiresNodeIds: uniqueIds(src.requiresNodeIds || src.requires),
     acquisition: normalizeFormationAcquisition(src.acquisition || src.acquire),

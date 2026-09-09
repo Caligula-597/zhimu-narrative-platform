@@ -219,14 +219,15 @@ test("V1.1: every character packet has publicCastDirectory with public identitie
   assert.ok(!dirText.includes("核验"));
 });
 
-test("V1.1: N4 role-relative rendering intentionally unchanged (control variable)", () => {
+test("V1.1→F4A: N4 role-relative rendering now projected (control variable resolved)", () => {
   const { artifact, gate } = readyArtifactAndGate();
   const context = loadJson(CONTEXT_PATH);
   const result = buildM12FormationPreviewPackets({ artifact, gateResult: gate, context });
   const p2 = result.packets.find((p) => p.audience.characterId === "P2");
   const n4 = p2.fixedFacts.find((f) => f.nodeId === "N4");
-  // 原文保持 seeker 视角（本刀故意不修，留作 F4 / Packet V2 的对照变量）
-  assert.equal(n4.text, "梁赫签字参与预展资料整理 → 可能知道内部目录");
+  // F4A：主体受众剥离 inline 推断（对照变量已由 role-projection 收口）
+  assert.equal(n4.text, "梁赫签字参与预展资料整理");
+  assert.equal(n4.projectionType, "SELF_KNOWN_FACT");
 });
 
 test("mock end-to-end: READY artifact → packets → deterministic writer output", async () => {

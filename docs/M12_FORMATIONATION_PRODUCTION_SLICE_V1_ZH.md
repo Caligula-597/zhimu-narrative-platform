@@ -1,6 +1,6 @@
 # M12 Formation Production Slice V1
 
-> **状态：F3 ✅ FROZEN @ `d9a86c9` · 受控生成实验已执行（Preview Writer V1）· F4+ 未开**  
+> **状态：F4A 已落地（Role-Relative Projection V1，Run #3 验证 N4 错位消失）· F4B 未开**  
 > 规格基线：[`M12_FORMATIONATION_CONTRACT_V1_ZH.md`](./M12_FORMATIONATION_CONTRACT_V1_ZH.md) ✅ GOLDEN @ `05164fe`  
 > 分级基线：[`STORY_MECHANISM_FORMATIONATION_GRADING_ZH.md`](./STORY_MECHANISM_FORMATIONATION_GRADING_ZH.md) @ `16716ab`  
 > **规格层 GOLDEN ≠ 生产层已具备。pack 内 M12-1 仍 = GAP_HIGH。**  
@@ -8,8 +8,10 @@
 > F2 ✅ FROZEN @ `17953bd`（Blueprint + Builder + 双 fixture + Authority Hardening）  
 > F3 ✅ FROZEN @ `d9a86c9`（Validator/Gate + 直接谈判桌反例 + Semantic Hardening：  
 > Visible ≠ Owned / 杠杆可见 ≠ 可支配 / Fact ≠ Need）  
-> 受控生成实验（F3 后、F4 前）：State → Builder → Gate(READY) → Preview Packet →  
-> 真模型（deepseek）→ 实际角色本/主持手册，见 captures/m12-formation-preview/
+> Packet V1.1 Fidelity Patch ✅ FROZEN @ `8a93a23`（provenance 投射 + publicCastDirectory）  
+> Content Preview V1 ✅ PASS（两轮 real A/B + Run #3）  
+> F4A Role-Relative Semantic Projection V1 已落地：subjectCharacterIds（additive）+ 8 投影类型  
+> + 主体受众推断剥离；Run #3（real）N4 错位消失，腕带/身份/零 meta 零成交全部保持
 
 ## 一句话
 
@@ -370,6 +372,35 @@ F3 = 已授权并落地（Validator/Gate + Gold/Alt PASS + 直接谈判桌 FAIL�
   Packet completeness defect ✅ 已修 ≠ Role-relative semantic rendering defect → F4 / Packet V2
 → 阶段结果：织幕已可把通过 F3 的 Formation 交给真实 Writer 产生基本正确的角色内容；
   剩余主要问题进入「角色视角化 / Node→Beat 编排」层，而非「系统不会写」。
+```
+
+## F4A — Role-Relative Semantic Projection V1（已落地，待人工审）
+
+```text
+解决的真实 bug（Run #2 对照变量）：N4 reveals 是 seeker-oriented 文本，直接发给 P2 时
+Writer 把 inline 推断升级成「我翻过内部目录」。
+
+三原则：Canonical truth 只有一份；audience rendering 可以不同；不得新增事实。
+实现（不逐角色手写文案）：
+✅ F1 合同 additive 扩展：FormationNode 可选 subjectCharacterIds（事实主体；缺省 [] =
+   未声明，无默认语义，投影退化为原文——不违反 Missing ≠ Valid）
+✅ shared/m12-formation-role-projection.js：8 投影类型确定性推导
+   （CANON_FACT / SELF_KNOWN_FACT / OBSERVED_FACT / ACTIONABLE_INFERENCE /
+    PRIVATE_MEMORY / PUBLIC_RULE / OWNED_OBJECT / SELF_KNOWN_NEED）
+   文本规则：主体受众与 HOST 剥离 inline 推断（"→" 尾段）；非主体保留原文
+   （非主体拿到 inline 推断是合法世界理解，如任何翻签名页者都可推断梁赫可能知道目录）
+✅ Packet 集成：entry 带 projectionType；subjectCharacterIds 只发给主体本人
+✅ Prompt：投影类型说明 + 主体禁外推规则（「参与过资料整理」≠「看过内部目录」）
+✅ Gold fixture：N4/N5 加 subjectCharacterIds=["P2"]（Alt 不动）
+✅ scripts/m12-formation-role-projection.test.mjs：15 tests（Gate 1-10/12 + 单元层）
+
+Run #3（real，deepseek）Gate 11 四项全过：
+- N4 错位消失：梁赫全文再无「目录」二字，只写「资料整理你也签字参与了」
+- 腕带来源保持正确（V1.1 不回退）；梁赫身份保持「资深藏家」
+- meta / 预写成交 = 0；P1 侧 inline 推断保留（「说不定会知道内部目录的下落」）
+- P1 推断语气保持 ACTIONABLE（「只是我的推断，还远不能下定论」）
+
+🚫 F4B（Node→Beat / Integrator / PMD）未开——F4A 只做语义投影，不压剧情
 ```
 
 ## 验收位置

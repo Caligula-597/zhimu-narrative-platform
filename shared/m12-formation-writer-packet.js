@@ -25,6 +25,7 @@
 import {
   normalizeM12FormationArtifact,
 } from "./m12-formation-contracts.js";
+import { projectFormationNodeForAudience } from "./m12-formation-role-projection.js";
 
 export const M12_PREVIEW_WRITER_PACKET_VERSION = 1;
 
@@ -84,20 +85,32 @@ function isPublicTo(node, characterIds) {
   return characterIds.length > 0 && characterIds.every((cid) => nodeKnownTo(node, cid));
 }
 
-function factEntry(node) {
-  return {
+/**
+ * factEntry（V1.2 / F4A）：经 role-relative projection 投射后的条目。
+ * - projectionType：该信息对此 audience 的语义性质（SELF_KNOWN_* / OWNED_OBJECT / …）
+ * - subjectCharacterIds：该事实的主体（仅当 audience 是主体时才附带，供 Writer 视角化）
+ * - text：主体受众已剥离 inline 推断；非主体保留原文
+ * - provenance 继续跟随节点可见性（V1.1 规则不变）
+ */
+function factEntry(node, audience) {
+  const projection = projectFormationNodeForAudience(node, audience);
+  const entry = {
     nodeId: node.id,
-    text: node.reveals.join("；"),
+    text: projection.text,
     howAcquired: node.acquisition.how || null,
     kind: node.kind,
-    // V1.1：provenance 投射——跟随节点可见性走（只有拿到该 node 的 audience 才拿到它的 provenance）。
-    // 缺失语义保留 null（F1 Hardening 原则），不默认补洞。
+    projectionType: projection.projectionType,
     provenance: {
       type: node.provenance.type,
       summary: node.provenance.summary,
       sourceRefs: node.provenance.sourceRefs,
     },
   };
+  // 主体标记只发给主体本人（不把「谁是主体」泄露给其他受众）
+  if (projection.subjectCharacterIds.includes(audience?.audienceId)) {
+    entry.subjectCharacterIds = projection.subjectCharacterIds;
+  }
+  return entry;
 }
 
 /**
@@ -180,7 +193,7 @@ export function buildM12FormationPreviewPackets(input = {}) {
           name: c.name,
           identity: c.identity,
         })),
-        fixedFacts: publicNodes.map(factEntry),
+        fixedFacts: publicNodes.map((n) => factEntry(n, { audienceType: "HOST", audienceId: null })),
         writingRules: M12_PREVIEW_WRITING_RULES.map((r) => r.rule),
         hostDuties: [
           "主持文本只陈述公共规则与时窗，不剧透任何角色的私有信息。",
@@ -222,8 +235,8 @@ export function buildM12FormationPreviewPackets(input = {}) {
           timeWindow: scene.timeWindow || null,
           publicRules: Array.isArray(scene.publicRules) ? scene.publicRules : [],
         },
-        fixedFacts: publicNodes.map(factEntry),
-        characterKnowledge: knowledge.map(factEntry),
+        fixedFacts: publicNodes.map((n) => factEntry(n, { audienceType: "CHARACTER", audienceId: cid })),
+        characterKnowledge: knowledge.map((n) => factEntry(n, { audienceType: "CHARACTER", audienceId: cid })),
         publicCastDirectory: publicCastDirectoryOf(characters),
         writingRules: M12_PREVIEW_WRITING_RULES.map((r) => r.rule),
       });

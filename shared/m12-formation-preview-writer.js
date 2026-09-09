@@ -41,6 +41,8 @@ export function buildPreviewWriterMessages(packet) {
       ? "Packet 中 castDirectory 里每个在场人物的 identity 是公开身份，提及人物时必须以此为准。"
       : "Packet 中 publicCastDirectory 里每个在场人物的 publicIdentity 是公开身份，提及任何其他人物时必须以此为准，不得另行编造身份。",
     "Packet 中每条事实 entry 的 provenance（若非空）说明该信息的来历：写进成品时必须采用这个来历，不得替换成其他来历。",
+    "每条事实 entry 的 projectionType 标明该信息对你的性质：SELF_KNOWN_FACT / SELF_KNOWN_NEED 是关于你自己的事实或需求，用你的自身视角表述；OWNED_OBJECT 是你拥有的物件；PRIVATE_MEMORY 是你的私人记忆；ACTIONABLE_INFERENCE 是你自己形成的推断，必须保留其不确定语气；OBSERVED_FACT 是你亲自观察到的；CANON_FACT / PUBLIC_RULE 是世界既定事实或规则。",
+    "若 entry 附带 subjectCharacterIds 且包含你的 characterId：这条事实描述的是你自己。只准表述 entry 的 text 给出的内容，绝不由它外推任何更大的结论（例如不得由「参与过资料整理」推出「看过内部目录」）。",
     "输出必须是单个 JSON 对象，不要包裹 markdown 代码块。",
   ].join("\n");
 

@@ -88,6 +88,7 @@
       "kind": "RECORD",
       "holderIds": [],
       "visibleToIds": [],
+      "subjectCharacterIds": ["P2"],
       "reveals": ["梁赫签字参与预展资料整理 → 可能知道内部目录"],
       "requiresNodeIds": ["N3"],
       "acquisition": {
@@ -107,6 +108,7 @@
       "kind": "RECORD",
       "holderIds": [],
       "visibleToIds": [],
+      "subjectCharacterIds": ["P2"],
       "reveals": ["昨晚有人用与梁赫绑定的授权进库"],
       "requiresNodeIds": ["N4"],
       "acquisition": {

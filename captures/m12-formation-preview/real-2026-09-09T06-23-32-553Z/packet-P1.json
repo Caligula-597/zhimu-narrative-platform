@@ -1,0 +1,224 @@
+{
+  "version": 1,
+  "kind": "M12_FORMATION_PREVIEW_WRITER_PACKET",
+  "audienceType": "CHARACTER",
+  "projectId": "rpt-1c-closed-after-hours",
+  "artifactId": "m12f-closed-after-hours-gold",
+  "gateDecision": "FORMATION_READY",
+  "audience": {
+    "characterId": "P1",
+    "name": "沈岚",
+    "identity": "艺术史顾问，半月前参加过一次私人闭馆观摩",
+    "roleInBargain": "SEEKER",
+    "openingGoal": "查清预展清单里被抽掉的那一页；确认传闻中的内部目录是否真的存在、又可能在谁手里"
+  },
+  "scene": {
+    "title": "私人美术馆 · 预展之夜「闭馆之后」",
+    "timeWindow": "第一轮公开预展结束后，第二轮私人展厅观展开始前的间隙",
+    "publicRules": [
+      "若干本应上正式预展清单的藏品被临时撤下（N1）",
+      "第二轮后进入某私人展厅必须持该规格邀请腕带（N11a，门厅告示）",
+      "闭馆门禁/库房授权终端只读；展厅安保台放有昨晚异常进出摘要条（N5）",
+      "第二轮/私人展厅时窗临近，广播与工作人员会催场（N12）"
+    ]
+  },
+  "fixedFacts": [
+    {
+      "nodeId": "N1",
+      "text": "若干本应上正式预展清单的藏品被临时撤下",
+      "howAcquired": "展厅公开可观察",
+      "kind": "FACT",
+      "projectionType": "PUBLIC_RULE",
+      "provenance": {
+        "type": "PUBLIC_WORLD_RULE",
+        "summary": "开场即可见的撤展异常",
+        "sourceRefs": [
+          "gold:N1"
+        ]
+      }
+    },
+    {
+      "nodeId": "N4",
+      "text": "梁赫签字参与预展资料整理 → 可能知道内部目录",
+      "howAcquired": "在筹备资料台翻阅签名页",
+      "kind": "RECORD",
+      "projectionType": "CANON_FACT",
+      "provenance": {
+        "type": "LOCKED_FACT",
+        "summary": "资料台对全员可达，不依赖白绫",
+        "sourceRefs": [
+          "gold:N4"
+        ]
+      }
+    },
+    {
+      "nodeId": "N5",
+      "text": "昨晚有人用与梁赫绑定的授权进库",
+      "howAcquired": "展厅安保台公开可取的昨晚异常进出摘要条",
+      "kind": "RECORD",
+      "projectionType": "CANON_FACT",
+      "provenance": {
+        "type": "LOCKED_FACT",
+        "summary": "摘要条公开可取",
+        "sourceRefs": [
+          "gold:N5"
+        ]
+      }
+    },
+    {
+      "nodeId": "N11a",
+      "text": "第二轮后进入某私人展厅必须持该规格腕带",
+      "howAcquired": "门厅告示",
+      "kind": "FACT",
+      "projectionType": "PUBLIC_RULE",
+      "provenance": {
+        "type": "PUBLIC_WORLD_RULE",
+        "summary": "世界规则可查",
+        "sourceRefs": [
+          "gold:N11a"
+        ]
+      }
+    },
+    {
+      "nodeId": "N12",
+      "text": "第二轮/私人展厅时窗临近 → 拖过则梁赫核验失败风险上升",
+      "howAcquired": "广播倒计时/工作人员催场",
+      "kind": "TRIGGER",
+      "projectionType": "PUBLIC_RULE",
+      "provenance": {
+        "type": "PUBLIC_WORLD_RULE",
+        "summary": "world trigger，非幕标签",
+        "sourceRefs": [
+          "gold:N12"
+        ]
+      }
+    }
+  ],
+  "characterKnowledge": [
+    {
+      "nodeId": "N2",
+      "text": "半月前私人闭馆观摩时，馆方工作人员口头称该件捐赠来自某基金会；沈岚清楚实际经手人不是该基金会",
+      "howAcquired": "开场角色记忆",
+      "kind": "MEMORY",
+      "projectionType": "PRIVATE_MEMORY",
+      "provenance": {
+        "type": "CHARACTER_HISTORY",
+        "summary": "半月前私人闭馆观摩 + 基金会来源不一致",
+        "sourceRefs": [
+          "gold:N2"
+        ]
+      }
+    },
+    {
+      "nodeId": "N3",
+      "text": "可能另有内部/未公开目录（仍不知在谁手里）",
+      "howAcquired": "由 N1+N2 推断，非发放答案",
+      "kind": "INFERENCE",
+      "projectionType": "ACTIONABLE_INFERENCE",
+      "provenance": {
+        "type": "LOCKED_FACT",
+        "summary": "存在假说，非 holder 答案",
+        "sourceRefs": [
+          "gold:N3"
+        ]
+      }
+    },
+    {
+      "nodeId": "N8a",
+      "text": "昨天下午缺席收藏家电话托沈岚留意「被抽掉的那一页到底写了谁」",
+      "howAcquired": "昨天电话委托",
+      "kind": "INFO",
+      "projectionType": "SELF_KNOWN_FACT",
+      "provenance": {
+        "type": "CHARACTER_HISTORY",
+        "summary": "筹码来源，不是成交",
+        "sourceRefs": [
+          "gold:N8a"
+        ]
+      }
+    },
+    {
+      "nodeId": "N9",
+      "text": "目录册大概率在梁赫手里（足以促使接近，非 100%）",
+      "howAcquired": "最低 N3+N4+N5 推断；N6/N7/N8 可选增强",
+      "kind": "INFERENCE",
+      "projectionType": "ACTIONABLE_INFERENCE",
+      "provenance": {
+        "type": "LOCKED_FACT",
+        "summary": "INFERENCE ≠ Canon initialOwner 事实",
+        "sourceRefs": [
+          "gold:N9"
+        ]
+      }
+    },
+    {
+      "nodeId": "N10",
+      "text": "私人预展邀请腕带已在沈岚处",
+      "howAcquired": "开场持有",
+      "kind": "OBJECT",
+      "projectionType": "OWNED_OBJECT",
+      "provenance": {
+        "type": "CHARACTER_HISTORY",
+        "summary": "昨天下午缺席收藏家委托转交赠品并当场交托本人腕带，以便代为出入第二轮私人区办交接",
+        "sourceRefs": [
+          "gold:N10"
+        ]
+      }
+    },
+    {
+      "nodeId": "N11b",
+      "text": "沈岚亲眼看见梁赫在私人展厅门口因没有腕带被工作人员拦下",
+      "howAcquired": "act1 场内目击",
+      "kind": "OBSERVABLE",
+      "projectionType": "OBSERVED_FACT",
+      "provenance": {
+        "type": "LOCKED_FACT",
+        "summary": "seeker 识别对方需求的路径",
+        "sourceRefs": [
+          "gold:N11b"
+        ]
+      }
+    }
+  ],
+  "publicCastDirectory": [
+    {
+      "characterId": "P1",
+      "name": "沈岚",
+      "publicIdentity": "艺术史顾问，半月前参加过一次私人闭馆观摩"
+    },
+    {
+      "characterId": "P2",
+      "name": "梁赫",
+      "publicIdentity": "资深藏家，签字参与过本次预展资料整理"
+    },
+    {
+      "characterId": "P3",
+      "name": "白绫",
+      "publicIdentity": "布展师，昨晚在库房附近作业"
+    },
+    {
+      "characterId": "P4",
+      "name": "周祁",
+      "publicIdentity": "藏品保管员，掌管库房授权登记"
+    },
+    {
+      "characterId": "P5",
+      "name": "顾清",
+      "publicIdentity": "受邀宾客，艺术媒体撰稿人"
+    },
+    {
+      "characterId": "P6",
+      "name": "方序",
+      "publicIdentity": "受邀宾客，拍卖行中级职员"
+    }
+  ],
+  "writingRules": [
+    "【固定事实】Packet 中 fixedFacts 与 characterKnowledge 列出的每一条都必须写进成品，不得改动、不得与之矛盾。",
+    "【表达自由】角色的心理、语气、历史细节可以在不违反固定事实的前提下合理丰富，写出真实的人。",
+    "【信息可见性】只准写本 Packet 给你的信息。你不知道的其他角色私有信息、世界秘密，一个字都不准编。",
+    "【Formation 转写】把知道的事写成角色的经历、见闻、场景事实——用角色的视角语言，不要出现节点编号或数据字段名。",
+    "【不准替玩家决定】不准写「你会去和某人谈判/你会交换/你应该去找谁」。角色本只给动机与信息，行动是玩家的。",
+    "【不准预写结果】成交、相信、结盟、交换的完成一律不准写。现场怎么谈、谈不谈得成，全部留给玩家。",
+    "【不准 meta】不准写「你可以和 X 交换」「现在开始谈判」「作者提示」这类出戏指令。"
+  ]
+}
