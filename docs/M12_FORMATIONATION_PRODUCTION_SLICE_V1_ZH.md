@@ -1,9 +1,11 @@
 # M12 Formation Production Slice V1
 
-> **状态：F1 授权开工 · F2+ 未开**  
+> **状态：F2 ✅ FROZEN（含 Authority Hardening）· F3+ 未开**  
 > 规格基线：[`M12_FORMATIONATION_CONTRACT_V1_ZH.md`](./M12_FORMATIONATION_CONTRACT_V1_ZH.md) ✅ GOLDEN @ `05164fe`  
 > 分级基线：[`STORY_MECHANISM_FORMATIONATION_GRADING_ZH.md`](./STORY_MECHANISM_FORMATIONATION_GRADING_ZH.md) @ `16716ab`  
-> **规格层 GOLDEN ≠ 生产层已具备。pack 内 M12-1 仍 = GAP_HIGH。**
+> **规格层 GOLDEN ≠ 生产层已具备。pack 内 M12-1 仍 = GAP_HIGH。**  
+> F1 ✅ FROZEN（`0c4f191` + Hardening `e67e1e9`：缺失语义保留 null，不得 normalize 成成立）  
+> F2 人工审：PARTIAL_PASS（Blueprint/topology/边界全 PASS）→ Authority Hardening 收口 ProjectStoryState 单一权威 → FROZEN
 
 ## 一句话
 
@@ -268,8 +270,9 @@ Intent → STORY → Formation → Resolution → Integrator → PMD → Packet 
 ## 授权协议
 
 ```text
-F1 = 已授权并落地（Artifact 合同 + Gold fixture + ProjectStoryState sidecar）
-开始 F2 = 需要明确：「开始 F2」或「开始 M12 Formation Blueprint + Builder」
+F1 = 已落地并 FROZEN（Artifact 合同 + Gold fixture + sidecar + Hardening）
+F2 = 已 FROZEN（Blueprint + Builder + 双 fixture + Authority Hardening）
+开始 F3 = 需要明确：「开始 F3」或「开始 M12 Formation Validator / Gate」
 ```
 
 ## F1 落地清单
@@ -279,7 +282,26 @@ F1 = 已授权并落地（Artifact 合同 + Gold fixture + ProjectStoryState sid
 ✅ ProjectStoryState.m12FormationArtifacts[]
 ✅ fixtures/m12-formation/closed-after-hours-gold.json
 ✅ scripts/m12-formation-artifact.test.mjs
+✅ Hardening：mode/type/proof 缺失 → null，负例 ×3，roundtrip 全量 deepEqual（e67e1e9）
 🚫 Builder / Gate / Integrator / Writer（F2+）
+```
+
+## F2 落地清单
+
+```text
+✅ pack formationBlueprint（story-mechanism-m12-pack.js）：9 requiredCapabilities + 3 forbiddenSemantics，零剧情内容
+✅ shared/m12-formation-builder.js：buildM12FormationArtifact（deterministic，不接 LLM）
+✅ fixtures/m12-formation/sealed-room-alt-topology.json（不同 topology：holder 公开已知、未知=holder 需求、推断式识别）
+✅ scripts/m12-formation-builder.test.mjs（25 tests：正负例 20 + 权威 5）
+✅ Blueprint 能力覆盖检查：requiredCapabilities 每项必须落到具体节点/引用
+✅ 预写成交原文（gave/received/tradeCompleted/exchangeResult、非 OPEN resolution）→ 拒绝，不借 normalize 洗白
+✅ Authority Hardening（PARTIAL_PASS blocker 收口）：
+   入口 = { state, sourceBlockId, authoredFormation{stake,nodes,formation,proof}, artifactId }
+   projectId ← state.projectId；block ← state.mechanismBlocks[sourceBlockId]
+   revision ← block.revision；participants ← block.roleBindings
+   调用方无权另行提供 projectId/block/revision/participants（传入即被忽略）
+   STATE_BLOCK_NOT_FOUND / STATE_MISSING 错误码；contextProfile 不假装消费
+🚫 Gate / Integrator / Writer / 真模型（F3+）
 ```
 
 ## 验收位置

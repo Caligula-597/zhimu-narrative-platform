@@ -1,0 +1,266 @@
+{
+  "version": 1,
+  "id": "m12f-sealed-room-alt",
+  "projectId": "rpt-f2-sealed-room",
+  "sourceBlockId": "smb-m12-sealed-room",
+  "sourceBlockRevision": 3,
+  "templateId": "M12-1",
+  "participants": {
+    "seekerId": "P1",
+    "holderId": "P2"
+  },
+  "stake": {
+    "ref": "original-inspection-slip",
+    "label": "封存间老道具箱里的原始检修单"
+  },
+  "formation": {
+    "valueSource": { "nodeIds": ["K0"] },
+    "existenceSource": { "nodeIds": ["K0b"] },
+    "knowledgePath": { "nodeIds": ["K1"] },
+    "locatorPath": { "nodeIds": ["K1"] },
+    "counterpartLeverage": { "nodeIds": ["K3"] },
+    "leverageProvenance": { "nodeIds": ["K3"] },
+    "counterpartNeed": { "nodeIds": ["K7"] },
+    "trigger": { "nodeIds": ["K8"] }
+  },
+  "nodes": [
+    {
+      "id": "K0",
+      "kind": "MEMORY",
+      "holderIds": ["P1"],
+      "visibleToIds": ["P1"],
+      "reveals": ["父亲临终前坚称当年火灾的检修记录被人调换，他背了三十年『道具电路老化』的锅"],
+      "requiresNodeIds": [],
+      "acquisition": {
+        "mode": "OPENING_OWNED",
+        "whoCanAcquireIds": ["P1"],
+        "how": "开场角色记忆（临终遗言）",
+        "availableStage": "act1"
+      },
+      "provenance": {
+        "type": "CHARACTER_HISTORY",
+        "sourceRefs": ["alt:K0"],
+        "summary": "利害来源：若原始检修单为真，父亲当年并非责任人"
+      }
+    },
+    {
+      "id": "K0b",
+      "kind": "MEMORY",
+      "holderIds": ["P1"],
+      "visibleToIds": ["P1"],
+      "reveals": ["父亲遗言：原始检修单被他藏进了封存间老道具箱的夹层"],
+      "requiresNodeIds": ["K0"],
+      "acquisition": {
+        "mode": "OPENING_OWNED",
+        "whoCanAcquireIds": ["P1"],
+        "how": "同一临终遗言",
+        "availableStage": "act1"
+      },
+      "provenance": {
+        "type": "CHARACTER_HISTORY",
+        "sourceRefs": ["alt:K0b"],
+        "summary": "有来源的开场已知 X 存在于封存间（非推断——与 Gold 的 N3 推断式存在互为不同合法形态）"
+      }
+    },
+    {
+      "id": "K1",
+      "kind": "FACT",
+      "holderIds": [],
+      "visibleToIds": ["P1", "P2", "P3"],
+      "reveals": ["剧团章程公示：封存间唯一钥匙历来由老主演商雪臣保管"],
+      "requiresNodeIds": [],
+      "acquisition": {
+        "mode": "GUARANTEED",
+        "whoCanAcquireIds": ["P1", "P2", "P3"],
+        "how": "剧团章程公示栏",
+        "availableStage": "act1"
+      },
+      "provenance": {
+        "type": "PUBLIC_WORLD_RULE",
+        "sourceRefs": ["alt:K1"],
+        "summary": "holder 众所周知——本拓扑与 Gold『未知目录在谁手』的核心差异"
+      }
+    },
+    {
+      "id": "K_ACCESS",
+      "kind": "OBJECT",
+      "holderIds": ["P2"],
+      "visibleToIds": ["P2"],
+      "reveals": ["封存间唯一钥匙（实物）"],
+      "requiresNodeIds": [],
+      "acquisition": {
+        "mode": "OPENING_OWNED",
+        "whoCanAcquireIds": ["P2"],
+        "how": "章程指定的保管职责",
+        "availableStage": "act1"
+      },
+      "provenance": {
+        "type": "PUBLIC_WORLD_RULE",
+        "sourceRefs": ["alt:K_ACCESS"],
+        "summary": "保管职责有出处，不是莫名持有"
+      }
+    },
+    {
+      "id": "K3",
+      "kind": "OBJECT",
+      "holderIds": ["P1"],
+      "visibleToIds": ["P1"],
+      "reveals": ["父亲遗留的排班笔记：当年最后一晚巡场被临时换班，接手人并非商雪臣"],
+      "requiresNodeIds": [],
+      "acquisition": {
+        "mode": "OPENING_OWNED",
+        "whoCanAcquireIds": ["P1"],
+        "how": "遗物，开场持有",
+        "availableStage": "act1"
+      },
+      "provenance": {
+        "type": "CHARACTER_HISTORY",
+        "sourceRefs": ["alt:K3"],
+        "summary": "筹码来源：父亲遗物，非凭空拥有"
+      }
+    },
+    {
+      "id": "K4",
+      "kind": "INFO",
+      "holderIds": ["P3"],
+      "visibleToIds": ["P3"],
+      "reveals": ["老纪记得商雪臣这些年逢年过节都来打听当年经手的人"],
+      "requiresNodeIds": [],
+      "acquisition": {
+        "mode": "CONFIDENCE_BOOST",
+        "whoCanAcquireIds": ["P3"],
+        "how": "老纪开场知情；他人需问到他",
+        "availableStage": "act1"
+      },
+      "provenance": {
+        "type": "CHARACTER_HISTORY",
+        "sourceRefs": ["alt:K4"],
+        "summary": "增强需求推断的置信，非必需通路"
+      }
+    },
+    {
+      "id": "K5",
+      "kind": "OBSERVABLE",
+      "holderIds": ["P1"],
+      "visibleToIds": ["P1"],
+      "reveals": ["顾一岚深夜布景时撞见商雪臣独自在旧公告栏前抄当年的排班表"],
+      "requiresNodeIds": [],
+      "acquisition": {
+        "mode": "GUARANTEED",
+        "whoCanAcquireIds": ["P1"],
+        "how": "act1 场内目击",
+        "availableStage": "act1"
+      },
+      "provenance": {
+        "type": "LOCKED_FACT",
+        "sourceRefs": ["alt:K5"],
+        "summary": "seeker 侧可感知的执念证据（保证可达）"
+      }
+    },
+    {
+      "id": "K6",
+      "kind": "INFERENCE",
+      "holderIds": ["P1"],
+      "visibleToIds": ["P1"],
+      "subjectCharacterId": "P1",
+      "confidence": "ACTIONABLE",
+      "reveals": ["商雪臣对当年排班异常执着 → 我手里的排班笔记对他有分量"],
+      "requiresNodeIds": ["K5"],
+      "acquisition": {
+        "mode": "GUARANTEED",
+        "whoCanAcquireIds": ["P1"],
+        "how": "由 K5 目击推断；K4 可选增强",
+        "availableStage": "act1"
+      },
+      "provenance": {
+        "type": "LOCKED_FACT",
+        "sourceRefs": ["alt:K6"],
+        "summary": "推断 ≠ Canon：不把『商雪臣要翻案』写成已知事实"
+      }
+    },
+    {
+      "id": "K7",
+      "kind": "NEED",
+      "holderIds": ["P2"],
+      "visibleToIds": ["P2"],
+      "reveals": ["商雪臣想在腾空前取得能自证当年非其失职的排班凭据"],
+      "requiresNodeIds": [],
+      "acquisition": {
+        "mode": "OPENING_OWNED",
+        "whoCanAcquireIds": ["P2"],
+        "how": "holder 开场目标；对外经 K5/K6 才可被识别",
+        "availableStage": "act1"
+      },
+      "provenance": {
+        "type": "CHARACTER_HISTORY",
+        "sourceRefs": ["alt:K7"],
+        "summary": "holder 内部需求——本拓扑真正的未知量"
+      }
+    },
+    {
+      "id": "K8",
+      "kind": "TRIGGER",
+      "holderIds": [],
+      "visibleToIds": ["P1", "P2", "P3"],
+      "reveals": ["今晚修缮协调会将最终确认清空清单，明早封存间腾空"],
+      "requiresNodeIds": ["K6", "K3", "K_ACCESS", "K7"],
+      "acquisition": {
+        "mode": "GUARANTEED",
+        "whoCanAcquireIds": ["P1", "P2", "P3"],
+        "how": "公告栏 / 协调会通知",
+        "availableStage": "act1"
+      },
+      "provenance": {
+        "type": "PUBLIC_WORLD_RULE",
+        "sourceRefs": ["alt:K8"],
+        "summary": "world trigger，非幕标签"
+      }
+    },
+    {
+      "id": "K9",
+      "kind": "LEVERAGE_EDGE",
+      "holderIds": [],
+      "visibleToIds": [],
+      "reveals": ["顾一岚有 K3 且商雪臣需要；商雪臣持钥匙且顾一岚需要；成交开放"],
+      "requiresNodeIds": ["K3", "K_ACCESS", "K7"],
+      "acquisition": {
+        "mode": "CONFIDENCE_BOOST",
+        "whoCanAcquireIds": ["P1", "P2"],
+        "how": "现场谈/换/拒/拖延全开放",
+        "availableStage": "act1"
+      },
+      "provenance": {
+        "type": "LOCKED_FACT",
+        "sourceRefs": ["alt:K9"],
+        "summary": "关系边，非 EXCHANGE_EVENT"
+      },
+      "sideA": {
+        "characterId": "P1",
+        "possessesNodeIds": ["K3"],
+        "wantsNodeIds": ["K_ACCESS"]
+      },
+      "sideB": {
+        "characterId": "P2",
+        "possessesNodeIds": ["K_ACCESS"],
+        "wantsNodeIds": ["K3"]
+      },
+      "resolution": "OPEN"
+    }
+  ],
+  "proof": {
+    "guaranteedPathToContactReason": ["K0", "K0b", "K1", "K3", "K5", "K6", "K8"],
+    "optionalConfidence": ["K4"],
+    "bilateralLeverage": {
+      "seekerLeverageNodeIds": ["K3"],
+      "holderNeedNodeIds": ["K7"],
+      "seekerRecognitionNodeIds": ["K6"]
+    },
+    "noPreWrittenDeal": true,
+    "noUnsourcedAnswer": true
+  },
+  "status": "READY_FOR_VALIDATION",
+  "revision": 1,
+  "meta": {
+    "note": "F2 different-topology fixture: holder publicly known (K1); the unknown is holder need (K7), recognized via observation+inference (K5→K6, boost K4); opening leverage with provenance (K3). Proves the blueprint is a capability constraint, not a plot template."
+  }
+}

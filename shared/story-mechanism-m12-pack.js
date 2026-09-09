@@ -4,6 +4,9 @@
  * P10.3：补齐 RELATIONSHIP_BARGAIN + NEGOTIATE/EXCHANGE + player-caused OWNERSHIP_SHIFT。
  * 非 FACTION、非 CRIME；resolutionPressure = OPEN。
  * 仅数据：无专用 producer。
+ *
+ * F2：新增 formationBlueprint —— 族级能力约束。
+ * 只说「M12 要形成什么」，不含任何节点/角色/剧情内容（Gold 样本属于具体项目 Artifact）。
  */
 
 function editableFromSlots(roleSlots, plotSlots) {
@@ -41,6 +44,7 @@ function freezeTemplate(tpl) {
     defaultGeneration: Object.freeze(tpl.defaultGeneration || { preferredVariantId: tpl.variants[0]?.id }),
     editableSlots: Object.freeze(editableFromSlots(tpl.roleSlots, tpl.plotSlots)),
     integrationHints: Object.freeze(tpl.integrationHints || {}),
+    formationBlueprint: Object.freeze(tpl.formationBlueprint || {}),
     contentMaturity: "COMPLETE",
     familyId: "M12",
   });
@@ -171,6 +175,32 @@ const PLOT_SLOTS = Object.freeze({
   },
 });
 
+/**
+ * F2 — M12 Formation Blueprint（族级能力约束）。
+ *
+ * 只声明「M12 Formation 必须形成哪些能力、禁止哪些语义」。
+ * 禁止塞入任何具体节点/角色/剧情（如《闭馆之后》N1–N12）——
+ * 否则 Golden Sample 会反向污染族级模板，Blueprint 就变成了剧情步骤模板。
+ */
+const FORMATION_BLUEPRINT = Object.freeze({
+  requiredCapabilities: Object.freeze([
+    "VALUE_SOURCE",
+    "EXISTENCE_SOURCE",
+    "KNOWLEDGE_PATH",
+    "LOCATOR_PATH",
+    "COUNTERPART_LEVERAGE",
+    "LEVERAGE_PROVENANCE",
+    "COUNTERPART_NEED",
+    "NEED_RECOGNITION",
+    "WORLD_TRIGGER",
+  ]),
+  forbiddenSemantics: Object.freeze([
+    "UNSOURCED_ANSWER",
+    "UNSOURCED_LEVERAGE",
+    "PREWRITTEN_DEAL",
+  ]),
+});
+
 export function buildM12CompleteTemplates() {
   const tpl = freezeTemplate({
     id: "M12-1",
@@ -225,6 +255,7 @@ export function buildM12CompleteTemplates() {
       canFollow: ["M07", "M10"],
       sharesFactsWith: ["stake", "ownership", "bargain"],
     },
+    formationBlueprint: FORMATION_BLUEPRINT,
   });
   return Object.freeze([tpl]);
 }
