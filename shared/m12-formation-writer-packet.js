@@ -25,7 +25,7 @@
 import {
   normalizeM12FormationArtifact,
 } from "./m12-formation-contracts.js";
-import { projectFormationNodeForAudience } from "./m12-formation-role-projection.js";
+import { projectFormationNodeForAudience, formationNodeKnownTo } from "./m12-formation-role-projection.js";
 
 export const M12_PREVIEW_WRITER_PACKET_VERSION = 1;
 
@@ -64,21 +64,8 @@ function record(value) {
   return value && typeof value === "object" && !Array.isArray(value) ? value : {};
 }
 
-/** 该角色是否可知该节点（可见性投射核心） */
-function nodeKnownTo(node, characterId) {
-  if (node.kind === "LEVERAGE_EDGE") return false; // 设计结构，非角色知识
-  if (node.kind === "INFERENCE") {
-    return node.subjectCharacterId === characterId;
-  }
-  if (node.acquisition.mode === "CONFIDENCE_BOOST") {
-    return node.holderIds.includes(characterId);
-  }
-  return (
-    node.holderIds.includes(characterId) ||
-    node.visibleToIds.includes(characterId) ||
-    node.acquisition.whoCanAcquireIds.includes(characterId)
-  );
-}
+/** 该角色是否可知该节点（单一实现移至 role-projection，见 formationNodeKnownTo） */
+const nodeKnownTo = formationNodeKnownTo;
 
 /** 公共事实：所有角色都可知 */
 function isPublicTo(node, characterIds) {

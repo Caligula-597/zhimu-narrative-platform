@@ -16,7 +16,7 @@
   "formation": {
     "valueSource": { "nodeIds": ["K0"] },
     "existenceSource": { "nodeIds": ["K0b"] },
-    "knowledgePath": { "nodeIds": ["K1"] },
+    "knowledgePath": { "nodeIds": ["K1", "K4"] },
     "locatorPath": { "nodeIds": ["K1"] },
     "counterpartLeverage": { "nodeIds": ["K3"] },
     "leverageProvenance": { "nodeIds": ["K3"] },

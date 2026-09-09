@@ -422,6 +422,7 @@ if (files.some((f) =>
   || f === "scripts/m12-formation-validator.test.mjs"
   || f === "scripts/m12-formation-writer-packet.test.mjs"
   || f === "scripts/m12-formation-role-projection.test.mjs"
+  || f === "scripts/m12-formation-beat-compiler.test.mjs"
   || f === "scripts/p10-5-rpt1c-adherence-probe.mjs"
   || f === "scripts/p10-5-rpt1c-section-repair-replay.mjs"
   || f === "shared/script-writer-rendering-repair.js"
@@ -431,6 +432,7 @@ if (files.some((f) =>
   || f === "shared/m12-formation-writer-packet.js"
   || f === "shared/m12-formation-preview-writer.js"
   || f === "shared/m12-formation-role-projection.js"
+  || f === "shared/m12-formation-beat-compiler.js"
   || f === "scripts/m12-formation-preview-writer.mjs"
   || /^fixtures\/m12-formation\//.test(f)
   || f === "shared/rpt1c-p104-survival-probe.js"
@@ -439,7 +441,7 @@ if (files.some((f) =>
 )) {
   run(
     "P9/P10 content factory + trial harness",
-    "node --test scripts/context-instantiation.test.mjs scripts/story-semantic-fidelity.test.mjs scripts/game-narrative-binding.test.mjs scripts/real-script-writer.test.mjs scripts/content-quality-gate.test.mjs scripts/generated-script-quality-audit.test.mjs scripts/owner-binding-closure.test.mjs scripts/creation-intent-fidelity.test.mjs scripts/real-production-trial-1.test.mjs scripts/p10-4-production-projection.test.mjs scripts/p10-5-writer-rendering-adherence.test.mjs scripts/p10-5-writer-rendering-repair.test.mjs scripts/m12-formation-artifact.test.mjs scripts/m12-formation-builder.test.mjs scripts/m12-formation-validator.test.mjs scripts/m12-formation-writer-packet.test.mjs scripts/m12-formation-role-projection.test.mjs",
+    "node --test scripts/context-instantiation.test.mjs scripts/story-semantic-fidelity.test.mjs scripts/game-narrative-binding.test.mjs scripts/real-script-writer.test.mjs scripts/content-quality-gate.test.mjs scripts/generated-script-quality-audit.test.mjs scripts/owner-binding-closure.test.mjs scripts/creation-intent-fidelity.test.mjs scripts/real-production-trial-1.test.mjs scripts/p10-4-production-projection.test.mjs scripts/p10-5-writer-rendering-adherence.test.mjs scripts/p10-5-writer-rendering-repair.test.mjs scripts/m12-formation-artifact.test.mjs scripts/m12-formation-builder.test.mjs scripts/m12-formation-validator.test.mjs scripts/m12-formation-writer-packet.test.mjs scripts/m12-formation-role-projection.test.mjs scripts/m12-formation-beat-compiler.test.mjs",
   );
   run("P10.4 RPT1B packet probe", "node scripts/p10-4-rpt1b-packet-probe.mjs");
   run("P10.5 RPT1C adherence probe", "node scripts/p10-5-rpt1c-adherence-probe.mjs");

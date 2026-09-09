@@ -1,6 +1,6 @@
 # M12 Formation Production Slice V1
 
-> **状态：F4A 已落地（Role-Relative Projection V1，Run #3 验证 N4 错位消失）· F4B 未开**  
+> **状态：F4B 已落地（Beat Compiler V1，待人工审）· F4C 未开**  
 > 规格基线：[`M12_FORMATIONATION_CONTRACT_V1_ZH.md`](./M12_FORMATIONATION_CONTRACT_V1_ZH.md) ✅ GOLDEN @ `05164fe`  
 > 分级基线：[`STORY_MECHANISM_FORMATIONATION_GRADING_ZH.md`](./STORY_MECHANISM_FORMATIONATION_GRADING_ZH.md) @ `16716ab`  
 > **规格层 GOLDEN ≠ 生产层已具备。pack 内 M12-1 仍 = GAP_HIGH。**  
@@ -10,8 +10,9 @@
 > Visible ≠ Owned / 杠杆可见 ≠ 可支配 / Fact ≠ Need）  
 > Packet V1.1 Fidelity Patch ✅ FROZEN @ `8a93a23`（provenance 投射 + publicCastDirectory）  
 > Content Preview V1 ✅ PASS（两轮 real A/B + Run #3）  
-> F4A Role-Relative Semantic Projection V1 已落地：subjectCharacterIds（additive）+ 8 投影类型  
-> + 主体受众推断剥离；Run #3（real）N4 错位消失，腕带/身份/零 meta 零成交全部保持
+> F4A ✅ FROZEN @ `bc2c44a`（Role-Relative Projection V1；冻结备注：INLINE_ARROW_STRIP  
+> = F4A V1 rendering heuristic ≠ universal semantic parser，不得扩散进 Beat compiler）  
+> F4B Beat Compiler V1 已落地：16 节点 → 4 Beat（Node ≠ Beat），待人工审
 
 ## 一句话
 
@@ -401,6 +402,35 @@ Run #3（real，deepseek）Gate 11 四项全过：
 - P1 推断语气保持 ACTIONABLE（「只是我的推断，还远不能下定论」）
 
 🚫 F4B（Node→Beat / Integrator / PMD）未开——F4A 只做语义投影，不压剧情
+```
+
+## F4B — Formation Node → Beat Compilation V1（已落地，待人工审）
+
+```text
+Node ≠ Beat：Beat 是一次有体验意义的剧情变化，nodeRefs 只是证据来源。
+链路：Artifact → F3 Gate（compiler 内复跑，仅 READY）→ F4A 投影 → FormationBeat[]
+
+实现：
+✅ shared/m12-formation-beat-compiler.js：compileM12FormationBeats({ state, artifactId })
+   State-authoritative；族级编排规则（B1 异常浮现 / B2 对手定位 / B3 双边条件形成 /
+   B4 时机闭合 ← 9 capabilities 分组，零 Gold 剧情知识）
+✅ required/optional 分离：CONFIDENCE_BOOST → optionalNodeRefs，绝不进 required
+   与 requiresBeatIds 因果（白绫/周祁可拒绝配合）；孤立 LEVERAGE_EDGE → B3 optional
+✅ supportNodeRefs：requires 前提 + 边成员（N8a/N8b/N11a 被追踪，Gate 全覆盖）
+✅ audienceViews = F4A 投影输出（不重新读 raw reveals，零字符串解析——遵守
+   INLINE_ARROW_STRIP 冻结备注）；delivery.mode 5 值结构推导；requiresBeatIds
+   Gold 因果链 = B1←无 / B2←B1 / B3←无 / B4←B2+B3
+✅ 渲染：renderM12FormationBeatsForReview（隐藏 Node ID 的人工审素材）
+   captures/m12-formation-beats/{gold,alt}-beats.md
+✅ scripts/m12-formation-beat-compiler.test.mjs：13 tests（Gate 1-12 + Alt 旁证）
+✅ Alt 旁证：11 节点 → 4 Beat，B2 required=[K1]（holder 公开）与 Gold 结构不同
+   ——compiler 不是 Gold 生成器
+✅ Alt fixture 微调：K4（老纪 boost）入 knowledgePath（知情人增强路径）
+
+三个危险坑（全部钉死）：不写新剧情（全部文本 ⊆ canonical reveals 子串）；
+optional 不升格 required；不生成 NEGOTIATE/EXCHANGE outcome（无 resolution 概念）
+
+🚫 F4C（Integrator / PMD / Master Outline）未开
 ```
 
 ## 验收位置

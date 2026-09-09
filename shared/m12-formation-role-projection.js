@@ -43,12 +43,37 @@ export const M12_FORMATION_PROJECTION_TYPES = Object.freeze([
   "SELF_KNOWN_NEED",
 ]);
 
+/**
+ * F4A 冻结备注（bc2c44a）：
+ *   INLINE_ARROW_STRIP = M12 Formation F4A V1 rendering heuristic
+ *                      ≠ universal semantic parser
+ * 「事实 → inline inference」截断只对显式声明 subjectCharacterIds 的节点生效，
+ * 且仅限 M12 Formation 投影层；不得扩散为 STORY 系统通用语义解析规则，
+ * F4B Beat compiler 不得使用任何字符串规则解析语义。
+ */
+
 /** 剥离 inline 推断：截断首个 "→" 之前的事实部分；无 "→" 或截断后为空则原文返回 */
 function stripInlineInference(text) {
   const arrow = text.indexOf("→");
   if (arrow <= 0) return text;
   const stripped = text.slice(0, arrow).trim();
   return stripped || text;
+}
+
+/**
+ * 节点对某角色是否可见（可见性纪律单一实现，packet 与 beat compiler 共用）。
+ * LEVERAGE_EDGE=设计结构不可见；INFERENCE 仅 subject；BOOST 仅 holder。
+ */
+export function formationNodeKnownTo(node, characterId) {
+  if (!node || !characterId) return false;
+  if (node.kind === "LEVERAGE_EDGE") return false;
+  if (node.kind === "INFERENCE") return node.subjectCharacterId === characterId;
+  if (node.acquisition.mode === "CONFIDENCE_BOOST") return node.holderIds.includes(characterId);
+  return (
+    node.holderIds.includes(characterId) ||
+    node.visibleToIds.includes(characterId) ||
+    node.acquisition.whoCanAcquireIds.includes(characterId)
+  );
 }
 
 /**
