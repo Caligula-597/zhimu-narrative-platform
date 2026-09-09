@@ -1,12 +1,15 @@
 # M12 Formation Production Slice V1
 
-> **状态：F3 已落地（待人工审）· F4+ 未开**  
+> **状态：F3 ✅ FROZEN @ `d9a86c9` · 受控生成实验已执行（Preview Writer V1）· F4+ 未开**  
 > 规格基线：[`M12_FORMATIONATION_CONTRACT_V1_ZH.md`](./M12_FORMATIONATION_CONTRACT_V1_ZH.md) ✅ GOLDEN @ `05164fe`  
 > 分级基线：[`STORY_MECHANISM_FORMATIONATION_GRADING_ZH.md`](./STORY_MECHANISM_FORMATIONATION_GRADING_ZH.md) @ `16716ab`  
 > **规格层 GOLDEN ≠ 生产层已具备。pack 内 M12-1 仍 = GAP_HIGH。**  
 > F1 ✅ FROZEN（`0c4f191` + Hardening `e67e1e9`：缺失语义保留 null，不得 normalize 成成立）  
 > F2 ✅ FROZEN @ `17953bd`（Blueprint + Builder + 双 fixture + Authority Hardening）  
-> F3 已落地：Validator/Gate + Gold/Alt PASS + 直接谈判桌 FAIL，待人工审
+> F3 ✅ FROZEN @ `d9a86c9`（Validator/Gate + 直接谈判桌反例 + Semantic Hardening：  
+> Visible ≠ Owned / 杠杆可见 ≠ 可支配 / Fact ≠ Need）  
+> 受控生成实验（F3 后、F4 前）：State → Builder → Gate(READY) → Preview Packet →  
+> 真模型（deepseek）→ 实际角色本/主持手册，见 captures/m12-formation-preview/
 
 ## 一句话
 
@@ -332,6 +335,41 @@ F3 = 已授权并落地（Validator/Gate + Gold/Alt PASS + 直接谈判桌 FAIL�
 ✅ F3 Semantic Hardening：Visible ≠ Owned（OPENING_OWNED 必须 holderIds 真持有）、
    杠杆可见 ≠ 可支配（必须持有/保证可得）、Fact ≠ Need（holderNeed 必须 kind=NEED）
 🚫 Integrator / PMD / Writer / 真模型（F4+）
+```
+
+## 受控生成实验（Preview Writer V1，F3 后 / F4 前）
+
+```text
+链路：ProjectStoryState → F2 Builder → F3 Gate(FORMATION_READY)
+      → Preview Writer Packet（可见性严格投射）→ Writer 模型 → 实际成品
+
+运行：node scripts/m12-formation-preview-writer.mjs --mode=real --audiences=P1,P2,HOST
+产物：captures/m12-formation-preview/real-*/（packet-*.json + output-*.json + run.json）
+
+组件：
+✅ shared/m12-formation-writer-packet.js — 薄 adapter：
+   LEVERAGE_EDGE 不进任何 packet；INFERENCE 只进 subject 的；CONFIDENCE_BOOST 只进持有者的；
+   公共事实进 fixedFacts（必须写进成品）；七条写作纪律进 writingRules
+✅ shared/m12-formation-preview-writer.js — prompt 组装 + 模型调用 + 确定性自检
+   （parseOk / metaPromptHits / prewrittenDealHits）；MockPreviewWriterLlm 离线链路
+✅ fixtures/m12-formation/closed-after-hours-context.json — 角色/场景上下文（实验素材）
+✅ scripts/m12-formation-writer-packet.test.mjs — 可见性矩阵逐角色 deepEqual + mock 端到端
+
+实验结论（人工审 2026-09-09，真模型 deepseek 生成，两轮 A/B）：
+- Run #1（V1）：三份成品 Formation 成立性成功落地——沈岚有理由（N1–N9）+ 有筹码（N10）
+  + 识需求（N11b）+ 有时窗（N12）；梁赫有需求（N11）+ 有压力（N12），行动完全留给玩家；
+  HOST 零剧透；meta / 预写成交 lint 全零。
+  暴露两个 Packet 表达层缺口：① provenance 未投射 → Writer 为腕带编造来历（「馆方寄的」）；
+  ② 角色缺公共人物目录 → Writer 编造梁赫身份（「策展人」）。
+- Packet V1.1 Fidelity Patch（只修两处，N4 人称错位故意保留作对照变量）：
+  ① factEntry 带 provenance（跟随节点可见性走，P2/HOST 不获得 N10 私有来源）；
+  ② publicCastDirectory 进每个角色 packet（只有公开身份，无 openingGoal/roleInBargain）。
+- Run #2（V1.1）：腕带来历 ✔ 修复（收藏家交托语义如实落地）；梁赫身份 ✔ 修复（资深藏家）；
+  零 meta / 零预写成交保持；Formation 链完整（N9 ACTIONABLE「还不能完全确定」语气保持）；
+  N4 人称错位仍存在（「内部目录你翻过不止一遍」）——变量隔离成功：
+  Packet completeness defect ✅ 已修 ≠ Role-relative semantic rendering defect → F4 / Packet V2
+→ 阶段结果：织幕已可把通过 F3 的 Formation 交给真实 Writer 产生基本正确的角色内容；
+  剩余主要问题进入「角色视角化 / Node→Beat 编排」层，而非「系统不会写」。
 ```
 
 ## 验收位置

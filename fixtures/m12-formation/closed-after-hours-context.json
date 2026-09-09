@@ -1,0 +1,57 @@
+{
+  "projectTitle": "闭馆之后",
+  "scene": {
+    "title": "私人美术馆 · 预展之夜「闭馆之后」",
+    "timeWindow": "第一轮公开预展结束后，第二轮私人展厅观展开始前的间隙",
+    "publicRules": [
+      "若干本应上正式预展清单的藏品被临时撤下（N1）",
+      "第二轮后进入某私人展厅必须持该规格邀请腕带（N11a，门厅告示）",
+      "闭馆门禁/库房授权终端只读；展厅安保台放有昨晚异常进出摘要条（N5）",
+      "第二轮/私人展厅时窗临近，广播与工作人员会催场（N12）"
+    ]
+  },
+  "characters": [
+    {
+      "id": "P1",
+      "name": "沈岚",
+      "identity": "艺术史顾问，半月前参加过一次私人闭馆观摩",
+      "roleInBargain": "SEEKER",
+      "openingGoal": "查清预展清单里被抽掉的那一页；确认传闻中的内部目录是否真的存在、又可能在谁手里"
+    },
+    {
+      "id": "P2",
+      "name": "梁赫",
+      "identity": "资深藏家，签字参与过本次预展资料整理",
+      "roleInBargain": "HOLDER",
+      "openingGoal": "核验一件他挂心的藏品；那件藏品在第二轮私人展厅内"
+    },
+    {
+      "id": "P3",
+      "name": "白绫",
+      "identity": "布展师，昨晚在库房附近作业",
+      "roleInBargain": "WITNESS",
+      "openingGoal": "搞清楚自己目击的那一幕背后到底发生了什么"
+    },
+    {
+      "id": "P4",
+      "name": "周祁",
+      "identity": "藏品保管员，掌管库房授权登记",
+      "roleInBargain": "OTHER",
+      "openingGoal": "留意到昨晚库房授权有一次对不上的使用记录"
+    },
+    {
+      "id": "P5",
+      "name": "顾清",
+      "identity": "受邀宾客，艺术媒体撰稿人",
+      "roleInBargain": "OTHER",
+      "openingGoal": "为下一篇专栏找到值得写的现场故事"
+    },
+    {
+      "id": "P6",
+      "name": "方序",
+      "identity": "受邀宾客，拍卖行中级职员",
+      "roleInBargain": "OTHER",
+      "openingGoal": "结识可能在下一季出手的关键藏家"
+    }
+  ]
+}
