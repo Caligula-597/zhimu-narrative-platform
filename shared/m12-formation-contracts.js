@@ -3,10 +3,20 @@
  *
  * Spec: docs/M12_FORMATIONATION_PRODUCTION_SLICE_V1_ZH.md · Gold: docs/M12_FORMATIONATION_CONTRACT_V1_ZH.md
  * Artifact must NOT announce FORMATION_READY (that is F3).
+ *
+ * F1 Contract Hardening — Missing ≠ Valid:
+ *   - acquisition.mode 缺失/非法 → null（不得默认 GUARANTEED）
+ *   - provenance.type 缺失/非法 → null（不得默认 LOCKED_FACT）
+ *   - proof 布尔缺失 → null（不得默认 true）
+ *   null = unresolved，交 F3 Gate 裁决；normalize 只保存，不替前层补洞。
  */
 
 function record(value) {
   return value && typeof value === "object" && !Array.isArray(value) ? value : {};
+}
+
+function boolOrNull(value) {
+  return typeof value === "boolean" ? value : null;
 }
 
 function asArray(value) {
@@ -87,7 +97,8 @@ export function normalizeFormationFieldRef(value = {}) {
 
 export function normalizeFormationAcquisition(value = {}) {
   const src = record(value);
-  const mode = FORMATION_ACQUISITION_MODES.includes(src.mode) ? src.mode : "GUARANTEED";
+  // 缺失/非法 → null：不得静默默认 GUARANTEED（F1 Hardening）
+  const mode = FORMATION_ACQUISITION_MODES.includes(src.mode) ? src.mode : null;
   return {
     mode,
     whoCanAcquireIds: uniqueIds(src.whoCanAcquireIds),
@@ -98,7 +109,8 @@ export function normalizeFormationAcquisition(value = {}) {
 
 export function normalizeFormationProvenance(value = {}) {
   const src = record(value);
-  const type = FORMATION_PROVENANCE_TYPES.includes(src.type) ? src.type : "LOCKED_FACT";
+  // 缺失/非法 → null：不得静默默认 LOCKED_FACT（F1 Hardening）
+  const type = FORMATION_PROVENANCE_TYPES.includes(src.type) ? src.type : null;
   return {
     type,
     sourceRefs: asArray(src.sourceRefs).map((r) => cleanText(r, 200)).filter(Boolean),
@@ -186,8 +198,10 @@ export function normalizeFormationProof(value = {}) {
       holderNeedNodeIds: uniqueIds(holderNeed),
       seekerRecognitionNodeIds: uniqueIds(seekerRecognition),
     },
-    noPreWrittenDeal: src.noPreWrittenDeal !== false,
-    noUnsourcedAnswer: src.noUnsourcedAnswer !== false && src.noUnsourcedAnswerAtStart !== false,
+    // 缺失 → null：不得静默默认 true（F1 Hardening）；旧字段名 noUnsourcedAnswerAtStart 兼容显式取值
+    noPreWrittenDeal: boolOrNull(src.noPreWrittenDeal),
+    noUnsourcedAnswer:
+      boolOrNull(src.noUnsourcedAnswer) ?? boolOrNull(src.noUnsourcedAnswerAtStart),
   };
 }
 

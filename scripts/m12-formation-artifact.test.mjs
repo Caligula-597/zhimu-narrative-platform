@@ -13,6 +13,7 @@ import {
 import {
   normalizeM12FormationArtifact,
   normalizeFormationNode,
+  normalizeFormationProof,
   upsertM12FormationArtifact,
   updateM12FormationNode,
   refreshM12FormationArtifactStaleStatus,
@@ -124,7 +125,7 @@ test("F1 N9 INFERENCE is actionable and does not imply Canon owner fact", () => 
   assert.ok(!JSON.stringify(gold.stake).includes("梁赫独占"));
 });
 
-test("F1 ProjectStoryState persists and reloads identical refs", () => {
+test("F1 ProjectStoryState persists and reloads identical (full artifact deepEqual)", () => {
   const gold = normalizeM12FormationArtifact(loadGold());
   const state = createProjectStoryState({
     projectId: "rpt-1c-closed-after-hours",
@@ -142,14 +143,8 @@ test("F1 ProjectStoryState persists and reloads identical refs", () => {
   });
   assert.equal(state.m12FormationArtifacts.length, 1);
   const round = normalizeProjectStoryState(JSON.parse(JSON.stringify(state)));
-  assert.deepEqual(
-    round.m12FormationArtifacts[0].formation,
-    state.m12FormationArtifacts[0].formation,
-  );
-  assert.deepEqual(
-    round.m12FormationArtifacts[0].nodes.map((n) => n.id),
-    state.m12FormationArtifacts[0].nodes.map((n) => n.id),
-  );
+  // create → reload identical：整个 normalized artifact 必须逐字段相等
+  assert.deepEqual(round.m12FormationArtifacts[0], state.m12FormationArtifacts[0]);
   assert.equal(round.m12FormationArtifacts[0].status, "READY_FOR_VALIDATION");
 });
 
@@ -207,4 +202,67 @@ test("F1 upsert attaches sidecar without touching unrelated state", () => {
   state = upsertM12FormationArtifact(state, loadGold());
   assert.equal(state.m12FormationArtifacts.length, 1);
   assert.equal(state.revision, 3);
+});
+
+// ---------------------------------------------------------------------------
+// F1 Contract Hardening — Missing ≠ Valid（负例：缺失不得被 normalize 成正确）
+// ---------------------------------------------------------------------------
+
+test("F1 hardening: missing/invalid acquisition.mode stays null, never GUARANTEED", () => {
+  const missing = normalizeFormationNode({ id: "X1", kind: "INFO" });
+  assert.equal(missing.acquisition.mode, null);
+  const invalid = normalizeFormationNode({
+    id: "X2",
+    kind: "INFO",
+    acquisition: { mode: "WRONG_MODE" },
+  });
+  assert.equal(invalid.acquisition.mode, null);
+  // 合法值仍原样保留
+  const legal = normalizeFormationNode({
+    id: "X3",
+    kind: "INFO",
+    acquisition: { mode: "CONFIDENCE_BOOST" },
+  });
+  assert.equal(legal.acquisition.mode, "CONFIDENCE_BOOST");
+});
+
+test("F1 hardening: missing/invalid provenance.type stays null, never LOCKED_FACT", () => {
+  const missing = normalizeFormationNode({ id: "X1", kind: "INFO" });
+  assert.equal(missing.provenance.type, null);
+  const invalid = normalizeFormationNode({
+    id: "X2",
+    kind: "INFO",
+    provenance: { type: "WRONG_TYPE" },
+  });
+  assert.equal(invalid.provenance.type, null);
+  // 合法值仍原样保留
+  const legal = normalizeFormationNode({
+    id: "X3",
+    kind: "INFO",
+    provenance: { type: "CHARACTER_HISTORY" },
+  });
+  assert.equal(legal.provenance.type, "CHARACTER_HISTORY");
+});
+
+test("F1 hardening: missing proof booleans stay null, never true", () => {
+  const missing = normalizeFormationProof({});
+  assert.equal(missing.noPreWrittenDeal, null);
+  assert.equal(missing.noUnsourcedAnswer, null);
+
+  // 显式 false 必须保留为 false（不得被翻转或洗白）
+  const explicitFalse = normalizeFormationProof({
+    noPreWrittenDeal: false,
+    noUnsourcedAnswer: false,
+  });
+  assert.equal(explicitFalse.noPreWrittenDeal, false);
+  assert.equal(explicitFalse.noUnsourcedAnswer, false);
+
+  // 旧字段名 noUnsourcedAnswerAtStart 的显式取值仍生效
+  const legacyFalse = normalizeFormationProof({ noUnsourcedAnswerAtStart: false });
+  assert.equal(legacyFalse.noUnsourcedAnswer, false);
+
+  // Gold fixture 显式 true 不受影响
+  const gold = normalizeM12FormationArtifact(loadGold());
+  assert.equal(gold.proof.noPreWrittenDeal, true);
+  assert.equal(gold.proof.noUnsourcedAnswer, true);
 });
