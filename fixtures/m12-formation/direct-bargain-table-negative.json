@@ -1,0 +1,177 @@
+{
+  "version": 1,
+  "id": "m12f-direct-bargain-table",
+  "projectId": "rpt-f3-direct-table",
+  "sourceBlockId": "smb-m12-direct-table",
+  "sourceBlockRevision": 1,
+  "templateId": "M12-1",
+  "participants": {
+    "seekerId": "P1",
+    "holderId": "P2"
+  },
+  "stake": {
+    "ref": "member-roster",
+    "label": "未公开的会员名录"
+  },
+  "formation": {
+    "valueSource": { "nodeIds": ["D1"] },
+    "existenceSource": { "nodeIds": ["D2"] },
+    "knowledgePath": { "nodeIds": ["D2"] },
+    "locatorPath": { "nodeIds": ["D2"] },
+    "counterpartLeverage": { "nodeIds": ["D3"] },
+    "leverageProvenance": { "nodeIds": ["D3"] },
+    "counterpartNeed": { "nodeIds": ["D4"] },
+    "trigger": { "nodeIds": ["D7"] }
+  },
+  "nodes": [
+    {
+      "id": "D1",
+      "kind": "FACT",
+      "holderIds": [],
+      "visibleToIds": ["P1", "P2", "P3"],
+      "reveals": ["名录记录全部会员的私人联络方式与欠账明细"],
+      "requiresNodeIds": [],
+      "acquisition": {
+        "mode": "GUARANTEED",
+        "whoCanAcquireIds": ["P1", "P2", "P3"],
+        "how": "前台公示的会员章程附则",
+        "availableStage": "act1"
+      },
+      "provenance": {
+        "type": "PUBLIC_WORLD_RULE",
+        "sourceRefs": ["neg:D1"],
+        "summary": "价值公开可知"
+      }
+    },
+    {
+      "id": "D2",
+      "kind": "FACT",
+      "holderIds": [],
+      "visibleToIds": ["P1", "P2", "P3"],
+      "reveals": ["名录由 B 单独保管"],
+      "requiresNodeIds": [],
+      "acquisition": {
+        "mode": "GUARANTEED",
+        "whoCanAcquireIds": ["P1", "P2", "P3"],
+        "how": "前台公示的会员章程附则",
+        "availableStage": "act1"
+      },
+      "provenance": {
+        "type": "PUBLIC_WORLD_RULE",
+        "sourceRefs": ["neg:D2"],
+        "summary": "holder 公开已知"
+      }
+    },
+    {
+      "id": "D3",
+      "kind": "OBJECT",
+      "holderIds": ["P1"],
+      "visibleToIds": ["P1"],
+      "reveals": ["后台通行腕带在 A 手里"],
+      "requiresNodeIds": [],
+      "acquisition": {
+        "mode": "OPENING_OWNED",
+        "whoCanAcquireIds": ["P1"],
+        "how": "上月帮主办方布场时获赠",
+        "availableStage": "act1"
+      },
+      "provenance": {
+        "type": "CHARACTER_HISTORY",
+        "sourceRefs": ["neg:D3"],
+        "summary": "筹码来源存在"
+      }
+    },
+    {
+      "id": "D4",
+      "kind": "NEED",
+      "holderIds": ["P2"],
+      "visibleToIds": ["P2"],
+      "reveals": ["B 需要一块后台通行腕带"],
+      "requiresNodeIds": [],
+      "acquisition": {
+        "mode": "OPENING_OWNED",
+        "whoCanAcquireIds": ["P2"],
+        "how": "B 的开场目标",
+        "availableStage": "act1"
+      },
+      "provenance": {
+        "type": "CHARACTER_HISTORY",
+        "sourceRefs": ["neg:D4"],
+        "summary": "holder 内部需求"
+      }
+    },
+    {
+      "id": "D5",
+      "kind": "INFO",
+      "holderIds": ["P2"],
+      "visibleToIds": ["P2"],
+      "reveals": ["B 需要腕带这件事只写在 B 的角色卡里"],
+      "requiresNodeIds": [],
+      "acquisition": {
+        "mode": "GUARANTEED",
+        "whoCanAcquireIds": ["P2"],
+        "how": "作者直接写进 B 的私有信息",
+        "availableStage": "act1"
+      },
+      "provenance": {
+        "type": "LOCKED_FACT",
+        "sourceRefs": ["neg:D5"],
+        "summary": "识别路径只对 holder 存在"
+      }
+    },
+    {
+      "id": "D6",
+      "kind": "INFO",
+      "holderIds": ["P3"],
+      "visibleToIds": ["P3"],
+      "reveals": ["C 可能会提起 B 最近在找腕带"],
+      "requiresNodeIds": [],
+      "acquisition": {
+        "mode": "CONFIDENCE_BOOST",
+        "whoCanAcquireIds": ["P3"],
+        "how": "问到 C 才有可能",
+        "availableStage": "act1"
+      },
+      "provenance": {
+        "type": "CHARACTER_HISTORY",
+        "sourceRefs": ["neg:D6"],
+        "summary": "纯增益节点"
+      }
+    },
+    {
+      "id": "D7",
+      "kind": "TRIGGER",
+      "holderIds": [],
+      "visibleToIds": ["P1", "P2", "P3"],
+      "reveals": ["主持人宣布：现在开始谈判，A 可以用腕带和 B 交换名录"],
+      "requiresNodeIds": [],
+      "acquisition": {
+        "mode": "GUARANTEED",
+        "whoCanAcquireIds": ["P1", "P2", "P3"],
+        "how": "场内广播",
+        "availableStage": "act1"
+      },
+      "provenance": {
+        "type": "PUBLIC_WORLD_RULE",
+        "sourceRefs": ["neg:D7"],
+        "summary": "作者指令式 trigger"
+      }
+    }
+  ],
+  "proof": {
+    "guaranteedPathToContactReason": ["D1", "D2", "D3", "D5", "D6", "D7"],
+    "optionalConfidence": [],
+    "bilateralLeverage": {
+      "seekerLeverageNodeIds": ["D3"],
+      "holderNeedNodeIds": ["D4"],
+      "seekerRecognitionNodeIds": ["D5"]
+    },
+    "noPreWrittenDeal": true,
+    "noUnsourcedAnswer": true
+  },
+  "status": "READY_FOR_VALIDATION",
+  "revision": 1,
+  "meta": {
+    "note": "F3 integrated negative: passes F2 Builder (structurally complete — every node has valid kind/mode/provenance, eight fields non-empty, proof booleans explicit) but must fail the Gate: recognition (D5) exists only in holder's private view; CONFIDENCE_BOOST (D6) sits inside the claimed guaranteed spine; trigger (D7) is a designer instruction. Proves structural completeness is not formation validity."
+  }
+}

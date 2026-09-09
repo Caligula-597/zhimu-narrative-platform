@@ -1,11 +1,12 @@
 # M12 Formation Production Slice V1
 
-> **状态：F2 ✅ FROZEN（含 Authority Hardening）· F3+ 未开**  
+> **状态：F3 已落地（待人工审）· F4+ 未开**  
 > 规格基线：[`M12_FORMATIONATION_CONTRACT_V1_ZH.md`](./M12_FORMATIONATION_CONTRACT_V1_ZH.md) ✅ GOLDEN @ `05164fe`  
 > 分级基线：[`STORY_MECHANISM_FORMATIONATION_GRADING_ZH.md`](./STORY_MECHANISM_FORMATIONATION_GRADING_ZH.md) @ `16716ab`  
 > **规格层 GOLDEN ≠ 生产层已具备。pack 内 M12-1 仍 = GAP_HIGH。**  
 > F1 ✅ FROZEN（`0c4f191` + Hardening `e67e1e9`：缺失语义保留 null，不得 normalize 成成立）  
-> F2 人工审：PARTIAL_PASS（Blueprint/topology/边界全 PASS）→ Authority Hardening 收口 ProjectStoryState 单一权威 → FROZEN
+> F2 ✅ FROZEN @ `17953bd`（Blueprint + Builder + 双 fixture + Authority Hardening）  
+> F3 已落地：Validator/Gate + Gold/Alt PASS + 直接谈判桌 FAIL，待人工审
 
 ## 一句话
 
@@ -272,7 +273,8 @@ Intent → STORY → Formation → Resolution → Integrator → PMD → Packet 
 ```text
 F1 = 已落地并 FROZEN（Artifact 合同 + Gold fixture + sidecar + Hardening）
 F2 = 已 FROZEN（Blueprint + Builder + 双 fixture + Authority Hardening）
-开始 F3 = 需要明确：「开始 F3」或「开始 M12 Formation Validator / Gate」
+F3 = 已授权并落地（Validator/Gate + Gold/Alt PASS + 直接谈判桌 FAIL），待人工审
+开始 F4 = 需要明确：「开始 F4」或「开始 M12 Formation Beats + Integrator」
 ```
 
 ## F1 落地清单
@@ -302,6 +304,34 @@ F2 = 已 FROZEN（Blueprint + Builder + 双 fixture + Authority Hardening）
    调用方无权另行提供 projectId/block/revision/participants（传入即被忽略）
    STATE_BLOCK_NOT_FOUND / STATE_MISSING 错误码；contextProfile 不假装消费
 🚫 Gate / Integrator / Writer / 真模型（F3+）
+```
+
+## F3 落地清单
+
+```text
+✅ shared/m12-formation-validator.js：validateM12Formation({ state, artifactId })
+   只读 · deterministic · 不跑 LLM；decision = FORMATION_READY | FORMATION_REVIEW_REQUIRED
+   （READY 是 Gate decision，不是 Artifact lifecycle status，不回写）
+✅ 基础 blocker：STATE_MISSING / FORMATION_ARTIFACT_NOT_FOUND / FORMATION_ARTIFACT_STALE /
+   FORMATION_ARTIFACT_NOT_READY（STALE/DRAFT 一律 BLOCK）
+✅ 11 主错误码全部实现：
+   guaranteed spine 算法（存在 + 非 CONFIDENCE_BOOST + seeker 可达 + INFERENCE 前提递归可达）
+   → SINGLE_POINT_DEPENDENCY
+   玩家侧 capability（VALUE/EXISTENCE/KNOWLEDGE/LOCATOR/TRIGGER：spine ∨ opening-owned）
+   双边杠杆（seekerLeverage ⊆ counterpartLeverage ⊆ leverageProvenance + seeker 真持有 +
+   provenance 非空壳）→ LEVERAGE_UNSOURCED
+   holder 需求（归属 holder，可私有）与 seeker 识别（必须保证可达）分开验证
+   预写成交（结构断言 + 成交叙述窄 lint）· 作者指令（窄 deterministic lint）
+   注意：requiresNodeIds ≠ player knowledge dependency，只有 INFERENCE 前提要求 seeker 可达
+✅ fixtures/m12-formation/direct-bargain-table-negative.json：
+   能过 F2 Builder（结构完整）但 F3 恰好打出 NEED_NOT_RECOGNIZABLE +
+   SINGLE_POINT_DEPENDENCY + META_PROMPT_DEPENDENCY —— 证明「结构完整 ≠ Formation 成立」
+✅ scripts/m12-formation-validator.test.mjs（25 tests：Gold/Alt READY + 直接谈判桌 REVIEW
+   + 基础 blocker×4 + 只读/权威×2 + 11 码确定性负例 + LEVERAGE 空壳负例
+   + Semantic Hardening 负例×3）
+✅ F3 Semantic Hardening：Visible ≠ Owned（OPENING_OWNED 必须 holderIds 真持有）、
+   杠杆可见 ≠ 可支配（必须持有/保证可得）、Fact ≠ Need（holderNeed 必须 kind=NEED）
+🚫 Integrator / PMD / Writer / 真模型（F4+）
 ```
 
 ## 验收位置
