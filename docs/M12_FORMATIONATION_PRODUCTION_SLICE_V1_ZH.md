@@ -404,7 +404,7 @@ Run #3（real，deepseek）Gate 11 四项全过：
 🚫 F4B（Node→Beat / Integrator / PMD）未开——F4A 只做语义投影，不压剧情
 ```
 
-## F4B — Formation Node → Beat Compilation V1（已落地，待人工审）
+## F4B — Formation Node → Beat Compilation V1（已落地，Ordering Hardening 待人工审）
 
 ```text
 Node ≠ Beat：Beat 是一次有体验意义的剧情变化，nodeRefs 只是证据来源。
@@ -418,11 +418,12 @@ Node ≠ Beat：Beat 是一次有体验意义的剧情变化，nodeRefs 只是�
    与 requiresBeatIds 因果（白绫/周祁可拒绝配合）；孤立 LEVERAGE_EDGE → B3 optional
 ✅ supportNodeRefs：requires 前提 + 边成员（N8a/N8b/N11a 被追踪，Gate 全覆盖）
 ✅ audienceViews = F4A 投影输出（不重新读 raw reveals，零字符串解析——遵守
-   INLINE_ARROW_STRIP 冻结备注）；delivery.mode 5 值结构推导；requiresBeatIds
-   Gold 因果链 = B1←无 / B2←B1 / B3←无 / B4←B2+B3
+   INLINE_ARROW_STRIP 冻结备注）；delivery.mode 5 值结构推导；requiresBeatIds 与
+   preferredAfterBeatIds 分离：Gold 因果链 = B1←无 / B2←B1 / B3←无 / B4←无；
+   B4 的体验编排偏好为位于 B2、B3 之后
 ✅ 渲染：renderM12FormationBeatsForReview（隐藏 Node ID 的人工审素材）
    captures/m12-formation-beats/{gold,alt}-beats.md
-✅ scripts/m12-formation-beat-compiler.test.mjs：13 tests（Gate 1-12 + Alt 旁证）
+✅ scripts/m12-formation-beat-compiler.test.mjs：14 tests（Gate 1-12 + Ordering Hardening + Alt 旁证）
 ✅ Alt 旁证：11 节点 → 4 Beat，B2 required=[K1]（holder 公开）与 Gold 结构不同
    ——compiler 不是 Gold 生成器
 ✅ Alt fixture 微调：K4（老纪 boost）入 knowledgePath（知情人增强路径）

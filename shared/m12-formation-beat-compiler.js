@@ -60,11 +60,13 @@ const BEAT_FAMILIES = Object.freeze([
     id: "B1",
     purpose: "NOTICE_VALUE",
     capabilities: Object.freeze(["VALUE_SOURCE", "EXISTENCE_SOURCE"]),
+    preferredAfterBeatIds: Object.freeze([]),
   }),
   Object.freeze({
     id: "B2",
     purpose: "TRACE_COUNTERPART",
     capabilities: Object.freeze(["KNOWLEDGE_PATH", "LOCATOR_PATH"]),
+    preferredAfterBeatIds: Object.freeze([]),
   }),
   Object.freeze({
     id: "B3",
@@ -75,11 +77,13 @@ const BEAT_FAMILIES = Object.freeze([
       "COUNTERPART_NEED",
       "NEED_RECOGNITION",
     ]),
+    preferredAfterBeatIds: Object.freeze([]),
   }),
   Object.freeze({
     id: "B4",
     purpose: "TIME_PRESSURE",
     capabilities: Object.freeze(["WORLD_TRIGGER"]),
+    preferredAfterBeatIds: Object.freeze(["B2", "B3"]),
   }),
 ]);
 
@@ -269,6 +273,7 @@ export function compileM12FormationBeats(input = {}) {
       },
       audienceViews,
       requiresBeatIds: draft.requiresBeatIds,
+      preferredAfterBeatIds: draft.family.preferredAfterBeatIds,
       satisfiesCapabilities: draft.family.capabilities,
     };
   });
@@ -348,6 +353,9 @@ export function renderM12FormationBeatsForReview({ beats, characterNames = {} } 
     );
     lines.push(
       `- **因果依赖**：${beat.requiresBeatIds.length ? beat.requiresBeatIds.join(" → ") : "无"}`,
+    );
+    lines.push(
+      `- **编排偏好**：${beat.preferredAfterBeatIds.length ? `位于 ${beat.preferredAfterBeatIds.join("、")} 之后` : "无"}`,
     );
     lines.push(
       `- **满足能力**：${beat.satisfiesCapabilities.map((c) => CAPABILITY_LABELS_ZH[c] || c).join("、")}`,

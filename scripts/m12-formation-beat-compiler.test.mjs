@@ -115,11 +115,22 @@ test("F4B gate4: N6/N7/N8 never enter required dependency or beat causal chain",
       assert.ok(!beat.requiredNodeRefs.includes(id), `${beat.id} required 含 ${id}`);
     }
   }
-  // 因果链：B2 只依赖 B1；不依赖 boost；B4 依赖 B2+B3
+  // 因果链：B2 只依赖 B1；不依赖 boost；B4 不把体验顺序伪装成世界因果
   assert.deepEqual(beatById(result, "B1").requiresBeatIds, []);
   assert.deepEqual(beatById(result, "B2").requiresBeatIds, ["B1"]);
   assert.deepEqual(beatById(result, "B3").requiresBeatIds, []);
-  assert.deepEqual(beatById(result, "B4").requiresBeatIds, ["B2", "B3"]);
+  assert.deepEqual(beatById(result, "B4").requiresBeatIds, []);
+  assert.deepEqual(beatById(result, "B4").preferredAfterBeatIds, ["B2", "B3"]);
+});
+
+test("F4B hardening: preferred order is not a causal blocker", () => {
+  const fixture = loadJson(GOLD_PATH);
+  assert.deepEqual(fixture.nodes.find((node) => node.id === "N12").requiresNodeIds, []);
+  const result = compileFixture(GOLD_PATH);
+  const b4 = beatById(result, "B4");
+  assert.deepEqual(b4.requiresBeatIds, []);
+  assert.deepEqual(b4.preferredAfterBeatIds, ["B2", "B3"]);
+  assert.deepEqual(result.beats.map((beat) => beat.id), ["B1", "B2", "B3", "B4"]);
 });
 
 // ── Gate 5-8：capability 覆盖 ─────────────────────────────────────

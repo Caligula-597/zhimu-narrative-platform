@@ -332,7 +332,7 @@
       "holderIds": [],
       "visibleToIds": ["P1", "P2", "P3", "P4", "P5", "P6"],
       "reveals": ["第二轮/私人展厅时窗临近 → 拖过则梁赫核验失败风险上升"],
-      "requiresNodeIds": ["N9", "N10", "N11", "N11b"],
+      "requiresNodeIds": [],
       "acquisition": {
         "mode": "GUARANTEED",
         "whoCanAcquireIds": ["P1", "P2", "P3", "P4", "P5", "P6"],
