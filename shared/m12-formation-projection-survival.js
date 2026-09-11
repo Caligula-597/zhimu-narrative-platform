@@ -234,10 +234,20 @@ function formationViewOf(container, artifactId) {
     asArray(direct.sources).some((source) => source?.artifactId === artifactId)
   ) return direct;
   const candidates = asArray(container?.formationViews);
-  return candidates.find((view) => {
+  const legacy = candidates.find((view) => {
     const row = record(view);
     return row.artifactId === artifactId || asArray(row.sources).some((source) => source?.artifactId === artifactId);
-  }) || null;
+  });
+  if (legacy) return legacy;
+  const context = record(container?.formationContext);
+  if (asArray(context.sources).some((source) => source?.artifactId === artifactId)) {
+    return {
+      ...context,
+      __audienceType: container?.kind === "HOST_SCRIPT" ? "HOST" : "CHARACTER",
+      __audienceId: container?.characterId || null,
+    };
+  }
+  return null;
 }
 
 function actualBeatRefs(view) {
@@ -254,6 +264,15 @@ function actualAudienceFacts(view) {
   }
   for (const entry of asArray(view?.hostView?.entries)) {
     facts.push({ ...entry, audienceType: "HOST", audienceId: null });
+  }
+  if (asArray(view?.entries).length) {
+    for (const entry of view.entries) {
+      facts.push({
+        ...entry,
+        audienceType: view.__audienceType || "CHARACTER",
+        audienceId: view.__audienceId ?? null,
+      });
+    }
   }
   return facts;
 }

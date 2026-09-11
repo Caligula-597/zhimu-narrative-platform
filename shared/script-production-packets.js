@@ -60,6 +60,62 @@ function knowledgeLabelsFromBeat(beat) {
   ]);
 }
 
+function formationSourceForEntries(view, entries) {
+  const sourceIds = new Set(asArray(entries).map((entry) => entry?.artifactId).filter(Boolean));
+  return asArray(view?.sources)
+    .filter((source) => sourceIds.has(source?.artifactId))
+    .map((source) => ({ ...source }));
+}
+
+function formationPacketEntry(entry) {
+  return {
+    artifactId: entry.artifactId,
+    artifactRevision: entry.artifactRevision,
+    sourceBlockId: entry.sourceBlockId,
+    beatId: entry.beatId,
+    nodeId: entry.nodeId,
+    kind: entry.kind,
+    projectionType: entry.projectionType,
+    text: entry.text,
+    provenance: entry.provenance
+      ? { ...entry.provenance, sourceRefs: [...asArray(entry.provenance.sourceRefs)] }
+      : null,
+    required: entry.required !== false,
+    optional: Boolean(entry.optional),
+    inferenceStatus: entry.inferenceStatus || null,
+    confidence: entry.confidence || null,
+    subjectCharacterIds: [...asArray(entry.subjectCharacterIds)],
+  };
+}
+
+/** F5.2: slice only PMD's derived FormationView; no Artifact/State input. */
+function formationContextForAudience(pmd, audience = {}) {
+  const view = pmd?.formationView;
+  if (!view) return null;
+  const entries = audience.type === "HOST"
+    ? asArray(view.hostView?.entries)
+    : asArray(view.characterViews?.[audience.characterId]?.entries);
+  if (!entries.length) return null;
+  const normalizedEntries = entries.map(formationPacketEntry);
+  const beatIds = new Set(normalizedEntries.map((entry) => entry.beatId).filter(Boolean));
+  const artifactIds = new Set(normalizedEntries.map((entry) => entry.artifactId).filter(Boolean));
+  return {
+    version: view.version,
+    sources: formationSourceForEntries(view, normalizedEntries),
+    beats: asArray(view.beats)
+      .filter((beat) => beatIds.has(beat?.beatId) && artifactIds.has(beat?.artifactId))
+      .map((beat) => ({
+        artifactId: beat.artifactId,
+        artifactRevision: beat.artifactRevision,
+        sourceBlockId: beat.sourceBlockId,
+        beatId: beat.beatId,
+        stageId: beat.stageId,
+        purpose: beat.purpose,
+      })),
+    entries: normalizedEntries,
+  };
+}
+
 function deriveResolutionMode(pmd) {
   const families = new Set();
   for (const st of asArray(pmd?.stages)) {
@@ -104,6 +160,7 @@ export function buildHostScriptPacket(pmd) {
     stages.flatMap((s) => s.beats.map((b) => b.sourceOutlineBeatId)),
   );
   const clueIds = unique(asArray(pmd?.clueView?.clues).map((c) => c.clueId));
+  const formationContext = formationContextForAudience(pmd, { type: "HOST" });
 
   return {
     kind: "HOST_SCRIPT",
@@ -123,6 +180,7 @@ export function buildHostScriptPacket(pmd) {
         ...s.beats.flatMap((b) => [b.hostTruth, b.eventSummary]),
       ]),
     ),
+    ...(formationContext ? { formationContext } : {}),
   };
 }
 
@@ -201,6 +259,10 @@ export function buildRoleScriptPacket(pmd, characterId) {
 
   const allowedFactIds = [...allowedFacts];
   const forbiddenFactIds = [...allFactIds].filter((id) => !allowedFacts.has(id));
+  const formationContext = formationContextForAudience(pmd, {
+    type: "CHARACTER",
+    characterId,
+  });
 
   return {
     kind: "ROLE_SCRIPT",
@@ -213,6 +275,7 @@ export function buildRoleScriptPacket(pmd, characterId) {
     allowedFactIds,
     forbiddenFactIds,
     allowedKnowledgeLabels: [...knowledge],
+    ...(formationContext ? { formationContext } : {}),
   };
 }
 

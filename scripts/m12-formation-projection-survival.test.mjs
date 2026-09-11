@@ -94,19 +94,17 @@ function snapshotPackets(snapshot) {
   return {
     host: {
       kind: "HOST_SCRIPT",
-      formationView: {
+      formationContext: {
         ...snapshot,
-        characterViews: {},
-        hostView: { entries: [...snapshot.hostView.entries] },
+        entries: [...snapshot.hostView.entries],
       },
     },
     roles: Object.entries(snapshot.characterViews).map(([characterId, characterView]) => ({
       kind: "ROLE_SCRIPT",
       characterId,
-      formationView: {
+      formationContext: {
         ...snapshot,
-        characterViews: { [characterId]: { entries: [...characterView.entries] } },
-        hostView: { entries: [] },
+        entries: [...characterView.entries],
       },
     })),
   };
@@ -140,7 +138,7 @@ function mutateCharacterEntry(snapshot, characterId, nodeId, patch) {
 }
 
 for (const [label, fixturePath] of [["Gold", GOLD_PATH], ["Alt", ALT_PATH]]) {
-  test(`F5 ${label}: current P6/Packet path reports the first Formation loss`, () => {
+  test(`F5.2 ${label}: formal HOST/ROLE packets complete Formation survival`, () => {
     const { state, pmd, packets } = integratedArtifacts(fixturePath);
     const result = auditM12FormationProjectionSurvival({
       state,
@@ -148,10 +146,9 @@ for (const [label, fixturePath] of [["Gold", GOLD_PATH], ["Alt", ALT_PATH]]) {
       packetSet: packets,
     });
 
-    assert.equal(result.decision, "FORMATION_PROJECTION_LOSS");
-    assert.equal(result.firstLossLayer, "WRITER_PACKET");
-    assert.ok(!result.issues.some((item) => item.layer === "PRODUCTION_MASTER_DRAFT"));
-    assert.ok(result.issues.some((item) => item.code === "FORMATION_PACKET_VIEW_MISSING"));
+    assert.equal(result.decision, "FORMATION_PROJECTION_SURVIVED");
+    assert.equal(result.firstLossLayer, null);
+    assert.equal(result.issues.length, 0);
     assert.equal(result.llmCalls, 0);
   });
 }
@@ -192,10 +189,19 @@ test("F5.1 PMD bridge carries Gold semantics without touching the formal Packet 
   assert.equal(p2.some((entry) => entry.nodeId === "N10"), false);
   assert.equal(p2.some((entry) => entry.nodeId === "N9"), false);
   assert.equal(host.some((entry) => entry.nodeId === "N10"), false);
+  const p2Packet = packets.roles.find((packet) => packet.characterId === "P2");
+  assert.ok(p2Packet);
+  assert.equal(p2Packet.formationContext.entries.some((entry) => entry.nodeId === "N10"), false);
+  assert.equal(p2Packet.formationContext.entries.some((entry) => entry.nodeId === "N9"), false);
 
-  // Existing formal packets remain unchanged in this slice: no Formation view yet.
+  // F5.2 adds only the audience slice; it never exposes the full PMD view.
   assert.equal(packets.host.formationView, undefined);
+  assert.ok(packets.host.formationContext);
+  assert.ok(packets.host.formationContext.entries.every((entry) => entry.nodeId !== "N10"));
   assert.ok(packets.roles.every((packet) => packet.formationView === undefined));
+  assert.ok(packets.clues.every((packet) => packet.formationContext === undefined));
+  assert.ok(packets.publicStages.every((packet) => packet.formationContext === undefined));
+  assert.equal(packets.ending.formationContext, undefined);
 });
 
 test("F5.1 no-Formation projects keep the additive view null", () => {
@@ -206,7 +212,10 @@ test("F5.1 no-Formation projects keep the additive view null", () => {
   });
   const integrated = integrateMasterOutline(stateWithoutFormation);
   const pmd = expandProductionMasterDraft(integrated);
+  const packets = buildScriptProductionPacketSet(pmd);
   assert.equal(pmd.formationView, null);
+  assert.equal(packets.host.formationContext, undefined);
+  assert.ok(packets.roles.every((packet) => packet.formationContext === undefined));
   assert.deepEqual(
     pmd.stages.flatMap((stage) => stage.beats).map((beat) => beat.sourceBlockId),
     integrated.masterOutlineDraft.stages.flatMap((stage) => stage.beats).map((beat) => beat.sourceBlockId),
@@ -241,4 +250,25 @@ test("F5 negative: N9 cannot be upgraded from ACTIONABLE_INFERENCE to Canon fact
   });
   assert.equal(result.decision, "FORMATION_PROJECTION_LOSS");
   assert.ok(result.issues.some((item) => item.code === "FORMATION_INFERENCE_SEMANTICS_NOT_SURVIVED" && item.nodeId === "N9"));
+});
+
+test("F5.2 negative: injecting P1 private N10 into P2 fails visibility audit", () => {
+  const { state, candidatePmd, snapshot } = completeCandidate(GOLD_PATH);
+  const p1N10 = snapshot.characterViews.P1.entries.find((entry) => entry.nodeId === "N10");
+  const mutated = {
+    ...snapshot,
+    characterViews: {
+      ...snapshot.characterViews,
+      P2: {
+        entries: [...snapshot.characterViews.P2.entries, { ...p1N10 }],
+      },
+    },
+  };
+  const result = auditM12FormationProjectionSurvival({
+    state,
+    productionMasterDraft: { ...candidatePmd, formationView: mutated },
+    packetSet: snapshotPackets(mutated),
+  });
+  assert.equal(result.decision, "FORMATION_PROJECTION_LOSS");
+  assert.ok(result.issues.some((item) => item.code === "FORMATION_PRIVATE_VISIBILITY_LEAK" && item.audienceId === "P2" && item.nodeId === "N10"));
 });

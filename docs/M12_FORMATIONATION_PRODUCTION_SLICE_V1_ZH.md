@@ -1,6 +1,6 @@
 # M12 Formation Production Slice V1
 
-> **状态：F4B ✅ FROZEN @ `3985c03` · F4C ✅ FROZEN @ `a84bb7a` · F5 Probe ✅ FROZEN @ `e876f14` · F5.1 PMD Bridge 已落地**
+> **状态：F4B ✅ FROZEN @ `3985c03` · F4C ✅ FROZEN @ `a84bb7a` · F5 Probe ✅ FROZEN @ `e876f14` · F5.1 ✅ · F5.2 ✅**
 > 规格基线：[`M12_FORMATIONATION_CONTRACT_V1_ZH.md`](./M12_FORMATIONATION_CONTRACT_V1_ZH.md) ✅ GOLDEN @ `05164fe`  
 > 分级基线：[`STORY_MECHANISM_FORMATIONATION_GRADING_ZH.md`](./STORY_MECHANISM_FORMATIONATION_GRADING_ZH.md) @ `16716ab`  
 > **规格层 GOLDEN ≠ 生产层已具备。pack 内 M12-1 仍 = GAP_HIGH。**  
@@ -39,6 +39,8 @@ F5 deterministic Projection Survival
         ↓
 F5.1 PMD FormationView Bridge
         ↓
+F5.2 Formal Writer Packet Projection
+        ↓
 （更以后）真 Writer RPT #1D
 ```
 
@@ -72,8 +74,8 @@ F5.1 PMD FormationView Bridge
 | **F3** | Validator / Gate | 结构错误码 → `FORMATION_READY` / `REVIEW_REQUIRED` | |
 | **F4C** | Integrator Formation Beats | `formationNodes` ≠ `formationBeats`；只写 placement/ref，接到 PROBE 前 | ✅ 已落地 |
 | **F5** | Projection Survival V1 | `shared/m12-formation-projection-survival.js` + Gold/Alt/semantic negatives | ✅ FROZEN @ `e876f14` |
-| **F5.1** | PMD FormationView Bridge V1 | additive `ProductionMasterDraft.formationView` | ✅ 已落地；首次丢失后移到 Formal Packet |
-| **F5.2** | Formal Writer Packet Formation Projection | 只接 Packet，不改 PMD | 下一刀 |
+| **F5.1** | PMD FormationView Bridge V1 | additive `ProductionMasterDraft.formationView` | ✅ PASS / FROZEN @ `5653bc7` |
+| **F5.2** | Formal Writer Packet Formation Projection | `HOST/ROLE.formationContext` audience slice | ✅ PASS；Gold/Alt 全链 survived |
 | **F6** | Real Writer RPT #1D | 真模型闭环 | 更后 |
 
 ---
@@ -290,10 +292,21 @@ Projection Survival PASS，
 
 ---
 
-## 下一刀 F5.2 — Formal Writer Packet Formation Projection
+## F5.2 — Formal Writer Packet Formation Projection
 
-只把 PMD 已通过 F5.1 的 `formationView` 投射进正式 host/role Packet；不再改 PMD。
-通过后才进入：
+只把 PMD 已通过 F5.1 的 `formationView` 投射进正式 HOST/ROLE Packet；不再改 PMD，
+不接 CLUE/PUBLIC/ENDING。
+
+正式 Packet 只收到 audience-specific `formationContext`，不会收到完整 PMD `formationView`，
+也不会回读 Artifact 或重新解释 visibility/provenance/inference。
+
+F5.2 已通过：
+
+```text
+Gold → FORMATION_PROJECTION_SURVIVED
+Alt  → FORMATION_PROJECTION_SURVIVED
+firstLossLayer = null
+```
 
 ## 第二阶段 F6 — Real Writer RPT #1D
 
@@ -336,8 +349,9 @@ F2 = 已 FROZEN（Blueprint + Builder + 双 fixture + Authority Hardening）
 F3 = 已授权并落地（Validator/Gate + Gold/Alt PASS + 直接谈判桌 FAIL）
 F4B = 已冻结 @ `3985c03`
 F4C = 已冻结 @ `a84bb7a`
-F5 = deterministic Survival Probe 已落地；当前 Gold / Alt 为 `FORMATION_PROJECTION_LOSS`
-F5.1 = PMD FormationView Bridge 已落地；当前 Gold / Alt 首次丢失为 `WRITER_PACKET`
+F5 = deterministic Survival Probe ✅ FROZEN @ `e876f14`
+F5.1 = PMD FormationView Bridge ✅ PASS / FROZEN @ `5653bc7`
+F5.2 = Formal Writer Packet Projection ✅ PASS；Gold/Alt `FORMATION_PROJECTION_SURVIVED`
 ```
 
 ## F1 落地清单
