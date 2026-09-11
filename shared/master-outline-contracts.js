@@ -20,6 +20,10 @@ function cleanId(value) {
   return cleanText(value, 120);
 }
 
+function normalizeRevision(value, fallback = 0) {
+  return Number.isFinite(Number(value)) ? Math.max(0, Math.trunc(Number(value))) : fallback;
+}
+
 export const MASTER_OUTLINE_CONTRACT_VERSION = 1;
 
 export const WEAVE_KINDS = Object.freeze([
@@ -141,6 +145,50 @@ export function normalizeCharacterLoadRow(value = {}) {
   };
 }
 
+/** F4C — placement sidecar only; Formation content stays in the source artifact/beat. */
+export function normalizeFormationBeatPlacement(value = {}) {
+  const src = record(value);
+  return {
+    artifactId: cleanId(src.artifactId),
+    artifactRevision: normalizeRevision(src.artifactRevision),
+    sourceBlockId: cleanId(src.sourceBlockId),
+    beatId: cleanId(src.beatId),
+    stageId: cleanId(src.stageId),
+    order: Number.isFinite(Number(src.order)) ? Number(src.order) : 0,
+  };
+}
+
+function normalizeFormationWarning(value = {}) {
+  if (typeof value === "string") {
+    return { code: "FORMATION_INTEGRATION_WARNING", message: cleanText(value, 400) };
+  }
+  const src = record(value);
+  return {
+    code: cleanText(src.code, 120) || "FORMATION_INTEGRATION_WARNING",
+    message: cleanText(src.message, 400),
+    artifactId: cleanId(src.artifactId) || null,
+    beatId: cleanId(src.beatId) || null,
+    preferredAfterBeatIds: asArray(src.preferredAfterBeatIds).map(String),
+  };
+}
+
+export function normalizeFormationIntegration(value = {}) {
+  const src = record(value);
+  const sourceRevision = Number.isFinite(Number(src.sourceRevision))
+    ? normalizeRevision(src.sourceRevision)
+    : null;
+  return {
+    version: 1,
+    sourceRevision,
+    sourceRevisions: asArray(src.sourceRevisions).map((row) => ({
+      artifactId: cleanId(row?.artifactId),
+      revision: normalizeRevision(row?.revision),
+      sourceBlockRevision: normalizeRevision(row?.sourceBlockRevision),
+    })),
+    warnings: asArray(src.warnings).map(normalizeFormationWarning),
+  };
+}
+
 /**
  * @returns {import('./master-outline-contracts.js').MasterOutlineDraft|null}
  */
@@ -160,6 +208,8 @@ export function normalizeMasterOutlineDraft(value) {
     weaveLinks: asArray(src.weaveLinks).map(normalizeWeaveLink),
     conflictReport: asArray(src.conflictReport).map(normalizeConflictItem),
     characterLoadReport: asArray(src.characterLoadReport).map(normalizeCharacterLoadRow),
+    formationBeatPlacements: asArray(src.formationBeatPlacements).map(normalizeFormationBeatPlacement),
+    formationIntegration: normalizeFormationIntegration(src.formationIntegration),
   };
 }
 
@@ -175,5 +225,7 @@ export function emptyMasterOutlineDraft(partial = {}) {
     weaveLinks: partial.weaveLinks || [],
     conflictReport: partial.conflictReport || [],
     characterLoadReport: partial.characterLoadReport || [],
+    formationBeatPlacements: partial.formationBeatPlacements || [],
+    formationIntegration: partial.formationIntegration || {},
   });
 }

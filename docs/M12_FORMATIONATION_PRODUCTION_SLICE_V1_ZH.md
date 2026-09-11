@@ -1,6 +1,6 @@
 # M12 Formation Production Slice V1
 
-> **状态：F4B 已落地（Beat Compiler V1，待人工审）· F4C 未开**  
+> **状态：F4B ✅ FROZEN @ `3985c03` · F4C 已落地，待人工审**
 > 规格基线：[`M12_FORMATIONATION_CONTRACT_V1_ZH.md`](./M12_FORMATIONATION_CONTRACT_V1_ZH.md) ✅ GOLDEN @ `05164fe`  
 > 分级基线：[`STORY_MECHANISM_FORMATIONATION_GRADING_ZH.md`](./STORY_MECHANISM_FORMATIONATION_GRADING_ZH.md) @ `16716ab`  
 > **规格层 GOLDEN ≠ 生产层已具备。pack 内 M12-1 仍 = GAP_HIGH。**  
@@ -12,7 +12,8 @@
 > Content Preview V1 ✅ PASS（两轮 real A/B + Run #3）  
 > F4A ✅ FROZEN @ `bc2c44a`（Role-Relative Projection V1；冻结备注：INLINE_ARROW_STRIP  
 > = F4A V1 rendering heuristic ≠ universal semantic parser，不得扩散进 Beat compiler）  
-> F4B Beat Compiler V1 已落地：16 节点 → 4 Beat（Node ≠ Beat），待人工审
+> F4B Beat Compiler V1 ✅ FROZEN：16 节点 → 4 Beat（Node ≠ Beat）
+> F4C Formation Placement V1 已落地，待人工审
 
 ## 一句话
 
@@ -69,7 +70,7 @@ PMD / Packet 能看到信息来源与接触理由
 | **F1** | Formation Artifact 合同 | `shared/m12-formation-contracts.js` · `fixtures/m12-formation/` | ✅ 本刀 |
 | **F2** | Blueprint + Builder | pack blueprint + `buildM12FormationArtifact` | 紧随 F1 |
 | **F3** | Validator / Gate | 结构错误码 → `FORMATION_READY` / `REVIEW_REQUIRED` | |
-| **F4** | Integrator Formation Beats | `formationNodes` ≠ `formationBeats`；接到 PROBE 前 | |
+| **F4C** | Integrator Formation Beats | `formationNodes` ≠ `formationBeats`；只写 placement/ref，接到 PROBE 前 | ✅ 已落地 |
 | **F5** | Gold + Negative Replay | `scripts/m12-formation-gold-replay.mjs` + 反例 | |
 | — | **Implementation Gate** | 见下方 12 条 | F1–F5 全绿 |
 | **F6** | Projection Survival | Artifact→Outline→PMD→Packet probe | 第二阶段 |
@@ -186,11 +187,26 @@ M12 accepted block → Artifact → Gate → FORMATION_READY → Master Outline 
 
 ---
 
-## F4 — Integrator
+## F4C — Formation Beat → Master Outline Integrator V1
 
-- 不改 Resolution 四段  
-- Formation → 前置 beats（例：`FORMATION_OBSERVE/INFER/TRACE/LOCATE/LEVERAGE/TRIGGER`）再接 `PROBE…`  
-- **Node ≠ Beat**：禁止默认 12 node = 12 幕  
+- `ProjectStoryState` 是唯一 authority；Integrator 内部重跑 F3/F4B，不接受 caller Artifact/Beat 替代。
+- `MasterOutlineDraft.formationBeatPlacements[]` 只保存 `artifactId / artifactRevision / sourceBlockId / beatId / stageId / order`。
+- 不复制 `nodeRefs`、`audienceViews`、provenance、文本或 Resolution outcome；普通 P5 `stages[].beats` contract 保持原样。
+- `requiresBeatIds` 是 hard causal constraint；`preferredAfterBeatIds` 只参与确定性排序/产生 warning，不转成 blocker。
+- 所有 Formation Beat 必须位于对应 M12 `PROBE` anchor 之前；缺 anchor 直接 `FORMATION_RESOLUTION_ANCHOR_MISSING`，不猜位置。
+- Artifact revision 变化、F3 不通过、source block 不在当前 Outline 或 placement 缺失，均拒绝写回。
+- 实现：`shared/m12-formation-integrator.js` + `shared/master-outline-integrator.js` sidecar 接线。
+- 测试：`scripts/m12-formation-integrator.test.mjs`（Gold / Alt / hard negative / soft negative / anchor blocker / idempotence）。
+
+```text
+ProjectStoryState
+  → M12 Artifact（当前 revision）
+  → F3 FORMATION_READY
+  → F4A/F4B FormationBeat[]
+  → formationBeatPlacements[]
+  → M12 PROBE
+  → NEGOTIATE → EXCHANGE → AFTERMATH
+```
 
 ---
 
@@ -279,8 +295,9 @@ Intent → STORY → Formation → Resolution → Integrator → PMD → Packet 
 ```text
 F1 = 已落地并 FROZEN（Artifact 合同 + Gold fixture + sidecar + Hardening）
 F2 = 已 FROZEN（Blueprint + Builder + 双 fixture + Authority Hardening）
-F3 = 已授权并落地（Validator/Gate + Gold/Alt PASS + 直接谈判桌 FAIL），待人工审
-开始 F4 = 需要明确：「开始 F4」或「开始 M12 Formation Beats + Integrator」
+F3 = 已授权并落地（Validator/Gate + Gold/Alt PASS + 直接谈判桌 FAIL）
+F4B = 已冻结 @ `3985c03`
+F4C = 已实现，待人工审
 ```
 
 ## F1 落地清单
@@ -431,7 +448,7 @@ Node ≠ Beat：Beat 是一次有体验意义的剧情变化，nodeRefs 只是�
 三个危险坑（全部钉死）：不写新剧情（全部文本 ⊆ canonical reveals 子串）；
 optional 不升格 required；不生成 NEGOTIATE/EXCHANGE outcome（无 resolution 概念）
 
-🚫 F4C（Integrator / PMD / Master Outline）未开
+✅ F4C 已接入现有 MasterOutlineDraft；🚫 PMD / Writer / GAME / Runtime 未触碰
 ```
 
 ## 验收位置

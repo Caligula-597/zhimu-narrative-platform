@@ -23,6 +23,8 @@
 | `weaveLinks[]` | 交织边 + `relationQuality`：INTERWOVEN / COLOCATED / PARALLEL |
 | `conflictReport[]` | 负载与有意重叠候选；可 ACCEPT / ADJUST / IGNORE |
 | `characterLoadReport[]` | 角色职责与负载 |
+| `formationBeatPlacements[]` | F4C placement/ref sidecar；只保存 Artifact/Beat 来源与 `stageId/order`，不复制 Formation 内容 |
+| `formationIntegration` | F4C source revision 与 soft-order warnings；`requiresBeatIds` 不可被 `preferredAfterBeatIds` 替代 |
 
 ## 交织启发式（P5.2 Semantic Bridge）
 
@@ -57,5 +59,7 @@
 
 - `shared/master-outline-contracts.js`
 - `shared/master-outline-integrator.js`
+- `shared/m12-formation-integrator.js`
 - `src/views/creator-master-outline-workbench.js`
 - `scripts/master-outline-integrator.test.mjs`
+- `scripts/m12-formation-integrator.test.mjs`

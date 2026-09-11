@@ -36,6 +36,10 @@ import {
   factIdOf,
 } from "./semantic-fact.js";
 import { resolveBeatOwnerRefs, applyOwnerResolution } from "./beat-owner-authority.js";
+import {
+  buildFormationIntegrationSidecar,
+  validateFormationIntegration,
+} from "./m12-formation-integrator.js";
 
 const ACCEPTED = new Set(["USER_ACCEPTED", "USER_MODIFIED", "LOCKED"]);
 
@@ -518,7 +522,7 @@ export function buildMasterOutlineDraft(projectStoryState, { now = () => new Dat
   const characterLoadReport = buildCharacterLoadReport(state, blocks);
   const conflictReport = buildConflictReport(state, characterLoadReport);
 
-  return emptyMasterOutlineDraft({
+  const draft = emptyMasterOutlineDraft({
     id: newId("mod"),
     sourceStoryStateRevision: state.revision || 0,
     sourceBlockIds: blocks.map((b) => b.id),
@@ -530,6 +534,11 @@ export function buildMasterOutlineDraft(projectStoryState, { now = () => new Dat
     conflictReport,
     characterLoadReport,
   });
+  const formation = buildFormationIntegrationSidecar(state, draft);
+  if (!formation.ok) fail(formation.code, formation.message, formation.details);
+  draft.formationBeatPlacements = formation.formationBeatPlacements;
+  draft.formationIntegration = formation.formationIntegration;
+  return draft;
 }
 
 /** 生成 draft 并写回 ProjectStoryState.masterOutlineDraft */
@@ -687,8 +696,12 @@ export function proposeWeaveBetweenBeats(draft, beatIdA, beatIdB) {
 /** 把调整后的 draft 写回 state */
 export function writeMasterOutlineDraft(projectStoryState, draft) {
   const state = createProjectStoryState(projectStoryState);
+  const next = requireDraft(draft);
+  const formation = validateFormationIntegration(state, next);
+  if (!formation.ok) fail(formation.code, formation.message, formation.details);
+  next.formationIntegration = formation.formationIntegration;
   return createProjectStoryState({
     ...state,
-    masterOutlineDraft: requireDraft(draft),
+    masterOutlineDraft: next,
   });
 }
