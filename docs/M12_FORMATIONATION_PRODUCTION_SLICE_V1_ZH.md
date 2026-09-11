@@ -1,6 +1,6 @@
 # M12 Formation Production Slice V1
 
-> **状态：F4B ✅ FROZEN @ `3985c03` · F4C 已落地，待人工审**
+> **状态：F4B ✅ FROZEN @ `3985c03` · F4C ✅ FROZEN @ `a84bb7a` · F5 Survival Probe 已落地**
 > 规格基线：[`M12_FORMATIONATION_CONTRACT_V1_ZH.md`](./M12_FORMATIONATION_CONTRACT_V1_ZH.md) ✅ GOLDEN @ `05164fe`  
 > 分级基线：[`STORY_MECHANISM_FORMATIONATION_GRADING_ZH.md`](./STORY_MECHANISM_FORMATIONATION_GRADING_ZH.md) @ `16716ab`  
 > **规格层 GOLDEN ≠ 生产层已具备。pack 内 M12-1 仍 = GAP_HIGH。**  
@@ -13,7 +13,7 @@
 > F4A ✅ FROZEN @ `bc2c44a`（Role-Relative Projection V1；冻结备注：INLINE_ARROW_STRIP  
 > = F4A V1 rendering heuristic ≠ universal semantic parser，不得扩散进 Beat compiler）  
 > F4B Beat Compiler V1 ✅ FROZEN：16 节点 → 4 Beat（Node ≠ Beat）
-> F4C Formation Placement V1 已落地，待人工审
+> F4C Formation Placement V1 ✅ FROZEN @ `a84bb7a`
 
 ## 一句话
 
@@ -35,9 +35,7 @@ Integrator 吃 Formation Beats（非每个 Node 一幕）
         ↓
 PMD / Packet 能看到信息来源与接触理由
         ↓
-离线 Gold + Negative replay
-        ↓
-（以后）Projection Survival
+F5 deterministic Projection Survival
         ↓
 （更以后）真 Writer RPT #1D
 ```
@@ -71,10 +69,9 @@ PMD / Packet 能看到信息来源与接触理由
 | **F2** | Blueprint + Builder | pack blueprint + `buildM12FormationArtifact` | 紧随 F1 |
 | **F3** | Validator / Gate | 结构错误码 → `FORMATION_READY` / `REVIEW_REQUIRED` | |
 | **F4C** | Integrator Formation Beats | `formationNodes` ≠ `formationBeats`；只写 placement/ref，接到 PROBE 前 | ✅ 已落地 |
-| **F5** | Gold + Negative Replay | `scripts/m12-formation-gold-replay.mjs` + 反例 | |
-| — | **Implementation Gate** | 见下方 12 条 | F1–F5 全绿 |
-| **F6** | Projection Survival | Artifact→Outline→PMD→Packet probe | 第二阶段 |
-| **F7** | Real Writer RPT #1D | 真模型闭环 | 更后 |
+| **F5** | Projection Survival V1 | `shared/m12-formation-projection-survival.js` + Gold/Alt/semantic negatives | ✅ Probe 已落地；当前定位为 PMD 首次丢失 |
+| — | **Survival Gate** | `FORMATION_PROJECTION_SURVIVED` / `FORMATION_PROJECTION_LOSS` | 当前为 LOSS，先不改 P6 |
+| **F6** | Real Writer RPT #1D | 真模型闭环 | 更后 |
 
 ---
 
@@ -210,30 +207,39 @@ ProjectStoryState
 
 ---
 
-## F5 — Replay
+## F5 — Formation Projection Survival V1
 
 ```bash
-# 预期（落地后）
-node scripts/m12-formation-gold-replay.mjs
-# → captures/m12-formation-gold-replay.json
-# FORMATION_READY, issues=[]
+# deterministic probe
+node --test scripts/m12-formation-projection-survival.test.mjs
+# Gold / Alt 当前都应报告 FORMATION_PROJECTION_LOSS
+# firstLossLayer = PRODUCTION_MASTER_DRAFT
 ```
 
-另做反例 fixture（旧「直接谈判桌」），至少期望：
+F5 只检查 Formation 是否穿过既有生产链，不评文笔，不跑真模型：
 
 ```text
-FORMATION_EXISTENCE_UNSOURCED
-FORMATION_LOCATOR_PATH_MISSING
-FORMATION_LEVERAGE_UNSOURCED
-FORMATION_NEED_NOT_RECOGNIZABLE
-FORMATION_META_PROMPT_DEPENDENCY
+ProjectStoryState
+  → F4C MasterOutlineDraft placement/ref
+  → 现有 P6 ProductionMasterDraft
+  → 正式 view-specific Writer Packet
 ```
 
-坏样本若也能 PASS → Gate 无效。
+当前事实：P6 Expander 和正式 Packet Builder 都没有消费 Formation sidecar，
+因此 Gold / Alt 的第一丢失层都是 `PRODUCTION_MASTER_DRAFT`。这不是把普通 STORY beat
+当 Formation 的误判，而是明确的 `FORMATION_BEAT_REFS_MISSING` / `FORMATION_PMD_VIEW_MISSING`。
+
+探针还冻结了三个 deterministic 负例：
+
+- 删除 N10 provenance，即使腕带对象仍在，也必须 `FORMATION_PROVENANCE_NOT_SURVIVED`。
+- 把 N9 `ACTIONABLE_INFERENCE` 改成 `CANON_FACT`，必须 `FORMATION_INFERENCE_SEMANTICS_NOT_SURVIVED`。
+- N6/N7/N8 只能保持 optional，不得被投成 required disclosure。
+
+完整候选快照可通过 probe，但它只是 audit fixture，不是对 P6 的临时接线，也没有写回生产合同。
 
 ---
 
-## Implementation Gate（F1–F5 PASS）
+## Implementation Scope Gate（F1–F4C）
 
 ```text
 1.  M12FormationArtifact 有正式合同
@@ -250,12 +256,13 @@ FORMATION_META_PROMPT_DEPENDENCY
 12. 不跑真模型
 ```
 
-全绿 → **M12 Formation Implementation V1 ✅**  
-此时 **仍不**自动把官方 Formation 等级从 `GAP_HIGH` 升 `OK`。
+F1–F4C 全绿只说明 Formation 已进入 Master Outline；F5 当前故意把生产链的
+PMD 首次丢失暴露出来，因此不能把本阶段标成 Projection Survival PASS，
+也不能自动把官方 Formation 等级从 `GAP_HIGH` 升 `OK`。
 
 ---
 
-## 第二阶段 F6 — Projection Survival
+## 第二阶段 F6 — Real Writer RPT #1D
 
 ```text
 Gold Artifact → Master Outline → PMD → Role Packet
@@ -265,8 +272,6 @@ Gold Artifact → Master Outline → PMD → Role Packet
 PASS 后才说明 Formation 进入角色生产输入。
 
 ---
-
-## 第三阶段 F7 — RPT #1D
 
 真 Writer；测完整：
 
@@ -297,7 +302,8 @@ F1 = 已落地并 FROZEN（Artifact 合同 + Gold fixture + sidecar + Hardening�
 F2 = 已 FROZEN（Blueprint + Builder + 双 fixture + Authority Hardening）
 F3 = 已授权并落地（Validator/Gate + Gold/Alt PASS + 直接谈判桌 FAIL）
 F4B = 已冻结 @ `3985c03`
-F4C = 已实现，待人工审
+F4C = 已冻结 @ `a84bb7a`
+F5 = deterministic Survival Probe 已落地；当前 Gold / Alt 为 `FORMATION_PROJECTION_LOSS`
 ```
 
 ## F1 落地清单
