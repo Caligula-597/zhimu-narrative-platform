@@ -19,6 +19,84 @@ function cleanId(value) {
   return cleanText(value, 120);
 }
 
+function normalizeFormationProvenance(value = {}) {
+  const src = record(value);
+  return {
+    type: cleanText(src.type, 80) || null,
+    summary: cleanText(src.summary, 400) || null,
+    sourceRefs: asArray(src.sourceRefs).map((ref) => cleanText(ref, 160)).filter(Boolean),
+  };
+}
+
+function normalizeFormationViewEntry(value = {}) {
+  const src = record(value);
+  return {
+    artifactId: cleanId(src.artifactId),
+    artifactRevision: Math.max(0, Math.trunc(Number(src.artifactRevision) || 0)),
+    sourceBlockId: cleanId(src.sourceBlockId),
+    beatId: cleanId(src.beatId),
+    nodeId: cleanId(src.nodeId),
+    kind: cleanId(src.kind),
+    projectionType: cleanId(src.projectionType),
+    text: cleanText(src.text, 800),
+    provenance: normalizeFormationProvenance(src.provenance),
+    required: src.required !== false,
+    optional: Boolean(src.optional),
+    inferenceStatus: cleanId(src.inferenceStatus) || null,
+    confidence: cleanId(src.confidence) || null,
+    subjectCharacterIds: asArray(src.subjectCharacterIds).map(String).filter(Boolean),
+  };
+}
+
+function normalizeFormationView(value) {
+  if (value == null) return null;
+  const src = record(value);
+  const sources = asArray(src.sources).map((source) => {
+    const row = record(source);
+    return {
+      artifactId: cleanId(row.artifactId),
+      artifactRevision: Math.max(0, Math.trunc(Number(row.artifactRevision) || 0)),
+      sourceBlockId: cleanId(row.sourceBlockId),
+      integrationVersion: Math.max(0, Math.trunc(Number(row.integrationVersion) || 0)),
+      compilerVersion: Math.max(0, Math.trunc(Number(row.compilerVersion) || 0)),
+    };
+  });
+  const beats = asArray(src.beats).map((beat) => {
+    const row = record(beat);
+    return {
+      artifactId: cleanId(row.artifactId),
+      artifactRevision: Math.max(0, Math.trunc(Number(row.artifactRevision) || 0)),
+      sourceBlockId: cleanId(row.sourceBlockId),
+      beatId: cleanId(row.beatId),
+      stageId: cleanId(row.stageId),
+      order: Number.isFinite(Number(row.order)) ? Number(row.order) : null,
+      purpose: cleanId(row.purpose),
+      requiredNodeRefs: asArray(row.requiredNodeRefs).map(String),
+      optionalNodeRefs: asArray(row.optionalNodeRefs).map(String),
+      nodeRefs: asArray(row.nodeRefs).map(String),
+      requiresBeatIds: asArray(row.requiresBeatIds).map(String),
+      preferredAfterBeatIds: asArray(row.preferredAfterBeatIds).map(String),
+    };
+  });
+  const characterViews = {};
+  for (const [characterId, view] of Object.entries(record(src.characterViews))) {
+    const row = record(view);
+    characterViews[characterId] = {
+      entries: asArray(row.entries).map(normalizeFormationViewEntry),
+    };
+  }
+  const host = record(src.hostView);
+  return {
+    version: Math.max(0, Math.trunc(Number(src.version) || 0)),
+    sources,
+    beats,
+    characterViews,
+    hostView: {
+      entries: asArray(host.entries).map(normalizeFormationViewEntry),
+    },
+  };
+}
+
 /** P6.x Projection Correctness bumps contract shape (contributions / clue lifecycle / truth flags). */
 export const PRODUCTION_MASTER_DRAFT_VERSION = 2;
 
@@ -373,6 +451,8 @@ export function normalizeProductionMasterDraft(value) {
     characterViews: normalizeCharacterViews(src.characterViews),
     clueView: normalizeClueView(src.clueView),
     executionView: normalizeExecutionView(src.executionView),
+    /** F5.1 additive snapshot; null for projects without M12 Formation. */
+    formationView: normalizeFormationView(src.formationView),
     warnings: asArray(src.warnings).map(normalizeMasterDraftWarning),
     structureChangeRequests: asArray(src.structureChangeRequests).map(normalizeStructureChangeRequest),
     status,
@@ -395,6 +475,7 @@ export function emptyProductionMasterDraft(partial = {}) {
     characterViews: partial.characterViews || { characters: [] },
     clueView: partial.clueView || { clues: [] },
     executionView: partial.executionView || { stages: [] },
+    formationView: partial.formationView ?? null,
     warnings: partial.warnings || [],
     structureChangeRequests: partial.structureChangeRequests || [],
     status: partial.status || "DRAFT",

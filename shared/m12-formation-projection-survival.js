@@ -91,6 +91,46 @@ function factSnapshot(node, audience) {
   };
 }
 
+function survivalEntry({ artifact, beat, node, projection }) {
+  const optional = asArray(beat.optionalNodeRefs).includes(node.id);
+  return {
+    artifactId: artifact.id,
+    artifactRevision: artifactRevisionOf(artifact),
+    sourceBlockId: artifact.sourceBlockId,
+    beatId: beat.id,
+    nodeId: node.id,
+    kind: node.kind,
+    projectionType: projection?.projectionType || null,
+    text: projection?.text || "",
+    provenance: nodeProvenance(node),
+    required: !optional,
+    optional,
+    inferenceStatus: node.kind === "INFERENCE" ? node.confidence || null : null,
+    confidence: node.confidence || null,
+    subjectCharacterIds: [...(projection?.subjectCharacterIds || [])],
+  };
+}
+
+function expectedCharacterEntries({ artifact, beat, nodeById, characterId }) {
+  const projections = new Map(
+    asArray(beat.audienceViews?.[characterId]).map((projection) => [projection.nodeId, projection]),
+  );
+  for (const nodeId of [...beat.nodeRefs, ...beat.supportNodeRefs]) {
+    const node = nodeById.get(nodeId);
+    if (!node || projections.has(nodeId) || !formationNodeKnownTo(node, characterId)) continue;
+    projections.set(
+      nodeId,
+      projectFormationNodeForAudience(node, { audienceType: "CHARACTER", audienceId: characterId }),
+    );
+  }
+  return [...projections.values()]
+    .map((projection) => {
+      const node = nodeById.get(projection.nodeId);
+      return node ? survivalEntry({ artifact, beat, node, projection }) : null;
+    })
+    .filter(Boolean);
+}
+
 function expectedAudienceFacts(state, artifact) {
   const characterIds = unique(asArray(state.characters).map((character) => character?.id));
   const publicNodes = publicNodesOf(artifact, characterIds);
@@ -133,56 +173,89 @@ export function buildM12FormationSurvivalExpectation({ state, artifactId, master
   );
   const placementByBeatId = new Map(placements.map((row) => [row.beatId, row]));
 
-  return {
-    version: M12_FORMATION_PROJECTION_SURVIVAL_VERSION,
-    artifactId: artifact.id,
-    artifactRevision: artifactRevisionOf(artifact),
-    integrationVersion: M12_FORMATION_INTEGRATION_VERSION,
-    compilerVersion: M12_FORMATION_BEAT_VERSION,
-    beatRefs: compiled.beats.map((beat) => ({
+  const nodeById = new Map(asArray(artifact.nodes).map((node) => [node.id, node]));
+  const characterIds = unique(asArray(normalizedState.characters).map((character) => character?.id));
+  const characterViews = Object.fromEntries(characterIds.map((id) => [id, { entries: [] }]));
+  const publicIds = new Set(publicNodesOf(artifact, characterIds).map((node) => node.id));
+  const hostEntries = new Map();
+  const beats = compiled.beats.map((beat) => {
+    const placement = placementByBeatId.get(beat.id);
+    for (const characterId of characterIds) {
+      characterViews[characterId].entries.push(
+        ...expectedCharacterEntries({ artifact, beat, nodeById, characterId }),
+      );
+    }
+    for (const nodeId of [...beat.nodeRefs, ...beat.supportNodeRefs]) {
+      if (!publicIds.has(nodeId)) continue;
+      const node = nodeById.get(nodeId);
+      if (!node) continue;
+      const projection = projectFormationNodeForAudience(node, { audienceType: "HOST" });
+      const entry = survivalEntry({ artifact, beat, node, projection });
+      hostEntries.set(`${entry.artifactId}|${entry.beatId}|${entry.nodeId}`, entry);
+    }
+    return {
       artifactId: artifact.id,
       artifactRevision: artifactRevisionOf(artifact),
       sourceBlockId: artifact.sourceBlockId,
       beatId: beat.id,
-      stageId: placementByBeatId.get(beat.id)?.stageId || null,
-      order: placementByBeatId.get(beat.id)?.order ?? null,
-      compilerVersion: M12_FORMATION_BEAT_VERSION,
+      stageId: placement?.stageId || null,
+      order: placement?.order ?? null,
+      purpose: beat.purpose,
       requiredNodeRefs: [...beat.requiredNodeRefs],
       optionalNodeRefs: [...beat.optionalNodeRefs],
       nodeRefs: [...beat.nodeRefs],
       requiresBeatIds: [...beat.requiresBeatIds],
       preferredAfterBeatIds: [...beat.preferredAfterBeatIds],
-    })),
-    audienceFacts: expectedAudienceFacts(normalizedState, artifact).flatMap((audience) => [
-      ...audience.fixedFacts.map((fact) => ({
-        ...fact,
-        audienceType: audience.audienceType,
-        audienceId: audience.audienceId,
-        channel: "fixedFacts",
-      })),
-      ...audience.characterKnowledge.map((fact) => ({
-        ...fact,
-        audienceType: audience.audienceType,
-        audienceId: audience.audienceId,
-        channel: "characterKnowledge",
-      })),
-    ]),
+    };
+  });
+
+  return {
+    version: M12_FORMATION_PROJECTION_SURVIVAL_VERSION,
+    sources: [
+      {
+        artifactId: artifact.id,
+        artifactRevision: artifactRevisionOf(artifact),
+        sourceBlockId: artifact.sourceBlockId,
+        integrationVersion: M12_FORMATION_INTEGRATION_VERSION,
+        compilerVersion: M12_FORMATION_BEAT_VERSION,
+      },
+    ],
+    beats,
+    characterViews,
+    hostView: { entries: [...hostEntries.values()] },
   };
 }
 
 function formationViewOf(container, artifactId) {
   const direct = record(container?.formationView);
-  if (direct.artifactId === artifactId || direct.artifactId == null) return direct.artifactId ? direct : null;
+  if (direct.artifactId === artifactId) return direct;
+  if (
+    direct.artifactId == null &&
+    asArray(direct.sources).some((source) => source?.artifactId === artifactId)
+  ) return direct;
   const candidates = asArray(container?.formationViews);
-  return candidates.find((view) => record(view).artifactId === artifactId) || null;
+  return candidates.find((view) => {
+    const row = record(view);
+    return row.artifactId === artifactId || asArray(row.sources).some((source) => source?.artifactId === artifactId);
+  }) || null;
 }
 
 function actualBeatRefs(view) {
-  return asArray(view?.beatRefs || view?.formationBeatRefs || view?.beats);
+  return asArray(view?.beats || view?.beatRefs || view?.formationBeatRefs);
 }
 
 function actualAudienceFacts(view) {
-  return asArray(view?.audienceFacts || view?.facts);
+  if (asArray(view?.audienceFacts || view?.facts).length) return asArray(view.audienceFacts || view.facts);
+  const facts = [];
+  for (const [audienceId, characterView] of Object.entries(record(view?.characterViews))) {
+    for (const entry of asArray(characterView?.entries)) {
+      facts.push({ ...entry, audienceType: "CHARACTER", audienceId });
+    }
+  }
+  for (const entry of asArray(view?.hostView?.entries)) {
+    facts.push({ ...entry, audienceType: "HOST", audienceId: null });
+  }
+  return facts;
 }
 
 function actualFactFor(audienceFacts, audience, nodeId) {
@@ -217,6 +290,10 @@ function compareProvenance(actual, expected) {
   );
 }
 
+function expectedSource(expected) {
+  return asArray(expected?.sources)[0] || {};
+}
+
 function auditBeatRefs({ expected, view, issues }) {
   if (!view) {
     issues.push(
@@ -224,45 +301,46 @@ function auditBeatRefs({ expected, view, issues }) {
         "FORMATION_BEAT_REFS_MISSING",
         LAYERS.PMD,
         "P6 ProductionMasterDraft 没有 Formation beat ref/placement sidecar；普通 STORY beats 不能替代 Formation Beats",
-        { artifactId: expected.artifactId, beatIds: expected.beatRefs.map((beat) => beat.beatId) },
+        { artifactId: expectedSource(expected).artifactId, beatIds: expected.beats.map((beat) => beat.beatId) },
       ),
     );
     return;
   }
 
-  if (view.artifactId !== expected.artifactId || Number(view.artifactRevision) !== expected.artifactRevision) {
+  const source = asArray(view.sources).find((row) => row?.artifactId === expectedSource(expected).artifactId);
+  if (!source || Number(source.artifactRevision) !== Number(expectedSource(expected).artifactRevision)) {
     issues.push(
       issue(
         "FORMATION_ARTIFACT_REVISION_NOT_SNAPSHOTTED",
         LAYERS.PMD,
         "Formation view 没有绑定当前 Artifact revision，不能证明它消费的是当前 Canon",
-        { artifactId: expected.artifactId, expectedRevision: expected.artifactRevision, actualRevision: view.artifactRevision ?? null },
+        { artifactId: expectedSource(expected).artifactId, expectedRevision: expectedSource(expected).artifactRevision, actualRevision: source?.artifactRevision ?? null },
       ),
     );
   }
-  if (Number(view.integrationVersion) !== expected.integrationVersion) {
+  if (Number(source?.integrationVersion) !== Number(expectedSource(expected).integrationVersion)) {
     issues.push(
       issue(
         "FORMATION_INTEGRATION_VERSION_NOT_SNAPSHOTTED",
         LAYERS.PMD,
         "Formation view 没有记录 F4C integration schema version",
-        { expected: expected.integrationVersion, actual: view.integrationVersion ?? null },
+        { expected: expectedSource(expected).integrationVersion, actual: source?.integrationVersion ?? null },
       ),
     );
   }
-  if (Number(view.compilerVersion) !== expected.compilerVersion) {
+  if (Number(source?.compilerVersion) !== Number(expectedSource(expected).compilerVersion)) {
     issues.push(
       issue(
         "FORMATION_COMPILER_VERSION_NOT_SNAPSHOTTED",
         LAYERS.PMD,
         "Formation view 没有记录 F4B compiler schema version",
-        { expected: expected.compilerVersion, actual: view.compilerVersion ?? null },
+        { expected: expectedSource(expected).compilerVersion, actual: source?.compilerVersion ?? null },
       ),
     );
   }
 
   const actualByBeatId = new Map(actualBeatRefs(view).map((beat) => [beat?.beatId, beat]));
-  for (const expectedBeat of expected.beatRefs) {
+  for (const expectedBeat of expected.beats) {
     const actualBeat = actualByBeatId.get(expectedBeat.beatId);
     if (!actualBeat) {
       issues.push(
@@ -270,7 +348,7 @@ function auditBeatRefs({ expected, view, issues }) {
           "FORMATION_BEAT_REF_NOT_SURVIVED",
           LAYERS.PMD,
           `Formation Beat ${expectedBeat.beatId} 未进入 PMD sidecar，不能由普通 beat 存在推定已保留`,
-          { artifactId: expected.artifactId, beatId: expectedBeat.beatId },
+          { artifactId: expectedSource(expected).artifactId, beatId: expectedBeat.beatId },
         ),
       );
       continue;
@@ -281,7 +359,7 @@ function auditBeatRefs({ expected, view, issues }) {
           "FORMATION_BEAT_REF_STALE",
           LAYERS.PMD,
           `Formation Beat ${expectedBeat.beatId} 的 Artifact revision 已过期`,
-          { artifactId: expected.artifactId, beatId: expectedBeat.beatId },
+          { artifactId: expectedSource(expected).artifactId, beatId: expectedBeat.beatId },
         ),
       );
     }
@@ -291,7 +369,7 @@ function auditBeatRefs({ expected, view, issues }) {
           "FORMATION_BEAT_SOURCE_NOT_SURVIVED",
           LAYERS.PMD,
           `Formation Beat ${expectedBeat.beatId} 的 sourceBlockId 未保留`,
-          { artifactId: expected.artifactId, beatId: expectedBeat.beatId },
+          { artifactId: expectedSource(expected).artifactId, beatId: expectedBeat.beatId },
         ),
       );
     }
@@ -301,7 +379,7 @@ function auditBeatRefs({ expected, view, issues }) {
           "FORMATION_HARD_CAUSALITY_NOT_SURVIVED",
           LAYERS.PMD,
           `Formation Beat ${expectedBeat.beatId} 的 hard requiresBeatIds 未保留`,
-          { artifactId: expected.artifactId, beatId: expectedBeat.beatId },
+          { artifactId: expectedSource(expected).artifactId, beatId: expectedBeat.beatId },
         ),
       );
     }
@@ -311,7 +389,7 @@ function auditBeatRefs({ expected, view, issues }) {
           "FORMATION_SOFT_ORDER_NOT_SURVIVED",
           LAYERS.PMD,
           `Formation Beat ${expectedBeat.beatId} 的 preferredAfterBeatIds 未保留为 soft ordering`,
-          { artifactId: expected.artifactId, beatId: expectedBeat.beatId },
+          { artifactId: expectedSource(expected).artifactId, beatId: expectedBeat.beatId },
         ),
       );
     }
@@ -324,7 +402,7 @@ function auditBeatRefs({ expected, view, issues }) {
           "FORMATION_OPTIONAL_DISCLOSURE_ESCALATED",
           LAYERS.PMD,
           `Formation Beat ${expectedBeat.beatId} 把 optional reinforcement 升级成 required disclosure`,
-          { artifactId: expected.artifactId, beatId: expectedBeat.beatId, nodeIds: optionalAsRequired },
+          { artifactId: expectedSource(expected).artifactId, beatId: expectedBeat.beatId, nodeIds: optionalAsRequired },
         ),
       );
     }
@@ -345,7 +423,7 @@ function auditFactsForAudiences({ expectedAudiences, expected, view, layer, issu
             "FORMATION_FACT_NOT_SURVIVED",
             layer,
             `${audience.audienceType}${audience.audienceId ? `:${audience.audienceId}` : ""} 缺少 Formation fact ${expectedFact.nodeId}`,
-            { artifactId: expected.artifactId, audienceId: audience.audienceId, nodeId: expectedFact.nodeId },
+            { artifactId: expectedSource(expected).artifactId, audienceId: audience.audienceId, nodeId: expectedFact.nodeId },
           ),
         );
         continue;
@@ -356,7 +434,7 @@ function auditFactsForAudiences({ expectedAudiences, expected, view, layer, issu
             "FORMATION_PROJECTION_TYPE_NOT_SURVIVED",
             layer,
             `${expectedFact.nodeId} 的 role-relative projectionType 被改变`,
-            { artifactId: expected.artifactId, audienceId: audience.audienceId, nodeId: expectedFact.nodeId, expected: expectedFact.projectionType, actual: actual.projectionType },
+            { artifactId: expectedSource(expected).artifactId, audienceId: audience.audienceId, nodeId: expectedFact.nodeId, expected: expectedFact.projectionType, actual: actual.projectionType },
           ),
         );
       }
@@ -366,7 +444,7 @@ function auditFactsForAudiences({ expectedAudiences, expected, view, layer, issu
             "FORMATION_PROVENANCE_NOT_SURVIVED",
             layer,
             `${expectedFact.nodeId} 仍可能存在，但 provenance 已丢失或被改写`,
-            { artifactId: expected.artifactId, audienceId: audience.audienceId, nodeId: expectedFact.nodeId },
+            { artifactId: expectedSource(expected).artifactId, audienceId: audience.audienceId, nodeId: expectedFact.nodeId },
           ),
         );
       }
@@ -378,7 +456,7 @@ function auditFactsForAudiences({ expectedAudiences, expected, view, layer, issu
               "FORMATION_INFERENCE_SEMANTICS_NOT_SURVIVED",
               layer,
               `${expectedFact.nodeId} 的 ACTIONABLE_INFERENCE 被投成确定事实或丢失推断状态`,
-              { artifactId: expected.artifactId, audienceId: audience.audienceId, nodeId: expectedFact.nodeId, expected: "ACTIONABLE_INFERENCE/ACTIONABLE", actual: `${actual.projectionType || "(none)"}/${status || "(none)"}` },
+              { artifactId: expectedSource(expected).artifactId, audienceId: audience.audienceId, nodeId: expectedFact.nodeId, expected: "ACTIONABLE_INFERENCE/ACTIONABLE", actual: `${actual.projectionType || "(none)"}/${status || "(none)"}` },
             ),
           );
         }
@@ -389,7 +467,7 @@ function auditFactsForAudiences({ expectedAudiences, expected, view, layer, issu
             "FORMATION_OBSERVABLE_NOT_SURVIVED",
             layer,
             `${expectedFact.nodeId} 的 observable 语义没有保持为 OBSERVED_FACT`,
-            { artifactId: expected.artifactId, audienceId: audience.audienceId, nodeId: expectedFact.nodeId },
+            { artifactId: expectedSource(expected).artifactId, audienceId: audience.audienceId, nodeId: expectedFact.nodeId },
           ),
         );
       }
@@ -402,7 +480,7 @@ function auditFactsForAudiences({ expectedAudiences, expected, view, layer, issu
             "FORMATION_PRIVATE_VISIBILITY_LEAK",
             layer,
             `${audience.audienceType}${audience.audienceId ? `:${audience.audienceId}` : ""} 收到了不应可见的 Formation fact ${actual.nodeId}`,
-            { artifactId: expected.artifactId, audienceId: audience.audienceId, nodeId: actual.nodeId },
+            { artifactId: expectedSource(expected).artifactId, audienceId: audience.audienceId, nodeId: actual.nodeId },
           ),
         );
       }
@@ -410,7 +488,7 @@ function auditFactsForAudiences({ expectedAudiences, expected, view, layer, issu
   }
 
   const optionalIds = new Set(
-    expected.beatRefs.flatMap((beat) => beat.optionalNodeRefs),
+    expected.beats.flatMap((beat) => beat.optionalNodeRefs),
   );
   for (const actual of actualFacts) {
     if (optionalIds.has(actual.nodeId) && actual.required === true) {
@@ -419,7 +497,7 @@ function auditFactsForAudiences({ expectedAudiences, expected, view, layer, issu
           "FORMATION_OPTIONAL_DISCLOSURE_ESCALATED",
           layer,
           `${actual.nodeId} 是 optional reinforcement，却被标成 required disclosure`,
-          { artifactId: expected.artifactId, audienceId: actual.audienceId, nodeId: actual.nodeId },
+          { artifactId: expectedSource(expected).artifactId, audienceId: actual.audienceId, nodeId: actual.nodeId },
         ),
       );
     }
@@ -433,7 +511,7 @@ function auditFactsForAudiences({ expectedAudiences, expected, view, layer, issu
           "FORMATION_NEW_CANON_OR_OUTCOME_CREATED",
           layer,
           `Formation view 不得新增 ${field}`,
-          { artifactId: expected.artifactId, field },
+          { artifactId: expectedSource(expected).artifactId, field },
         ),
       );
     }

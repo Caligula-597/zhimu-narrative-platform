@@ -90,24 +90,24 @@ function integratedArtifacts(filePath) {
   return { state: integrated, pmd, packets };
 }
 
-function snapshotPackets(snapshot, artifactId) {
-  const view = { ...snapshot, audienceFacts: [...snapshot.audienceFacts] };
-  const hostFacts = view.audienceFacts.filter((fact) => fact.audienceType === "HOST");
-  const roleFacts = new Map();
-  for (const fact of view.audienceFacts) {
-    if (fact.audienceType !== "CHARACTER") continue;
-    if (!roleFacts.has(fact.audienceId)) roleFacts.set(fact.audienceId, []);
-    roleFacts.get(fact.audienceId).push(fact);
-  }
+function snapshotPackets(snapshot) {
   return {
     host: {
       kind: "HOST_SCRIPT",
-      formationView: { ...view, audienceFacts: hostFacts, artifactId },
+      formationView: {
+        ...snapshot,
+        characterViews: {},
+        hostView: { entries: [...snapshot.hostView.entries] },
+      },
     },
-    roles: [...roleFacts.entries()].map(([characterId, audienceFacts]) => ({
+    roles: Object.entries(snapshot.characterViews).map(([characterId, characterView]) => ({
       kind: "ROLE_SCRIPT",
       characterId,
-      formationView: { ...view, audienceFacts, artifactId },
+      formationView: {
+        ...snapshot,
+        characterViews: { [characterId]: { entries: [...characterView.entries] } },
+        hostView: { entries: [] },
+      },
     })),
   };
 }
@@ -121,8 +121,22 @@ function completeCandidate(filePath) {
     masterOutlineDraft: state.masterOutlineDraft,
   });
   const candidatePmd = { ...pmd, formationView: snapshot };
-  const candidatePackets = snapshotPackets(snapshot, artifact.id);
+  const candidatePackets = snapshotPackets(snapshot);
   return { state, candidatePmd, candidatePackets, snapshot };
+}
+
+function mutateCharacterEntry(snapshot, characterId, nodeId, patch) {
+  return {
+    ...snapshot,
+    characterViews: {
+      ...snapshot.characterViews,
+      [characterId]: {
+        entries: snapshot.characterViews[characterId].entries.map((entry) =>
+          entry.nodeId === nodeId ? { ...entry, ...patch } : entry,
+        ),
+      },
+    },
+  };
 }
 
 for (const [label, fixturePath] of [["Gold", GOLD_PATH], ["Alt", ALT_PATH]]) {
@@ -135,12 +149,9 @@ for (const [label, fixturePath] of [["Gold", GOLD_PATH], ["Alt", ALT_PATH]]) {
     });
 
     assert.equal(result.decision, "FORMATION_PROJECTION_LOSS");
-    assert.equal(result.firstLossLayer, "PRODUCTION_MASTER_DRAFT");
-    assert.ok(result.issues.some((item) => item.code === "FORMATION_BEAT_REFS_MISSING"));
-    assert.ok(result.issues.some((item) => item.code === "FORMATION_PMD_VIEW_MISSING"));
+    assert.equal(result.firstLossLayer, "WRITER_PACKET");
+    assert.ok(!result.issues.some((item) => item.layer === "PRODUCTION_MASTER_DRAFT"));
     assert.ok(result.issues.some((item) => item.code === "FORMATION_PACKET_VIEW_MISSING"));
-    const beatLoss = result.issues.find((item) => item.code === "FORMATION_BEAT_REFS_MISSING");
-    assert.deepEqual(beatLoss.beatIds, ["B1", "B2", "B3", "B4"]);
     assert.equal(result.llmCalls, 0);
   });
 }
@@ -156,20 +167,61 @@ test("F5 complete deterministic snapshot passes without calling a model", () => 
   assert.equal(result.issues.length, 0);
   assert.equal(result.llmCalls, 0);
 });
+
+test("F5.1 PMD bridge carries Gold semantics without touching the formal Packet builder", () => {
+  const { state, pmd, packets } = integratedArtifacts(GOLD_PATH);
+  const view = pmd.formationView;
+  assert.ok(view);
+  assert.deepEqual(view.sources.map((source) => source.artifactId), ["m12f-closed-after-hours-gold"]);
+  assert.deepEqual(view.beats.map((beat) => beat.beatId), ["B1", "B2", "B3", "B4"]);
+
+  const p1 = view.characterViews.P1.entries;
+  const p2 = view.characterViews.P2.entries;
+  const host = view.hostView.entries;
+  const p1N10 = p1.find((entry) => entry.nodeId === "N10");
+  const p1N9 = p1.find((entry) => entry.nodeId === "N9");
+  const p1N11b = p1.find((entry) => entry.nodeId === "N11b");
+  const p2N11 = p2.find((entry) => entry.nodeId === "N11");
+
+  assert.equal(p1N10.projectionType, "OWNED_OBJECT");
+  assert.deepEqual(p1N10.provenance.sourceRefs, ["gold:N10"]);
+  assert.equal(p1N9.projectionType, "ACTIONABLE_INFERENCE");
+  assert.equal(p1N9.inferenceStatus, "ACTIONABLE");
+  assert.equal(p1N11b.projectionType, "OBSERVED_FACT");
+  assert.equal(p2N11.projectionType, "SELF_KNOWN_NEED");
+  assert.equal(p2.some((entry) => entry.nodeId === "N10"), false);
+  assert.equal(p2.some((entry) => entry.nodeId === "N9"), false);
+  assert.equal(host.some((entry) => entry.nodeId === "N10"), false);
+
+  // Existing formal packets remain unchanged in this slice: no Formation view yet.
+  assert.equal(packets.host.formationView, undefined);
+  assert.ok(packets.roles.every((packet) => packet.formationView === undefined));
+});
+
+test("F5.1 no-Formation projects keep the additive view null", () => {
+  const original = stateForFixture(GOLD_PATH);
+  const stateWithoutFormation = createProjectStoryState({
+    ...original,
+    m12FormationArtifacts: [],
+  });
+  const integrated = integrateMasterOutline(stateWithoutFormation);
+  const pmd = expandProductionMasterDraft(integrated);
+  assert.equal(pmd.formationView, null);
+  assert.deepEqual(
+    pmd.stages.flatMap((stage) => stage.beats).map((beat) => beat.sourceBlockId),
+    integrated.masterOutlineDraft.stages.flatMap((stage) => stage.beats).map((beat) => beat.sourceBlockId),
+  );
+});
+
 test("F5 negative: deleting N10 provenance fails even when the object remains", () => {
   const { state, candidatePmd, candidatePackets, snapshot } = completeCandidate(GOLD_PATH);
-  const mutated = {
-    ...snapshot,
-    audienceFacts: snapshot.audienceFacts.map((fact) =>
-      fact.nodeId === "N10" && fact.audienceId === "P1"
-        ? { ...fact, provenance: { type: null, summary: null, sourceRefs: [] } }
-        : fact,
-    ),
-  };
+  const mutated = mutateCharacterEntry(snapshot, "P1", "N10", {
+    provenance: { type: null, summary: null, sourceRefs: [] },
+  });
   const result = auditM12FormationProjectionSurvival({
     state,
     productionMasterDraft: { ...candidatePmd, formationView: mutated },
-    packetSet: snapshotPackets(mutated, state.m12FormationArtifacts[0].id),
+    packetSet: snapshotPackets(mutated),
   });
   assert.equal(result.decision, "FORMATION_PROJECTION_LOSS");
   assert.ok(result.issues.some((item) => item.code === "FORMATION_PROVENANCE_NOT_SURVIVED" && item.nodeId === "N10"));
@@ -177,18 +229,15 @@ test("F5 negative: deleting N10 provenance fails even when the object remains", 
 
 test("F5 negative: N9 cannot be upgraded from ACTIONABLE_INFERENCE to Canon fact", () => {
   const { state, candidatePmd, snapshot } = completeCandidate(GOLD_PATH);
-  const mutated = {
-    ...snapshot,
-    audienceFacts: snapshot.audienceFacts.map((fact) =>
-      fact.nodeId === "N9" && fact.audienceId === "P1"
-        ? { ...fact, projectionType: "CANON_FACT", inferenceStatus: "CANON_FACT", confidence: null }
-        : fact,
-    ),
-  };
+  const mutated = mutateCharacterEntry(snapshot, "P1", "N9", {
+    projectionType: "CANON_FACT",
+    inferenceStatus: "CANON_FACT",
+    confidence: null,
+  });
   const result = auditM12FormationProjectionSurvival({
     state,
     productionMasterDraft: { ...candidatePmd, formationView: mutated },
-    packetSet: snapshotPackets(mutated, state.m12FormationArtifacts[0].id),
+    packetSet: snapshotPackets(mutated),
   });
   assert.equal(result.decision, "FORMATION_PROJECTION_LOSS");
   assert.ok(result.issues.some((item) => item.code === "FORMATION_INFERENCE_SEMANTICS_NOT_SURVIVED" && item.nodeId === "N9"));

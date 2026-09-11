@@ -1,6 +1,6 @@
 # M12 Formation Production Slice V1
 
-> **状态：F4B ✅ FROZEN @ `3985c03` · F4C ✅ FROZEN @ `a84bb7a` · F5 Survival Probe 已落地**
+> **状态：F4B ✅ FROZEN @ `3985c03` · F4C ✅ FROZEN @ `a84bb7a` · F5 Probe ✅ FROZEN @ `e876f14` · F5.1 PMD Bridge 已落地**
 > 规格基线：[`M12_FORMATIONATION_CONTRACT_V1_ZH.md`](./M12_FORMATIONATION_CONTRACT_V1_ZH.md) ✅ GOLDEN @ `05164fe`  
 > 分级基线：[`STORY_MECHANISM_FORMATIONATION_GRADING_ZH.md`](./STORY_MECHANISM_FORMATIONATION_GRADING_ZH.md) @ `16716ab`  
 > **规格层 GOLDEN ≠ 生产层已具备。pack 内 M12-1 仍 = GAP_HIGH。**  
@@ -37,6 +37,8 @@ PMD / Packet 能看到信息来源与接触理由
         ↓
 F5 deterministic Projection Survival
         ↓
+F5.1 PMD FormationView Bridge
+        ↓
 （更以后）真 Writer RPT #1D
 ```
 
@@ -69,8 +71,9 @@ F5 deterministic Projection Survival
 | **F2** | Blueprint + Builder | pack blueprint + `buildM12FormationArtifact` | 紧随 F1 |
 | **F3** | Validator / Gate | 结构错误码 → `FORMATION_READY` / `REVIEW_REQUIRED` | |
 | **F4C** | Integrator Formation Beats | `formationNodes` ≠ `formationBeats`；只写 placement/ref，接到 PROBE 前 | ✅ 已落地 |
-| **F5** | Projection Survival V1 | `shared/m12-formation-projection-survival.js` + Gold/Alt/semantic negatives | ✅ Probe 已落地；当前定位为 PMD 首次丢失 |
-| — | **Survival Gate** | `FORMATION_PROJECTION_SURVIVED` / `FORMATION_PROJECTION_LOSS` | 当前为 LOSS，先不改 P6 |
+| **F5** | Projection Survival V1 | `shared/m12-formation-projection-survival.js` + Gold/Alt/semantic negatives | ✅ FROZEN @ `e876f14` |
+| **F5.1** | PMD FormationView Bridge V1 | additive `ProductionMasterDraft.formationView` | ✅ 已落地；首次丢失后移到 Formal Packet |
+| **F5.2** | Formal Writer Packet Formation Projection | 只接 Packet，不改 PMD | 下一刀 |
 | **F6** | Real Writer RPT #1D | 真模型闭环 | 更后 |
 
 ---
@@ -225,9 +228,9 @@ ProjectStoryState
   → 正式 view-specific Writer Packet
 ```
 
-当前事实：P6 Expander 和正式 Packet Builder 都没有消费 Formation sidecar，
-因此 Gold / Alt 的第一丢失层都是 `PRODUCTION_MASTER_DRAFT`。这不是把普通 STORY beat
-当 Formation 的误判，而是明确的 `FORMATION_BEAT_REFS_MISSING` / `FORMATION_PMD_VIEW_MISSING`。
+F5 Probe 基线已经冻结。基线事实是 P6 Expander 和正式 Packet Builder 都不消费 Formation sidecar，
+因此第一丢失层曾是 `PRODUCTION_MASTER_DRAFT`。F5.1 只修了 P6，当前 Gold / Alt 的第一丢失层
+已经后移到 `WRITER_PACKET`；这正是本刀的成功条件。
 
 探针还冻结了三个 deterministic 负例：
 
@@ -235,7 +238,31 @@ ProjectStoryState
 - 把 N9 `ACTIONABLE_INFERENCE` 改成 `CANON_FACT`，必须 `FORMATION_INFERENCE_SEMANTICS_NOT_SURVIVED`。
 - N6/N7/N8 只能保持 optional，不得被投成 required disclosure。
 
-完整候选快照可通过 probe，但它只是 audit fixture，不是对 P6 的临时接线，也没有写回生产合同。
+完整候选快照可通过 probe，但它只是 audit fixture，不是对正式 Packet 的临时接线。
+
+## F5.1 — PMD FormationView Bridge V1
+
+P6 只新增：
+
+```text
+ProductionMasterDraft.formationView
+```
+
+它是 derived production projection / immutable snapshot，包含：
+
+- `sources[]`：Artifact revision、source block、F4C integration version、F4B compiler version；
+- `beats[]`：F4C placement + F4B required/optional refs 与 hard/soft ordering；
+- `characterViews` / `hostView`：来自 F4A projection 的 text、projectionType、provenance。
+
+桥接层不读取 caller 自带 Artifact，不从 raw `node.reveals` 猜角色语义，不新增接触/谈判/交换/成交结果。
+没有 Formation 的项目保持 `formationView = null`，普通 PMD 字段不变。
+
+F5.1 的通过条件是：
+
+```text
+P6 PMD              ✅ SURVIVED
+Formal Writer Packet ❌ LOSS（等待 F5.2）
+```
 
 ---
 
@@ -256,11 +283,17 @@ ProjectStoryState
 12. 不跑真模型
 ```
 
-F1–F4C 全绿只说明 Formation 已进入 Master Outline；F5 当前故意把生产链的
-PMD 首次丢失暴露出来，因此不能把本阶段标成 Projection Survival PASS，
+F1–F4C 全绿只说明 Formation 已进入 Master Outline；F5 已把生产链的首个
+丢失点钉在 PMD，F5.1 又把它后移到 Formal Packet，因此当前仍不能把整链标成
+Projection Survival PASS，
 也不能自动把官方 Formation 等级从 `GAP_HIGH` 升 `OK`。
 
 ---
+
+## 下一刀 F5.2 — Formal Writer Packet Formation Projection
+
+只把 PMD 已通过 F5.1 的 `formationView` 投射进正式 host/role Packet；不再改 PMD。
+通过后才进入：
 
 ## 第二阶段 F6 — Real Writer RPT #1D
 
@@ -304,6 +337,7 @@ F3 = 已授权并落地（Validator/Gate + Gold/Alt PASS + 直接谈判桌 FAIL�
 F4B = 已冻结 @ `3985c03`
 F4C = 已冻结 @ `a84bb7a`
 F5 = deterministic Survival Probe 已落地；当前 Gold / Alt 为 `FORMATION_PROJECTION_LOSS`
+F5.1 = PMD FormationView Bridge 已落地；当前 Gold / Alt 首次丢失为 `WRITER_PACKET`
 ```
 
 ## F1 落地清单

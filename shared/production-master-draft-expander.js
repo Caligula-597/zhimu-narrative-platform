@@ -17,6 +17,7 @@ import {
 } from "./production-master-draft-contracts.js";
 import { resolveBeatOwnerRefs, applyOwnerResolution } from "./beat-owner-authority.js";
 import { resolveBeatSemantics } from "./story-beat-semantics.js";
+import { buildM12FormationViewForProductionMasterDraft } from "./m12-formation-pmd-bridge.js";
 import { semanticsBridgeForTemplate } from "./complete-beat-semantics-data.js";
 import {
   ABSTRACT_FALLBACK_LABELS,
@@ -845,6 +846,21 @@ export function expandProductionMasterDraft(projectStoryState, options = {}) {
 
   const executionView = projectExecutionView(productionStages);
 
+  // F5.1 additive bridge: Formation remains a derived snapshot sidecar.
+  // It consumes the state-owned Artifact + F4C placement and the compiler's
+  // F4A-derived audienceViews; it never changes ordinary P6 structures.
+  const formationViewResult = buildM12FormationViewForProductionMasterDraft({
+    state,
+    masterOutlineDraft: outline,
+  });
+  if (!formationViewResult.ok) {
+    fail(
+      "FORMATION_PMD_VIEW_BUILD_FAILED",
+      formationViewResult.message || "FormationView 无法从当前 F4C placement 构建",
+      formationViewResult.details || formationViewResult,
+    );
+  }
+
   const premiseBits = [
     state.premise?.genre,
     state.premise?.era,
@@ -864,6 +880,7 @@ export function expandProductionMasterDraft(projectStoryState, options = {}) {
     characterViews,
     clueView,
     executionView,
+    formationView: formationViewResult.formationView,
     warnings,
     structureChangeRequests,
     status: "DRAFT",
