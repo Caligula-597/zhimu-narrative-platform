@@ -25,8 +25,8 @@ function renderMainView() {
   if (state.view === "dm") return renderDm();
   if (state.view === "join") return renderJoin();
   if (state.view === "game" && state.roomId) {
-    if (state.home?.room?.creationType === "board_game") return renderBoardGamePlayer();
-    if (state.home?.room?.creationType === "tabletop_rpg") return renderTabletopRpgPlayer();
+    if (state.productMode === "board_game") return renderBoardGamePlayer();
+    if (state.productMode === "tabletop_rpg") return renderTabletopRpgPlayer();
     if (state.home) return renderGame();
     return renderGameResume();
   }

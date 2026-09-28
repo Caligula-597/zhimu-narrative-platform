@@ -1,6 +1,9 @@
+import { productModeForRoom, productModeMeta, productModeMatchesRoom } from "../product-mode.js";
+
 export function createRoomLifecycleController({
   api, state, render, setBusy, setToast, formatApiError, normalizeInviteCode,
   ensureSession, persistRoom, persistGameSession, isUuid, cleanAuthUrl,
+  setProductMode, hydrateProductModeFromRoom,
   pullRoomData, syncRoomStream, syncPlatformStream, disconnectRoomEvents,
   roomEventCtx, pauseVoiceSession, loadRecapSummary, loadDmConversations
 }) {
@@ -28,6 +31,7 @@ export function createRoomLifecycleController({
     }
     try {
       await pullRoomData();
+      hydrateProductModeFromRoom?.(state.home?.room);
       state.view = "game";
       state.tab ||= "home";
       persistGameSession();
@@ -78,6 +82,10 @@ export function createRoomLifecycleController({
     return state.joinPreview;
   }
 
+  function selectedModeMatchesPreview() {
+    return productModeMatchesRoom(state.productMode, state.joinPreview?.room);
+  }
+
   async function handleLookupInvite({ silent = false } = {}) {
     const code = normalizeInviteCode(state.inviteCode);
     if (!code) {
@@ -88,6 +96,13 @@ export function createRoomLifecycleController({
     try {
       await ensureSession();
       await refreshJoinPreview(code);
+      if (!selectedModeMatchesPreview()) {
+        const roomMode = productModeForRoom(state.joinPreview?.room);
+        state.view = "join";
+        state.joinStep = 2;
+        setToast(`当前选择的是${productModeMeta(state.productMode).label}，该邀请码对应${productModeMeta(roomMode).label}，请先切换模式`, render);
+        return;
+      }
       const boundRoleId = state.joinPreview?.current_role_slot_id || "";
       const roomId = state.joinPreview?.room?.id || "";
       if (boundRoleId && roomId && isUuid(roomId)) {
@@ -122,6 +137,12 @@ export function createRoomLifecycleController({
     try {
       await ensureSession();
       await refreshJoinPreview(code);
+      if (!selectedModeMatchesPreview()) {
+        const roomMode = productModeForRoom(state.joinPreview?.room);
+        state.joinStep = 2;
+        setToast(`当前选择的是${productModeMeta(state.productMode).label}，该房间需要${productModeMeta(roomMode).label}`, render);
+        return;
+      }
       const selected = state.joinPreview?.roles?.find((role) => role.id === state.selectedRoleId);
       if (!selected || (selected.occupied && !selected.occupied_by_current)) {
         state.joinStep = 2;
@@ -150,6 +171,7 @@ export function createRoomLifecycleController({
   async function handleJoinOfficial({ silent = false } = {}) {
     setBusy(true, render);
     try {
+      setProductMode?.("murder_mystery");
       await ensureSession();
       const result = await api.joinOfficialExample();
       state.inviteCode = result.room?.invite_code || "";

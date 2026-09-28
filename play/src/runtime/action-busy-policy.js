@@ -3,6 +3,7 @@ const BUSY_SAFE_ACTIONS = new Set([
   "modal-close",
   "modal-backdrop-close",
   "show-auth",
+  "select-product-mode",
   "voice-room",
   "voice-join"
 ]);

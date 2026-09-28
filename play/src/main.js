@@ -34,6 +34,8 @@ import {
   persistRoom,
   persistGameSession,
   persistGameSidebarCollapsed,
+  setProductMode,
+  hydrateProductModeFromRoom,
   setBusy,
   setToast,
   state
@@ -214,6 +216,7 @@ const {
 } = createRoomLifecycleController({
   api, state, render, setBusy, setToast, formatApiError, normalizeInviteCode,
   ensureSession, persistRoom, persistGameSession, isUuid, cleanAuthUrl,
+  setProductMode, hydrateProductModeFromRoom,
   pullRoomData, syncRoomStream, syncPlatformStream, disconnectRoomEvents,
   roomEventCtx, pauseVoiceSession,
   loadRecapSummary: (options) => loadRecapSummary(options),
@@ -327,7 +330,8 @@ app.addEventListener("click", async (event) => {
     render,
     setToast,
     closeModalState,
-    persistGameSidebarCollapsed
+    persistGameSidebarCollapsed,
+    setProductMode
   })) return;
   if (await handleLazyPlayActionController("voice", {
     action,

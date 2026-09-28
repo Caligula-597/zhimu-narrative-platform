@@ -5,7 +5,8 @@ export function handlePlayStateAction({
   state,
   render,
   closeModalState,
-  persistGameSidebarCollapsed
+  persistGameSidebarCollapsed,
+  setProductMode
 }) {
   switch (action) {
     case "plaza-back":
@@ -27,6 +28,12 @@ export function handlePlayStateAction({
       return true;
     case "pick-role":
       state.selectedRoleId = button.dataset.roleId;
+      render();
+      return true;
+    case "select-product-mode":
+      if (setProductMode) setProductMode(button.dataset.productMode);
+      else state.productMode = button.dataset.productMode;
+      state.error = "";
       render();
       return true;
     case "section-prev":

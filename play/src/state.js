@@ -1,6 +1,7 @@
 import { patchPlayToast } from "./runtime/sync-helpers.js";
 import { createToastTimer } from "../../shared/toast.js";
 import { createSyncDiagnostics } from "../../shared/sync-diagnostics.js";
+import { normalizeProductMode, persistProductMode, productModeForRoom, readStoredProductMode } from "./product-mode.js";
 
 const playToastTimer = createToastTimer(3200);
 
@@ -29,6 +30,7 @@ function readStoredSidebarCollapsed() {
 }
 
 const storedRoomId = readStoredRoomId();
+const storedProductMode = readStoredProductMode();
 
 export const state = {
   user: null,
@@ -38,6 +40,8 @@ export const state = {
   authConfig: null,
   platform: null,
   roomId: storedRoomId,
+  productMode: storedProductMode || "murder_mystery",
+  productModeExplicit: Boolean(storedProductMode),
   home: null,
   boardGameRuntime: null,
   boardGameRuntimeError: "",
@@ -180,6 +184,28 @@ export function setBusy(busy, render) {
 
 export function persistGameSidebarCollapsed(collapsed) {
   localStorage.setItem(GAME_SIDEBAR_KEY, collapsed ? "1" : "0");
+}
+
+export function setProductMode(mode, { persist = true } = {}) {
+  const normalized = normalizeProductMode(mode);
+  if (!normalized) return "";
+  state.productMode = normalized;
+  state.productModeExplicit = true;
+  if (persist) persistProductMode(normalized);
+  return normalized;
+}
+
+/**
+ * Existing sessions created before the explicit mode selector may not have a
+ * stored mode. Hydrate those sessions once from the already-loaded room, but
+ * never use an invite code to silently change a mode the player selected.
+ */
+export function hydrateProductModeFromRoom(room) {
+  if (state.productModeExplicit) return state.productMode;
+  const roomMode = productModeForRoom(room);
+  if (!roomMode) return state.productMode;
+  state.productMode = roomMode;
+  return roomMode;
 }
 
 export function persistGameSession(stateRef = state) {

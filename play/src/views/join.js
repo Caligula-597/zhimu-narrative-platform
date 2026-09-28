@@ -2,6 +2,7 @@ import { renderStepper } from "../components/stepper.js";
 import { escapeHtml } from "../../../shared/security.js";
 import { state } from "../state.js";
 import { roomContentBindingPresentation } from "../../../shared/room-content-binding.js";
+import { PLAYER_PRODUCT_MODES, productModeForRoom, productModeMeta } from "../product-mode.js";
 
 export function renderJoin() {
   const preview = state.joinPreview;
@@ -26,6 +27,10 @@ export function renderJoin() {
     : roles.filter((r) => !r.occupied || r.occupied_by_current).length;
   const selected = roles.find((r) => r.id === state.selectedRoleId);
   const binding = roomContentBindingPresentation(preview.room.contentBinding);
+  const roomMode = productModeForRoom(preview.room);
+  const selectedMode = productModeMeta(state.productMode);
+  const roomModeMeta = productModeMeta(roomMode || state.productMode);
+  const modeMatches = !roomMode || roomMode === state.productMode;
 
   return `
     <section class="join-shell">
@@ -35,6 +40,7 @@ export function renderJoin() {
           <p class="eyebrow">即将进入</p>
           <h2>${escapeHtml(preview.room.name)}</h2>
           <p class="muted">世界 · ${escapeHtml(preview.world.name)} · 房间状态 ${escapeHtml(preview.room.status || "运行中")}</p>
+          <p class="join-mode-line"><span>你选择的玩家模式</span><strong>${escapeHtml(selectedMode.label)}</strong><span>· 房间类型</span><strong>${escapeHtml(roomModeMeta.label)}</strong></p>
           <p class="hint ${binding.tone === "testing" ? "warn" : ""}"><strong>${escapeHtml(binding.label)}</strong> · ${escapeHtml(binding.detail)}</p>
         </div>
         <dl class="join-stats">
@@ -42,6 +48,17 @@ export function renderJoin() {
           <div><dt>邀请码</dt><dd><code>${escapeHtml(state.inviteCode)}</code></dd></div>
         </dl>
       </div>
+
+      ${!modeMatches
+        ? `<div class="join-mode-mismatch banner error" role="alert">
+            <strong>玩家模式不匹配</strong>
+            <p>当前选择的是“${escapeHtml(selectedMode.label)}”，这个邀请码对应“${escapeHtml(roomModeMeta.label)}”房间。请先切换玩家模式，再继续进入。</p>
+            <div class="player-mode-switcher" role="list" aria-label="切换玩家模式">
+              ${PLAYER_PRODUCT_MODES.map((mode) => `
+                <button class="btn ${state.productMode === mode.id ? "primary" : "outline"}" type="button" data-action="select-product-mode" data-product-mode="${mode.id}" aria-pressed="${state.productMode === mode.id}">${escapeHtml(mode.label)}</button>`).join("")}
+            </div>
+          </div>`
+        : `<div class="join-mode-match hint"><strong>${escapeHtml(selectedMode.label)}</strong> 玩家工作区已匹配，可以继续选择角色。</div>`}
 
       <div class="panel card">
         <h3>选择你的角色席位</h3>
@@ -86,7 +103,7 @@ export function renderJoin() {
           : ""}
 
         <div class="row-actions">
-          <button class="btn primary large" type="button" data-action="confirm-join" ${state.busy || !state.selectedRoleId ? "disabled" : ""}>进入房间，开始游戏</button>
+          <button class="btn primary large" type="button" data-action="confirm-join" ${state.busy || !state.selectedRoleId || !modeMatches ? "disabled" : ""}>进入房间，开始游戏</button>
           <button class="btn quiet" type="button" data-action="join-back-code">修改邀请码</button>
           <button class="btn quiet" type="button" data-action="back-landing">返回首页</button>
         </div>

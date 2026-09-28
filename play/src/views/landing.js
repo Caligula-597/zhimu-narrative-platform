@@ -1,6 +1,7 @@
 import { FLOW_STEPS } from "../constants.js";
 import { escapeHtml } from "../../../shared/security.js";
 import { state } from "../state.js";
+import { PLAYER_PRODUCT_MODES, productModeMeta } from "../product-mode.js";
 import { isRegisteredUser, userSessionLabel } from "../utils/user.js";
 
 function renderLandingAuthActions() {
@@ -55,7 +56,7 @@ function renderOfficialExampleCard() {
     <article class="entry-card entry-card-demo ${available ? "" : "is-disabled"}">
       <div class="entry-card-head">
         <p class="eyebrow">无需邀请码</p>
-        <h3>${escapeHtml(example.name || "官方示例剧本")}</h3>
+        <h3>${escapeHtml(example.name || "官方示例剧本杀")}</h3>
       </div>
       <p class="entry-card-lede">${escapeHtml(example.summary || "快速体验玩家阅读、探索与线索流程。")}</p>
       <dl class="entry-meta">
@@ -67,6 +68,36 @@ function renderOfficialExampleCard() {
         : `<p class="hint warn">${escapeHtml(example.unavailableReason || "示例暂不可用")}</p>`}
       ${renderOfficialExampleHint(example)}
     </article>`;
+}
+
+function renderProductModeSelector() {
+  const selectedMode = productModeMeta(state.productMode);
+  return `
+    <section class="player-mode-panel card" aria-labelledby="player-mode-title">
+      <div class="player-mode-heading">
+        <div>
+          <p class="eyebrow">先选玩法</p>
+          <h2 id="player-mode-title">你这次要玩哪一种？</h2>
+        </div>
+        <span class="player-mode-current">当前：${escapeHtml(selectedMode.label)}</span>
+      </div>
+      <p class="muted">这是统一的玩家入口。选择只决定你看到哪套玩家工作区，邀请码只负责进入对应房间。</p>
+      <div class="player-mode-grid" role="list" aria-label="选择玩家模式">
+        ${PLAYER_PRODUCT_MODES.map((mode) => `
+          <button
+            class="player-mode-card ${mode.accent} ${state.productMode === mode.id ? "is-selected" : ""}"
+            type="button"
+            data-action="select-product-mode"
+            data-product-mode="${mode.id}"
+            aria-pressed="${state.productMode === mode.id}"
+            role="listitem">
+            <span class="player-mode-label">${escapeHtml(mode.label)}</span>
+            <strong>${escapeHtml(mode.title)}</strong>
+            <span>${escapeHtml(mode.description)}</span>
+          </button>`).join("")}
+      </div>
+      <p class="hint">进入房间前如果模式不匹配，系统会明确提示你切换，不会偷偷替你切页面。</p>
+    </section>`;
 }
 
 export function renderLanding() {
@@ -81,10 +112,12 @@ export function renderLanding() {
         </div>
         <div class="landing-hero">
           <p class="eyebrow">PLAYER · 纯玩家视角</p>
-          <h1>受邀入房，以角色身份进入故事</h1>
-          <p class="lede">织幕玩家端只做一件事：让你以<strong>角色</strong>身份阅读分幕、探索场景、管理线索与背包。没有创作台，也没有主持工具。</p>
+          <h1>先选玩法，再进入你的房间</h1>
+          <p class="lede">织幕玩家端是一个统一入口：你可以进入<strong>剧本杀、跑团或桌游</strong>。先选择这次的玩法，再输入邀请码；邀请码只负责找到房间。</p>
         </div>
       </div>
+
+      ${renderProductModeSelector()}
 
       <div class="entry-grid entry-grid-priority">
         ${renderOfficialExampleCard()}
@@ -93,13 +126,13 @@ export function renderLanding() {
             <p class="eyebrow">我有邀请码</p>
             <h3>加入主持人开的平行房</h3>
           </div>
-          <p class="entry-card-lede">输入主持人分享的邀请码，选择你的角色席位，即可进入房间开始游戏。</p>
+          <p class="entry-card-lede">当前按“${escapeHtml(productModeMeta(state.productMode).label)}”进入。输入主持人分享的邀请码，选择角色席位，即可进入房间。</p>
           <label class="field-label" for="invite-input">房间邀请码</label>
           <div class="join-row">
             <input id="invite-input" class="field" type="text" placeholder="例如：PLAY-ABC12345" value="${escapeHtml(state.inviteCode)}" data-bind="inviteCode" data-testid="invite-code-input" autocomplete="off" />
             <button class="btn primary" type="button" data-action="start-join" data-testid="start-join" ${state.busy ? "disabled" : ""}>下一步：选角色</button>
           </div>
-          <p class="hint">也可通过链接直接进入：<code>?join=你的邀请码</code></p>
+          <p class="hint">也可通过链接直接进入：<code>?join=你的邀请码</code>。链接不会替你改变已选择的玩法。</p>
         </article>
       </div>
 

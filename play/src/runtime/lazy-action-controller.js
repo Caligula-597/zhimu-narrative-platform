@@ -19,7 +19,8 @@ const definitions = {
       "join-back-code",
       "dismiss-error",
       "toggle-sidebar",
-      "clear-notes-draft"
+      "clear-notes-draft",
+      "select-product-mode"
     ]),
     load: () => import("./state-action-controller.js"),
     handler: "handlePlayStateAction"
