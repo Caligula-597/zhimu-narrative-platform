@@ -14,6 +14,12 @@ import {
   BOARD_GAME_COMPONENT_TYPES,
   BOARD_GAME_DESIGN_VERSION,
 } from "../../../../shared/board-game-design.js";
+import {
+  BOARD_GAME_ACTION_KINDS,
+  BOARD_GAME_MAP_KINDS,
+  BOARD_GAME_PHASE_MODES,
+  BOARD_GAME_TARGET_KINDS,
+} from "../../../../shared/board-game-engine.js";
 
 export const commercialProfileSchema = {
   type: "object",
@@ -207,7 +213,20 @@ const boardGameEntrySchema = {
     id: { type: "string", minLength: 1, maxLength: 80 },
     name: { type: "string", minLength: 1, maxLength: 160 },
     description: { type: "string", maxLength: 1600 },
+    age: { type: "integer", minimum: 0, maximum: 99 },
     quantity: { type: "integer", minimum: 1, maximum: 9999 },
+    tags: { type: "array", maxItems: 20, items: { type: "string", maxLength: 60 } },
+    effects: { type: "array", maxItems: 20, items: { type: "object", additionalProperties: true } },
+    triggers: { type: "array", maxItems: 20, items: {
+      type: "object", additionalProperties: false,
+      required: ["id", "event", "effects"],
+      properties: {
+        id: { type: "string", maxLength: 80 },
+        event: { type: "string", maxLength: 80 },
+        effects: { type: "array", maxItems: 20, items: { type: "object", additionalProperties: true } }
+      }
+    } },
+    continuousEffects: { type: "array", maxItems: 20, items: { type: "object", additionalProperties: true } },
   },
 };
 
@@ -264,7 +283,98 @@ const boardGameEffectSchema = {
     targetKey: { type: "string", maxLength: 80 },
     operation: { type: "string", enum: ["set", "add", "subtract", "multiply", "min", "max", "toggle"] },
     value: { type: "string", maxLength: 300 },
+    scope: { type: "string", enum: ["auto", "self", "global", "all_players", "target_player"] },
+    timing: { type: "string", enum: ["immediate", "after_action", "round_end"] },
+    priority: { type: "integer", minimum: -100, maximum: 100 },
+    repeat: { type: "integer", minimum: 1, maximum: 20 },
+    chainMechanismId: { type: "string", maxLength: 80 },
+    conditionMode: { type: "string", enum: ["all", "any"] },
+    conditions: { type: "array", maxItems: 20, items: boardGameConditionSchema },
   },
+};
+
+const boardGameFactionRuleSchema = {
+  type: "object", additionalProperties: false,
+  properties: {
+    id: { type: "string", maxLength: 80 }, label: { type: "string", maxLength: 160 },
+    startingSeat: { type: ["integer", "null"], minimum: 0, maximum: 98 },
+    flags: { type: "object" }, counters: { type: "object" }, initialValues: { type: "object" },
+    blockedActionIds: { type: "array", maxItems: 100, items: { type: "string", maxLength: 80 } },
+    roundMechanismId: { type: "string", maxLength: 80 }, endMechanismId: { type: "string", maxLength: 80 }
+  }
+};
+
+const boardGameTileTopologySchema = {
+  type: "object", additionalProperties: false,
+  properties: {
+    requireAdjacent: { type: "boolean" }, matchEdges: { type: "boolean" }, gridAdjacency: { type: "boolean" },
+    firstPlacementIds: { type: "array", maxItems: 100, items: { type: "string", maxLength: 80 } },
+    scoringRules: { type: "array", maxItems: 40, items: {
+      type: "object", additionalProperties: false,
+      properties: { id: { type: "string", maxLength: 80 }, tag: { type: "string", maxLength: 80 }, minSize: { type: "integer", minimum: 1, maximum: 999 }, points: { type: "number", minimum: 0, maximum: 999999 } }
+    } }
+  }
+};
+
+const boardGameMaintenanceRuleSchema = {
+  type: "object", additionalProperties: false,
+  properties: {
+    resourceKey: { type: "string", maxLength: 80 }, cost: { type: "number", minimum: 0, maximum: 999999 },
+    penaltyKey: { type: "string", maxLength: 80 }, penaltyAmount: { type: "number", minimum: 0, maximum: 999999 },
+    scope: { type: "string", enum: ["self", "all_players"] }, seatIndex: { type: "integer", minimum: 0, maximum: 98 }
+  }
+};
+
+const boardGameSetupSchema = {
+  type: "object", additionalProperties: false, required: ["unitsPerSeat", "startingNodeIds"],
+  properties: {
+    unitsPerSeat: { type: "integer", minimum: 0, maximum: 30 }, startingNodeIds: { type: "array", maxItems: 99, items: { type: "string", maxLength: 80 } },
+    rotateFirstSeat: { type: "boolean" }, marketSize: { type: "integer", minimum: 1, maximum: 20 }, handSize: { type: "integer", minimum: 1, maximum: 30 },
+    draftTurnsPerAge: { type: "integer", minimum: 1, maximum: 30 }, draftAgeCount: { type: "integer", minimum: 1, maximum: 12 },
+    draftPassDirections: { type: "array", maxItems: 12, items: { type: "string", enum: ["left", "right"] } },
+    factionRules: { type: "array", maxItems: 99, items: boardGameFactionRuleSchema },
+    tileTopology: boardGameTileTopologySchema,
+    maintenanceRules: { type: "array", maxItems: 40, items: boardGameMaintenanceRuleSchema },
+    eraCleanup: {
+      type: "object", additionalProperties: false,
+      properties: {
+        everyRounds: { type: "integer", minimum: 0, maximum: 999 }, deckIds: { type: "array", maxItems: 40, items: { type: "string", maxLength: 80 } },
+        discardMarket: { type: "boolean" }, zones: { type: "array", maxItems: 7, items: { type: "string", enum: ["decks", "market", "hands", "claimedCards", "tableaus", "personalDecks", "personalDiscardPiles"] } },
+        migrateToAge: { type: ["integer", "null"], minimum: 0, maximum: 99 }, migrationDeckId: { type: "string", maxLength: 80 }
+      }
+    },
+    actionTrack: {
+      type: "object", additionalProperties: false,
+      properties: {
+        enabled: { type: "boolean" }, actionIds: { type: "array", maxItems: 100, items: { type: "string", maxLength: 80 } },
+        jumpResourceKey: { type: "string", maxLength: 80 }, jumpCostPerStep: { type: "number", minimum: 0, maximum: 999999 }, wrapAround: { type: "boolean" }
+      }
+    },
+    teamAssignments: { type: "array", maxItems: 99, items: { type: "string", maxLength: 80 } },
+    endgameMultipliers: { type: "array", maxItems: 40, items: {
+      type: "object", additionalProperties: false,
+      properties: {
+        id: { type: "string", maxLength: 80 }, variableKey: { type: "string", maxLength: 80 },
+        operator: { type: "string", enum: ["eq", "gt", "gte", "lt", "lte"] }, value: { type: "number" }, multiplier: { type: "number", minimum: -999, maximum: 999 },
+        points: { type: "number", minimum: -999999, maximum: 999999 }, scope: { type: "string", enum: ["player", "global"] }
+      }
+    } },
+    tieBreakOrder: { type: "array", maxItems: 20, items: { type: "string", maxLength: 80 } },
+    majorityRules: { type: "array", maxItems: 40, items: {
+      type: "object", additionalProperties: false,
+      properties: { id: { type: "string", maxLength: 80 }, nodeIds: { type: "array", maxItems: 100, items: { type: "string", maxLength: 80 } }, points: { type: "number", minimum: 0 }, unitValue: { type: "number", minimum: 1 }, tieMode: { type: "string", enum: ["all", "none", "split"] } }
+    } },
+    hiddenObjectives: { type: "array", maxItems: 99, items: {
+      type: "object", additionalProperties: false,
+      properties: { id: { type: "string", maxLength: 80 }, label: { type: "string", maxLength: 160 }, variableKey: { type: "string", maxLength: 80 }, operator: { type: "string", enum: ["eq", "gt", "gte", "lt", "lte"] }, value: { type: "number" }, points: { type: "number", minimum: 0 } }
+    } },
+    responseTimeoutSeconds: { type: "integer", minimum: 1, maximum: 3600 },
+    personalDecks: { type: "array", maxItems: 40, items: {
+      type: "object", additionalProperties: false,
+      properties: { deckId: { type: "string", maxLength: 80 }, entryIds: { type: "array", maxItems: 2000, items: { type: "string", maxLength: 80 } }, initialHandSize: { type: "integer", minimum: 0, maximum: 30 }, cardLimit: { type: "integer", minimum: 1, maximum: 999 } }
+    } },
+    playerInitialValues: { type: "array", maxItems: 99, items: { type: "object" } }, seed: { type: "string", maxLength: 120 }
+  }
 };
 
 const boardGameMechanismSchema = {
@@ -323,7 +433,7 @@ const boardGameEngineSchema = {
       required: ["id", "label", "mode", "actionIds", "description"],
       properties: {
         id: { type: "string", minLength: 1, maxLength: 80 }, label: { type: "string", minLength: 1, maxLength: 120 },
-        mode: { type: "string", enum: ["sequential", "simultaneous", "reveal"] }, actionIds: { type: "array", maxItems: 100, items: { type: "string", maxLength: 80 } },
+        mode: { type: "string", enum: [...BOARD_GAME_PHASE_MODES] }, actionIds: { type: "array", maxItems: 100, items: { type: "string", maxLength: 80 } },
         description: { type: "string", maxLength: 800 }
       }
     } },
@@ -332,16 +442,24 @@ const boardGameEngineSchema = {
       required: ["id", "label", "kind", "phaseId", "target", "resourceKey", "cost", "amount", "mechanismId", "description"],
       properties: {
         id: { type: "string", minLength: 1, maxLength: 80 }, label: { type: "string", minLength: 1, maxLength: 120 },
-        kind: { type: "string", enum: ["move", "gain", "pay", "control", "score", "mechanism", "bid", "draw", "play", "reveal", "pass"] },
-        phaseId: { type: "string", maxLength: 80 }, target: { type: "string", enum: ["none", "any_region", "adjacent_region", "unowned_region", "own_region", "opponent_region"] },
+        kind: { type: "string", enum: [...BOARD_GAME_ACTION_KINDS] },
+        phaseId: { type: "string", maxLength: 80 }, target: { type: "string", enum: [...BOARD_GAME_TARGET_KINDS] },
         resourceKey: { type: "string", maxLength: 80 }, cost: { type: "number", minimum: 0, maximum: 999999 }, amount: { type: "number", minimum: -999999, maximum: 999999 },
-        mechanismId: { type: "string", maxLength: 80 }, description: { type: "string", maxLength: 1200 }
+        targetTerrain: { type: "string", maxLength: 80 }, deckId: { type: "string", maxLength: 80 }, cardId: { type: "string", maxLength: 200 },
+        mechanismId: { type: "string", maxLength: 80 }, rollCount: { type: "integer", minimum: 1, maximum: 8 }, rollSides: { type: "integer", minimum: 2, maximum: 20 }, bustThreshold: { type: "number", minimum: 1 },
+        keepTurn: { type: "boolean" }, reshuffleOnEmpty: { type: "boolean" }, cardDestination: { type: "string", enum: ["discard", "tableau", "removed"] }, deckScope: { type: "string", enum: ["shared", "personal"] },
+        targetSeatIndex: { type: ["integer", "null"], minimum: 0, maximum: 98 }, tradeGiveKey: { type: "string", maxLength: 80 }, tradeReceiveKey: { type: "string", maxLength: 80 }, tradeGiveAmount: { type: "number", minimum: 1 }, tradeReceiveAmount: { type: "number", minimum: 1 },
+        attackKey: { type: "string", maxLength: 80 }, defenseKey: { type: "string", maxLength: 80 }, damageKey: { type: "string", maxLength: 80 }, combatScoreKey: { type: "string", maxLength: 80 },
+        allowTileReplace: { type: "boolean" }, marketPriceDelta: { type: "number" }, marketRestock: { type: "boolean" }, marketDestination: { type: "string", enum: ["tableau", "discard"] }, marketPriceFloor: { type: "number" }, marketPriceCeiling: { type: "number" }, marketSupplyDelta: { type: "number" },
+        tileRotation: { type: "integer", minimum: 0, maximum: 5 }, tileRequireAdjacent: { type: "boolean" }, tileMatchEdges: { type: "boolean" }, attackBonus: { type: "number" }, defenseBonus: { type: "number" }, damageCap: { type: "number", minimum: 0 }, shieldKey: { type: "string", maxLength: 80 }, retreatTargetId: { type: "string", maxLength: 80 }, controlTargetId: { type: "string", maxLength: 80 },
+        cooldownRounds: { type: "integer", minimum: 0, maximum: 99 }, rondelStep: { type: "integer", minimum: 1, maximum: 99 }, revealVisibility: { type: "string", enum: ["public", "private", "team"] }, revealCount: { type: "integer", minimum: 1, maximum: 20 }, revealApplyEffects: { type: "boolean" },
+        responseActionIds: { type: "array", maxItems: 20, items: { type: "string", maxLength: 80 } }, responseSeatMode: { type: "string", enum: ["all_other_players", "all_players", "target_player"] }, responseTimeoutSeconds: { type: "integer", minimum: 1, maximum: 3600 }, responseDefaultActionId: { type: "string", maxLength: 80 },
+        bidMode: { type: "string", enum: ["highest", "lowest", "second_price"] }, bidTieMode: { type: "string", enum: ["rotation", "first"] }, bidSecondPriceOffset: { type: "number", minimum: 0 }, bidTargetId: { type: "string", maxLength: 80 }, contributionPoolKey: { type: "string", maxLength: 80 }, factionId: { type: "string", maxLength: 80 },
+        productionRules: { type: "array", maxItems: 40, items: { type: "object", additionalProperties: false, properties: { min: { type: "number" }, max: { type: "number" }, variableKey: { type: "string", maxLength: 80 }, amount: { type: "number" }, scope: { type: "string", enum: ["self", "all_players"] } } } },
+        marketSize: { type: "integer", minimum: 1, maximum: 20 }, draftMode: { type: "string", enum: ["public_market", "hand"] }, description: { type: "string", maxLength: 1200 }
       }
     } },
-    setup: {
-      type: "object", additionalProperties: false, required: ["unitsPerSeat", "startingNodeIds"],
-      properties: { unitsPerSeat: { type: "integer", minimum: 0, maximum: 30 }, startingNodeIds: { type: "array", maxItems: 99, items: { type: "string", maxLength: 80 } } }
-    },
+    setup: boardGameSetupSchema,
     roundEffects: { type: "array", maxItems: 50, items: {
       type: "object", additionalProperties: false, required: ["id", "targetKey", "operation", "value"],
       properties: { id: { type: "string", maxLength: 80 }, targetKey: { type: "string", maxLength: 80 }, operation: { type: "string", enum: ["set", "add", "subtract", "multiply", "min", "max", "toggle"] }, value: { type: "string", maxLength: 120 } }
@@ -376,6 +494,7 @@ const boardGameRulebookSchema = {
 export const boardGameDesignSchema = {
   type: "object",
   additionalProperties: false,
+  definitions: { boardGameEffect: boardGameEffectSchema },
   required: ["version", "title", "designGoal", "playerCount", "playTimeMinutes", "seats", "components", "variables", "mechanisms", "engine", "rulebook", "updatedAt"],
   properties: {
     version: { type: "integer", const: BOARD_GAME_DESIGN_VERSION },
