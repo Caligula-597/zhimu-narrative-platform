@@ -3,6 +3,7 @@ import test from "node:test";
 import { createBoardGameRuntimeState } from "../shared/board-game-engine.js";
 import { createRuinsAuctionDesign } from "../shared/ruins-auction-preset.js";
 import { createEchoArchiveDesign } from "../shared/echo-archive-preset.js";
+import { createSkylineDraftDesign } from "../shared/reference-board-game-presets.js";
 import {
   applyBoardGameOnlineCommand,
   createBoardGameDeadline,
@@ -72,4 +73,15 @@ test("线上权威入口拒绝过期阶段的命令", () => {
   });
   assert.equal(result.ok, false);
   assert.equal(result.code, "DEADLINE_EXPIRED");
+});
+
+test("公开轮抽快照向玩家提供市场卡与并行阶段元数据", () => {
+  const design = createSkylineDraftDesign();
+  const state = createBoardGameRuntimeState(design, 4);
+  const snapshot = createBoardGameOnlineSnapshot(design, state);
+  assert.equal(snapshot.catalog.phases[0].mode, "reveal");
+  assert.match(snapshot.catalog.phases[0].description, /同时/);
+  assert.equal(snapshot.catalog.actions[0].draftMode, "public_market");
+  assert.equal(snapshot.publicState.market.length, 4);
+  assert.equal(snapshot.viewerStates[0].viewer.hand.length, 0);
 });

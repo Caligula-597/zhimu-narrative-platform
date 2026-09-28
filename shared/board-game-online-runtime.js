@@ -56,6 +56,7 @@ function projectBoardGameCatalog(designValue = {}) {
       id: text(phase?.id, 120),
       label: text(phase?.label, 160),
       mode: text(phase?.mode, 40),
+      description: text(phase?.description, 800),
       actionIds: Array.isArray(phase?.actionIds) ? phase.actionIds.map((id) => text(id, 120)).filter(Boolean) : []
     })),
     actions: actions.map((action) => ({
@@ -65,6 +66,8 @@ function projectBoardGameCatalog(designValue = {}) {
       kind: text(action?.kind, 60),
       target: text(action?.target, 60),
       deckId: text(action?.deckId, 120),
+      draftMode: text(action?.draftMode, 40),
+      marketSize: integer(action?.marketSize, 0, 0, 99),
       bidMode: text(action?.bidMode, 40),
       responseActionIds: Array.isArray(action?.responseActionIds) ? action.responseActionIds.map((id) => text(id, 120)).filter(Boolean) : []
     })),
