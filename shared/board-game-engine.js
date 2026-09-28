@@ -72,23 +72,23 @@ export const BOARD_GAME_ENGINE_CAPABILITIES = Object.freeze([
   { id: "action.roll", label: "风险掷骰", status: "supported", note: "使用确定性随机掷骰推进本轮风险，允许继续或停手。" },
   { id: "action.stop", label: "风险停手", status: "supported", note: "把当前风险进度安全结算为个人分数。" },
   { id: "action.contribute", label: "投入公共目标", status: "supported", note: "席位将资源原子投入共享危机池，并写入公开响应。" },
-  { id: "action.reveal", label: "公开对象", status: "partial", note: "V1 可改变公开状态，尚未运行完整信息权限层。" },
+  { id: "action.reveal", label: "公开对象", status: "supported", note: "支持公共、席位私密和团队私密揭示，并在玩家投影中按权限返回。" },
   { id: "effects.response_standard", label: "标准效果响应链", status: "supported", note: "支持作用域、条件、优先级、延迟时机、重复、连锁、可见性和逐条 before/after 审计。" },
   { id: "timing.response_window", label: "玩家反应窗口", status: "supported", note: "顺序行动后的玩家响应支持最多三层嵌套，带服务端截止时间、默认响应、外层恢复和超时审计。" },
   { id: "card.zones", label: "牌区移动与牌库操作", status: "supported", note: "抽牌、弃置、移除、桌面区、公共牌库洗回和席位独立牌库洗回均由统一原语处理。" },
   { id: "map.topology_placement", label: "拓扑拼图与邻接放置", status: "supported", note: "支持邻接、旋转、边缘匹配、连通组件、多数归属和配置化连通计分。" },
-  { id: "random.dice_production", label: "骰子生产与概率供给", status: "partial", note: "可复现随机已支持，按骰子结果发放多类型资源的生产协议仍需专用实现。" },
+  { id: "random.dice_production", label: "骰子生产与概率供给", status: "supported", note: "支持多骰、多区间、多资源、全员/个人生产、灾害负产出和可复现骰史。" },
   { id: "interaction.trade_window", label: "交易窗口与原子转移", status: "supported", note: "支持发起、双方确认、撤回、资源边界和原子结算；立即交易仍可用。" },
   { id: "resource.market_curve", label: "供需市场价格曲线", status: "supported", note: "支持价格偏移、上下限、供给修正、补货和公共市场响应。" },
   { id: "action.combat", label: "战斗与损失结算", status: "supported", note: "支持攻防修正、护盾吸收、伤害上限、撤退、控制转移和战斗日志。" },
   { id: "role.faction_plugin", label: "派系规则插件", status: "supported", note: "通用插件支持起始状态、行动锁、轮末/终局机制；专属阶段和复杂胜利条件通过派系配置扩展。" },
-  { id: "score.endgame_audit", label: "多条件终局审计", status: "partial", note: "回合和变量阈值终局可运行，跨区域、隐藏目标、终局倍率的统一审计仍需补齐。" },
-  { id: "pacing.multi_era_cleanup", label: "多时代清理与转换", status: "partial", note: "时代推进可运行，旧组件清理、产业翻面和阶段资产迁移仍需专用流水线。" },
+  { id: "score.endgame_audit", label: "多条件终局审计", status: "supported", note: "统一审计回合、变量、区域多数、连通组件、隐藏目标、派系钩子、终局倍率和平局顺序。" },
+  { id: "pacing.multi_era_cleanup", label: "多时代清理与转换", status: "supported", note: "支持按时代清理牌库/市场/手牌/桌面资产，并记录迁移、退役和阶段转换。" },
   { id: "interaction.cooperation", label: "合作公共目标与危机", status: "supported", note: "支持公共资源池投入、危机阈值和失败轨道的基础运行时协议。" },
-  { id: "timing.action_cooldown", label: "行动轨道与冷却", status: "partial", note: "支持行动冷却和席位行动轨道，复杂跳跃支付仍由具体游戏配置。" },
+  { id: "timing.action_cooldown", label: "行动轨道与冷却", status: "supported", note: "支持行动冷却、行动轨道定位和跨格跳跃支付，配置未启用时保持普通行动语义。" },
   { id: "info.public", label: "公开信息", status: "supported", note: "所有试玩状态均可公开呈现。" },
   { id: "info.private", label: "个人私密信息", status: "supported", note: "线上运行时通过 publicState 与 viewerState 分离未公开手牌；单屏试玩只展示当前测试席位。" },
-  { id: "info.team", label: "团队私密信息", status: "partial", note: "数据可标注团队范围，当前单屏试玩不提供独立设备隔离。" },
+  { id: "info.team", label: "团队私密信息", status: "supported", note: "团队归属、团队揭示和团队响应均按 viewer seat 投影，单屏试玩也不会泄露其他团队内容。" },
   { id: "random.seeded", label: "可复现随机", status: "supported", note: "牌堆初始化使用确定性种子，回放可复现相同顺序。" }
 ]);
 
@@ -257,6 +257,9 @@ function normalizeAction(value, index = 0) {
     controlTargetId: identifier(source.controlTargetId, ""),
     cooldownRounds: integer(source.cooldownRounds, 0, 0, 99),
     rondelStep: integer(source.rondelStep, 1, 1, 99),
+    revealVisibility: ["public", "private", "team"].includes(source.revealVisibility) ? source.revealVisibility : "public",
+    revealCount: integer(source.revealCount, 1, 1, 20),
+    revealApplyEffects: Boolean(source.revealApplyEffects),
     responseActionIds: (Array.isArray(source.responseActionIds) ? source.responseActionIds : []).slice(0, 20).map((id) => identifier(id, "")).filter(Boolean),
     responseSeatMode: ["all_other_players", "all_players", "target_player"].includes(source.responseSeatMode) ? source.responseSeatMode : "all_other_players",
     responseTimeoutSeconds: integer(source.responseTimeoutSeconds, 15, 1, 3600),
@@ -355,8 +358,29 @@ export function normalizeBoardGameEngine(value = {}) {
       eraCleanup: {
         everyRounds: integer(setup.eraCleanup?.everyRounds, 0, 0, 999),
         deckIds: (Array.isArray(setup.eraCleanup?.deckIds) ? setup.eraCleanup.deckIds : []).slice(0, 40).map((id) => identifier(id, "")).filter(Boolean),
-        discardMarket: Boolean(setup.eraCleanup?.discardMarket)
+        discardMarket: Boolean(setup.eraCleanup?.discardMarket),
+        zones: (Array.isArray(setup.eraCleanup?.zones) ? setup.eraCleanup.zones : ["decks", "market"]).filter((zone) => ["decks", "market", "hands", "claimedCards", "tableaus", "personalDecks", "personalDiscardPiles"].includes(zone)),
+        migrateToAge: setup.eraCleanup?.migrateToAge == null ? null : integer(setup.eraCleanup.migrateToAge, 0, 0, 99),
+        migrationDeckId: identifier(setup.eraCleanup?.migrationDeckId, "")
       },
+      actionTrack: {
+        enabled: Boolean(setup.actionTrack?.enabled),
+        actionIds: (Array.isArray(setup.actionTrack?.actionIds) ? setup.actionTrack.actionIds : []).map((id) => identifier(id, "")).filter(Boolean),
+        jumpResourceKey: identifier(setup.actionTrack?.jumpResourceKey, ""),
+        jumpCostPerStep: number(setup.actionTrack?.jumpCostPerStep, 1, 0, 999999),
+        wrapAround: setup.actionTrack?.wrapAround !== false
+      },
+      teamAssignments: (Array.isArray(setup.teamAssignments) ? setup.teamAssignments : []).slice(0, 99).map((id, index) => identifier(id, `team-${index + 1}`)),
+      endgameMultipliers: (Array.isArray(setup.endgameMultipliers) ? setup.endgameMultipliers : []).slice(0, 40).map((item, index) => ({
+        id: identifier(item?.id, `end-multiplier-${index + 1}`),
+        variableKey: identifier(item?.variableKey, "score"),
+        operator: ["eq", "gt", "gte", "lt", "lte"].includes(item?.operator) ? item.operator : "gte",
+        value: number(item?.value, 0),
+        multiplier: number(item?.multiplier, 1, -999, 999),
+        points: number(item?.points, 0, -999999, 999999),
+        scope: item?.scope === "global" ? "global" : "player"
+      })),
+      tieBreakOrder: (Array.isArray(setup.tieBreakOrder) ? setup.tieBreakOrder : ["score", "objective", "seatIndex"]).map((key) => identifier(key, "score")).filter(Boolean),
       majorityRules: (Array.isArray(setup.majorityRules) ? setup.majorityRules : []).slice(0, 40).map((rule, index) => ({
         id: identifier(rule?.id, `majority-${index + 1}`),
         nodeIds: (Array.isArray(rule?.nodeIds) ? rule.nodeIds : []).map((id) => identifier(id, "")).filter(Boolean),
@@ -501,6 +525,13 @@ export function compileBoardGameEngine(designValue, roleCount = 0) {
   engine.setup.hiddenObjectives.forEach((objective, index) => {
     if (!variableIds.has(objective.variableKey)) issues.push(issue("error", "ENGINE_OBJECTIVE_VARIABLE_MISSING", `隐藏目标引用了不存在的数值「${objective.variableKey}」。`, `engine.setup.hiddenObjectives.${index}`));
   });
+  engine.setup.endgameMultipliers.forEach((rule, index) => {
+    if (!variableIds.has(rule.variableKey)) issues.push(issue("error", "ENGINE_END_MULTIPLIER_VARIABLE_MISSING", `终局倍率引用了不存在的数值「${rule.variableKey}」。`, `engine.setup.endgameMultipliers.${index}`));
+    if (!variableIds.has("score")) issues.push(issue("error", "ENGINE_SCORE_VARIABLE_MISSING", "终局倍率需要一个席位分数变量「score」。", "variables"));
+  });
+  engine.setup.actionTrack.actionIds.forEach((actionId, index) => {
+    if (!actionIds.has(actionId)) issues.push(issue("error", "ENGINE_ACTION_TRACK_ACTION_MISSING", `行动轨道引用了不存在的行动「${actionId}」。`, `engine.setup.actionTrack.actionIds.${index}`));
+  });
   engine.setup.personalDecks.forEach((personalDeck, index) => {
     if (!deckIds.has(personalDeck.deckId)) issues.push(issue("error", "ENGINE_PERSONAL_DECK_MISSING", `个人牌库配置引用了不存在的牌堆「${personalDeck.deckId}」。`, `engine.setup.personalDecks.${index}.deckId`));
   });
@@ -557,7 +588,7 @@ export function compileBoardGameEngine(designValue, roleCount = 0) {
   const tests = [
     { id: "map-references", label: "区域与路线引用完整", passed: !issues.some((item) => ["ENGINE_ROUTE_NODE_MISSING", "ENGINE_ROUTE_SELF", "ENGINE_START_NODE_MISSING"].includes(item.code)) },
     { id: "phase-references", label: "阶段与行动引用完整", passed: !issues.some((item) => ["ENGINE_PHASE_ACTIONS_EMPTY", "ENGINE_PHASE_ACTION_MISSING", "ENGINE_ACTION_PHASE_MISSING"].includes(item.code)) },
-    { id: "rule-references", label: "行动与数值规则引用完整", passed: !issues.some((item) => ["ENGINE_ACTION_MECHANISM_MISSING", "ENGINE_ACTION_VARIABLE_MISSING", "ENGINE_TRADE_VARIABLE_MISSING", "ENGINE_COMBAT_VARIABLE_MISSING", "ENGINE_PRODUCTION_VARIABLE_MISSING", "ENGINE_FACTION_MISSING", "ENGINE_END_VARIABLE_MISSING", "ENGINE_ROUND_EFFECT_VARIABLE_MISSING", "ENGINE_CARD_EFFECT_VARIABLE_MISSING", "ENGINE_CARD_EFFECT_CONDITION_VARIABLE_MISSING", "ENGINE_CARD_EFFECT_CHAIN_MISSING", "ENGINE_CARD_EFFECT_TIMING_INVALID", "ENGINE_MECHANISM_CONDITION_VARIABLE_MISSING", "ENGINE_MECHANISM_EFFECT_VARIABLE_MISSING", "ENGINE_MECHANISM_EFFECT_CONDITION_VARIABLE_MISSING", "ENGINE_MECHANISM_EFFECT_CHAIN_MISSING", "ENGINE_MECHANISM_EFFECT_TIMING_INVALID"].includes(item.code)) },
+    { id: "rule-references", label: "行动与数值规则引用完整", passed: !issues.some((item) => ["ENGINE_ACTION_MECHANISM_MISSING", "ENGINE_ACTION_VARIABLE_MISSING", "ENGINE_TRADE_VARIABLE_MISSING", "ENGINE_COMBAT_VARIABLE_MISSING", "ENGINE_PRODUCTION_VARIABLE_MISSING", "ENGINE_FACTION_MISSING", "ENGINE_END_VARIABLE_MISSING", "ENGINE_END_MULTIPLIER_VARIABLE_MISSING", "ENGINE_SCORE_VARIABLE_MISSING", "ENGINE_ROUND_EFFECT_VARIABLE_MISSING", "ENGINE_CARD_EFFECT_VARIABLE_MISSING", "ENGINE_CARD_EFFECT_CONDITION_VARIABLE_MISSING", "ENGINE_CARD_EFFECT_CHAIN_MISSING", "ENGINE_CARD_EFFECT_TIMING_INVALID", "ENGINE_MECHANISM_CONDITION_VARIABLE_MISSING", "ENGINE_MECHANISM_EFFECT_VARIABLE_MISSING", "ENGINE_MECHANISM_EFFECT_CONDITION_VARIABLE_MISSING", "ENGINE_MECHANISM_EFFECT_CHAIN_MISSING", "ENGINE_MECHANISM_EFFECT_TIMING_INVALID", "ENGINE_ACTION_TRACK_ACTION_MISSING"].includes(item.code)) },
     { id: "runtime-capabilities", label: "所需能力可在当前试玩运行", passed: capabilities.runnable }
   ];
   return { engine, issues, tests, capabilities, blocking: issues.some((item) => item.level === "error") };
@@ -620,6 +651,7 @@ export function createBoardGameRuntimeState(designValue, seatCountValue = 0) {
     phaseIndex: 0,
     activeSeatIndex: 0,
     seatCount,
+    teamAssignments: Array.from({ length: seatCount }, (_, seatIndex) => engine.setup.teamAssignments[seatIndex] || `team-${seatIndex + 1}`),
     seed: engine.setup.seed,
     randomState: engine.setup.seed,
     values: variableValues.values,
@@ -640,6 +672,8 @@ export function createBoardGameRuntimeState(designValue, seatCountValue = 0) {
     dice: [],
     continueSeatIndex: null,
     revealed: [],
+    privateRevealed: Array.from({ length: seatCount }, () => []),
+    teamRevealed: {},
     submissions: {},
     resolved: false,
     ended: false,
@@ -744,7 +778,7 @@ function recordResponse(state, response = {}) {
     operation: text(response.operation, 40),
     before: response.before,
     after: response.after,
-    visibility: response.visibility === "private" ? "private" : "public",
+    visibility: ["private", "team"].includes(response.visibility) ? response.visibility : "public",
     status: ["applied", "queued", "skipped"].includes(response.status) ? response.status : (response.applied === false ? "skipped" : "applied"),
     applied: response.applied !== false,
     reason: text(response.reason, 240),
@@ -764,6 +798,25 @@ function currentPhase(engine, state) {
 
 function actionFor(engine, actionId) {
   return engine.actions.find((item) => item.id === actionId) || null;
+}
+
+function actionTrackJump(engine, state, action, seatIndex) {
+  const track = engine.setup.actionTrack;
+  if (!track?.enabled) return { enabled: false, cost: 0, targetIndex: -1, steps: 0 };
+  const phase = currentPhase(engine, state);
+  const ids = track.actionIds.length ? track.actionIds : (phase?.actionIds || []);
+  const targetIndex = ids.indexOf(action.id);
+  if (targetIndex < 0 || !ids.length) return { enabled: true, cost: 0, targetIndex: -1, steps: 0 };
+  const currentIndex = Number.isInteger(state.actionTrack?.[seatIndex]) ? state.actionTrack[seatIndex] % ids.length : 0;
+  const forward = targetIndex >= currentIndex ? targetIndex - currentIndex : (track.wrapAround ? ids.length - currentIndex + targetIndex : Number.POSITIVE_INFINITY);
+  const steps = Number.isFinite(forward) ? forward : 0;
+  return {
+    enabled: true,
+    cost: Math.max(0, steps - 1) * number(track.jumpCostPerStep, 1),
+    targetIndex,
+    steps,
+    resourceKey: track.jumpResourceKey
+  };
 }
 
 function scopedState(design, state, seatIndex) {
@@ -1061,6 +1114,10 @@ function validateAction(design, engine, state, action, targetId, seatIndex, bidA
   if (state.factionState?.[seatIndex]?.blockedActionIds?.includes(action.id)) return { ok: false, code: "FACTION_ACTION_BLOCKED", message: "当前派系禁止执行这个行动。" };
   if (state.resolved || state.ended) return { ok: false, code: "PHASE_RESOLVED", message: "当前阶段已经结算。" };
   if (number(state.actionCooldowns?.[seatIndex]?.[action.id], 0) > 0) return { ok: false, code: "ACTION_COOLDOWN", message: `该行动还需等待 ${state.actionCooldowns[seatIndex][action.id]} 个回合。` };
+  const trackJump = actionTrackJump(engine, state, action, seatIndex);
+  if (trackJump.cost > 0 && (!trackJump.resourceKey || number(variableValue(design, state, seatIndex, trackJump.resourceKey), 0) < trackJump.cost)) {
+    return { ok: false, code: "ACTION_TRACK_JUMP_RESOURCE", message: `行动轨道跳跃需要 ${trackJump.cost} ${trackJump.resourceKey || "资源"}。` };
+  }
   const legalTargets = legalBoardGameTargets(design, state, action.id, seatIndex);
   if (action.target !== "none" && !legalTargets.includes(targetId)) return { ok: false, code: "TARGET_ILLEGAL", message: "所选区域不是该行动的合法目标。" };
   if (action.cost > 0 && number(variableValue(design, state, seatIndex, action.resourceKey), 0) < action.cost) return { ok: false, code: "RESOURCE_NOT_ENOUGH", message: "资源不足，不能执行该行动。" };
@@ -1120,7 +1177,7 @@ function validateAction(design, engine, state, action, targetId, seatIndex, bidA
     const routeCost = Math.max(1, number(route?.cost, 1));
     if (number(variableValue(design, state, seatIndex, action.resourceKey), 0) < routeCost) return { ok: false, code: "RESOURCE_NOT_ENOUGH", message: "资源不足，不能占领这条路线。" };
   }
-  return { ok: true };
+  return { ok: true, trackJump };
 }
 
 function responseWindowEligibleSeats(state, action, submission) {
@@ -1264,9 +1321,15 @@ export function expireBoardGameResponseWindow(designValue, stateValue, nowValue 
 function applySingleAction(design, engine, state, submission, options = {}) {
   const action = actionFor(engine, submission.actionId);
   const seatIndex = submission.seatIndex;
+  const trackJump = actionTrackJump(engine, state, action, seatIndex);
   const beforeResource = action.resourceKey ? number(variableValue(design, state, seatIndex, action.resourceKey), 0) : 0;
+  if (trackJump.cost > 0 && trackJump.resourceKey) {
+    const beforeJump = number(variableValue(design, state, seatIndex, trackJump.resourceKey), 0);
+    setVariableValue(design, state, seatIndex, trackJump.resourceKey, beforeJump - trackJump.cost);
+  }
   if (action.cost > 0) setVariableValue(design, state, seatIndex, action.resourceKey, beforeResource - action.cost);
   const details = [];
+  if (trackJump.cost > 0) details.push(`行动轨道跳跃支付 ${trackJump.cost} ${trackJump.resourceKey}`);
   if (action.kind === "move") {
     const unit = unitForSeat(state, seatIndex);
     if (unit) {
@@ -1319,7 +1382,7 @@ function applySingleAction(design, engine, state, submission, options = {}) {
       details.push(`掷出 ${rolls.join("、")}，风险进度 ${state.riskProgress[seatIndex]}，可继续冒险`);
     }
     if (action.productionRules.length) {
-      const production = applyBoardGameProduction(state, { rules: action.productionRules, rollTotal: total, activeSeatIndex: seatIndex });
+      const production = applyBoardGameProduction(state, { rules: action.productionRules, rollTotal: total, rolls, activeSeatIndex: seatIndex, actionId: action.id, seed: state.randomState });
       for (const change of production) {
         const boundedBefore = change.before;
         setVariableValue(design, state, change.seatIndex, change.variableKey, change.after);
@@ -1492,16 +1555,43 @@ function applySingleAction(design, engine, state, submission, options = {}) {
     details.push(combat.detail);
   } else if (action.kind === "reveal") {
     const deckId = deckIdForAction(state, action);
-    const actualDeck = state.decks?.[deckId];
-    const card = Array.isArray(actualDeck) ? actualDeck.pop() : null;
-    if (card) state.revealed.unshift(card);
-    details.push(card?.name ? `公开「${card.name}」` : "公开当前对象");
+    const actualDeck = action.deckScope === "personal" ? state.personalDecks?.[seatIndex]?.[deckId] : state.decks?.[deckId];
+    const cards = [];
+    for (let index = 0; index < action.revealCount; index += 1) {
+      if (!Array.isArray(actualDeck) || !actualDeck.length) break;
+      const cardIndex = action.cardId ? actualDeck.findIndex((item) => item.id === action.cardId) : actualDeck.length - 1;
+      if (cardIndex < 0) break;
+      const [card] = actualDeck.splice(cardIndex, 1);
+      cards.push(card);
+      if (action.revealVisibility === "public") state.revealed.unshift(card);
+      else if (action.revealVisibility === "team") {
+        const teamId = state.teamAssignments?.[seatIndex] || `team-${seatIndex + 1}`;
+        if (!Array.isArray(state.teamRevealed[teamId])) state.teamRevealed[teamId] = [];
+        state.teamRevealed[teamId].unshift(card);
+      } else {
+        if (!Array.isArray(state.privateRevealed[seatIndex])) state.privateRevealed[seatIndex] = [];
+        state.privateRevealed[seatIndex].unshift(card);
+      }
+      recordResponse(state, {
+        sourceType: "action", sourceId: action.id, sourceLabel: action.label, seatIndex,
+        targetScope: action.revealVisibility === "team" ? "team" : action.revealVisibility === "private" ? "self" : "public",
+        targetSeatIndex: seatIndex, targetKey: card.id, operation: "reveal", visibility: action.revealVisibility,
+        applied: true, detail: `${action.revealVisibility === "public" ? "公开" : action.revealVisibility === "team" ? "团队公开" : "私密揭示"}「${card.name || card.id}」`
+      });
+      if (action.revealApplyEffects) applyCardEffects(design, state, seatIndex, card, { visibility: action.revealVisibility });
+    }
+    details.push(cards.length ? `${action.revealVisibility === "public" ? "公开" : action.revealVisibility === "team" ? "团队公开" : "私密揭示"}${cards.map((card) => `「${card.name || card.id}」`).join("、")}` : "没有可揭示对象");
   }
   if (action.cooldownRounds > 0) {
     if (!state.actionCooldowns[seatIndex]) state.actionCooldowns[seatIndex] = {};
     state.actionCooldowns[seatIndex][action.id] = action.cooldownRounds;
-    const phaseActions = currentPhase(engine, state)?.actionIds || [];
-    if (phaseActions.length) state.actionTrack[seatIndex] = (number(state.actionTrack[seatIndex], 0) + action.rondelStep) % phaseActions.length;
+    const phaseActions = engine.setup.actionTrack.enabled && engine.setup.actionTrack.actionIds.length
+      ? engine.setup.actionTrack.actionIds
+      : (currentPhase(engine, state)?.actionIds || []);
+    if (phaseActions.length) {
+      const targetIndex = phaseActions.indexOf(action.id);
+      state.actionTrack[seatIndex] = targetIndex >= 0 ? targetIndex : (number(state.actionTrack[seatIndex], 0) + action.rondelStep) % phaseActions.length;
+    }
     details.push(`行动冷却 ${action.cooldownRounds} 回合`);
   }
   if (action.mechanismId || action.kind === "mechanism") {
@@ -1639,6 +1729,9 @@ export function executeBoardGameAction(designValue, stateValue, input = {}) {
   const engine = normalizeBoardGameEngine(design.engine);
   const state = clone(stateValue);
   normalizeBoardGameAdvancedState(state, state.seatCount);
+  state.teamAssignments = Array.from({ length: state.seatCount }, (_, index) => text(state.teamAssignments?.[index]) || `team-${index + 1}`);
+  state.privateRevealed = Array.from({ length: state.seatCount }, (_, index) => Array.isArray(state.privateRevealed?.[index]) ? state.privateRevealed[index] : []);
+  state.teamRevealed = state.teamRevealed && typeof state.teamRevealed === "object" ? state.teamRevealed : {};
   if (state.pendingResponseWindow) {
     const now = Number(input.serverNow ?? Date.now());
     if (Number.isFinite(now) && now >= Number(state.pendingResponseWindow.deadlineAt)) {
@@ -1833,6 +1926,45 @@ function checkEnded(design, engine, state) {
     }
     state.topologyAwarded = true;
   }
+  const endgameMultipliers = [];
+  if (ended && !state.endgameBonusesAwarded) {
+    for (const rule of engine.setup.endgameMultipliers) {
+      if (rule.scope === "global") {
+        const globalValue = number(state.values[rule.variableKey], 0);
+        if (!compare(globalValue, rule.operator, rule.value)) continue;
+        for (let seatIndex = 0; seatIndex < state.seatCount; seatIndex += 1) {
+          const before = number(variableValue(design, state, seatIndex, "score"), 0);
+          const after = before * rule.multiplier + rule.points;
+          setVariableValue(design, state, seatIndex, "score", after);
+          endgameMultipliers.push({ id: rule.id, seatIndex, before, after, multiplier: rule.multiplier, points: rule.points, passed: true });
+        }
+      } else {
+        for (let seatIndex = 0; seatIndex < state.seatCount; seatIndex += 1) {
+          const current = number(variableValue(design, state, seatIndex, rule.variableKey), 0);
+          const passed = compare(current, rule.operator, rule.value);
+          if (!passed) {
+            endgameMultipliers.push({ id: rule.id, seatIndex, passed: false, current });
+            continue;
+          }
+          const before = number(variableValue(design, state, seatIndex, "score"), 0);
+          const after = before * rule.multiplier + rule.points;
+          setVariableValue(design, state, seatIndex, "score", after);
+          endgameMultipliers.push({ id: rule.id, seatIndex, before, after, multiplier: rule.multiplier, points: rule.points, passed: true });
+        }
+      }
+    }
+    state.endgameBonusesAwarded = true;
+  }
+  const finalScores = Array.from({ length: state.seatCount }, (_, seatIndex) => ({
+    seatIndex,
+    score: number(variableValue(design, state, seatIndex, "score"), 0),
+    objectivePoints: (objectiveResults.filter((item) => item.seatIndex === seatIndex && item.passed).reduce((sum, item) => sum + number(item.points, 0), 0)),
+    majorityPoints: majorityResults.filter((item) => item.winners.includes(seatIndex)).reduce((sum, item) => sum + number(item.points, 0), 0)
+  }));
+  const ranking = finalScores.slice().sort((left, right) => right.score - left.score || right.objectivePoints - left.objectivePoints || right.majorityPoints - left.majorityPoints || left.seatIndex - right.seatIndex);
+  const winnerScore = ranking[0]?.score;
+  state.winnerSeatIndexes = ranking.filter((item) => item.score === winnerScore).map((item) => item.seatIndex);
+  state.scores = finalScores.map((item) => item.score);
   appendBoardGameEndAudit(state, {
     round: state.round,
     primary: { type: engine.endCondition.type, passed: primaryReached },
@@ -1841,7 +1973,13 @@ function checkEnded(design, engine, state) {
     objectives: objectiveResults,
     majority: majorityResults,
     tileComponents: tileComponentResults,
-    factionAudit: state.factionAudit || []
+    factionAudit: state.factionAudit || [],
+    multipliers: endgameMultipliers,
+    finalScores,
+    ranking,
+    winnerSeatIndexes: state.winnerSeatIndexes,
+    tieBreakOrder: engine.setup.tieBreakOrder,
+    finalized: ended
   });
   return ended;
 }
@@ -1961,6 +2099,9 @@ export function normalizeBoardGameRuntimeState(stateValue, designValue, seatCoun
   state.routeOwners = record(state.routeOwners);
   state.riskProgress = Array.from({ length: count }, (_, index) => number(state.riskProgress?.[index], 0));
   state.dice = Array.isArray(state.dice) ? state.dice : [];
+  state.teamAssignments = Array.from({ length: count }, (_, index) => text(state.teamAssignments?.[index]) || `team-${index + 1}`);
+  state.privateRevealed = Array.from({ length: count }, (_, index) => Array.isArray(state.privateRevealed?.[index]) ? state.privateRevealed[index] : []);
+  state.teamRevealed = state.teamRevealed && typeof state.teamRevealed === "object" ? state.teamRevealed : {};
   if (!Object.prototype.hasOwnProperty.call(state, "continueSeatIndex")) state.continueSeatIndex = null;
   state.responseSequence = integer(state.responseSequence, 0, 0, 1_000_000);
   state.responseEvents = Array.isArray(state.responseEvents) ? state.responseEvents.slice(0, 100) : [];

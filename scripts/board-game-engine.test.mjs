@@ -262,12 +262,15 @@ test("reveal phase waits for every seat before applying submissions", () => {
   assert.equal(second.state.owners.b, 0);
 });
 
-test("partially implemented primitives are rejected as runnable demos", () => {
+test("reveal primitives compile as runnable demos with explicit visibility", () => {
   const design = runnableDesign();
   design.engine.actions[0].kind = "reveal";
+  design.engine.actions[0].deckId = "reveal-deck";
+  design.components = [{ id: "reveal-deck", type: "deck", entries: [{ id: "reveal-card", name: "可见牌", quantity: 1 }] }];
+  design.engine.actions[0].revealVisibility = "team";
   const report = compileBoardGameEngine(design, 2);
-  assert.equal(report.blocking, true);
-  assert.ok(report.issues.some((item) => item.code === "CAPABILITY_PARTIAL"));
+  assert.equal(report.blocking, false);
+  assert.equal(report.capabilities.runnable, true);
 });
 
 test("hand draft deals private cards, passes leftovers and changes direction between ages", () => {

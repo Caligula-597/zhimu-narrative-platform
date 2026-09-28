@@ -40,6 +40,7 @@ export function createBoardGameAdvancedState(seatCount = 0) {
     factionState: Array.from({ length: count }, () => ({ id: "", flags: {}, counters: {}, blockedActionIds: [] })),
     factionAudit: [],
     factionEndAwarded: false,
+    endgameBonusesAwarded: false,
     triggerLog: [],
     responseStack: [],
     endAudit: []
@@ -78,6 +79,7 @@ export function normalizeBoardGameAdvancedState(state, seatCount = 0) {
     : clone(defaults.factionState[index]));
   state.factionAudit = Array.isArray(state.factionAudit) ? state.factionAudit.slice(0, 100) : [];
   state.factionEndAwarded = Boolean(state.factionEndAwarded);
+  state.endgameBonusesAwarded = Boolean(state.endgameBonusesAwarded);
   state.triggerLog = Array.isArray(state.triggerLog) ? state.triggerLog.slice(0, 200) : [];
   state.responseStack = Array.isArray(state.responseStack) ? state.responseStack.slice(0, 3) : [];
   state.endAudit = Array.isArray(state.endAudit) ? state.endAudit.slice(0, 100) : [];
@@ -315,7 +317,7 @@ export function resolveBoardGameCombat(state, { attackerSeat, defenderSeat, atta
   return { ok: true, result, detail: `战斗结算：攻击 ${attack}，防御 ${defense}，造成 ${damage} 点损失。` };
 }
 
-export function applyBoardGameProduction(state, { rules = [], rollTotal = 0, activeSeatIndex = 0 } = {}) {
+export function applyBoardGameProduction(state, { rules = [], rollTotal = 0, rolls = [], activeSeatIndex = 0, actionId = "", seed = "" } = {}) {
   const applied = [];
   for (const rule of Array.isArray(rules) ? rules : []) {
     const min = number(rule.min, 0);
@@ -330,7 +332,7 @@ export function applyBoardGameProduction(state, { rules = [], rollTotal = 0, act
       applied.push({ seatIndex, variableKey: rule.variableKey, before, after, amount: number(rule.amount, 1) });
     }
   }
-  state.diceHistory.unshift({ total: rollTotal, production: applied });
+  state.diceHistory.unshift({ total: rollTotal, rolls: Array.isArray(rolls) ? [...rolls] : [], activeSeatIndex, actionId, seed, production: clone(applied) });
   state.diceHistory = state.diceHistory.slice(0, 100);
   return applied;
 }
@@ -373,24 +375,43 @@ export function applyBoardGameMaintenance(state, { rules = [], round = 0 } = {})
 
 export function cleanupBoardGameEra(state, { deckIds = [], discardMarket = false, era = 0 } = {}) {
   const moved = [];
-  for (const deckId of Array.isArray(deckIds) ? deckIds : []) {
-    const deck = state.decks?.[deckId];
-    if (!Array.isArray(deck)) continue;
+  const zones = new Set(Array.isArray(arguments[1]?.zones) && arguments[1].zones.length ? arguments[1].zones : ["decks", "market"]);
+  const migrateToAge = arguments[1]?.migrateToAge == null ? null : integer(arguments[1].migrateToAge, 0, 0, 99);
+  const migrationDeckId = String(arguments[1]?.migrationDeckId || "");
+  const retire = (cards, deckId, destination) => {
     const retained = [];
-    for (const card of deck) {
+    for (const card of Array.isArray(cards) ? cards : []) {
       if (number(card.age, 0) && number(card.age, 0) < era) {
-        ensureDiscardPile(state, deckId).push(card);
-        moved.push({ deckId, cardId: card.id });
+        if (migrateToAge != null) {
+          const migrated = { ...clone(card), age: migrateToAge };
+          if (migrationDeckId && state.decks?.[migrationDeckId]) state.decks[migrationDeckId].push(migrated);
+          else retained.push(migrated);
+          moved.push({ deckId, cardId: card.id, from: destination, action: "migrate", toAge: migrateToAge, migrationDeckId });
+        } else {
+          ensureDiscardPile(state, deckId || "era").push(card);
+          moved.push({ deckId: deckId || "era", cardId: card.id, from: destination, action: "retire" });
+        }
       } else retained.push(card);
     }
-    state.decks[deckId] = retained;
+    return retained;
+  };
+  if (zones.has("decks")) {
+    for (const deckId of Array.isArray(deckIds) ? deckIds : []) {
+      const deck = state.decks?.[deckId];
+      if (Array.isArray(deck)) state.decks[deckId] = retire(deck, deckId, "decks");
+    }
   }
-  if (discardMarket && Array.isArray(state.market) && state.market.length) {
+  if ((discardMarket || zones.has("market")) && Array.isArray(state.market) && state.market.length) {
     const cards = state.market.splice(0);
-    for (const card of cards) ensureDiscardPile(state, card.deckId || "market").push(card);
-    moved.push(...cards.map((card) => ({ deckId: card.deckId || "market", cardId: card.id })));
+    const retained = retire(cards, cards[0]?.deckId || "market", "market");
+    if (retained.length) state.market.push(...retained);
   }
-  state.eraCleanupLog.unshift({ era, moved: clone(moved) });
+  if (zones.has("hands")) state.hands = state.hands.map((cards, seatIndex) => retire(cards, `hand-${seatIndex}`, "hands"));
+  if (zones.has("claimedCards")) state.claimedCards = state.claimedCards.map((cards, seatIndex) => retire(cards, `claimed-${seatIndex}`, "claimedCards"));
+  if (zones.has("tableaus")) state.tableaus = state.tableaus.map((cards, seatIndex) => retire(cards, `tableau-${seatIndex}`, "tableaus"));
+  if (zones.has("personalDecks")) state.personalDecks = state.personalDecks.map((decks, seatIndex) => Object.fromEntries(Object.entries(decks || {}).map(([deckId, cards]) => [deckId, retire(cards, `personal-${seatIndex}-${deckId}`, "personalDecks")] )));
+  if (zones.has("personalDiscardPiles")) state.personalDiscardPiles = state.personalDiscardPiles.map((decks, seatIndex) => Object.fromEntries(Object.entries(decks || {}).map(([deckId, cards]) => [deckId, retire(cards, `personal-discard-${seatIndex}-${deckId}`, "personalDiscardPiles")] )));
+  state.eraCleanupLog.unshift({ era, zones: [...zones], moved: clone(moved) });
   state.eraCleanupLog = state.eraCleanupLog.slice(0, 100);
   return moved;
 }

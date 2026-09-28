@@ -5,8 +5,7 @@ export const BOARD_GAME_AI_DRAFT_SCOPES = Object.freeze(["patch", "missing", "cu
 export const BOARD_GAME_AI_DRAFT_SECTIONS = Object.freeze(["components", "seats", "mechanisms", "engine", "rulebook"]);
 const RULEBOOK_FIELDS = Object.freeze(["objective", "setup", "turnStructure", "playerActions", "endCondition", "tieBreak", "notes"]);
 const UNSUPPORTED_REQUEST_PATTERNS = Object.freeze([
-  { capabilityId: "info.private", pattern: /个人私密|隐藏手牌|秘密信息|private information/i, reason: "单屏试玩不能提供按设备隔离的个人私密信息。" },
-  { capabilityId: "action.reveal", pattern: /隐藏信息权限|设备级隐藏信息|私密公开|private reveal/i, reason: "当前单屏试玩仍不能提供设备级的信息隔离。" }
+  { capabilityId: "info.private", pattern: /个人私密|隐藏手牌|秘密信息|设备级隐藏信息|private information/i, reason: "需要由线上 viewer 投影提供个人私密边界；当前编排器不会替作者自动生成跨设备账号配置。" }
 ]);
 
 const clone = (value) => structuredClone(value);

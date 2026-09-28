@@ -69,6 +69,8 @@ function projectBoardGameCatalog(designValue = {}) {
       deckId: text(action?.deckId, 120),
       draftMode: text(action?.draftMode, 40),
       marketSize: integer(action?.marketSize, 0, 0, 99),
+      revealVisibility: text(action?.revealVisibility, 40),
+      revealCount: integer(action?.revealCount, 1, 1, 20),
       bidMode: text(action?.bidMode, 40),
       responseActionIds: Array.isArray(action?.responseActionIds) ? action.responseActionIds.map((id) => text(id, 120)).filter(Boolean) : []
     })),
@@ -91,8 +93,12 @@ function projectBoardGameCatalog(designValue = {}) {
 
 function visibleResponseEvents(stateValue, viewerSeatIndex = null) {
   const events = Array.isArray(stateValue?.responseEvents) ? stateValue.responseEvents : [];
-  return events.filter((event) => event.visibility !== "private" || (
-    Number.isInteger(viewerSeatIndex) && (event.seatIndex === viewerSeatIndex || event.targetSeatIndex === viewerSeatIndex)
+  const teamAssignments = Array.isArray(stateValue?.teamAssignments) ? stateValue.teamAssignments : [];
+  const viewerTeam = Number.isInteger(viewerSeatIndex) ? teamAssignments[viewerSeatIndex] : null;
+  return events.filter((event) => event.visibility === "public" || (
+    Number.isInteger(viewerSeatIndex) && event.visibility === "private" && (event.seatIndex === viewerSeatIndex || event.targetSeatIndex === viewerSeatIndex)
+  ) || (
+    Number.isInteger(viewerSeatIndex) && event.visibility === "team" && (event.teamId || teamAssignments[event.seatIndex]) === viewerTeam
   ));
 }
 
@@ -146,6 +152,8 @@ export function projectBoardGamePublicState(stateValue) {
   delete state.privateState;
   delete state.hiddenObjectives;
   delete state.objectiveResults;
+  delete state.privateRevealed;
+  delete state.teamRevealed;
   delete state.responseStack;
   if (state.pendingResponseWindow) {
     const window = state.pendingResponseWindow;
@@ -177,12 +185,17 @@ export function projectBoardGameViewerState(stateValue, seatIndexValue = 0) {
   const ownHand = Array.isArray(stateValue?.hands?.[seatIndex]) ? clone(stateValue.hands[seatIndex]) : [];
   const ownTableau = Array.isArray(stateValue?.tableaus?.[seatIndex]) ? clone(stateValue.tableaus[seatIndex]) : [];
   const ownRemovedCards = Array.isArray(stateValue?.removedCards?.[seatIndex]) ? clone(stateValue.removedCards[seatIndex]) : [];
+  const ownRevealed = Array.isArray(stateValue?.privateRevealed?.[seatIndex]) ? clone(stateValue.privateRevealed[seatIndex]) : [];
+  const teamId = stateValue?.teamAssignments?.[seatIndex];
+  const teamRevealed = teamId && Array.isArray(stateValue?.teamRevealed?.[teamId]) ? clone(stateValue.teamRevealed[teamId]) : [];
   state.responseEvents = visibleResponseEvents(stateValue, seatIndex);
   state.viewer = {
     seatIndex,
     hand: ownHand,
     tableau: ownTableau,
     removedCards: ownRemovedCards,
+    revealed: [...ownRevealed, ...teamRevealed, ...(Array.isArray(stateValue?.revealed) ? clone(stateValue.revealed) : [])],
+    teamId: teamId || `team-${seatIndex + 1}`,
     hiddenObjectives: clone(stateValue?.hiddenObjectives?.[seatIndex] || []),
     objectiveResults: clone(stateValue?.objectiveResults?.[seatIndex] || []),
     faction: clone(stateValue?.factionState?.[seatIndex] || { id: "", flags: {}, counters: {} }),
