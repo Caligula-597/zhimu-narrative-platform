@@ -1,0 +1,395 @@
+{
+  "instructions": "VALID_EVENT|DUPLICATE|NOT_EVENT|WRONG_FACT|OVER_MERGED",
+  "sample": [
+    {
+      "sampleIndex": 1,
+      "eventId": "cevt_2e86362595124f20",
+      "order": 38,
+      "title": "陆卿原收留白初",
+      "summary": "两年后雨夜，陆卿原救下白初并收留，教她读书写字，白初留下寻仇。",
+      "importance": "SUPPORTING",
+      "sourceSectionIds": [
+        "src_4e231b90b6cf45bc"
+      ],
+      "label": "VALID_EVENT",
+      "notes": "救下并收留白初是同一连续行动。"
+    },
+    {
+      "sampleIndex": 2,
+      "eventId": "cevt_68121003d7454ed2",
+      "order": 83,
+      "title": "发现地下墓穴与失忆",
+      "summary": "众人发现花园塌陷，查看发现地下墓穴，因瘴气暂时失去记忆。",
+      "importance": "SUPPORTING",
+      "sourceSectionIds": [
+        "src_85fcf1bf58c741d7"
+      ],
+      "label": "VALID_EVENT",
+      "notes": "发现墓穴并因瘴气失忆属于同一连续场景的因果链。"
+    },
+    {
+      "sampleIndex": 3,
+      "eventId": "cevt_1c85d4bdb1fa47be",
+      "order": 17,
+      "title": "老者祭扫坟包",
+      "summary": "多年后，陆卿原每年回长沙近郊学堂，以糖人祭扫一座小坟包。",
+      "importance": "SUPPORTING",
+      "sourceSectionIds": [
+        "src_249c978be05d4362"
+      ],
+      "label": "VALID_EVENT",
+      "notes": "独立、可定位的背景行动节点。"
+    },
+    {
+      "sampleIndex": 4,
+      "eventId": "cevt_464d1b89b20b4995",
+      "order": 93,
+      "title": "朱棣继续寻找长生水，死于途中",
+      "summary": "朱棣心有不甘，命陶文庆继续寻找，无果后召集术士在日月山庄地下研究，术士发现真相但拒绝说出，五年后朱棣死，未得长生水。",
+      "importance": "SUPPORTING",
+      "sourceSectionIds": [
+        "src_a2e087bd063a4194"
+      ],
+      "label": "OVER_MERGED",
+      "notes": "继续寻找、召集术士、术士发现真相、朱棣死亡跨越多个阶段。"
+    },
+    {
+      "sampleIndex": 5,
+      "eventId": "cevt_991c3caca8c84bd4",
+      "order": 49,
+      "title": "墓室中的对峙与回忆",
+      "summary": "白初与陆卿原在棺椁上方血红色漩涡下相对而站，白初质问陆卿原是否后悔，陆卿原表达复杂情感，两人在漩涡膨胀中晕倒。",
+      "importance": "CORE",
+      "sourceSectionIds": [
+        "src_5b9ea518b6644ba5"
+      ],
+      "label": "VALID_EVENT",
+      "notes": "同一墓室场景中的对峙直至晕倒。"
+    },
+    {
+      "sampleIndex": 6,
+      "eventId": "cevt_f422f82cb8414031",
+      "order": 60,
+      "title": "白止叛逃白莲教",
+      "summary": "1885年，白止父亲因不愿儿子涉险被族人杀害，白止带母亲和妹妹白初逃出，改随母姓，谨记父亲叮嘱。",
+      "importance": "SUPPORTING",
+      "sourceSectionIds": [
+        "src_6f673ed7d5d34df5"
+      ],
+      "label": "OVER_MERGED",
+      "notes": "父亲被杀、逃亡、改姓等多个节点被合并。"
+    },
+    {
+      "sampleIndex": 7,
+      "eventId": "cevt_d6435883ce5e4e37",
+      "order": 1,
+      "title": "仪式进行与顾怀辰的牺牲",
+      "summary": "在墓室中，顾怀辰引导陶梦芸站上生门，牺牲自己完成仪式，陶梦芸晕倒后醒来发现自己在日月山庄门前，继承山庄并最终烧毁山庄离去。",
+      "importance": "CORE",
+      "sourceSectionIds": [
+        "src_007b7327adda42db"
+      ],
+      "label": "OVER_MERGED",
+      "notes": "仪式牺牲、醒来、继承山庄、烧毁山庄属于不同后续阶段。"
+    },
+    {
+      "sampleIndex": 8,
+      "eventId": "cevt_21a1ae0621f94776",
+      "order": 57,
+      "title": "荣妙珠在明长陵被张家误杀",
+      "summary": "长沙张家也下明长陵盗墓，发现荣妙珠后惊慌失措将其杀害，傅月生愤怒屠杀张家人，仅一人逃脱。",
+      "importance": "CORE",
+      "sourceSectionIds": [
+        "src_6f673ed7d5d34df5"
+      ],
+      "label": "OVER_MERGED",
+      "notes": "荣妙珠被误杀与傅月生屠杀张家是两个重大事件。"
+    },
+    {
+      "sampleIndex": 9,
+      "eventId": "cevt_2935d8142a684204",
+      "order": 36,
+      "title": "白初失去哥哥和母亲",
+      "summary": "白止死在墓中，白初等来哥哥死讯，母亲病重去世，白初执意寻找真相。",
+      "importance": "SUPPORTING",
+      "sourceSectionIds": [
+        "src_4e231b90b6cf45bc"
+      ],
+      "label": "OVER_MERGED",
+      "notes": "白止死亡、母亲去世、白初决意追查是多个节点。"
+    },
+    {
+      "sampleIndex": 10,
+      "eventId": "cevt_ccbe8b7be0b54d35",
+      "order": 44,
+      "title": "白初偷取人皮面具",
+      "summary": "白初用备用钥匙打开杨峥房间，从床底拿走一张全新人皮面具。",
+      "importance": "CORE",
+      "sourceSectionIds": [
+        "src_5085d41e427247ae"
+      ],
+      "label": "VALID_EVENT",
+      "notes": "偷取人皮面具是单一明确行动。"
+    },
+    {
+      "sampleIndex": 11,
+      "eventId": "cevt_83692413aa304152",
+      "order": 62,
+      "title": "杨峥和白止加入考古队",
+      "summary": "清政府组织考古队，杨峥为破除诅咒加入，白止为救母也加入。",
+      "importance": "SUPPORTING",
+      "sourceSectionIds": [
+        "src_6f673ed7d5d34df5"
+      ],
+      "label": "VALID_EVENT",
+      "notes": "两人加入同一考古队属于共同事件。"
+    },
+    {
+      "sampleIndex": 12,
+      "eventId": "cevt_3d686554472e4def",
+      "order": 111,
+      "title": "17:20-17:30 黎小曼到达并下毒",
+      "summary": "黎小曼到达山庄，陶老板接待；黎小曼在房间将毒药注入红酒。",
+      "importance": "SUPPORTING",
+      "sourceSectionIds": [
+        "src_d757681be82c41d3"
+      ],
+      "label": "VALID_EVENT",
+      "notes": "到达并紧接着下毒，短时段内粒度可接受。"
+    },
+    {
+      "sampleIndex": 13,
+      "eventId": "cevt_c092541472bc4ac0",
+      "order": 73,
+      "title": "众人苏醒于墓室",
+      "summary": "众人从昏迷中醒来，发现自己身处一座墓室，地砖为雕花汉白玉，刻有奇异纹路，通向倾斜向下的楼梯。",
+      "importance": "CORE",
+      "sourceSectionIds": [
+        "src_8242083ac35d4313"
+      ],
+      "label": "VALID_EVENT",
+      "notes": "众人于墓室苏醒是明确核心事件。"
+    },
+    {
+      "sampleIndex": 14,
+      "eventId": "cevt_105af1b33b894449",
+      "order": 37,
+      "title": "陆卿原设机关后回学堂",
+      "summary": "陆卿原假扮杨峥回杨家装疯卖傻后离去，不知第二层被闯入，在第一层设下机关后回学堂。",
+      "importance": "SUPPORTING",
+      "sourceSectionIds": [
+        "src_4e231b90b6cf45bc"
+      ],
+      "label": "OVER_MERGED",
+      "notes": "假扮、离开、设机关、回学堂等多项行动被合并。"
+    },
+    {
+      "sampleIndex": 15,
+      "eventId": "cevt_5634591119d2453c",
+      "order": 103,
+      "title": "发现刘警探尸体",
+      "summary": "众人在地下墓穴的棺椁后发现刘警探的尸体，翻找其背包获得资料。",
+      "importance": "CORE",
+      "sourceSectionIds": [
+        "src_d1527d793f36434d"
+      ],
+      "label": "VALID_EVENT",
+      "notes": "发现尸体并翻找背包属于同一搜证事件。"
+    },
+    {
+      "sampleIndex": 16,
+      "eventId": "cevt_fb06615f97454c29",
+      "order": 81,
+      "title": "吊灯砸死陶老板尸体",
+      "summary": "19:00，灯亮，拍卖会开始，白初剪断吊灯，吊灯砸向尸体和雕塑，白初回到大堂混入人群。",
+      "importance": "CORE",
+      "sourceSectionIds": [
+        "src_85fcf1bf58c741d7"
+      ],
+      "label": "WRONG_FACT",
+      "notes": "标题写“砸死陶老板尸体”，摘要却明确此时已经是尸体，事实表达错误。"
+    },
+    {
+      "sampleIndex": 17,
+      "eventId": "cevt_784e16e239f64f3e",
+      "order": 102,
+      "title": "揭示凶手",
+      "summary": "明确杀死陶老板的凶手是白初。",
+      "importance": "CORE",
+      "sourceSectionIds": [
+        "src_d0b35b78b7604484"
+      ],
+      "label": "NOT_EVENT",
+      "notes": "明确凶手为白初是揭示/结论，不是世界内事件。"
+    },
+    {
+      "sampleIndex": 18,
+      "eventId": "cevt_9134692a95924a89",
+      "order": 116,
+      "title": "杨峥死亡，白初存活",
+      "summary": "杨峥死亡，白初存活，主持人发放对应小剧场给两位玩家。",
+      "importance": "CORE",
+      "sourceSectionIds": [
+        "src_f35227d8baa24a3e"
+      ],
+      "label": "NOT_EVENT",
+      "notes": "结局分支结果加主持发小剧场，应进入 BRANCH/结局结构。"
+    },
+    {
+      "sampleIndex": 19,
+      "eventId": "cevt_2ad6a8bc324d4818",
+      "order": 48,
+      "title": "众人发现长生水秘密后陷入危机",
+      "summary": "众人因长生水的秘密而沉默，随后婴儿啼哭声再次响起，众人头痛欲裂，陶梦芸被弩箭袭击，顾怀辰舍身相救，最终众人晕倒。",
+      "importance": "CORE",
+      "sourceSectionIds": [
+        "src_51dd9e5b815f4f91"
+      ],
+      "label": "OVER_MERGED",
+      "notes": "秘密、啼哭、头痛、弩箭、救人、晕倒被压成一条。"
+    },
+    {
+      "sampleIndex": 20,
+      "eventId": "cevt_c7698c3ad69c4325",
+      "order": 40,
+      "title": "陆未晞接受李瑶身份",
+      "summary": "陆未晞在白莲教隐世，逐渐认为自己是李瑶，李家人讲述李瑶与傅月生的渊源，并交给她弯月匕首。",
+      "importance": "SUPPORTING",
+      "sourceSectionIds": [
+        "src_4e231b90b6cf45bc"
+      ],
+      "label": "OVER_MERGED",
+      "notes": "身份接受、家族讲述、获得匕首是多个不同节点。"
+    },
+    {
+      "sampleIndex": 21,
+      "eventId": "cevt_cc2e31fa837d49db",
+      "order": 68,
+      "title": "阿七改名陆南一，立下守墓祖训",
+      "summary": "南一临终前托付阿七等待未晞苏醒，阿七改名陆南一，立下世代守护苗王墓和长生水的祖训。",
+      "importance": "SUPPORTING",
+      "sourceSectionIds": [
+        "src_7671ba07c61f4a23"
+      ],
+      "label": "VALID_EVENT",
+      "notes": "改名并立下祖训是同一传承节点。"
+    },
+    {
+      "sampleIndex": 22,
+      "eventId": "cevt_d6e0cbf8d2a8469e",
+      "order": 45,
+      "title": "杨峥探查陶老板房间",
+      "summary": "17:50，杨峥到陶老板房间查探长生水，但被陶老板拒绝鉴定。",
+      "importance": "SUPPORTING",
+      "sourceSectionIds": [
+        "src_5085d41e427247ae"
+      ],
+      "label": "VALID_EVENT",
+      "notes": "17:50 探查房间并请求鉴定被拒，是一个清晰场景事件。"
+    },
+    {
+      "sampleIndex": 23,
+      "eventId": "cevt_e9293904d1004efe",
+      "order": 64,
+      "title": "杨氏第二次炼制长生水",
+      "summary": "杨氏因失责被苗王大怒，被迫再次炼制长生水。祭品为不服苗王的陆家村。",
+      "importance": "CORE",
+      "sourceSectionIds": [
+        "src_7671ba07c61f4a23"
+      ],
+      "label": "VALID_EVENT",
+      "notes": "第二次炼制长生水是明确历史事件。"
+    },
+    {
+      "sampleIndex": 24,
+      "eventId": "cevt_79db943ce16e40ab",
+      "order": 112,
+      "title": "17:30-17:40 顾怀辰潜入，陶梦芸呼救",
+      "summary": "顾怀辰潜入陶老板房间找长生水，被陶梦芸发现，陶梦芸呼救逃跑，顾怀辰追至二楼。",
+      "importance": "SUPPORTING",
+      "sourceSectionIds": [
+        "src_d757681be82c41d3"
+      ],
+      "label": "VALID_EVENT",
+      "notes": "潜入、被发现、呼救、追逐发生在连续短时段。"
+    },
+    {
+      "sampleIndex": 25,
+      "eventId": "cevt_c285a192f2504a64",
+      "order": 72,
+      "title": "众人齐聚日月山庄",
+      "summary": "张九孚、陆卿原（化名杨铮）、傅月生（化名顾怀辰）、陶梦芸、白初、黎小曼等各怀目的，于1919年6月20日来到日月山庄。",
+      "importance": "CORE",
+      "sourceSectionIds": [
+        "src_7bb2c185cfa64793"
+      ],
+      "label": "VALID_EVENT",
+      "notes": "众人于明确日期齐聚日月山庄。"
+    },
+    {
+      "sampleIndex": 26,
+      "eventId": "cevt_7621d510c8914c1e",
+      "order": 59,
+      "title": "张九孚出生及母亲去世",
+      "summary": "张作芳与杨云织生下私生子张九孚，1899年杨云织病逝，张九孚被接回张家，杨家人给他一枚锦囊嘱托20岁打开。",
+      "importance": "SUPPORTING",
+      "sourceSectionIds": [
+        "src_6f673ed7d5d34df5"
+      ],
+      "label": "OVER_MERGED",
+      "notes": "出生、母亲去世、回张家、获锦囊横跨多年。"
+    },
+    {
+      "sampleIndex": 27,
+      "eventId": "cevt_294be6c015574ed7",
+      "order": 104,
+      "title": "发现奇异玉石",
+      "summary": "众人发现棺椁上镶嵌的玉石，触碰后可看到在场某人曾经的经历。",
+      "importance": "CORE",
+      "sourceSectionIds": [
+        "src_d1527d793f36434d"
+      ],
+      "label": "VALID_EVENT",
+      "notes": "发现并触碰奇异玉石是一个清晰事件。"
+    },
+    {
+      "sampleIndex": 28,
+      "eventId": "cevt_2c9e6eb68ea34a1d",
+      "order": 77,
+      "title": "顾怀辰威胁假陶老板",
+      "summary": "18:25，白初出房间时被顾怀辰误认为陶老板并威胁，黎小曼出现使白初逃脱。同时张九孚与陶梦芸在大厅碰面。",
+      "importance": "SUPPORTING",
+      "sourceSectionIds": [
+        "src_85fcf1bf58c741d7"
+      ],
+      "label": "OVER_MERGED",
+      "notes": "威胁假陶老板与另一组人在大厅碰面是并行独立事件。"
+    },
+    {
+      "sampleIndex": 29,
+      "eventId": "cevt_c17048bfc11c4d62",
+      "order": 16,
+      "title": "陆卿原余生行善",
+      "summary": "陆卿原将孤儿院交给国军，后不知所踪，传闻行善救济，终身未娶。",
+      "importance": "SUPPORTING",
+      "sourceSectionIds": [
+        "src_249c978be05d4362"
+      ],
+      "label": "NOT_EVENT",
+      "notes": "余生行善、终身未娶是长期后日谈状态。"
+    },
+    {
+      "sampleIndex": 30,
+      "eventId": "cevt_a6d55750124d490d",
+      "order": 4,
+      "title": "黎小曼生，张九孚死结局",
+      "summary": "黎小曼生还，张九孚牺牲，黎小曼在日月山庄醒来后离开，匿名寄给张作芳明长陵地图，后遁入空门。",
+      "importance": "CORE",
+      "sourceSectionIds": [
+        "src_0603081a519e4763"
+      ],
+      "label": "NOT_EVENT",
+      "notes": "结局分支及后日谈组合，应进入 BRANCH。"
+    }
+  ]
+}

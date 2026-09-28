@@ -4,6 +4,7 @@ import { callRuntime, go, loadCloudData, render } from "./runtime-facade.js";
 import { activeRuntimeRoom } from "../components/emptyState.js";
 import { togglePanelInDom } from "../components/collapse-panel.js";
 import { callView } from "./view-registry.js";
+import { productDomainDefinition } from "../../shared/product-domains/registry.js";
 (function (window) {
   function handleWorkspaceAction(action, el) {
     switch (action) {
@@ -12,7 +13,27 @@ import { callView } from "./view-registry.js";
         callRuntime("openAuth");
         return true;
       case "world-library":
-        callRuntime("openWorldLibrary");
+        callRuntime("openWorldLibrary", "mine", el?.dataset?.productType || "");
+        return true;
+      case "product-select":
+        {
+          const productType = el?.dataset?.productType || "";
+          if (productType && document.body.dataset.productKey === productType) {
+            go(productDomainDefinition(productType).homeView);
+          } else {
+            callRuntime("openWorldLibrary", "mine", productType);
+          }
+        }
+        return true;
+      case "product-create":
+        {
+          const productType = el?.dataset?.productType || "";
+          if (productType && document.body.dataset.productKey === productType) {
+            go(productDomainDefinition(productType).homeView);
+          } else {
+            callRuntime("openWizard", productType);
+          }
+        }
         return true;
       case "load-segment-completion":
         callView("overview", "loadSegmentCompletion");

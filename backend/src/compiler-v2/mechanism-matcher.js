@@ -1,7 +1,7 @@
 /**
  * Match mechanism manuscript text against existing catalogs.
  * Uses shared/mechanism-catalog.js kits (in-product) as the live matcher.
- * M01–M11 family hints are soft signals toward mechanism-catalog-v2.ts —
+ * M01–M11 family hints are soft signals toward the shared mechanism catalog —
  * Stage 7 must not invent a second template system.
  */
 
@@ -99,7 +99,7 @@ export function matchMechanismAgainstCatalog(text) {
       family: family || best.family,
       label: best.label,
       note: family
-        ? `弱匹配 kit=${best.key}；亦命中家族提示 ${family}（对照 mechanism-catalog-v2）`
+        ? `弱匹配 kit=${best.key}；亦命中家族提示 ${family}（对照共享机制目录）`
         : `弱匹配 kit=${best.key}，需人工确认`,
       suggestedClueIds: [],
       suggestedSceneIds: []
@@ -112,7 +112,7 @@ export function matchMechanismAgainstCatalog(text) {
     family,
     label: null,
     note: family
-      ? `未匹配成品 kit；家族提示 ${family}，请对照 mechanism-catalog-v2 手工绑定`
+      ? `未匹配成品 kit；家族提示 ${family}，请对照共享机制目录手工绑定`
       : "未匹配已有机制 Catalog",
     suggestedClueIds: [],
     suggestedSceneIds: []

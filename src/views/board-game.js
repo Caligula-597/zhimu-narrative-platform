@@ -11,11 +11,16 @@ import { setHtml } from "../../shared/safe-dom.js";
 import {
   advanceBoardGamePlaygroundRound as advancePlaygroundRoundState,
   chooseBoardGamePlaygroundCommand as choosePlaygroundCommandState,
+  chooseBoardGamePlaygroundCard as choosePlaygroundCardState,
   chooseBoardGamePlaygroundTarget as choosePlaygroundTargetState,
   confirmBoardGamePlaygroundAction as confirmPlaygroundActionState,
   createBoardGamePlaygroundState,
   renderBoardGamePlayground,
-  resetBoardGamePlayground as resetPlaygroundState
+  renderDominionStudyPanel,
+  resetBoardGamePlayground as resetPlaygroundState,
+  runDominionStudyAiTurn,
+  runBoardGameAiStep
+  ,setBoardGamePlaygroundBid
 } from "./board-game-playground.js";
 import {
   BOARD_GAME_COMPONENT_TYPES,
@@ -36,6 +41,15 @@ import {
   normalizeBoardGameStateField,
   simulateBoardGameMechanism
 } from "../../shared/board-game-design.js";
+import { BOARD_GAME_PRESET_CATALOG, createBoardGamePreset } from "../../shared/board-game-variant-presets.js";
+import { BOARD_GAME_MECHANISM_CATALOG, createBoardGameMechanismPreset } from "../../shared/ruins-auction-preset.js";
+import { BOARD_GAME_COUNCIL_CATALOG, createBoardGameCouncilPreset } from "../../shared/mist-council-preset.js";
+import { BOARD_GAME_WORKSHOP_CATALOG, createBoardGameWorkshopPreset } from "../../shared/season-workshop-preset.js";
+import { BOARD_GAME_ARCHIVE_CATALOG, createBoardGameArchivePreset } from "../../shared/echo-archive-preset.js";
+import { BOARD_GAME_REFERENCE_CATALOG, createBoardGameReferencePreset } from "../../shared/reference-board-game-presets.js";
+import { BOARD_GAME_MECHANISM_AXES, boardGameMechanismCoverage } from "../../shared/board-game-mechanism-matrix.js";
+import { BOARD_GAME_MECHANISM_COMPOSITION_RECIPES, composeBoardGameRecipe } from "../../shared/board-game-mechanism-composer.js";
+import { createDominionStudyGame, dispatchDominionCommand } from "../../shared/dominion-study-replica.js";
 
 const COMPONENT_ICONS = Object.freeze({
   board: "盘",
@@ -72,6 +86,7 @@ const MECHANISM_NESTED_FIELDS = Object.freeze([
   ["boardEffectField", "effects", "[data-board-effect-id]", "boardEffectId"]
 ]);
 let editorSession = null;
+let playgroundTicker = null;
 
 function activeWorld() {
   const previewWorld = worldStore.get().cloudWorkspacePreview?.world;
@@ -99,6 +114,8 @@ function initializeSession() {
     selectedMechanismId: design.mechanisms[0]?.id || "",
     simulationState: initialBoardGameState(design.variables),
     playgroundState: createBoardGamePlaygroundState(design, design.seats.length || design.playerCount.min),
+    dominionStudyState: null,
+    dominionPromptSelection: [],
     assetUrls: {},
     seatDeleteArmedId: "",
     aiScope: design.components.length || design.engine.actions.length ? "patch" : "missing",
@@ -110,9 +127,47 @@ function initializeSession() {
     undoDesign: null,
     dirty: false,
     saving: false,
-    busy: false
+    busy: false,
+    aiMode: false,
+    aiRunning: false,
+    turnDeadlineSeconds: 15,
+    playgroundClock: { remaining: 15, nextStepAt: Date.now() + 1600 }
   };
   return editorSession;
+}
+
+function stopPlaygroundTicker() {
+  if (!playgroundTicker) return;
+  window.clearInterval(playgroundTicker);
+  playgroundTicker = null;
+}
+
+function ensurePlaygroundTicker(session) {
+  if (session.activeTab !== "playground" || !session.aiMode) {
+    stopPlaygroundTicker();
+    return;
+  }
+  if (playgroundTicker) return;
+  playgroundTicker = window.setInterval(() => {
+    if (editorSession !== session || session.activeTab !== "playground" || !session.aiMode) {
+      stopPlaygroundTicker();
+      return;
+    }
+    const clock = session.playgroundClock || (session.playgroundClock = { remaining: session.turnDeadlineSeconds, nextStepAt: Date.now() + 1600 });
+    const now = Date.now();
+    clock.remaining = Math.max(0, session.aiRunning ? Math.ceil((clock.nextStepAt - now) / 1000) : clock.remaining - 1);
+    if (session.aiRunning && now >= clock.nextStepAt) {
+      const result = runBoardGameAiStep(session.playgroundState, session.design);
+      if (result.ended) session.aiRunning = false;
+      clock.remaining = session.turnDeadlineSeconds;
+      clock.nextStepAt = now + 1600;
+    } else if (!session.aiRunning && clock.remaining <= 0) {
+      session.aiRunning = true;
+      clock.remaining = session.turnDeadlineSeconds;
+      clock.nextStepAt = now;
+    }
+    render();
+  }, 1000);
 }
 
 function selectedComponent(session = initializeSession()) {
@@ -362,6 +417,39 @@ function aiDraftPanel(session) {
     ${session.aiError ? `<div class="board-ai-error" role="alert">${escapeHtml(session.aiError)}</div>` : ""}${aiDraftPreview(session)}</section>`;
 }
 
+function boardGamePresetStrip() {
+  return `<section class="board-preset-strip"><div><p class="section-kicker">HORIZONTAL PROTOTYPES</p><strong>同类型横向配置</strong><span>先用同一引擎比较压力、经济与竞速，再进入不同机制。</span></div><div class="board-preset-buttons">${BOARD_GAME_PRESET_CATALOG.map((preset) => `<button type="button" class="secondary-btn" data-action="board-load-preset" data-board-preset-id="${escapeHtml(preset.id)}"><strong>${escapeHtml(preset.label)}</strong><small>${escapeHtml(preset.summary)}</small></button>`).join("")}</div></section>`;
+}
+
+function boardGameMechanismStrip() {
+  const presets = [...BOARD_GAME_MECHANISM_CATALOG, ...BOARD_GAME_COUNCIL_CATALOG, ...BOARD_GAME_WORKSHOP_CATALOG, ...BOARD_GAME_ARCHIVE_CATALOG, ...BOARD_GAME_REFERENCE_CATALOG];
+  return `<section class="board-preset-strip board-mechanism-strip"><div><p class="section-kicker">NEW MECHANISM LAB</p><strong>不同机制实验</strong><span>每款原型都必须有完整说明书，并且只能载入已通过引擎能力检查的机制。</span></div><div class="board-preset-buttons">${presets.map((preset) => `<button type="button" class="secondary-btn" data-action="board-load-mechanism-preset" data-board-mechanism-preset-id="${escapeHtml(preset.id)}"><strong>${escapeHtml(preset.label)}</strong><small>${escapeHtml(preset.summary)}</small></button>`).join("")}</div></section>`;
+}
+
+function boardGameMechanismMatrix() {
+  const coverage = boardGameMechanismCoverage();
+  const statusLabels = { supported: "已接入", partial: "部分接入", planned: "待补齐" };
+  const rows = BOARD_GAME_MECHANISM_AXES.map((axis) => {
+    const axisRows = coverage.filter((item) => item.axis === axis.id);
+    return `<tbody><tr class="board-mechanism-axis"><th colspan="5"><strong>${escapeHtml(axis.label)}</strong><span>${escapeHtml(axis.question)}</span></th></tr>${axisRows.map((item) => `<tr><td><strong>${escapeHtml(item.name)}</strong><small>${escapeHtml(item.capabilityLabel)}</small></td><td>${escapeHtml(item.examples)}</td><td><span class="board-matrix-status ${escapeHtml(item.status)}">${escapeHtml(statusLabels[item.status] || item.status)}</span></td><td>${escapeHtml(item.next)}</td><td><code>${escapeHtml(item.id)}</code></td></tr>`).join("")}</tbody>`;
+  }).join("");
+  const supported = coverage.filter((item) => item.status === "supported").length;
+  return `<details class="board-mechanism-matrix" open><summary><div><p class="section-kicker">MECHANISM MATRIX · PARALLEL VIEW</p><strong>机制并列坐标系</strong><span>按十个角度并列查看平台已经能写什么、当前原型在哪里、还缺什么。</span></div><em>${supported}/${coverage.length} 项已接入</em></summary><div class="board-matrix-note">以后新增桌游不只新增一个按钮，而是要在这张表里明确它填补了哪个机制维度；同一机制可以被不同世界观重复组合。</div><div class="board-matrix-scroll"><table><thead><tr><th>机制</th><th>已有原型</th><th>状态</th><th>下一层能力</th><th>模块 ID</th></tr></thead>${rows}</table></div></details>`;
+}
+
+function boardGameMechanismComposer() {
+  const implementationLabels = { supported: "可直接运行", partial: "可组合 · 引擎待补齐", planned: "可登记 · 尚未运行" };
+  const recipes = BOARD_GAME_MECHANISM_COMPOSITION_RECIPES.map((recipe) => {
+    const result = composeBoardGameRecipe(recipe.id);
+    const errors = result.issues.filter((item) => item.level === "error");
+    const warnings = result.issues.filter((item) => item.level === "warning");
+    const status = !result.ready ? "partial" : result.implementationStatus;
+    const statusText = !result.ready ? "结构需补齐" : implementationLabels[result.implementationStatus];
+    return `<article class="board-composition-card"><div class="board-composition-card-head"><div><p class="section-kicker">COMPOSITION RECIPE</p><strong>${escapeHtml(recipe.label)}</strong></div><span class="board-matrix-status ${status}">${statusText}</span></div><p>${escapeHtml(result.summary)}</p><div class="board-composition-modules">${result.modules.map((module) => `<span class="${module.runtimeStatus && module.runtimeStatus !== "supported" ? "is-partial" : ""}">${escapeHtml(module.label)}</span>`).join("")}</div>${errors.length ? `<small class="board-composition-issue">${escapeHtml(errors[0].message)}</small>` : warnings.length ? `<small class="board-composition-warning">${escapeHtml(warnings[0].message)}</small>` : result.implementationReady ? `<small class="board-composition-ready">阶段顺序、信息边界、AI 入口与当前引擎能力均已通过。</small>` : `<small class="board-composition-warning">结构校验通过；标记色模块已登记机制，但还需要把完整结算接入运行时。</small>`}</article>`;
+  }).join("");
+  return `<section class="board-mechanism-composer"><div class="board-composer-head"><div><p class="section-kicker">MECHANISM COMPOSER · CROSS-DOMAIN</p><strong>机制组合实验台</strong><span>同一机制可以换世界观、换领域、换资源对象；编译器负责检查它们能否在同一内容中稳定协同。</span></div><em>自由组合 · 自动校验</em></div><div class="board-composition-grid">${recipes}</div></section>`;
+}
+
 export function boardGame() {
   const world = activeWorld();
   if (!world) return `<div class="empty-state"><h3>请先选择一个桌游项目</h3><p>创建项目后，席位、组件、规则和可玩 Demo 都从这里逐步补齐。</p></div>`;
@@ -375,14 +463,24 @@ export function boardGame() {
     session.activeTab = requestedTab;
     uiStore.set({ boardGameRequestedTab: "" });
   }
+  if (session.activeTab === "playground") ensureDominionStudyState(session);
   const tabContent = session.activeTab === "seats" ? renderSeatsTab(session)
     : session.activeTab === "mechanisms" ? renderMechanismsTab(session)
-      : session.activeTab === "playground" ? renderBoardGamePlayground(session.design, session.playgroundState, activeSeats(session))
+      : session.activeTab === "playground" ? `${renderBoardGamePlayground(session.design, session.playgroundState, activeSeats(session), {
+        aiMode: session.aiMode,
+        aiRunning: session.aiRunning,
+        secondsRemaining: session.playgroundClock?.remaining || session.turnDeadlineSeconds
+      })}${session.dominionStudyState ? renderDominionStudyPanel(session.dominionStudyState, { selection: session.dominionPromptSelection || [] }) : ""}`
       : session.activeTab === "rulebook" ? renderRulebookTab(session)
         : renderComponentsTab(session);
+  ensurePlaygroundTicker(session);
   return `<div class="board-game-workbench" data-board-workbench>
-    <header class="board-game-header"><div><p class="section-kicker">BOARD GAME WORKBENCH</p><h1>${escapeHtml(world.name)}</h1><p>桌游专属工作台：玩家席位、组件资产、状态规则与说明书在同一份数据里互相引用。</p></div><button type="button" class="primary-btn ${session.dirty ? "has-changes" : ""}" data-action="board-design-save" data-board-save ${session.saving ? "disabled" : ""}><span data-board-save-label>${session.saving ? "正在保存…" : session.dirty ? "保存更改" : "已保存"}</span></button></header>
+    <header class="board-game-header"><div><p class="section-kicker">BOARD GAME WORKBENCH</p><h1>${escapeHtml(world.name)}</h1><p>桌游专属工作台：玩家席位、组件资产、状态规则和可执行试玩在同一份数据里互相引用。</p></div><div class="board-head-actions"><button type="button" class="secondary-btn" data-action="board-load-last-lighthouse">载入《最后灯塔》完整原型</button><button type="button" class="primary-btn ${session.dirty ? "has-changes" : ""}" data-action="board-design-save" data-board-save ${session.saving ? "disabled" : ""}><span data-board-save-label>${session.saving ? "正在保存…" : session.dirty ? "保存更改" : "已保存"}</span></button></div></header>
     ${aiDraftPanel(session)}
+    ${boardGamePresetStrip()}
+    ${boardGameMechanismStrip()}
+    ${boardGameMechanismMatrix()}
+    ${boardGameMechanismComposer()}
     <section class="board-game-brief"><label class="wide"><span>设计目标</span><input class="field" data-board-design-field="designGoal" maxlength="2400" value="${escapeHtml(session.design.designGoal)}" placeholder="这套规则围绕哪些对象、行动和状态变化运转？"></label><label><span>实际席位</span><input class="field" value="${activeSeats(session).length} 人" disabled></label><label><span>预计分钟</span><input class="field" data-board-design-field="playTimeMinutes" type="number" min="1" max="10080" value="${session.design.playTimeMinutes}"></label></section>
     <nav class="board-tabs" aria-label="桌游设计模块">${Object.entries(TAB_LABELS).map(([key, label]) => `<button type="button" class="${session.activeTab === key ? "active" : ""}" data-action="board-tab-select" data-board-tab="${key}">${label}</button>`).join("")}</nav>
     ${tabContent}
@@ -451,9 +549,21 @@ export function bindBoardGameEditor() {
   root.addEventListener("change", handleBoardGameEditorChange);
 }
 
+function ensureDominionStudyState(session = initializeSession()) {
+  session.dominionPromptSelection ||= [];
+  if (!session.dominionStudyState) {
+    session.dominionStudyState = createDominionStudyGame({ playerCount: Math.max(2, Math.min(4, activeSeats(session).length || 4)), seed: 20260927 });
+  }
+  return session.dominionStudyState;
+}
+
 function handleBoardGameEditorInput(event) {
   const input = event.target;
   if (!input?.dataset) return;
+  if (input.dataset.boardPlayBid !== undefined) {
+    setBoardGamePlaygroundBid(initializeSession().playgroundState, input.value);
+    return;
+  }
   if (input.dataset.boardAiInstructions !== undefined) {
     initializeSession().aiInstructions = input.value;
     return;
@@ -861,6 +971,12 @@ export function selectBoardGamePlaygroundTarget(targetId) {
   render();
 }
 
+export function selectBoardGamePlaygroundCard(cardId) {
+  const session = initializeSession();
+  if (!choosePlaygroundCardState(session.playgroundState, session.design, cardId)) return;
+  render();
+}
+
 export function confirmBoardGamePlaygroundAction() {
   const session = initializeSession();
   if (!confirmPlaygroundActionState(session.playgroundState, session.design)) return;
@@ -873,10 +989,107 @@ export function advanceBoardGamePlaygroundRound() {
   render();
 }
 
+export function dispatchDominionStudyCommand(command) {
+  const session = initializeSession();
+  const state = ensureDominionStudyState(session);
+  if (command?.type === "reset") {
+    session.dominionStudyState = createDominionStudyGame({ playerCount: state.playerCount, seed: Date.now() | 0 });
+    session.dominionPromptSelection = [];
+    render();
+    return;
+  }
+  const result = dispatchDominionCommand(state, command);
+  if (!result.ok) {
+    showToast(result.message || "这张牌当前不能这样响应");
+    return;
+  }
+  session.dominionStudyState = result.state;
+  session.dominionPromptSelection = [];
+  render();
+}
+
+export function toggleDominionStudyCard(cardId) {
+  const session = initializeSession();
+  ensureDominionStudyState(session);
+  const selection = new Set(session.dominionPromptSelection || []);
+  if (selection.has(cardId)) selection.delete(cardId);
+  else selection.add(cardId);
+  session.dominionPromptSelection = [...selection];
+  render();
+}
+
+export function runDominionStudyAiTurnView() {
+  const session = initializeSession();
+  session.dominionStudyState = runDominionStudyAiTurn(ensureDominionStudyState(session));
+  session.dominionPromptSelection = [];
+  render();
+}
+
 export function resetBoardGamePlaygroundView() {
   const session = initializeSession();
   session.playgroundState = resetPlaygroundState(session.design, activeSeats(session).length || session.design.playerCount.min);
+  session.aiRunning = session.aiMode;
+  session.playgroundClock = { remaining: session.turnDeadlineSeconds, nextStepAt: Date.now() + 1600 };
   render();
+}
+
+export function toggleBoardGameAiSimulation() {
+  const session = initializeSession();
+  session.aiMode = !session.aiMode;
+  session.aiRunning = session.aiMode;
+  session.playgroundClock = { remaining: session.turnDeadlineSeconds, nextStepAt: Date.now() + 1600 };
+  showToast(session.aiMode ? "AI 已接管全部席位，所有行动将同步结算" : "已暂停 AI 代打，可手动操作当前席位");
+  render();
+}
+
+export function loadLastLighthouseDesign() {
+  loadBoardGamePreset("last-lighthouse-standard");
+}
+
+export function loadBoardGamePreset(presetId = "last-lighthouse-standard") {
+  const session = initializeSession();
+  const preset = BOARD_GAME_PRESET_CATALOG.find((item) => item.id === presetId) || BOARD_GAME_PRESET_CATALOG[0];
+  loadBoardGameDesignPreset(session, createBoardGamePreset(preset.id), preset.label);
+}
+
+export function loadBoardGameMechanismPreset(presetId = "ruins-auction") {
+  const session = initializeSession();
+  const auctionPreset = BOARD_GAME_MECHANISM_CATALOG.find((item) => item.id === presetId);
+  if (auctionPreset) {
+    loadBoardGameDesignPreset(session, createBoardGameMechanismPreset(auctionPreset.id), auctionPreset.label);
+    return;
+  }
+  const councilPreset = BOARD_GAME_COUNCIL_CATALOG.find((item) => item.id === presetId) || BOARD_GAME_COUNCIL_CATALOG[0];
+  if (councilPreset.id === presetId) {
+    loadBoardGameDesignPreset(session, createBoardGameCouncilPreset(councilPreset.id), councilPreset.label);
+    return;
+  }
+  const workshopPreset = BOARD_GAME_WORKSHOP_CATALOG.find((item) => item.id === presetId);
+  if (workshopPreset) {
+    loadBoardGameDesignPreset(session, createBoardGameWorkshopPreset(workshopPreset.id), workshopPreset.label);
+    return;
+  }
+  const referencePreset = BOARD_GAME_REFERENCE_CATALOG.find((item) => item.id === presetId);
+  if (referencePreset) {
+    loadBoardGameDesignPreset(session, createBoardGameReferencePreset(referencePreset.id), referencePreset.label);
+    return;
+  }
+  const archivePreset = BOARD_GAME_ARCHIVE_CATALOG.find((item) => item.id === presetId) || BOARD_GAME_ARCHIVE_CATALOG[0];
+  loadBoardGameDesignPreset(session, createBoardGameArchivePreset(archivePreset.id), archivePreset.label);
+}
+
+function loadBoardGameDesignPreset(session, design, label) {
+  if ((session.design.components.length || session.design.seats.length) && !window.confirm("载入完整原型会覆盖当前未保存的桌游设计，是否继续？")) return;
+  session.undoDesign = structuredClone(session.design);
+  replaceSessionDesign(session, design);
+  session.activeTab = "playground";
+  session.aiDraft = null;
+  session.aiDraftBase = null;
+  session.aiMode = true;
+  session.aiRunning = true;
+  session.playgroundClock = { remaining: session.turnDeadlineSeconds, nextStepAt: Date.now() + 1600 };
+  render();
+  showToast(`「${label}」已载入，先试玩再保存`);
 }
 
 function replaceSessionDesign(session, value) {
@@ -885,6 +1098,7 @@ function replaceSessionDesign(session, value) {
   session.selectedMechanismId = session.design.mechanisms[0]?.id || "";
   session.simulationState = initialBoardGameState(session.design.variables);
   session.playgroundState = createBoardGamePlaygroundState(session.design, activeSeats(session).length || session.design.playerCount.min);
+  session.playgroundClock = { remaining: session.turnDeadlineSeconds, nextStepAt: Date.now() + 1600 };
   session.dirty = true;
 }
 
@@ -982,9 +1196,18 @@ registerView("boardGame", {
   resetBoardGameSimulator,
   selectBoardGamePlaygroundCommand,
   selectBoardGamePlaygroundTarget,
+  selectBoardGamePlaygroundCard,
   confirmBoardGamePlaygroundAction,
   advanceBoardGamePlaygroundRound,
+  dispatchDominionStudyCommand,
+  toggleDominionStudyCard,
+  runDominionStudyAiTurnView,
   resetBoardGamePlaygroundView,
+  setBoardGamePlaygroundBid: (value) => setBoardGamePlaygroundBid(initializeSession().playgroundState, value),
+  toggleBoardGameAiSimulation,
+  loadLastLighthouseDesign,
+  loadBoardGamePreset,
+  loadBoardGameMechanismPreset,
   generateBoardGameDraft,
   applyBoardGameDraft,
   discardBoardGameDraft,

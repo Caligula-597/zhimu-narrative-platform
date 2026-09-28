@@ -217,18 +217,6 @@ export function renderCharactersCanvas(ctx, cockpit, findItemLink) {
   const counts = bibleSummary?.counts || {};
   const link = findItemLink("characters", cockpit.activeItem);
 
-  if (cockpit.activeItem === "integrate") {
-    return `<section class="cockpit-panel"><div class="panel-heading"><div><p>整母稿</p><h3>交织成整本剧情骨架</h3></div></div>
-      <p class="muted-note">先编排积木的阶段、共享角色与冲突，再展开详细母稿。不会把全部积木丢给 AI 重写大纲。</p>
-      <div class="row">${linkButton({ action: "cockpit-open-master-outline", label: "打开交织预览" }, "primary-btn")}${linkButton({ action: "cockpit-open-production-master-draft", label: "展开详细母稿" })}${linkButton({ action: "cockpit-open-story-mechanism-workbench", label: "回剧情积木篮" })}</div></section>`;
-  }
-
-  if (cockpit.activeItem === "master-draft") {
-    return `<section class="cockpit-panel"><div class="panel-heading"><div><p>整母稿</p><h3>详细生产母稿</h3></div></div>
-      <p class="muted-note">忠实展开交织骨架（真相 / 角色 / 线索 / 主持执行）。不改结构、不伪造交织。</p>
-      <div class="row">${linkButton({ action: "cockpit-open-production-master-draft", label: "打开详细母稿" }, "primary-btn")}${linkButton({ action: "cockpit-open-master-outline", label: "回交织骨架" })}</div></section>`;
-  }
-
   const cards = roles.length
     ? roles
         .map((role) => {
@@ -283,11 +271,6 @@ export function renderFlowCanvas(ctx, cockpit, findItemLink) {
         .join("")}</tbody></table></section>`;
   }
   if (cockpit.activeCanvas === "sandbox") {
-    if (cockpit.activeItem === "story-mechanics") {
-      return `<section class="cockpit-panel"><div class="panel-heading"><div><p>搭剧情</p><h3>剧情积木篮</h3></div></div>
-        <p class="muted-note">选择你希望本里有的剧情结构，生成后放进积木篮；可换结构、只换一槽或手动修改。</p>
-        <div class="row">${linkButton({ action: "cockpit-open-story-mechanism-workbench", label: "打开剧情积木篮" }, "primary-btn")}</div></section>`;
-    }
     if (cockpit.activeItem === "mechanics") {
       return `<section class="cockpit-panel"><div class="panel-heading"><div><p>加玩法</p><h3>幕内玩法</h3></div></div>
         <p class="muted-note">在某一幕里添加竞价、交易、投票等玩法。不必理解内部机制术语。</p>
@@ -339,10 +322,9 @@ export function renderManuscriptCanvas(ctx, cockpit) {
       <div class="row">${linkButton({ action: "creator-import", label: "导入内容包" }, "secondary-btn")}${linkButton({ action: "creator-export", label: "导出备份" }, "primary-btn")}</div></section>`;
   }
   return `<section class="cockpit-panel"><div class="panel-heading"><div><p>写成品</p><h3>${counts.sections || 0} 分幕 · ${counts.chapters || 0} 章节</h3></div></div>
-    <p class="muted-note">从零创作请先搭剧情积木；已有剧本请导入并保留原稿。</p>
+    <p class="muted-note">当前创作入口以导入、结构提取和现有内容编辑为主。</p>
     <div class="workspace-action-grid" style="margin-top:12px">
       <button type="button" class="workspace-action-card primary" data-action="cockpit-open-document-import"><strong>导入已有剧本</strong><span>主持手册 · 角色本 · 线索 · 保留原稿</span></button>
-      <button type="button" class="workspace-action-card primary" data-action="cockpit-open-story-mechanism-workbench"><strong>剧情积木篮</strong><span>搭追凶、身份、阵营等结构</span></button>
       <button type="button" class="workspace-action-card" data-go="writer"><strong>角色本</strong><span>私人分幕写作</span></button>
       <button type="button" class="workspace-action-card" data-go="truth"><strong>主持本</strong><span>全文 / 结局 / 关系</span></button>
       <button type="button" class="workspace-action-card" data-action="story-manuscript"><strong>完整剧情母稿</strong><span>母稿与编排同步</span></button>

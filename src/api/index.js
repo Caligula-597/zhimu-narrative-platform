@@ -290,14 +290,7 @@ export {
   analyzeStoryDraft,
   importStoryDraft,
   getDeepseekStatus,
-  runAiPlaytest,
-  getWorldEngine,
-  seedWorldEngine,
-  searchWorldEngineEvents,
-  commitWorldEngineEvents,
-  lowerWorldEngineType,
-  searchWorldEngineEpistemic,
-  renderWorldEngineScript
+  runAiPlaytest
 } from "./ai.js";
 
 /* ── Content (documents / manuscript / rules / packages) ── */
@@ -313,6 +306,8 @@ export {
   saveStoryManuscript,
   syncStoryManuscriptFromGraph,
   syncStoryManuscriptToGraph,
+  getMainlineHierarchyDraft,
+  saveMainlineHierarchyDraft,
   getRules,
   createRule,
   updateRule,
@@ -391,12 +386,6 @@ export {
   updateEnding,
   deleteEnding
 } from "./ending.js";
-
-/* ── ProjectStoryState (STORY basket) ── */
-export {
-  getProjectStoryState,
-  saveProjectStoryState
-} from "./project-story-state.js";
 
 /* ── PlayableProject (P7.0 compile asset) ── */
 export {

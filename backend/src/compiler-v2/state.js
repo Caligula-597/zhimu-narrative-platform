@@ -3,6 +3,7 @@ import { randomUUID } from "node:crypto";
 export const COMPILER_V2_STAGES = Object.freeze([
   "project_identify",
   "manuscript_ingest",
+  "canon_memory",
   "timeline_compiler",
   "scene_resolver",
   "clue_asset",
@@ -71,6 +72,12 @@ export function createEmptyCompilerV2State({ worldId, jobId = null } = {}) {
     stageSchema: null,
     /** Heuristic suggestion awaiting UI (confirm / reject / manual). */
     stageSchemaProposal: null,
+    /** Stage 2.5 — persistent semantic canon (GlobalOutline + SectionCapsules) */
+    canonMemory: null,
+    globalOutline: null,
+    sectionCapsules: [],
+    sourceCoverage: null,
+    canonMeta: null,
     timelineTracks: [],
     timelineEvents: [],
     /** Stage 3A V2 stateful reader artifacts */
@@ -148,6 +155,9 @@ export function summarizeStateForStatus(state) {
       characterScripts: state.characterScripts?.length || 0,
       sourceSections: state.sourceSections?.length || 0,
       stageSchemaItems: state.stageSchema?.items?.length || 0,
+      canonEvents: state.canonMemory?.eventCount || state.canonMemory?.events?.length || 0,
+      sectionCapsules: state.sectionCapsules?.length || 0,
+      sourceCoverageRate: state.sourceCoverage?.rate ?? null,
       timelineEvents: state.timelineEvents?.length || 0,
       scenes: state.scenes?.length || 0,
       clues: state.clues?.length || 0,

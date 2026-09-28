@@ -2,6 +2,7 @@
 import * as zhimuApi from "../api/index.js";
 import { worldStore } from "../state/index.js";
 import { callView } from "./view-registry.js";
+import { go } from "./runtime-facade.js";
 
 (function (window) {
   function maybeAutoLoadWorkspace(view) {
@@ -18,6 +19,10 @@ import { callView } from "./view-registry.js";
 
   function handleCreatorWorkspacesAction(action, el) {
     switch (action) {
+      case "creator-mainline":
+        go("writer");
+        setTimeout(() => callView("writer", "openMainlineHierarchy"), 0);
+        return true;
       case "refresh-structure-segments":
         void callView("creatorWorkspaces", "refreshStructureSegments");
         return true;

@@ -20,6 +20,8 @@ import {
   writerToolGridPageHtml,
   writerToolGuidanceHtml
 } from "./writer-tool-layout.js";
+import { canImportDocument } from "./document-import-policy.js";
+export { canImportDocument } from "./document-import-policy.js";
 
 const DOCUMENT_PRODUCT = "murder_mystery";
 const MAX_DOCUMENT_FILE_BYTES = 5 * 1024 * 1024;
@@ -138,15 +140,6 @@ function documentPreviewHtml(parsed, creationType) {
     : "";
   const summary = parsed.contentMode === "pages" ? `${Number(parsed.pageCount || 0)} 页图片分幕` : `${Number(parsed.characterCount || 0)} 字符 · ${Number(parsed.sectionCount || 0)} 个分段`;
   return `<section class="assistant-preview document-workspace-preview"><div class="section-head"><div><h3>${escapeHtml(parsed.filename || "解析结果")}</h3><p>${summary}${modeLabel ? ` · ${escapeHtml(modeLabel)}` : ""}</p></div><span class="cloud-pill">仅预览</span></div>${warnings}${gatePlanHtml}${aiDocumentReviewHtml(parsed.aiDocumentReview)}${proseDiagnosticsHtml(parsed.proseDiagnostics)}${structurePreview}${previewImage}<div class="document-section-preview">${sections}</div></section>`;
-}
-
-function canImportDocument(session) {
-  if (!session.parsed || !session.draft.rightsConfirmed || session.previewFingerprint !== session.sourceFingerprint) return false;
-  const target = session.draft.target;
-  if (session.parsed.contentMode === "pages") return target !== "manuscript" && target !== "structured" && Boolean(session.file && session.fileBase64);
-  if (session.parsed.proseDiagnostics?.review?.required === true && !session.draft.proseReviewConfirmed) return false;
-  if (target === "structured") return Boolean(session.parsed.structure?.candidateCount);
-  return true;
 }
 
 function documentSourceFingerprint(session) {

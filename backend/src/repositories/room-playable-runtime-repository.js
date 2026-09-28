@@ -3,7 +3,7 @@
  */
 
 import { query } from "../db.js";
-import { normalizePlayableRuntimeState } from "../../shared/playable-content-runtime.js";
+import { normalizePlayableRuntimeState } from "../../../shared/playable-content-runtime.js";
 
 function run(client, text, params = []) {
   return client?.query ? client.query(text, params) : query(text, params);

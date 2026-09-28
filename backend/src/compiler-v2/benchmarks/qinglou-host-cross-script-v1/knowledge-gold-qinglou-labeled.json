@@ -1,0 +1,499 @@
+{
+  "instructions": "Pick 10–15 HOST-critical knowledge points. Fill id/title/requiredClaims. Score later offline.",
+  "targetRecall": 0.9,
+  "candidates": [
+    {
+      "suggestId": "Q01",
+      "eventId": "cevt_d1dd890d6ace4488",
+      "title": "莫怀身上发现血迹匕首和泥土",
+      "summary": "莫怀身上有一把沾有两人血迹的匕首，浑身泥土，家仆称其心事重重。",
+      "sourceSectionIds": [
+        "src_0ddd8c7392774eec"
+      ],
+      "includeInGold": true,
+      "requiredClaims": [
+        "莫怀身上发现一把沾有两人血迹的匕首",
+        "莫怀浑身带有泥土痕迹",
+        "家仆称莫怀近期心事重重"
+      ]
+    },
+    {
+      "suggestId": "Q02",
+      "eventId": "cevt_39e7d6fefd4847e3",
+      "title": "姜红儿进场表演",
+      "summary": "姜红儿作为玉满楼四花旦之一的玉伎进场，以颂歌得名，国色天香，主持人邀请宾客出价一百银两与其邂逅。",
+      "sourceSectionIds": [
+        "src_18762e2b54f14d03"
+      ],
+      "includeInGold": false,
+      "requiredClaims": []
+    },
+    {
+      "suggestId": "Q03",
+      "eventId": "cevt_b6d8b4190fd1462c",
+      "title": "陈一兔的身世与暗恋",
+      "summary": "陈一兔六岁时被越红接走，在玉满楼长大，发现母亲窥探莫府，偷看时对莫怀产生情愫，但不知其为亲哥哥。",
+      "sourceSectionIds": [
+        "src_276ea0edc98140ae"
+      ],
+      "includeInGold": true,
+      "requiredClaims": [
+        "陈一兔幼年被越红接走并在玉满楼长大",
+        "陈一兔对莫怀产生情愫但不知道莫怀是其亲哥哥"
+      ]
+    },
+    {
+      "suggestId": "Q04",
+      "eventId": "cevt_1caa960be1754d8e",
+      "title": "刘青龙威胁柳诗诗",
+      "summary": "刘青龙醉酒后以柳诗诗和姜红儿的身世威胁柳诗诗，柳诗诗为保护妹妹而答应献身。",
+      "sourceSectionIds": [
+        "src_276ea0edc98140ae"
+      ],
+      "includeInGold": true,
+      "requiredClaims": [
+        "刘青龙以柳诗诗和姜红儿的身世威胁柳诗诗",
+        "柳诗诗为保护妹妹而答应献身"
+      ]
+    },
+    {
+      "suggestId": "Q05",
+      "eventId": "cevt_6a700f4c92554424",
+      "title": "姜红儿与齐剑心暗生情愫",
+      "summary": "齐剑心为姜红儿挥金，姜红儿因齐剑心的玉剑产生感觉，两人暗地喜欢对方。",
+      "sourceSectionIds": [
+        "src_276ea0edc98140ae"
+      ],
+      "includeInGold": false,
+      "requiredClaims": []
+    },
+    {
+      "suggestId": "Q06",
+      "eventId": "cevt_e5d4f67ea7d045bd",
+      "title": "舒悦与莫寒相恋",
+      "summary": "舒悦经书斋先生介绍来到玉满楼，与莫寒从小相伴，被称天造地设的一对。",
+      "sourceSectionIds": [
+        "src_276ea0edc98140ae"
+      ],
+      "includeInGold": false,
+      "requiredClaims": []
+    },
+    {
+      "suggestId": "Q07",
+      "eventId": "cevt_84ea2b16119b4772",
+      "title": "白斋子的身世与失明",
+      "summary": "白斋子童年被赶出西河村，后入书斋成名，与董小婉相恋，后失明失忆，董小婉为其寻医。",
+      "sourceSectionIds": [
+        "src_276ea0edc98140ae"
+      ],
+      "includeInGold": false,
+      "requiredClaims": []
+    },
+    {
+      "suggestId": "Q08",
+      "eventId": "cevt_6f6fcd8a48924f33",
+      "title": "莫将军寻找越红",
+      "summary": "莫将军重病，托莫寒找董小婉画越红画像，但不知越红已毁容成为红姨。",
+      "sourceSectionIds": [
+        "src_276ea0edc98140ae"
+      ],
+      "includeInGold": false,
+      "requiredClaims": []
+    },
+    {
+      "suggestId": "Q09",
+      "eventId": "cevt_18e4bd1ff0b94852",
+      "title": "发现三具尸体",
+      "summary": "三具尸体被发现，两具一男一女埋在城西青树，另一具男尸装于黑麻袋发现于府南河下游湖中，均面目全非，死于不同人之手。",
+      "sourceSectionIds": [
+        "src_29246c623474464e"
+      ],
+      "includeInGold": true,
+      "requiredClaims": [
+        "发现三具面目全非的尸体",
+        "其中两具埋在城西青树，另一具男尸在府南河下游湖中",
+        "三具尸体并非死于同一人之手"
+      ]
+    },
+    {
+      "suggestId": "Q10",
+      "eventId": "cevt_914578e99b1c4446",
+      "title": "主角在监狱中死亡",
+      "summary": "主角在红光后醒来，身处大唐监狱，周围是死去的人，自己因饥饿和寒冷而绝望，最终闭上眼睛死去。",
+      "sourceSectionIds": [
+        "src_31d76709089a4fd4"
+      ],
+      "includeInGold": false,
+      "requiredClaims": []
+    },
+    {
+      "suggestId": "Q11",
+      "eventId": "cevt_2ad9197f58be46c8",
+      "title": "莫玄宗遗书揭示身世与秘密",
+      "summary": "莫玄宗在遗书中告知莫怀其将成为莫府主人，并透露自己曾是唐国公将军，为救国公而杀剑宗取混元剑劈开混元石，后派采花贼将两物送往大唐监狱，自己辞官经商，妻子失踪，托画师作画寻妻。",
+      "sourceSectionIds": [
+        "src_3575cd726146416f"
+      ],
+      "includeInGold": true,
+      "requiredClaims": [
+        "莫玄宗遗书告知莫怀将成为莫府主人",
+        "遗书交代莫玄宗曾为唐国公将军并涉及混元剑、混元石",
+        "遗书提到两物被送往大唐监狱以及莫玄宗寻妻经历"
+      ]
+    },
+    {
+      "suggestId": "Q12",
+      "eventId": "cevt_1f25dff83fed47c2",
+      "title": "杜霄元夜潜莫府杀莫寒",
+      "summary": "杜霄元得知真相后，趁夜潜入莫府，利用晕厥粉迷晕陈一兔和白斋子，潜入莫寒房间，趁莫寒和董小婉昏迷时杀死莫寒，并布置现场嫁祸白斋子。",
+      "sourceSectionIds": [
+        "src_3939b21b112245f7"
+      ],
+      "includeInGold": true,
+      "requiredClaims": [
+        "杜霄元夜潜莫府",
+        "杜霄元迷晕陈一兔和白斋子并杀死莫寒",
+        "杜霄元布置现场嫁祸白斋子"
+      ]
+    },
+    {
+      "suggestId": "Q13",
+      "eventId": "cevt_356e656ed8d04870",
+      "title": "董小婉自杀",
+      "summary": "董小婉醒来后误以为白斋子杀了莫寒，因羞愧和绝望，用匕首刺胸自杀。",
+      "sourceSectionIds": [
+        "src_3939b21b112245f7"
+      ],
+      "includeInGold": true,
+      "requiredClaims": [
+        "董小婉醒来后误以为白斋子杀了莫寒",
+        "董小婉因绝望用匕首刺胸自杀"
+      ]
+    },
+    {
+      "suggestId": "Q14",
+      "eventId": "cevt_7a781e7370ef4ab0",
+      "title": "灵石传送至树林",
+      "summary": "一阵异光后，灵石将二人传送至一片无人涉足的树林，二人失去记忆，互不相识。",
+      "sourceSectionIds": [
+        "src_45df6064509a4843"
+      ],
+      "includeInGold": true,
+      "requiredClaims": [
+        "灵石将二人传送到无人涉足的树林",
+        "传送后二人失去记忆并互不相识"
+      ]
+    },
+    {
+      "suggestId": "Q15",
+      "eventId": "cevt_8a6ddf16527d433f",
+      "title": "姜红儿追刘青龙",
+      "summary": "姜红儿表演完后在楼外追上离去的刘青龙，交谈后返回青楼。",
+      "sourceSectionIds": [
+        "src_4af69a6838a0475e"
+      ],
+      "includeInGold": false,
+      "requiredClaims": []
+    },
+    {
+      "suggestId": "Q16",
+      "eventId": "cevt_1956962894414af6",
+      "title": "姜红儿与柳诗诗外貌相似",
+      "summary": "姜红儿与柳诗诗在素颜状态下几乎无法分辨。",
+      "sourceSectionIds": [
+        "src_4af69a6838a0475e"
+      ],
+      "includeInGold": false,
+      "requiredClaims": []
+    },
+    {
+      "suggestId": "Q17",
+      "eventId": "cevt_7df34433c4cf458a",
+      "title": "姜红儿对齐剑心态度转变",
+      "summary": "姜红儿曾因齐剑心一掷千金而喜欢他，但现在觉得他是败类。",
+      "sourceSectionIds": [
+        "src_4af69a6838a0475e"
+      ],
+      "includeInGold": false,
+      "requiredClaims": []
+    },
+    {
+      "suggestId": "Q18",
+      "eventId": "cevt_4ae62a5e48d64379",
+      "title": "齐剑心杀害莫玄宗",
+      "summary": "根据线索推断，齐剑心在夜深时用玉剑‘逐玉’杀害莫玄宗，剑不沾血，袖口干净，并涂改了莫玄宗的遗书。",
+      "sourceSectionIds": [
+        "src_4e00192fe8504e1b"
+      ],
+      "includeInGold": true,
+      "requiredClaims": [
+        "齐剑心在夜深时用玉剑逐玉杀害莫玄宗",
+        "齐剑心涂改了莫玄宗的遗书"
+      ]
+    },
+    {
+      "suggestId": "Q19",
+      "eventId": "cevt_551b4fc3be5744ab",
+      "title": "众人齐聚玉满楼",
+      "summary": "寒公子收到纸条后心生计谋，随后杜霄元、白斋子、莫怀等人陆续来到玉满楼，红姨热情迎接莫怀。",
+      "sourceSectionIds": [
+        "src_608293df7069466a"
+      ],
+      "includeInGold": true,
+      "requiredClaims": [
+        "杜霄元、白斋子、莫怀等人陆续来到玉满楼",
+        "众人齐聚玉满楼构成开场主线节点"
+      ]
+    },
+    {
+      "suggestId": "Q20",
+      "eventId": "cevt_eb12b9e6e8ff4c95",
+      "title": "姜红儿下毒与刘青龙之死",
+      "summary": "姜红儿误将毒药当泻药下给齐剑心，却被红姨误饮；姜红儿追刘青龙得知身世，一气之下戳伤刘青龙致其死亡，并拖至草堆。",
+      "sourceSectionIds": [
+        "src_608293df7069466a"
+      ],
+      "includeInGold": true,
+      "requiredClaims": [
+        "姜红儿误把毒药当泻药下给齐剑心但被红姨误饮",
+        "姜红儿追上刘青龙并得知身世",
+        "姜红儿戳伤刘青龙导致其死亡并拖至草堆"
+      ]
+    },
+    {
+      "suggestId": "Q21",
+      "eventId": "cevt_11e07295d2594154",
+      "title": "齐剑心杀莫玄宗",
+      "summary": "齐剑心从刘青龙处得知剑宗消息，潜入莫府杀死莫老爷，并伪装病死现场，发现遗书。",
+      "sourceSectionIds": [
+        "src_608293df7069466a"
+      ],
+      "includeInGold": false,
+      "requiredClaims": []
+    },
+    {
+      "suggestId": "Q22",
+      "eventId": "cevt_f26eadd26f9d4c95",
+      "title": "杜霄元身世线索",
+      "summary": "杜霄元得知自己父亲是唐国公亲卫，并怀疑莫将军是当年罪魁祸首，开始留意莫府。",
+      "sourceSectionIds": [
+        "src_608293df7069466a"
+      ],
+      "includeInGold": false,
+      "requiredClaims": []
+    },
+    {
+      "suggestId": "Q23",
+      "eventId": "cevt_88c24afd08244986",
+      "title": "白斋子得知妻子背叛",
+      "summary": "杜霄元将董小婉夜入莫府之事告知白斋子，导致白斋子陷入极端。",
+      "sourceSectionIds": [
+        "src_608293df7069466a"
+      ],
+      "includeInGold": false,
+      "requiredClaims": []
+    },
+    {
+      "suggestId": "Q24",
+      "eventId": "cevt_092cd94d4d3f4b17",
+      "title": "拍卖会进行",
+      "summary": "玉满楼进行江湖宝贝拍卖，包括雷衣、风衣、铜剑等物品。",
+      "sourceSectionIds": [
+        "src_608293df7069466a"
+      ],
+      "includeInGold": false,
+      "requiredClaims": []
+    },
+    {
+      "suggestId": "Q25",
+      "eventId": "cevt_000c185eed524762",
+      "title": "白斋子被赶出西河村",
+      "summary": "白斋子因父亲犯罪被村民嫌弃，年仅四岁被赶出西河村，流落至长安城。",
+      "sourceSectionIds": [
+        "src_8e200108e2084d2c"
+      ],
+      "includeInGold": false,
+      "requiredClaims": []
+    },
+    {
+      "suggestId": "Q26",
+      "eventId": "cevt_d39f4f85e2284839",
+      "title": "白斋子最后一次见到父亲",
+      "summary": "白斋子在长安城街头看到被押往监狱的父亲，父亲身体发胖，疑似藏物，此后永别。",
+      "sourceSectionIds": [
+        "src_8e200108e2084d2c"
+      ],
+      "includeInGold": false,
+      "requiredClaims": []
+    },
+    {
+      "suggestId": "Q27",
+      "eventId": "cevt_614d376d78854b7a",
+      "title": "白斋子被书斋先生收留",
+      "summary": "十岁时白斋子被一书斋先生收留并取名白斋子。",
+      "sourceSectionIds": [
+        "src_8e200108e2084d2c"
+      ],
+      "includeInGold": false,
+      "requiredClaims": []
+    },
+    {
+      "suggestId": "Q28",
+      "eventId": "cevt_c50b31be1d624aad",
+      "title": "莫将军委托作画寻人",
+      "summary": "莫将军通过莫怀认识白斋子，委托其晚上作画寻人，白斋子连续数晚前往莫府作画。",
+      "sourceSectionIds": [
+        "src_8e200108e2084d2c"
+      ],
+      "includeInGold": false,
+      "requiredClaims": []
+    },
+    {
+      "suggestId": "Q29",
+      "eventId": "cevt_3fc201602f854ce4",
+      "title": "陈一兔暗算莫寒并得知身世",
+      "summary": "陈一兔夜中醒来，见莫寒去玉满楼找柳诗诗，醋意大发，用银荡针射中莫寒，偷听到关于自己身世的对话，随后跟踪莫寒至莫府。",
+      "sourceSectionIds": [
+        "src_92811307ad774a95"
+      ],
+      "includeInGold": true,
+      "requiredClaims": [
+        "陈一兔夜间用银荡针射中莫寒",
+        "陈一兔偷听到与自己身世相关的对话",
+        "陈一兔随后跟踪莫寒前往莫府"
+      ]
+    },
+    {
+      "suggestId": "Q30",
+      "eventId": "cevt_9831898825554720",
+      "title": "陈一兔翻墙被迷晕",
+      "summary": "陈一兔在莫府外见董小婉与莫寒一同进府，担心出事，翻墙欲阻止，被杜霄元用晕厥粉迷晕，醒来后因困意返回玉满楼睡去，次日被衙门带走。",
+      "sourceSectionIds": [
+        "src_92811307ad774a95"
+      ],
+      "includeInGold": false,
+      "requiredClaims": []
+    },
+    {
+      "suggestId": "Q31",
+      "eventId": "cevt_3eba1fcdc2084dc8",
+      "title": "白斋子夜探莫府目睹莫寒与董小婉",
+      "summary": "白斋子因女伴之事夜探莫府，在莫老爷房间看到女伴壁画，随后目睹莫寒药性大发带走董小婉，跟踪至房外，欲杀莫寒时被杜霄元暗中用晕厥粉迷晕。",
+      "sourceSectionIds": [
+        "src_92811307ad774a95"
+      ],
+      "includeInGold": true,
+      "requiredClaims": [
+        "白斋子夜探莫府并看到董小婉与莫寒",
+        "白斋子跟踪至房外并产生杀莫寒的意图",
+        "杜霄元暗中用晕厥粉将白斋子迷晕"
+      ]
+    },
+    {
+      "suggestId": "Q32",
+      "eventId": "cevt_7ee6118b02dd402e",
+      "title": "白斋子发现尸体并处理",
+      "summary": "白斋子醒来发现董小婉和莫寒已死，自己手中拿着血迹壁画，认为被嫁祸，将两人尸体装入黑麻袋，抛莫寒于府南河，藏董小婉于客栈柜中，次日被衙门带走。",
+      "sourceSectionIds": [
+        "src_92811307ad774a95"
+      ],
+      "includeInGold": true,
+      "requiredClaims": [
+        "白斋子醒来后发现董小婉和莫寒已死并认为自己被嫁祸",
+        "白斋子处理并转移两具尸体",
+        "白斋子次日被衙门带走"
+      ]
+    },
+    {
+      "suggestId": "Q33",
+      "eventId": "cevt_1ee7a5bf029f463f",
+      "title": "发现柳诗诗尸体",
+      "summary": "玩家在柜子里发现柳诗诗的尸体，全身发黑。",
+      "sourceSectionIds": [
+        "src_a34e24de135347c8"
+      ],
+      "includeInGold": false,
+      "requiredClaims": []
+    },
+    {
+      "suggestId": "Q34",
+      "eventId": "cevt_8ad8f4aede954510",
+      "title": "发现董小婉尸体",
+      "summary": "玩家在白斋子的客栈房间柜子内发现黑麻袋，打开后发现董小婉的尸体，胸口有刺伤。",
+      "sourceSectionIds": [
+        "src_a34e24de135347c8"
+      ],
+      "includeInGold": false,
+      "requiredClaims": []
+    },
+    {
+      "suggestId": "Q35",
+      "eventId": "cevt_9cd0e635c8084dac",
+      "title": "尸体身份确认",
+      "summary": "根据尸体线索和莫怀的公开，确认城西青树埋的一男一女为莫玄宗和红姨；另一具黑麻袋男尸通过时间线和衙门令确认为莫寒。",
+      "sourceSectionIds": [
+        "src_a54af516a1d14a5b"
+      ],
+      "includeInGold": true,
+      "requiredClaims": [
+        "城西青树埋的一男一女被确认为莫玄宗和红姨",
+        "黑麻袋男尸被确认为莫寒"
+      ]
+    },
+    {
+      "suggestId": "Q36",
+      "eventId": "cevt_1322118783cc4d37",
+      "title": "舒悦表演并开始拍卖",
+      "summary": "舒悦作为第一位花旦进场表演，随后被介绍为玉满楼四花旦之一的满伎，开始拍卖。",
+      "sourceSectionIds": [
+        "src_a9e345f64cd0418b"
+      ],
+      "includeInGold": false,
+      "requiredClaims": []
+    },
+    {
+      "suggestId": "Q37",
+      "eventId": "cevt_cd62f869ea73495d",
+      "title": "红姨开场迎客",
+      "summary": "红姨以主人身份欢迎玩家，介绍四妓表演和拍卖会即将开始，并安排倒酒。",
+      "sourceSectionIds": [
+        "src_b31c23410bfc45b8"
+      ],
+      "includeInGold": false,
+      "requiredClaims": []
+    },
+    {
+      "suggestId": "Q38",
+      "eventId": "cevt_9e2ce47a1eab4910",
+      "title": "柳诗诗倒酒",
+      "summary": "柳诗诗进场为所有玩家倒酒，随后坐回自己位置。",
+      "sourceSectionIds": [
+        "src_b31c23410bfc45b8"
+      ],
+      "includeInGold": false,
+      "requiredClaims": []
+    },
+    {
+      "suggestId": "Q39",
+      "eventId": "cevt_a4cb27b1d1d549ef",
+      "title": "陈一兔引出第三位花旦",
+      "summary": "陈一兔宣布好戏继续，并请出第三位花旦，暗示剧情推进。",
+      "sourceSectionIds": [
+        "src_b99aa01cff3241a5"
+      ],
+      "includeInGold": false,
+      "requiredClaims": []
+    },
+    {
+      "suggestId": "Q40",
+      "eventId": "cevt_cb21c9e7710d459c",
+      "title": "灵石传送至树林",
+      "summary": "一阵异光后，灵石将二人传送到一片无人涉足的树林，空中弥漫花草香。",
+      "sourceSectionIds": [
+        "src_bb76546eca9043a7"
+      ],
+      "includeInGold": false,
+      "requiredClaims": []
+    }
+  ]
+}

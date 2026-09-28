@@ -17,6 +17,8 @@ export const BOARD_GAME_COMPONENT_TYPES = Object.freeze([
 export const BOARD_GAME_VARIABLE_SCOPES = Object.freeze(["global", "player", "component"]);
 export const BOARD_GAME_CONDITION_OPERATORS = Object.freeze(["eq", "neq", "gt", "gte", "lt", "lte", "contains"]);
 export const BOARD_GAME_EFFECT_OPERATIONS = Object.freeze(["set", "add", "subtract", "multiply", "min", "max", "toggle"]);
+export const BOARD_GAME_EFFECT_SCOPES = Object.freeze(["auto", "self", "global", "all_players", "target_player"]);
+export const BOARD_GAME_EFFECT_TIMINGS = Object.freeze(["immediate", "after_action", "round_end"]);
 
 export const BOARD_GAME_MECHANISM_TEMPLATES = Object.freeze([
   { key: "resource_gain", label: "获得资源", trigger: "玩家动作", effect: "add", description: "满足条件后增加金币、行动点或其他资源。" },
@@ -129,13 +131,43 @@ export function normalizeBoardGameAsset(value, index = 0) {
   };
 }
 
+function normalizeBoardGameTrigger(value, index = 0) {
+  const source = record(value);
+  return {
+    id: identifier(source.id, `trigger-${index + 1}`),
+    event: text(source.event, 80),
+    effects: (Array.isArray(source.effects) ? source.effects : []).slice(0, 20).map(normalizeBoardGameEffect).filter((effect) => effect.targetKey)
+  };
+}
+
 export function normalizeBoardGameEntry(value, index = 0) {
   const source = record(value);
+  const effects = (Array.isArray(source.effects) ? source.effects : []).slice(0, 20).map((effect, effectIndex) => {
+    const item = record(effect);
+    return {
+      id: identifier(item.id, `card-effect-${index + 1}-${effectIndex + 1}`),
+      targetKey: identifier(item.targetKey, ""),
+      operation: BOARD_GAME_EFFECT_OPERATIONS.includes(item.operation) ? item.operation : "add",
+      value: text(item.value, 120),
+      scope: BOARD_GAME_EFFECT_SCOPES.includes(item.scope) ? item.scope : "auto",
+      timing: BOARD_GAME_EFFECT_TIMINGS.includes(item.timing) ? item.timing : "immediate",
+      priority: integer(item.priority, 0, -100, 100),
+      repeat: integer(item.repeat, 1, 1, 20),
+      chainMechanismId: identifier(item.chainMechanismId, ""),
+      conditionMode: item.conditionMode === "any" ? "any" : "all",
+      conditions: (Array.isArray(item.conditions) ? item.conditions : []).slice(0, 20).map(normalizeBoardGameCondition)
+    };
+  }).filter((effect) => effect.targetKey);
   return {
     id: identifier(source.id, `entry-${index + 1}`),
     name: text(source.name || source.title, 160) || `条目 ${index + 1}`,
     description: text(source.description || source.text, 1600),
-    quantity: integer(source.quantity, 1, 1, 9999)
+    age: integer(source.age, 0, 0, 99),
+    quantity: integer(source.quantity, 1, 1, 9999),
+    tags: (Array.isArray(source.tags) ? source.tags : []).slice(0, 20).map((tag) => text(tag, 60)).filter(Boolean),
+    effects,
+    triggers: (Array.isArray(source.triggers) ? source.triggers : []).slice(0, 20).map(normalizeBoardGameTrigger).filter((trigger) => trigger.event && trigger.effects.length),
+    continuousEffects: (Array.isArray(source.continuousEffects) ? source.continuousEffects : []).slice(0, 20).map(normalizeBoardGameEffect).filter((effect) => effect.targetKey)
   };
 }
 
@@ -197,7 +229,14 @@ export function normalizeBoardGameEffect(value, index = 0) {
     id: identifier(source.id, `effect-${index + 1}`),
     targetKey: identifier(source.targetKey, ""),
     operation: BOARD_GAME_EFFECT_OPERATIONS.includes(source.operation) ? source.operation : "add",
-    value: text(source.value, 300)
+    value: text(source.value, 300),
+    scope: BOARD_GAME_EFFECT_SCOPES.includes(source.scope) ? source.scope : "auto",
+    timing: BOARD_GAME_EFFECT_TIMINGS.includes(source.timing) ? source.timing : "immediate",
+    priority: integer(source.priority, 0, -100, 100),
+    repeat: integer(source.repeat, 1, 1, 20),
+    chainMechanismId: identifier(source.chainMechanismId, ""),
+    conditionMode: source.conditionMode === "any" ? "any" : "all",
+    conditions: (Array.isArray(source.conditions) ? source.conditions : []).slice(0, 20).map(normalizeBoardGameCondition)
   };
 }
 

@@ -83,6 +83,8 @@ npm run start
 - `GET /api/worlds/:worldId/logs`
 - `POST /api/worlds/:worldId/documents/parse`
 - `POST /api/worlds/:worldId/documents/import`
+- `GET /api/worlds/:worldId/mainline-hierarchy`
+- `PUT /api/worlds/:worldId/mainline-hierarchy`（新主线层级草稿，遵循 `If-Match` 版本控制）
 - `POST /api/worlds/:worldId/roles`
 - `POST /api/worlds/:worldId/chapters`
 - `POST /api/worlds/:worldId/roles/:roleSlotId/sections`

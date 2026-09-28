@@ -18,6 +18,11 @@ export async function handleRoomEvent(type, data, ctx) {
     && (data.source === "shared_room" || data.source === "shared_roles");
 
   switch (type) {
+    case "room.board_game_state_updated":
+      ctx.bumpTabPulse?.("home");
+      await ctx.onBoardGameRefresh?.();
+      ctx.onToast?.("桌游状态已同步");
+      break;
     case "room.clue_granted":
       if (affectsPlayer || sharedClue) {
         ctx.bumpTabPulse?.("clues");

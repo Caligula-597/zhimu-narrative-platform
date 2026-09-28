@@ -65,25 +65,26 @@ export function creatorWorkspaceHub() {
   </section>`;
 }
 
-/** 内容生产 — writing, structure extraction, and import/export. */
+/** 内容生产 — mainline creation, external import, and delivery/export. */
 export function production() {
   const data = studioStore.get().cloudStudio;
   if (!data) {
     return U.creatorWorkspaceEmpty?.({
       title: "内容生产",
       kicker: "CONTENT PRODUCTION",
-      intro: "从完整剧情、角色私人分幕或已有文稿进入，创作者可以按自己的顺序工作。",
+      intro: "剧本杀以新主线层级为主线推进；已有稿件走独立导入管线。",
       guideTitle: "开始",
-      guideItems: []
+      guideItems: [{ label: "主线", title: "从地点场合开始", text: "按层级保存并锁定，逐步展开到完整故事。", bullets: ["上游确认后才能进入下一层", "每层都有独立草稿与状态"] }, { label: "导入", title: "保留原稿", text: "已有主持手册、角色本和线索从导入入口进入。", bullets: ["预览后一次性写入", "正文保留原稿"] }]
     }) || `<section class="card"><h3>尚未选择剧本</h3></section>`;
   }
   const roleCount = data.roles?.length || 0;
   const sectionCount = data.sections?.length || 0;
-  return `${workspaceHero("CONTENT PRODUCTION", "写成品", "角色本、主持本、导入与导出。世界账本与细编辑器已收入高级工具，不在主路径平铺。")}
+  return `${workspaceHero("CONTENT PRODUCTION", "剧本杀创作主线", "先完成新主线层级，再进入正文、角色本、发布和运行；已有剧本从导入入口进入。")}
   ${contentLayerMapHtml({ open: false })}
   <section class="workspace-action-grid">
+    <button type="button" class="workspace-action-card primary" data-action="creator-mainline"><strong>开始新主线层级</strong><span>地点场合 → 场景地点 → 公开故事 → 完整故事 → 后期对抗</span></button>
     <button type="button" class="workspace-action-card primary" data-action="opening-package"><strong>导入已有剧本</strong><span>主持手册 · 角色本 · 线索 · 保留原稿</span></button>
-    <button type="button" class="workspace-action-card primary" data-action="story-manuscript"><strong>完整剧情母稿</strong><span>母稿与章节总览</span></button>
+    <button type="button" class="workspace-action-card" data-action="story-manuscript"><strong>完整剧情母稿</strong><span>主线完成后的正文与章节总览</span></button>
     <button type="button" class="workspace-action-card" data-go="writer"><strong>角色本</strong><span>${roleCount} 角色 · ${sectionCount} 分幕</span></button>
     <button type="button" class="workspace-action-card" data-action="creator-import"><strong>导入内容包</strong><span>JSON 备份迁移</span></button>
     <button type="button" class="workspace-action-card" data-action="creator-export"><strong>交付包导出</strong><span>玩家本 · 线索清单 · 主持手册 · JSON</span></button>

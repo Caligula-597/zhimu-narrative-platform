@@ -7,6 +7,40 @@ import { fileURLToPath } from "node:url";
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const sourceRoot = path.join(root, "src");
 
+// KEEP / SHELVED world editors are intentionally not part of the active creator
+// surface yet. Their handlers remain in the source tree for later activation, but
+// their unregistered actions must not fail the active UI audit.
+const SHELVED_UI_FILES = new Set([
+  "src/views/econ-editor.js",
+  "src/views/ending-branch-editor.js",
+  "src/views/history-causal-editor.js",
+  "src/views/host-manual-compiler-editor.js",
+  "src/views/knowledge-matrix-editor.js",
+  "src/views/location-state-editor.js",
+  "src/views/misidentification-editor.js",
+  "src/views/npc-script-editor.js",
+  "src/views/object-lifecycle-editor.js",
+  "src/views/relationship-arc-editor.js",
+  "src/views/runtime-state-machine-editor.js",
+  "src/views/timeline-editor.js",
+  "src/views/val-consistency-editor.js",
+]);
+const SHELVED_VIEW_METHODS = new Set([
+  "openEconSystem",
+  "openEnding",
+  "openHistoryCausal",
+  "openHostManualCompiler",
+  "openKnowledgeMatrix",
+  "openLocationState",
+  "openMisidentification",
+  "openNpcScript",
+  "openObjectLifecycle",
+  "openRelationshipArc",
+  "openRuntimeStateMachine",
+  "openTimeline",
+  "openValConsistency",
+]);
+
 function listJavaScriptFiles(dir) {
   return fs.readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
     const filePath = path.join(dir, entry.name);
@@ -65,16 +99,18 @@ function collectHandledActions(files, { directSelectors = false } = {}) {
   return handled;
 }
 
-function auditSurfaceActions({ name, sourceDirectory, handlerFilter, indexFiles = [], directSelectors = false }) {
+function auditSurfaceActions({ name, sourceDirectory, handlerFilter, indexFiles = [], directSelectors = false, excludedFiles = [] }) {
+  const excluded = new Set(excludedFiles);
   const sourceFiles = listJavaScriptFiles(path.join(root, sourceDirectory));
-  const markupFiles = [...sourceFiles, ...existingFiles(...indexFiles)];
-  const handlerFiles = sourceFiles.filter((filePath) => handlerFilter(relative(filePath)));
+  const activeSourceFiles = sourceFiles.filter((filePath) => !excluded.has(relative(filePath)));
+  const markupFiles = [...activeSourceFiles, ...existingFiles(...indexFiles)];
+  const handlerFiles = activeSourceFiles.filter((filePath) => handlerFilter(relative(filePath)));
   const renderedActions = collectMatches(markupFiles, /data-action\s*=\s*["']([^"'${}<>\s]+)["']/g);
   const handledActions = collectHandledActions(handlerFiles, { directSelectors });
   const unhandledActions = renderedActions.filter(({ value }) => !handledActions.has(value));
   return {
     name,
-    files: sourceFiles.length,
+    files: activeSourceFiles.length,
     renderedActions,
     handledActions,
     unhandledActions
@@ -162,7 +198,8 @@ export function auditUiInteractions() {
       name: "creator",
       sourceDirectory: "src",
       indexFiles: ["index.html"],
-      handlerFilter: (file) => /^src\/runtime\/actions(?:-[^/]+)?\.js$/.test(file)
+      handlerFilter: (file) => /^src\/runtime\/actions(?:-[^/]+)?\.js$/.test(file),
+      excludedFiles: SHELVED_UI_FILES,
     }),
     auditSurfaceActions({
       name: "host",
@@ -190,14 +227,14 @@ export function auditUiInteractions() {
       apiFile: "host/src/api.js",
       sourceDirectory: "host/src",
       aliases: ["api", "apiRef"],
-      dynamicMethods: ["createPortalAvatarUpload", "confirmPortalAvatar"]
+      dynamicMethods: ["createPortalAvatarUpload", "confirmPortalAvatar", "playableContentUnit", "playableClue"]
     }),
     auditApiReachability({
       name: "player",
       apiFile: "play/src/api.js",
       sourceDirectory: "play/src",
       aliases: ["api"],
-      dynamicMethods: ["createPortalAvatarUpload", "confirmPortalAvatar"]
+      dynamicMethods: ["createPortalAvatarUpload", "confirmPortalAvatar", "playableContentUnit", "playableClue"]
     })
   ];
   const renderedActions = surfaces.flatMap((surface) => surface.renderedActions);
@@ -215,6 +252,7 @@ export function auditUiInteractions() {
     for (const match of source.matchAll(/callView\(\s*["']([^"']+)["']\s*,\s*["']([^"']+)["']/g)) {
       const namespace = match[1];
       const method = match[2];
+      if (namespace === "writer" && SHELVED_VIEW_METHODS.has(method)) continue;
       const registered = registry.get(namespace);
       if (!registered?.methods.has(method)) {
         missingViewMethods.push({ namespace, method, file: relative(filePath), registeredIn: registered?.file || "未注册" });

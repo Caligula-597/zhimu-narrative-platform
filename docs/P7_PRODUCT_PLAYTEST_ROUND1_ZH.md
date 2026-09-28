@@ -5,7 +5,7 @@
 > **状态：可选工具体验参考；不再是织幕下一阶段必经 Gate，不阻塞 P8.0。**  
 > 原则：若执行，原则上不开发功能；用当前 Runtime 跑真人局。  
 > 测的是工具，不是「商会库房案」文学质量。  
-> 产品主线已改为：P8.0 Multi-Script Generalization Audit（见 `docs/P8_0A_GENERALIZATION_TEST_MATRIX_ZH.md`）。
+> 当前文档仅记录 Playable Runtime 的历史试跑，不再关联已移除的自动生成管线。
 ---
 
 ## 0. 一句话目标

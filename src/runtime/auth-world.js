@@ -11,6 +11,7 @@ import { normalizeError } from "../components/status-ui.js";
 import { setHtml } from "../../shared/safe-dom.js";
 import { createAdaptivePoller } from "../../shared/adaptive-poller.js";
 import { productModule, productModuleForWorld } from "../products/product-registry.js";
+import { productDomainDefinition } from "../../shared/product-domains/registry.js";
 import { handleApiErrorToast, friendlyApiError } from "../utils/user-messages.js";
   const escapeHtml = F.escapeHtml || ((v = "") => String(v));
   const formatTime = F.formatTime || (() => "");
@@ -228,7 +229,7 @@ export async function joinCatalogWorld(worldId){
  }catch(error){showError(error)}
 }
 
-export async function openWorldLibrary(defaultTab="mine"){
+export async function openWorldLibrary(defaultTab="mine", productType=""){
  const activeWorldId=zhimuApi.context.worldId;
  const activeStudioWorld=studioStore.get().cloudStudio?.world;
  const activePreviewWorld=worldStore.get().cloudWorkspacePreview?.world;
@@ -239,8 +240,10 @@ export async function openWorldLibrary(defaultTab="mine"){
  const catalogAvailable=Boolean(activeProduct?.library.catalogAvailable);
  const catalogLabel=activeProduct?.library.catalogLabel||"公开作品库";
  if(!catalogAvailable&&defaultTab==="catalog")defaultTab="mine";
+ const selectedProduct=productType?productDomainDefinition(productType):null;
+ const libraryTitle=selectedProduct?`选择${escapeHtml(selectedProduct.label)}项目`:"选择项目";
  modal.className="modal world-library-modal";
- setHtml(modal, `<h2>选择项目</h2><p class="wizard-intro">「我的项目」包含你创建或参与协作的桌游、剧本杀与跑团项目；不同类型会进入各自独立的创作中心。</p><div class="world-library-tabs"><button type="button" class="secondary-btn" data-library-tab="mine">我的项目</button>${catalogAvailable?`<button type="button" class="secondary-btn" data-library-tab="catalog">${escapeHtml(catalogLabel)}</button>`:""}</div><div data-library-panel="mine"><label class="check-label" style="margin-bottom:12px"><input type="checkbox" id="world-library-archived"><span>显示已归档项目</span></label></div>${catalogAvailable?`<div data-library-panel="catalog" class="hidden" data-catalog-filters></div>`:""}<div class="world-library-list"><div class="empty-state">正在加载…</div></div><div class="world-library-danger hidden" data-world-library-danger></div><div class="modal-actions"><button class="secondary-btn" data-close disabled>关闭</button><button class="primary-btn" data-open-create-world disabled>＋ 创建新项目</button></div>`);
+ setHtml(modal, `<h2>${libraryTitle}</h2><p class="wizard-intro">${selectedProduct?`这里只显示${escapeHtml(selectedProduct.label)}项目；其他产品保留在各自模块中。`:`「我的项目」包含你创建或参与协作的桌游、剧本杀与跑团项目；不同类型会进入各自独立的创作中心。`}</p><div class="world-library-tabs"><button type="button" class="secondary-btn" data-library-tab="mine">我的项目</button>${catalogAvailable&&!selectedProduct?`<button type="button" class="secondary-btn" data-library-tab="catalog">${escapeHtml(catalogLabel)}</button>`:""}</div><div data-library-panel="mine"><label class="check-label" style="margin-bottom:12px"><input type="checkbox" id="world-library-archived"><span>显示已归档项目</span></label></div>${catalogAvailable&&!selectedProduct?`<div data-library-panel="catalog" class="hidden" data-catalog-filters></div>`:""}<div class="world-library-list"><div class="empty-state">正在加载…</div></div><div class="world-library-danger hidden" data-world-library-danger></div><div class="modal-actions"><button class="secondary-btn" data-close disabled>关闭</button><button class="primary-btn" data-open-create-world disabled>＋ 创建${selectedProduct?escapeHtml(selectedProduct.label):"新项目"}</button></div>`);
  modalBackdrop.classList.add("show");
  modal.querySelector("[data-close]").onclick=closeModal;
  let activeTab=defaultTab;
@@ -256,12 +259,13 @@ export async function openWorldLibrary(defaultTab="mine"){
   const includeArchived=Boolean(modal.querySelector("#world-library-archived")?.checked);
   const worlds=await zhimuApi.getWorlds(includeArchived);
   worldStore.set({ cloudWorlds: worlds });
+  const visibleWorlds=productType?worlds.filter((world)=>productModuleForWorld(world).domain.key===productType):worlds;
   const statusLabel={draft:"草稿",testing:"测试中",published:"已发布",archived:"已归档"};
-  const roomCounts=await Promise.all(worlds.map(async(world)=>{
+  const roomCounts=await Promise.all(visibleWorlds.map(async(world)=>{
    if(!productModuleForWorld(world).library.loadRoomCounts)return null;
    try{return (await zhimuApi.getWorldRooms(world.id)).length}catch{return null}
   }));
-  return {html:worlds.map((world,index)=>{
+  return {html:visibleWorlds.map((world,index)=>{
    const productModuleEntry=productModuleForWorld(world);
    const productKey=productModuleEntry.domain.key;
    const product=productModuleEntry.domain;
@@ -271,7 +275,7 @@ export async function openWorldLibrary(defaultTab="mine"){
    const canRename=owner||editor;
    const roomHint=productModuleEntry.library.hint({count:roomCounts[index],canManage:owner||editor});
    return `<article class="world-library-card ${isCurrent?"active":""}"><div><span class="cloud-pill">${escapeHtml(product.label)} · ${escapeHtml(world.membership_role||"member")}</span><span class="status-chip ${world.status||"draft"}">${escapeHtml(statusLabel[world.status]||world.status||"草稿")}</span>${world.catalog_public?`<span class="status-chip published">已公开</span>`:""}<h3>${escapeHtml(world.name)}</h3><p>${escapeHtml(world.summary||"尚未补充项目简介")}</p><small>${escapeHtml(roomHint)}</small></div><div class="row">${canRename?`<button class="text-btn" data-action="world-rename" data-world-id="${world.id}" data-world-product="${productKey}" data-world-name="${escapeHtml(world.name)}" data-world-summary="${escapeHtml(world.summary||"")}">重命名</button>`:""}${owner?`<button class="text-btn danger-text" data-action="world-delete" data-world-id="${world.id}" data-world-name="${escapeHtml(world.name)}">${isCurrent?"删除当前项目":"删除"}</button>`:""}<button class="${isCurrent?"secondary-btn":"primary-btn"}" data-action="world-select" data-world-id="${world.id}">${isCurrent?"当前项目":"切换项目"}</button></div></article>`;
-  }).join("")||`<div class="empty-state">当前账号还没有可访问的项目。可点下方「＋ 创建新项目」${catalogAvailable?`，或浏览${escapeHtml(catalogLabel)}`:""}。</div>`,worlds};
+  }).join("")||`<div class="empty-state">当前还没有可访问的${selectedProduct?escapeHtml(selectedProduct.label):""}项目。可点下方创建。</div>`,worlds:visibleWorlds};
  };
  const drawCatalog=async()=>{
   const qs=Object.entries(catalogTagFilters).filter(([,v])=>v).map(([k,v])=>`tag_${encodeURIComponent(k)}=${encodeURIComponent(v)}`).join("&");
@@ -334,7 +338,7 @@ export async function openWorldLibrary(defaultTab="mine"){
    modal.querySelector("[data-open-create-world]").disabled=false;
    modal.querySelectorAll("[data-action]").forEach(btn=>btn.onclick=()=>handle(btn.dataset.action,btn));
    danger?.querySelectorAll("[data-action]").forEach(btn=>btn.onclick=()=>handle(btn.dataset.action,btn));
-   modal.querySelector("[data-open-create-world]").onclick=()=>{closeModal();openWizard()};
+   modal.querySelector("[data-open-create-world]").onclick=()=>{closeModal();openWizard(productType)};
   }catch(error){
    setHtml(list, `<div class="empty-state">${escapeHtml(error.message)}</div>`);
    modal.querySelector("[data-close]").disabled=false;

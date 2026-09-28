@@ -26,6 +26,10 @@
 | `host.getzhimu.com` | Cloudflare Pages：`host/` | workflow 与预览部署已验证 |
 | `getzhimu.com` | Cloudflare Pages：`site/` | workflow 与预览部署已验证；官网 CSP/Trusted Types 已强制 |
 
+### 新主线层级接口
+
+新主线生成层级不新增监听端口，沿用 `4173` 前端 → `4180` Fastify API 的本地代理链路。接口为 `GET/PUT /api/worlds/:worldId/mainline-hierarchy`，写入受现有 `content_revision` / `If-Match` 冲突控制保护。详细层级边界见 [`MAINLINE_HIERARCHY_ZH.md`](./MAINLINE_HIERARCHY_ZH.md)。
+
 ## 框架问题
 
 ### 已完成：Pages 三站 CI/CD 与安装门禁

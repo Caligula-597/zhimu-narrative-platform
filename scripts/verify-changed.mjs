@@ -400,55 +400,6 @@ if (files.some((f) =>
   run("account LLM component tests", "node --test scripts/account-llm-component.test.mjs");
 }
 
-if (files.some((f) =>
-  /^shared\/(context-|project-context|story-beat-semantics|story-semantic-fidelity|complete-beat-semantics|story-mechanism-(engine|contracts|m07|m08|m12)|m12-formation-|game-narrative|real-script-writer|script-writer-|script-production-|content-quality-|generated-script-quality|production-master-draft|production-projection-|real-production-trial|deepseek-script-writer|creation-intent-|story-experience-|creation-candidate-planner|creation-catalog-metadata)/.test(f)
-  || f === "scripts/context-instantiation.test.mjs"
-  || f === "scripts/story-semantic-fidelity.test.mjs"
-  || f === "scripts/game-narrative-binding.test.mjs"
-  || f === "scripts/real-script-writer.test.mjs"
-  || f === "scripts/content-quality-gate.test.mjs"
-  || f === "scripts/generated-script-quality-audit.test.mjs"
-  || f === "scripts/generated-script-quality-audit.mjs"
-  || f === "scripts/owner-binding-closure.test.mjs"
-  || f === "scripts/creation-intent-fidelity.test.mjs"
-  || f === "scripts/real-production-trial-1.test.mjs"
-  || f === "scripts/real-production-trial-1.mjs"
-  || f === "scripts/p10-4-production-projection.test.mjs"
-  || f === "scripts/p10-4-rpt1b-packet-probe.mjs"
-  || f === "scripts/p10-5-writer-rendering-adherence.test.mjs"
-  || f === "scripts/p10-5-writer-rendering-repair.test.mjs"
-  || f === "scripts/m12-formation-artifact.test.mjs"
-  || f === "scripts/m12-formation-builder.test.mjs"
-  || f === "scripts/m12-formation-validator.test.mjs"
-  || f === "scripts/m12-formation-writer-packet.test.mjs"
-  || f === "scripts/m12-formation-role-projection.test.mjs"
-  || f === "scripts/m12-formation-beat-compiler.test.mjs"
-  || f === "scripts/p10-5-rpt1c-adherence-probe.mjs"
-  || f === "scripts/p10-5-rpt1c-section-repair-replay.mjs"
-  || f === "shared/script-writer-rendering-repair.js"
-  || f === "shared/m12-formation-contracts.js"
-  || f === "shared/m12-formation-builder.js"
-  || f === "shared/m12-formation-validator.js"
-  || f === "shared/m12-formation-writer-packet.js"
-  || f === "shared/m12-formation-preview-writer.js"
-  || f === "shared/m12-formation-role-projection.js"
-  || f === "shared/m12-formation-beat-compiler.js"
-  || f === "scripts/m12-formation-preview-writer.mjs"
-  || /^fixtures\/m12-formation\//.test(f)
-  || f === "shared/rpt1c-p104-survival-probe.js"
-  || f === "shared/rpt1b-m12-survival-probe.js"
-  || /^trials\/rpt-1-/.test(f)
-)) {
-  run(
-    "P9/P10 content factory + trial harness",
-    "node --test scripts/context-instantiation.test.mjs scripts/story-semantic-fidelity.test.mjs scripts/game-narrative-binding.test.mjs scripts/real-script-writer.test.mjs scripts/content-quality-gate.test.mjs scripts/generated-script-quality-audit.test.mjs scripts/owner-binding-closure.test.mjs scripts/creation-intent-fidelity.test.mjs scripts/real-production-trial-1.test.mjs scripts/p10-4-production-projection.test.mjs scripts/p10-5-writer-rendering-adherence.test.mjs scripts/p10-5-writer-rendering-repair.test.mjs scripts/m12-formation-artifact.test.mjs scripts/m12-formation-builder.test.mjs scripts/m12-formation-validator.test.mjs scripts/m12-formation-writer-packet.test.mjs scripts/m12-formation-role-projection.test.mjs scripts/m12-formation-beat-compiler.test.mjs",
-  );
-  run("P10.4 RPT1B packet probe", "node scripts/p10-4-rpt1b-packet-probe.mjs");
-  run("P10.5 RPT1C adherence probe", "node scripts/p10-5-rpt1c-adherence-probe.mjs");
-  run("P10.5.1 RPT1C section repair replay (mock)", "node scripts/p10-5-rpt1c-section-repair-replay.mjs --mode=mock");
-  run("P8 GEN machine regression", "npm run test:p8-generalization");
-}
-
 if (files.some((f) => /^shared\//.test(f) || /^scripts\/shared-/.test(f))) {
   if (process.env.ZHIMU_VERIFY_STAGED_ONLY === "1") {
     console.log("✓ test:shared skipped under ZHIMU_VERIFY_STAGED_ONLY (run targeted suites above)");

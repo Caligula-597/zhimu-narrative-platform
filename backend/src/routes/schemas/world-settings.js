@@ -284,6 +284,80 @@ const boardGameMechanismSchema = {
   },
 };
 
+const boardGameEngineSchema = {
+  type: "object",
+  additionalProperties: false,
+  required: ["version", "maxRounds", "map", "phases", "actions", "setup", "roundEffects", "endCondition", "endConditions", "information"],
+  properties: {
+    version: { type: "integer", const: 1 },
+    maxRounds: { type: "integer", minimum: 1, maximum: 999 },
+    map: {
+      type: "object",
+      additionalProperties: false,
+      required: ["kind", "nodes", "edges"],
+      properties: {
+        kind: { type: "string", enum: ["area_graph", "hex", "square"] },
+        nodes: { type: "array", maxItems: 500, items: {
+          type: "object", additionalProperties: false,
+          required: ["id", "label", "x", "y", "terrain", "capacity", "scoreValue", "initialOwner", "description"],
+          properties: {
+            id: { type: "string", minLength: 1, maxLength: 80 }, label: { type: "string", minLength: 1, maxLength: 120 },
+            x: { type: "number", minimum: 0, maximum: 100 }, y: { type: "number", minimum: 0, maximum: 100 },
+            terrain: { type: "string", maxLength: 80 }, capacity: { type: "integer", minimum: 1, maximum: 999 },
+            scoreValue: { type: "number", minimum: -9999, maximum: 9999 }, initialOwner: { type: "integer", minimum: -1, maximum: 98 },
+            description: { type: "string", maxLength: 600 }
+          }
+        } },
+        edges: { type: "array", maxItems: 2000, items: {
+          type: "object", additionalProperties: false,
+          required: ["id", "from", "to", "cost", "blocked", "bidirectional", "label"],
+          properties: {
+            id: { type: "string", minLength: 1, maxLength: 80 }, from: { type: "string", maxLength: 80 }, to: { type: "string", maxLength: 80 },
+            cost: { type: "number", minimum: 0, maximum: 9999 }, blocked: { type: "boolean" }, bidirectional: { type: "boolean" }, label: { type: "string", maxLength: 100 }
+          }
+        } }
+      }
+    },
+    phases: { type: "array", maxItems: 100, items: {
+      type: "object", additionalProperties: false,
+      required: ["id", "label", "mode", "actionIds", "description"],
+      properties: {
+        id: { type: "string", minLength: 1, maxLength: 80 }, label: { type: "string", minLength: 1, maxLength: 120 },
+        mode: { type: "string", enum: ["sequential", "simultaneous", "reveal"] }, actionIds: { type: "array", maxItems: 100, items: { type: "string", maxLength: 80 } },
+        description: { type: "string", maxLength: 800 }
+      }
+    } },
+    actions: { type: "array", maxItems: 500, items: {
+      type: "object", additionalProperties: false,
+      required: ["id", "label", "kind", "phaseId", "target", "resourceKey", "cost", "amount", "mechanismId", "description"],
+      properties: {
+        id: { type: "string", minLength: 1, maxLength: 80 }, label: { type: "string", minLength: 1, maxLength: 120 },
+        kind: { type: "string", enum: ["move", "gain", "pay", "control", "score", "mechanism", "bid", "draw", "play", "reveal", "pass"] },
+        phaseId: { type: "string", maxLength: 80 }, target: { type: "string", enum: ["none", "any_region", "adjacent_region", "unowned_region", "own_region", "opponent_region"] },
+        resourceKey: { type: "string", maxLength: 80 }, cost: { type: "number", minimum: 0, maximum: 999999 }, amount: { type: "number", minimum: -999999, maximum: 999999 },
+        mechanismId: { type: "string", maxLength: 80 }, description: { type: "string", maxLength: 1200 }
+      }
+    } },
+    setup: {
+      type: "object", additionalProperties: false, required: ["unitsPerSeat", "startingNodeIds"],
+      properties: { unitsPerSeat: { type: "integer", minimum: 0, maximum: 30 }, startingNodeIds: { type: "array", maxItems: 99, items: { type: "string", maxLength: 80 } } }
+    },
+    roundEffects: { type: "array", maxItems: 50, items: {
+      type: "object", additionalProperties: false, required: ["id", "targetKey", "operation", "value"],
+      properties: { id: { type: "string", maxLength: 80 }, targetKey: { type: "string", maxLength: 80 }, operation: { type: "string", enum: ["set", "add", "subtract", "multiply", "min", "max", "toggle"] }, value: { type: "string", maxLength: 120 } }
+    } },
+    endCondition: {
+      type: "object", additionalProperties: false, required: ["type", "variableKey", "operator", "value"],
+      properties: { type: { type: "string", enum: ["rounds", "variable_threshold"] }, variableKey: { type: "string", maxLength: 80 }, operator: { type: "string", enum: ["eq", "gt", "gte", "lt", "lte"] }, value: { type: "number" } }
+    },
+    endConditions: { type: "array", maxItems: 10, items: {
+      type: "object", additionalProperties: false, required: ["id", "variableKey", "operator", "value"],
+      properties: { id: { type: "string", maxLength: 80 }, variableKey: { type: "string", maxLength: 80 }, operator: { type: "string", enum: ["eq", "gt", "gte", "lt", "lte"] }, value: { type: "number" } }
+    } },
+    information: { type: "string", enum: ["public", "private", "team"] }
+  }
+};
+
 const boardGameRulebookSchema = {
   type: "object",
   additionalProperties: false,
@@ -302,7 +376,7 @@ const boardGameRulebookSchema = {
 export const boardGameDesignSchema = {
   type: "object",
   additionalProperties: false,
-  required: ["version", "title", "designGoal", "playerCount", "playTimeMinutes", "seats", "components", "variables", "mechanisms", "rulebook", "updatedAt"],
+  required: ["version", "title", "designGoal", "playerCount", "playTimeMinutes", "seats", "components", "variables", "mechanisms", "engine", "rulebook", "updatedAt"],
   properties: {
     version: { type: "integer", const: BOARD_GAME_DESIGN_VERSION },
     title: { type: "string", maxLength: 120 },
@@ -321,6 +395,7 @@ export const boardGameDesignSchema = {
     components: { type: "array", maxItems: 300, items: boardGameComponentSchema },
     variables: { type: "array", maxItems: 300, items: boardGameVariableSchema },
     mechanisms: { type: "array", maxItems: 300, items: boardGameMechanismSchema },
+    engine: boardGameEngineSchema,
     rulebook: boardGameRulebookSchema,
     updatedAt: { anyOf: [{ type: "string", maxLength: 80 }, { type: "null" }] },
   },

@@ -8,6 +8,7 @@ export function createPlayStreamController({
   state, render, getSessionToken, clearSession, connectRoomEvents,
   disconnectRoomEvents, connectPlatformEvents, disconnectPlatformEvents,
   refreshVoiceMessages, patchGameView, pullRoomData, coalescedPartialRefresh,
+  refreshBoardGameRuntime,
   setToast, patchGameHostBanner, normalizeMiniGame, getGamePatchCtx,
   patchSyncChromeOrRender, bumpTabPulse, loadPlazaPosts, loadPlazaThread,
   loadFriends, loadDmConversations, loadDmThread, pauseVoiceSession,
@@ -71,6 +72,10 @@ export function createPlayStreamController({
       state.currentGame = normalizeMiniGame(game);
       if (state.view === "game" && patchGameView(state, getGamePatchCtx()) !== "full") return;
       render();
+    },
+    onBoardGameRefresh: async () => {
+      await refreshBoardGameRuntime?.({ silent: true });
+      if (state.view === "game") render();
     },
     getHostConfirmWaiting: () => Boolean(state.home?.hostConfirm?.waitingForYou),
     setStreamStatus: (status, meta) => {

@@ -10,6 +10,7 @@ import {
   writerToolGuidanceHtml,
   writerToolSurfaceHtml
 } from "../src/views/writer-tool-layout.js";
+import { canImportDocument } from "../src/views/document-import-policy.js";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const read = (relativePath) => fs.readFileSync(path.join(root, relativePath), "utf8");
@@ -76,9 +77,20 @@ test("all Writer full-page tools consume the shared layout instead of rebuilding
 });
 
 test("uploaded prose that misses the gate requires explicit human review before import", () => {
+  const base = {
+    parsed: {
+      contentMode: "text",
+      structure: { candidateCount: 1 },
+      proseDiagnostics: { review: { required: true } }
+    },
+    draft: { rightsConfirmed: true, proseReviewConfirmed: false, target: "structured" },
+    previewFingerprint: "same",
+    sourceFingerprint: "same"
+  };
+  assert.equal(canImportDocument(base), false);
+  assert.equal(canImportDocument({ ...base, draft: { ...base.draft, proseReviewConfirmed: true } }), true);
   const source = read("src/views/writer-document-workspace.js");
-  assert.match(source, /gate\?\.decision === "manual_review" && !session\.draft\.proseReviewConfirmed/u);
   assert.match(source, /data-document-check="proseReviewConfirmed"/u);
   assert.match(source, /未确认前不会写入/u);
-  assert.match(source, /不代表稿件已达到发布或精品库标准/u);
+  assert.match(source, /系统没有给出文学分数，也不替作者判定稿件好坏/u);
 });

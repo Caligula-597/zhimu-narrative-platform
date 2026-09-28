@@ -3,6 +3,7 @@ import { getView } from "../runtime/view-registry.js";
 import { productToolCapabilities, productToolLabel } from "../../shared/product-capabilities.js";
 
 const viewMeta = {
+  productHub: ["产品平台", "选择创作模块"],
   creatorCockpit: ["创作驾驶舱", "创作驾驶舱"],
   diagnostics: ["作品诊断", "作品诊断中心"],
   playtest: ["体验验证", "AI 玩家试跑实验室"],
@@ -40,6 +41,7 @@ export function getViewMeta(view, creationType) {
 
 export function resolveViewFn(view) {
   switch (view) {
+    case "productHub": return getView("productHub").productHub;
     case "creatorCockpit": return getView("creatorCockpit").creatorCockpit;
     case "diagnostics": return getView("storyDiagnostics").storyDiagnostics;
     case "playtest": return getView("aiPlaytestLab").aiPlaytestLab;

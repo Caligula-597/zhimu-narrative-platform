@@ -28,7 +28,7 @@ const moduleLoaders = {
   logs: () => import("./writer-world-logs-workspace.js"),
   "story-assistant": () => Promise.resolve(storyAssistantWorkspace),
   "opening-package": () => Promise.resolve(openingPackageWorkspace),
-  "world-engine": () => import("./world-engine-workspace.js"),
+  "mainline-hierarchy": () => import("./mainline-hierarchy-workspace.js"),
   misidentification: () => import("./misidentification-editor.js"),
   "relationship-arc": () => import("./relationship-arc-editor.js"),
   "knowledge-matrix": () => import("./knowledge-matrix-editor.js"),
@@ -56,7 +56,7 @@ const renderMethods = {
   logs: "worldLogsWorkspaceHtml",
   "story-assistant": "storyAssistantWorkspaceHtml",
   "opening-package": "openingPackageWorkspaceHtml",
-  "world-engine": "worldEngineWorkspaceHtml",
+  "mainline-hierarchy": "mainlineHierarchyWorkspaceHtml",
   misidentification: "misidentificationWorkspaceHtml",
   "relationship-arc": "relationshipArcWorkspaceHtml",
   "knowledge-matrix": "knowledgeMatrixWorkspaceHtml",
@@ -84,7 +84,7 @@ const bindMethods = {
   logs: "bindWorldLogsWorkspace",
   "story-assistant": "bindStoryAssistantWorkspace",
   "opening-package": "bindOpeningPackageWorkspace",
-  "world-engine": "bindWorldEngineWorkspace",
+  "mainline-hierarchy": "bindMainlineHierarchyWorkspace",
   misidentification: "bindMisidentification",
   "relationship-arc": "bindRelationshipArc",
   "knowledge-matrix": "bindKnowledgeMatrix",
@@ -115,7 +115,7 @@ async function loadToolModule(type) {
 }
 
 /** Prefetch common writer tools so first open does not fail on slow/chunk-miss networks. */
-export function warmWriterToolModules(types = ["story-assistant", "opening-package", "document", "world-engine"]) {
+export function warmWriterToolModules(types = ["story-assistant", "opening-package", "document"]) {
   for (const type of types) {
     if (loadedModules.has(type) || loadingModules.has(type)) continue;
     void loadToolModule(type).catch(() => {});
@@ -213,10 +213,6 @@ export const openStoryAssistantWorkspace = (...args) => invokeStoryAssistant("op
 export const analyzeStoryAssistantWorkspace = (...args) => invokeStoryAssistant("analyzeStoryAssistantWorkspace", ...args);
 export const importStoryAssistantWorkspace = (...args) => invokeStoryAssistant("importStoryAssistantWorkspace", ...args);
 
-export const openWorldEngineWorkspace = (...args) => invokeTool("world-engine", "openWorldEngineWorkspace", ...args);
-export const seedWorldEngineWorkspace = (...args) => invokeTool("world-engine", "seedWorldEngineWorkspace", ...args);
-export const renderWorldEngineWorkspace = (...args) => invokeTool("world-engine", "renderWorldEngineWorkspace", ...args);
-
 export const openMisidentificationWorkspace = (...args) => invokeTool("misidentification", "openMisidentification", ...args);
 export const closeMisidentificationWorkspace = (...args) => invokeTool("misidentification", "closeMisidentification", ...args);
 export const openRelationshipArcWorkspace = (...args) => invokeTool("relationship-arc", "openRelationshipArc", ...args);
@@ -243,12 +239,14 @@ export const openNpcScriptWorkspace = (...args) => invokeTool("npc-script", "ope
 export const closeNpcScriptWorkspace = (...args) => invokeTool("npc-script", "closeNpcScript", ...args);
 export const openLocationStateWorkspace = (...args) => invokeTool("location-state", "openLocationState", ...args);
 export const closeLocationStateWorkspace = (...args) => invokeTool("location-state", "closeLocationState", ...args);
-export const searchWorldEngineWorkspace = (...args) => invokeTool("world-engine", "searchWorldEngineWorkspace", ...args);
-export const commitWorldEngineWorkspace = (...args) => invokeTool("world-engine", "commitWorldEngineWorkspace", ...args);
-export const lowerWorldEngineWorkspace = (...args) => invokeTool("world-engine", "lowerWorldEngineWorkspace", ...args);
-export const searchWorldEngineEpistemicWorkspace = (...args) => invokeTool("world-engine", "searchWorldEngineEpistemicWorkspace", ...args);
-
 export const openOpeningPackageWorkspace = (...args) => invokeTool("opening-package", "openOpeningPackageWorkspace", ...args);
+export const openMainlineHierarchyWorkspace = (...args) => invokeTool("mainline-hierarchy", "openMainlineHierarchyWorkspace", ...args);
+export const selectMainlineStage = (...args) => invokeTool("mainline-hierarchy", "selectMainlineStage", ...args);
+export const saveMainlineDraft = (...args) => invokeTool("mainline-hierarchy", "saveMainlineDraft", ...args);
+export const lockMainlineStage = (...args) => invokeTool("mainline-hierarchy", "lockMainlineStage", ...args);
+export const unlockMainlineStage = (...args) => invokeTool("mainline-hierarchy", "unlockMainlineStage", ...args);
+export const backMainlineStage = (...args) => invokeTool("mainline-hierarchy", "backMainlineStage", ...args);
+export const closeMainlineHierarchyWorkspace = (...args) => invokeTool("mainline-hierarchy", "closeMainlineHierarchyWorkspace", ...args);
 export const nextOpeningPackageStep = (...args) => invokeTool("opening-package", "nextOpeningPackageStep", ...args);
 export const backOpeningPackageStep = (...args) => invokeTool("opening-package", "backOpeningPackageStep", ...args);
 export const skipOpeningPackageStep = (...args) => invokeTool("opening-package", "skipOpeningPackageStep", ...args);

@@ -111,6 +111,107 @@ API 只用于：Host TRUE Timeline / Character tracks / CharacterCore / Mechanis
 
 ---
 
+## Stage 2.5 — CanonMemoryCompiler V1（当前优先）
+
+**目标：** 一次读取、永久缓存、按需修复。模型读剧本成为独立、可缓存的生产步骤；Timeline / CharacterCore / Mechanism 后续只 Derive，不再重读全文。
+
+**双通道 Compile：**
+
+```
+通道 A  GlobalOutline     → 1× 全局通读（人物/阶段/地点/案件/真相区）
+通道 B  SectionCapsule    → N× 每 SourceSection 一次（可并发 5–10）
+         ↓
+    CanonMemory = merge(GlobalOutline, SectionCapsules)
+         ↓
+    SourceCoverage 审计（55 sections = 55 capsules，程序判定，不靠 AI 自报）
+```
+
+**SectionCapsule 类型：** `EVENT | BACKGROUND | RULE | META | MECHANISM | NO_RELEVANT_CONTENT`
+
+**缓存：** `hash(source + CANON_COMPILER_VERSION + modelTag)` → `captures/canon-cache/`。改一段原文只 invalidate 对应 Capsule 及依赖 Derive。
+
+**模型分级（V1）：** 便宜模型跑 SectionCapsule；GlobalOutline + Recovery 疑难段用同模型但独立 cache tier（后续可换强模型）。
+
+**第一版 Benchmark（长生叹，不跑 Timeline）：**
+
+| 指标 | 目标 | 尺子 |
+|---|---|---|
+| Host sections | 55 | 程序计数 |
+| SectionCapsules | 55 | 程序计数 |
+| Coverage | 55/55 | SourceCoverage |
+| **Gold Knowledge Recall** | **≥14/14 HIT** | Gold Scorer V2.1 × CanonNode |
+| Gold Event Recall | 仅 `nodeType==EVENT` 的 Gold | 不强迫 PROCESS/DECISION/BRANCH 变 Event |
+| FALSE_MATCH | 0 | sourceRefs + claims |
+| Canon Node Precision | ≥90% | 人工抽样 |
+| Silent Knowledge Loss | 0 | Outline-to-Canon orphans |
+
+**禁止**用 V1 关键词 `covered=true` 作为 go/no-go。
+
+## CanonMemory V2/V3 知识节点（最小五类）
+
+`EVENT | PROCESS | DECISION | REVEAL | BRANCH`
+
+- **Promotion V3（候选基线，可冻结）**：宁可少 promotion，禁止关键词套通用标题。**不再为粒度加规则。**
+- **Regression ≠ Precision**：`benchmarks/changsheng-promotion-regression/` 上的 30/30+20/20 只证明「没把修过的问题修坏」，**不是** held-out 精度。
+- **Held-out V3（SEALED）**：`benchmarks/changsheng-heldout-v3-frozen/` — Non-event 通过；Event VALID 55%、OVER_MERGED 40%、WRONG_FACT 0。**禁止用该集调参**；仅版本冻结时复测。
+- **架构拆分**：
+
+```
+Capsule → Promotion V3 → PROCESS|DECISION|REVEAL|BRANCH|EVENT
+                                              ↓
+                              EventBoundaryDetector V1.1
+                              (boundaryReviewRecommended only)
+                                              ↓
+                                    Splitter V1（保守 proposal）
+                                              ↓
+                                    Fact-preservation Validator
+                                              ↓
+                         apply only if confirmed; else MANUAL_REVIEW
+```
+
+- **语义（必须）**：`needsSplit === true` **不是**「这条 Event 一定有错」，只表示 **值得尝试拆 / boundaryReviewRecommended**。是否拆、怎么拆由 Splitter + Fact Validator + 人工确认决定。未通过 validator 的保持 `splitStatus = MANUAL_REVIEW`，优于自动拆错。
+- **三层职责**：Detector 高召回 → Splitter 保守 → Validator 不造事实。不必追求每个 OVER_MERGED 都能自动拆成功。
+- **调参集**：`benchmarks/changsheng-boundary-dev-v1/`（开发已停；勿继续榨 DEV 指标）。
+- **Held-out 冻结门槛（只评一次，禁止回炉调参）**：Split Recall ≥6/8；False Split ≤1/12。
+- **EventBoundaryDetector V1.1**：四个事件中心（Actor / Goal-Action / Temporal / Outcome）+ `EVENT_THEN_DURATIVE`；KEEP veto = 同场景同冲突连续因果且无新结果中心。地点名出现 ≠ LOCATION 改变。
+- **Splitter V1**：只产出 `SplitProposal`，确认后才替换；parent → `SPLIT_PARENT`。偏保守即可；regression 上 7/10 safe + 3 拒绝可接受。
+
+**离线：**
+
+- Promotion V3 + regression：`node backend/scripts/compiler-v2-canon-promotion-v3-remesh.mjs`
+- Held-out 封存打分：`node backend/scripts/compiler-v2-canon-heldout-score.mjs`
+- Boundary-dev 打分：`node backend/scripts/compiler-v2-canon-boundary-dev-score.mjs`
+- Sealed boundary（冻结复测，禁止调参）：`node backend/scripts/compiler-v2-canon-boundary-sealed-eval.mjs`
+- Full-canon 漏斗：`node backend/scripts/compiler-v2-canon-boundary-funnel.mjs`
+- Splitter V1 bench：`node backend/scripts/compiler-v2-canon-splitter-v1-bench.mjs`
+
+**启用 LLM Compile：** `enableCanonLlm: true` 或 `COMPILER_V2_ENABLE_CANON_LLM=1`。
+
+**试跑：** `node backend/scripts/compiler-v2-canon-memory-trial.mjs`
+
+**Stage 3A Window Reader：** Recovery/fallback only。
+
+**研发状态：**
+
+| 剧本 | 角色 |
+|---|---|
+| 长生叹 | development + first frozen benchmark（禁止再榨） |
+| 青楼 | first cross-script **diagnostic**（暴露 V1.2 三缺口；禁止磨 29/29） |
+| 第三剧本 | first true post-fix smoke（Gold **compile 前**从原文选） |
+
+**Canon V1.2 类型：** `EVENT | PROCESS | DECISION | REVEAL | BRANCH | FACT`（`merge-v1.2.0`）
+
+**V1.2 只三刀**（Splitter / Fact validator 不动）：
+
+1. STATIC_FACT → FACT；CLUE_REVEAL → REVEAL  
+2. META/INTRO/OUTRO → NONE；BRANCH 仅互斥结局结构  
+3. Boundary 提高多行动中心 `boundaryReviewRecommended` recall  
+
+协议：`benchmarks/THIRD_SCRIPT_SMOKE_PROTOCOL.md`  
+青楼诊断 remesh：`node backend/scripts/compiler-v2-qinglou-host-canon-v12-remesh.mjs`
+
+---
+
 ## Stage 3A V2 — Host TRUE Timeline（Stateful Reader）
 
 **范围（仅此）：** HostHandbook SourceSections → 一条 TRUE 主时间线。

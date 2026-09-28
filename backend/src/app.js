@@ -136,7 +136,7 @@ function isUploadRoute(url, method) {
 
 function isAiRoute(url, method) {
   if (method !== "POST") return false;
-  return url.includes("/story-assistant/") || url.includes("/deepseek/") || url.includes("/world-engine/");
+  return url.includes("/story-assistant/") || url.includes("/deepseek/");
 }
 
 function shouldSkipReadRateLimit(url) {

@@ -150,6 +150,11 @@ const definitions = {
     ]),
     load: () => import("./content-action-controller.js"),
     handler: "handlePlayContentAction"
+  },
+  boardGame: {
+    actions: new Set(["board-game-submit", "board-game-advance", "board-game-timeout"]),
+    load: () => import("./board-game-action-controller.js"),
+    handler: "handlePlayBoardGameAction"
   }
 };
 

@@ -5,6 +5,7 @@ import { transactionWithEvents } from "./transaction-events.js";
 import {
   bindJoinMembership,
   configureJoinTransaction,
+  ensureBoardGameRoleSlots,
   ensureJoinMembershipRow,
   findInviteAccess,
   findJoinTarget,
@@ -14,6 +15,9 @@ import {
 import { projectRoomContentBinding } from "./room-content-binding.js";
 
 export async function loadRoomInviteAccess(actorId, inviteCode) {
+  await transactionWithEvents(async (client) => {
+    await ensureBoardGameRoleSlots(client, { inviteCode });
+  });
   const row = await findInviteAccess(inviteCode, actorId);
   if (!row) throwErr("ROOM_NOT_FOUND");
   return {
@@ -26,6 +30,7 @@ export async function loadRoomInviteAccess(actorId, inviteCode) {
       })
     },
     world: { id: row.world_id, name: row.world_name },
+    creationType: row.creation_type,
     current_role_slot_id: row.current_role_slot_id ?? null,
     roles: row.roles ?? []
   };
@@ -36,6 +41,7 @@ export async function joinRoomByInvite(actorId, { inviteCode, roleSlotId }) {
   try {
     return await transactionWithEvents(async (client, queueEvent) => {
       await configureJoinTransaction(client);
+      await ensureBoardGameRoleSlots(client, { inviteCode });
       const target = await findJoinTarget(client, inviteCode, roleSlotId);
       if (!target) throwErr("ROOM_NOT_FOUND");
       if (!target.role_slot_id) throwErr("ROLE_SLOT_WORLD_MISMATCH");

@@ -33,9 +33,21 @@ import { callView } from "./view-registry.js";
       case "board-ai-undo": callView("boardGame", "undoBoardGameDraft"); return true;
       case "board-play-command": callView("boardGame", "selectBoardGamePlaygroundCommand", el?.dataset?.boardPlayCommandId); return true;
       case "board-play-target": callView("boardGame", "selectBoardGamePlaygroundTarget", el?.dataset?.boardPlayTargetId); return true;
+      case "board-play-card-select": callView("boardGame", "selectBoardGamePlaygroundCard", el?.dataset?.boardPlayCardId); return true;
       case "board-play-confirm": callView("boardGame", "confirmBoardGamePlaygroundAction"); return true;
       case "board-play-next": callView("boardGame", "advanceBoardGamePlaygroundRound"); return true;
       case "board-play-reset": callView("boardGame", "resetBoardGamePlaygroundView"); return true;
+      case "board-play-ai-toggle": callView("boardGame", "toggleBoardGameAiSimulation"); return true;
+      case "board-dominion-command": {
+        let command = null;
+        try { command = JSON.parse(decodeURIComponent(el?.dataset?.dominionCommand || "")); } catch { return true; }
+        callView("boardGame", "dispatchDominionStudyCommand", command); return true;
+      }
+      case "board-dominion-select-card": callView("boardGame", "toggleDominionStudyCard", el?.dataset?.dominionCardId); return true;
+      case "board-dominion-ai-turn": callView("boardGame", "runDominionStudyAiTurnView"); return true;
+      case "board-load-last-lighthouse": callView("boardGame", "loadLastLighthouseDesign"); return true;
+      case "board-load-preset": callView("boardGame", "loadBoardGamePreset", el?.dataset?.boardPresetId); return true;
+      case "board-load-mechanism-preset": callView("boardGame", "loadBoardGameMechanismPreset", el?.dataset?.boardMechanismPresetId); return true;
       case "board-design-save": void callView("boardGame", "saveBoardGameDesign"); return true;
       default: return false;
     }

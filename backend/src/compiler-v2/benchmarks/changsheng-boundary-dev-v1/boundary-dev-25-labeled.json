@@ -1,0 +1,469 @@
+{
+  "purpose": "DEV set for EventBoundaryDetector V1 — OK to iterate rules against labels",
+  "excludes": "promotion-regression-30 + heldout-frozen-20",
+  "instructions": "label = SPLIT | KEEP",
+  "note": "held-out remains SEALED; do not copy those labels here to overfit",
+  "sample": [
+    {
+      "sampleIndex": 1,
+      "eventId": "cevt_3f52f75b224746bb",
+      "title": "发现陶老板死亡并被困",
+      "summary": "主持人告知玩家陶老板已死，众人被困墓穴，决定调查死因并自我介绍。",
+      "sourceSectionIds": [
+        "src_45be44f30e55401b"
+      ],
+      "detectorColdStart": {
+        "needsSplit": false,
+        "confidence": "LOW",
+        "signals": [],
+        "veto": "single_soft_or_clean"
+      },
+      "label": "SPLIT",
+      "notes": "陶老板已死、众人被困、决定调查/自我介绍是不同事件中心；不应合成一个世界事件。"
+    },
+    {
+      "sampleIndex": 2,
+      "eventId": "cevt_7888bdb45dd74734",
+      "title": "苗王墓中发生厮杀",
+      "summary": "1894年，张家、李家、考古队相继进入苗王墓，张家与考古队相遇厮杀，守陵人陆卿原出现杀死白止、杨峥及张家盗墓贼。",
+      "sourceSectionIds": [
+        "src_6f673ed7d5d34df5"
+      ],
+      "detectorColdStart": {
+        "needsSplit": false,
+        "confidence": "LOW",
+        "signals": [],
+        "veto": "single_soft_or_clean"
+      },
+      "label": "SPLIT",
+      "notes": "三方相继入墓、相遇厮杀、陆卿原出手杀人是多个连续但独立的事件节点。"
+    },
+    {
+      "sampleIndex": 3,
+      "eventId": "cevt_92e4991185874fbc",
+      "title": "朱棣派遣白莲教寻找长生水",
+      "summary": "明成祖朱棣派遣白莲教教主白婉儿率人前往苗疆寻找长生水，白婉儿对朱棣情深义重，白莲教暗中为朝廷所用。",
+      "sourceSectionIds": [
+        "src_a2e087bd063a4194"
+      ],
+      "detectorColdStart": {
+        "needsSplit": false,
+        "confidence": "LOW",
+        "signals": [],
+        "veto": "single_soft_or_clean"
+      },
+      "label": "KEEP",
+      "notes": "核心是朱棣派白婉儿率白莲教寻找长生水；情感与朝廷关系是背景信息，不构成新事件中心。"
+    },
+    {
+      "sampleIndex": 4,
+      "eventId": "cevt_8fd0df7753f74aa0",
+      "title": "杨峥揭示先祖经历",
+      "summary": "杨峥若有所思，认为阿七是他的先祖，并明白了自己守护长生水的原因。",
+      "sourceSectionIds": [
+        "src_4d32c81f06b34f75"
+      ],
+      "detectorColdStart": {
+        "needsSplit": false,
+        "confidence": "LOW",
+        "signals": [],
+        "veto": "single_soft_or_clean"
+      },
+      "label": "KEEP",
+      "notes": "杨峥认出先祖并理解守护缘由属于同一次认知/揭示节点。"
+    },
+    {
+      "sampleIndex": 5,
+      "eventId": "cevt_4065d4e676bb4080",
+      "title": "陶老板灭李家满门",
+      "summary": "1908年，陶老板为夺长生水，先到李家藏身处，杀李家全家，张九孚赶到时救下陆未晞，将其带回府中，取名黎小曼，二人渐生情愫。",
+      "sourceSectionIds": [
+        "src_1f9c595f2c3842d5"
+      ],
+      "detectorColdStart": {
+        "needsSplit": false,
+        "confidence": "LOW",
+        "signals": [],
+        "veto": "single_soft_or_clean"
+      },
+      "label": "SPLIT",
+      "notes": "灭李家满门、张九孚救下陆未晞、带回改名、二人渐生情愫跨越多个行动与后续阶段。"
+    },
+    {
+      "sampleIndex": 6,
+      "eventId": "cevt_baa79d5abbdb4b5c",
+      "title": "张九孚在张家立足",
+      "summary": "张九孚回到父亲张作芳身边，因私生子身份受正房夫人排挤，他收敛锋芒，韬光养晦，并得知舅舅杨铮于1894年失踪。",
+      "sourceSectionIds": [
+        "src_1f9c595f2c3842d5"
+      ],
+      "detectorColdStart": {
+        "needsSplit": false,
+        "confidence": "LOW",
+        "signals": [],
+        "veto": "single_soft_or_clean"
+      },
+      "label": "SPLIT",
+      "notes": "回到张家立足/长期韬光养晦与得知舅舅1894年失踪是不同时间与知识节点。"
+    },
+    {
+      "sampleIndex": 7,
+      "eventId": "cevt_4306f5856cc647ef",
+      "title": "傅月生潜入朝廷成为直隶总督",
+      "summary": "傅月生为报妹妹被杀之仇，潜入朝廷成为直隶总督，从内部拖垮清政府。",
+      "sourceSectionIds": [
+        "src_6f673ed7d5d34df5"
+      ],
+      "detectorColdStart": {
+        "needsSplit": false,
+        "confidence": "LOW",
+        "signals": [],
+        "veto": "CONTINUOUS_SAME_SCENE"
+      },
+      "label": "SPLIT",
+      "notes": "潜入朝廷并成为总督与长期从内部拖垮清政府不是同一离散事件，应拆成身份进入与长期行动。"
+    },
+    {
+      "sampleIndex": 8,
+      "eventId": "cevt_4c022d0f1d0b4852",
+      "title": "张伯储逃离明长陵",
+      "summary": "明长陵建成后，工匠按律殉葬，张伯储预先挖通道并携带结构地图逃出。",
+      "sourceSectionIds": [
+        "src_d22877f776784b23"
+      ],
+      "detectorColdStart": {
+        "needsSplit": false,
+        "confidence": "LOW",
+        "signals": [],
+        "veto": "single_soft_or_clean"
+      },
+      "label": "KEEP",
+      "notes": "预挖通道并携图逃出是单一逃生事件；殉葬制度只是该事件背景。"
+    },
+    {
+      "sampleIndex": 9,
+      "eventId": "cevt_8c69f69d20104931",
+      "title": "张家发迹与分裂",
+      "summary": "张伯储因熟悉墓穴构造成为盗墓贼，张家发迹。1424年朱棣驾崩后，张家因盗明长陵分歧分裂为北上齐齐哈尔和南下长沙两支，明长陵地图留在长沙张家。",
+      "sourceSectionIds": [
+        "src_6072c3ce4dd240ca"
+      ],
+      "detectorColdStart": {
+        "needsSplit": false,
+        "confidence": "LOW",
+        "signals": [
+          {
+            "kind": "LOCATION_SHIFT",
+            "evidence": "明长陵,张家,长沙",
+            "strength": "MEDIUM"
+          }
+        ],
+        "veto": null
+      },
+      "label": "SPLIT",
+      "notes": "张家因盗墓发迹与1424年后分裂为南北两支是不同历史阶段，地图归属又是后续状态。"
+    },
+    {
+      "sampleIndex": 10,
+      "eventId": "cevt_fbe373641b644f97",
+      "title": "白初诱骗陶老板并杀害",
+      "summary": "白初假借查看布置，将陶老板引至舞台，用玻璃饰品砸死陶老板。",
+      "sourceSectionIds": [
+        "src_5085d41e427247ae"
+      ],
+      "detectorColdStart": {
+        "needsSplit": false,
+        "confidence": "LOW",
+        "signals": [],
+        "veto": "single_soft_or_clean"
+      },
+      "label": "KEEP",
+      "notes": "诱骗陶老板到舞台并用玻璃饰品杀害是同一连续谋杀行动。"
+    },
+    {
+      "sampleIndex": 11,
+      "eventId": "cevt_526734808f8a43b6",
+      "title": "陆卿原与白初的生门死门诀别",
+      "summary": "陆卿原走上死门，白初走上生门，两人进行最后的对话，陆卿原表达后悔与爱意，随后因疲惫倒地失去意识，白初也失去意识。",
+      "sourceSectionIds": [
+        "src_1babc1584a204fdf"
+      ],
+      "detectorColdStart": {
+        "needsSplit": false,
+        "confidence": "LOW",
+        "signals": [],
+        "veto": "single_soft_or_clean"
+      },
+      "label": "KEEP",
+      "notes": "生死门诀别、对话及随后双双失去意识发生在同一连续高潮场景。"
+    },
+    {
+      "sampleIndex": 12,
+      "eventId": "cevt_cff546aa403c48e1",
+      "title": "陶老板收养陶梦芸",
+      "summary": "1918年6月，陶老板为研制长生水到孤儿院收养了陶梦芸（实为傅月生妹妹转世、张家遗孤），改名陶梦芸并带至日月山庄，每月放血。",
+      "sourceSectionIds": [
+        "src_7bb2c185cfa64793"
+      ],
+      "detectorColdStart": {
+        "needsSplit": false,
+        "confidence": "LOW",
+        "signals": [
+          {
+            "kind": "LOCATION_SHIFT",
+            "evidence": "日月山庄,孤儿院,张家",
+            "strength": "MEDIUM"
+          }
+        ],
+        "veto": null
+      },
+      "label": "SPLIT",
+      "notes": "收养/改名/带到山庄是一组事件，而“每月放血”是长期持续行为，不能并成一条。"
+    },
+    {
+      "sampleIndex": 13,
+      "eventId": "cevt_1e3f9e2125f24991",
+      "title": "决定探索墓室",
+      "summary": "众人商议后决定探索墓室，寻找出口。",
+      "sourceSectionIds": [
+        "src_d1527d793f36434d"
+      ],
+      "detectorColdStart": {
+        "needsSplit": false,
+        "confidence": "LOW",
+        "signals": [],
+        "veto": "single_soft_or_clean"
+      },
+      "label": "KEEP",
+      "notes": "商议后决定探索墓室寻找出口是单一决策事件。"
+    },
+    {
+      "sampleIndex": 14,
+      "eventId": "cevt_04f1f359dc0949a6",
+      "title": "黎小曼与张九孚同生结局",
+      "summary": "两人均生还，离开日月山庄后张九孚重病离世，黎小曼黑衣现身其葬礼。",
+      "sourceSectionIds": [
+        "src_0603081a519e4763"
+      ],
+      "detectorColdStart": {
+        "needsSplit": false,
+        "confidence": "LOW",
+        "signals": [],
+        "veto": "single_soft_or_clean"
+      },
+      "label": "SPLIT",
+      "notes": "生还离开、张九孚后续重病死亡、黎小曼葬礼现身跨越明显时间阶段。"
+    },
+    {
+      "sampleIndex": 15,
+      "eventId": "cevt_fbf9c8d1310448b4",
+      "title": "红光与婴儿啼哭声增强",
+      "summary": "旁白描述四周红光大盛，婴儿啼哭声更清晰，众人感到乏力行动困难。",
+      "sourceSectionIds": [
+        "src_4d32c81f06b34f75"
+      ],
+      "detectorColdStart": {
+        "needsSplit": false,
+        "confidence": "LOW",
+        "signals": [],
+        "veto": "single_soft_or_clean"
+      },
+      "label": "KEEP",
+      "notes": "红光增强、啼哭变清晰、众人乏力是同一时刻的场景状态升级。"
+    },
+    {
+      "sampleIndex": 16,
+      "eventId": "cevt_9598cbe5d4e44e0f",
+      "title": "警探到场与众人被困",
+      "summary": "陶老板死后，刘警探带警员到场排查，众人回房。因阵法启动，山庄被封锁，刘警探告知众人，引发恐慌。",
+      "sourceSectionIds": [
+        "src_85fcf1bf58c741d7"
+      ],
+      "detectorColdStart": {
+        "needsSplit": false,
+        "confidence": "LOW",
+        "signals": [],
+        "veto": "single_soft_or_clean"
+      },
+      "label": "SPLIT",
+      "notes": "刘警探到场排查、众人回房、阵法封锁山庄、警探通知众人并引发恐慌是多个顺序节点。"
+    },
+    {
+      "sampleIndex": 17,
+      "eventId": "cevt_f348afc15dab4fdb",
+      "title": "顾怀辰与陶梦芸恢复记忆",
+      "summary": "顾怀辰低垂着头，说自己看到的是亲身经历；陶梦芸也表示都记起来了。",
+      "sourceSectionIds": [
+        "src_4d32c81f06b34f75"
+      ],
+      "detectorColdStart": {
+        "needsSplit": false,
+        "confidence": "LOW",
+        "signals": [],
+        "veto": "single_soft_or_clean"
+      },
+      "label": "KEEP",
+      "notes": "顾怀辰与陶梦芸在同一场景中共同恢复/确认记忆，粒度合理。"
+    },
+    {
+      "sampleIndex": 18,
+      "eventId": "cevt_a8f0ef45808a4b9b",
+      "title": "白初伪装成陶老板",
+      "summary": "白初藏尸于幕布后，用人皮面具伪装成陶老板，取得其房间钥匙。",
+      "sourceSectionIds": [
+        "src_5085d41e427247ae"
+      ],
+      "detectorColdStart": {
+        "needsSplit": false,
+        "confidence": "LOW",
+        "signals": [],
+        "veto": "single_soft_or_clean"
+      },
+      "label": "KEEP",
+      "notes": "藏尸、戴面具伪装、取得钥匙是同一伪装准备行动链。"
+    },
+    {
+      "sampleIndex": 19,
+      "eventId": "cevt_348f5df7b44c49eb",
+      "title": "白初死，陆卿原幸存",
+      "summary": "白初走向死门，陆卿原失去意识，醒来时在日月山庄门前。",
+      "sourceSectionIds": [
+        "src_249c978be05d4362"
+      ],
+      "detectorColdStart": {
+        "needsSplit": true,
+        "confidence": "HIGH",
+        "signals": [
+          {
+            "kind": "SUBJECT_CENTER_SHIFT",
+            "evidence": "title_dual_subject:白初+陆卿原",
+            "strength": "HIGH"
+          }
+        ],
+        "veto": null
+      },
+      "label": "SPLIT",
+      "notes": "白初选择死门与陆卿原后来醒在山庄门前之间存在明显结果阶段切换，不应压成一条。"
+    },
+    {
+      "sampleIndex": 20,
+      "eventId": "cevt_a0db75f4fc6a4d67",
+      "title": "张九孚发现张家灭门案疑点",
+      "summary": "1918年6月，张九孚找到长沙张家灭门档案，发现87口人但尸体只有86具。",
+      "sourceSectionIds": [
+        "src_a73f962172e6442f"
+      ],
+      "detectorColdStart": {
+        "needsSplit": false,
+        "confidence": "LOW",
+        "signals": [
+          {
+            "kind": "LOCATION_SHIFT",
+            "evidence": "张家,长沙",
+            "strength": "MEDIUM"
+          }
+        ],
+        "veto": null
+      },
+      "label": "KEEP",
+      "notes": "找到灭门档案并发现87人与86具尸体的矛盾是单一调查发现。"
+    },
+    {
+      "sampleIndex": 21,
+      "eventId": "cevt_de0549a80d9347bd",
+      "title": "朱棣抓捕白莲教，傅月生劫狱救妹",
+      "summary": "朱棣信以为真，抓捕回京的白婉儿及白莲教众人，傅月生拼死劫狱救出妹妹傅月遥，但妹妹中追兵毒箭而死，临终约定下世带北斗星胎记相见。",
+      "sourceSectionIds": [
+        "src_a2e087bd063a4194"
+      ],
+      "detectorColdStart": {
+        "needsSplit": true,
+        "confidence": "HIGH",
+        "signals": [
+          {
+            "kind": "SUBJECT_CENTER_SHIFT",
+            "evidence": "title_dual_subject:傅月生+朱棣",
+            "strength": "HIGH"
+          }
+        ],
+        "veto": null
+      },
+      "label": "SPLIT",
+      "notes": "朱棣抓捕白莲教、傅月生劫狱、傅月遥中箭身亡及临终约定是多个独立重大事件。"
+    },
+    {
+      "sampleIndex": 22,
+      "eventId": "cevt_3362c6c80acd432e",
+      "title": "黎小曼与张九孚对峙",
+      "summary": "黎小曼站在阵法死门上，面容平静，张九孚眉头紧蹙，神情悲伤地望着她。",
+      "sourceSectionIds": [
+        "src_396ef14314aa4d88"
+      ],
+      "detectorColdStart": {
+        "needsSplit": false,
+        "confidence": "LOW",
+        "signals": [],
+        "veto": "single_soft_or_clean"
+      },
+      "label": "KEEP",
+      "notes": "黎小曼站死门、张九孚悲伤注视是同一对峙画面。"
+    },
+    {
+      "sampleIndex": 23,
+      "eventId": "cevt_170a722497d74023",
+      "title": "陶文庆葬朱棣于日月山庄地下",
+      "summary": "陶文庆将朱棣遗体葬于日月山庄地下，立誓世代寻找长生水使其复活，北京明长陵成为空棺。",
+      "sourceSectionIds": [
+        "src_a2e087bd063a4194"
+      ],
+      "detectorColdStart": {
+        "needsSplit": false,
+        "confidence": "LOW",
+        "signals": [
+          {
+            "kind": "LOCATION_SHIFT",
+            "evidence": "日月山庄,明长陵",
+            "strength": "MEDIUM"
+          }
+        ],
+        "veto": null
+      },
+      "label": "KEEP",
+      "notes": "陶文庆安葬朱棣并立誓世代寻找长生水属于同一安葬/立誓节点；明长陵空棺是结果状态。"
+    },
+    {
+      "sampleIndex": 24,
+      "eventId": "cevt_cfddd335c4ea4f3b",
+      "title": "杨氏炼成长生水，傅月生夺水并下咒",
+      "summary": "作法当天，杨氏牺牲石家村全村性命炼成一瓶长生水，傅月生夺水并杀死杨氏巫医，巫医临死前下咒：饮长生水者不老不死，但永远失去所爱之人。",
+      "sourceSectionIds": [
+        "src_a2e087bd063a4194"
+      ],
+      "detectorColdStart": {
+        "needsSplit": false,
+        "confidence": "LOW",
+        "signals": [],
+        "veto": "single_soft_or_clean"
+      },
+      "label": "SPLIT",
+      "notes": "炼成长生水、傅月生夺水杀巫医、巫医临死下咒是多个独立因果事件。"
+    },
+    {
+      "sampleIndex": 25,
+      "eventId": "cevt_8d4e6281a7a84b2b",
+      "title": "瘴气消散，记忆恢复",
+      "summary": "白初猜测身处君王陵墓，张九孚联想到北平某地但否定。随后瘴气消散，众人记忆逐渐恢复。",
+      "sourceSectionIds": [
+        "src_67960f2488b24420"
+      ],
+      "detectorColdStart": {
+        "needsSplit": false,
+        "confidence": "LOW",
+        "signals": [],
+        "veto": "single_soft_or_clean"
+      },
+      "label": "KEEP",
+      "notes": "瘴气消散并使众人记忆逐渐恢复是同一状态变化；前置猜测只是对话背景。"
+    }
+  ]
+}

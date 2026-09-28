@@ -5,10 +5,8 @@ export const BOARD_GAME_AI_DRAFT_SCOPES = Object.freeze(["patch", "missing", "cu
 export const BOARD_GAME_AI_DRAFT_SECTIONS = Object.freeze(["components", "seats", "mechanisms", "engine", "rulebook"]);
 const RULEBOOK_FIELDS = Object.freeze(["objective", "setup", "turnStructure", "playerActions", "endCondition", "tieBreak", "notes"]);
 const UNSUPPORTED_REQUEST_PATTERNS = Object.freeze([
-  { capabilityId: "action.bid", pattern: /拍卖|竞价|出价|auction|bidding/i, reason: "通用竞价比较与并列结算尚未进入 V1 运行时。" },
-  { capabilityId: "action.draw", pattern: /抽牌|牌堆|手牌管理|deck|draw card/i, reason: "逐张卡牌与牌堆实例尚未进入 V1 运行时。" },
   { capabilityId: "info.private", pattern: /个人私密|隐藏手牌|秘密信息|private information/i, reason: "单屏试玩不能提供按设备隔离的个人私密信息。" },
-  { capabilityId: "random.seeded", pattern: /随机|掷骰|骰子|洗牌|random|dice|shuffle/i, reason: "V1 不代替实体骰子或洗牌执行随机结果。" }
+  { capabilityId: "action.reveal", pattern: /隐藏信息权限|设备级隐藏信息|私密公开|private reveal/i, reason: "当前单屏试玩仍不能提供设备级的信息隔离。" }
 ]);
 
 const clone = (value) => structuredClone(value);

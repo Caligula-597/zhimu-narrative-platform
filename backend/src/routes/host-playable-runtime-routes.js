@@ -1,7 +1,7 @@
 import { sendErr } from "../api-errors.js";
 import { requireActor } from "../request-actor.js";
 import { withRoomIdempotency } from "../idempotency-helpers.js";
-import { PlayableContentRuntimeError } from "../../shared/playable-content-runtime.js";
+import { PlayableContentRuntimeError } from "../../../shared/playable-content-runtime.js";
 import {
   initializeRoomPlayableRuntime,
   getHostPlayableRuntime,

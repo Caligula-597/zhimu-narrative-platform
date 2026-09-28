@@ -45,6 +45,11 @@ import { productModuleForWorld } from "../products/product-registry.js";
     document.body.dataset.productMode = productMode;
     document.body.dataset.productKey = hasWorld ? domain.key : "";
     document.body.dataset.productActive = hasWorld ? "1" : "0";
+    document.querySelectorAll(".product-switcher-item[data-product-type]").forEach((button) => {
+      const active = hasWorld && button.dataset.productType === domain?.key;
+      button.classList.toggle("active", active);
+      button.setAttribute("aria-pressed", active ? "true" : "false");
+    });
     document.querySelectorAll("[data-product-shell]").forEach((node) => {
       node.hidden = !hasWorld || node.dataset.productShell !== domain?.key;
     });

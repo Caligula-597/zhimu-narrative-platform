@@ -26,7 +26,6 @@ export const STAGE_DEFS = [
     short: "剧情",
     subtitle: "选你想要的剧情结构，放进积木篮，再逐条微调",
     items: [
-      { id: "story-mechanics", title: "剧情积木篮", link: { canvas: "sandbox", action: "cockpit-open-story-mechanism-workbench", label: "打开剧情积木篮" } },
       { id: "trick", title: "核心事实（高级）", link: { canvas: "trick", view: "truth", label: "高级：谜底与关系" } },
       { id: "relations", title: "人物关系（高级）", link: { canvas: "relations", view: "truth", label: "高级：谜底与关系" } },
       { id: "evidence", title: "线索（高级）", link: { canvas: "trick", view: "clues", label: "高级：线索管理" } }
@@ -38,8 +37,6 @@ export const STAGE_DEFS = [
     short: "母稿",
     subtitle: "把积木交织成整本剧情骨架；可局部调整、确认冲突",
     items: [
-      { id: "integrate", title: "交织骨架", link: { canvas: "timeline", action: "cockpit-open-master-outline", label: "打开交织预览" } },
-      { id: "master-draft", title: "详细母稿", link: { canvas: "timeline", action: "cockpit-open-production-master-draft", label: "展开详细母稿" } },
       { id: "timeline", title: "母稿预览", link: { canvas: "timeline", view: "studio", label: "编排图谱" } },
       { id: "profiles", title: "角色席位", link: { canvas: "profiles", view: "writer", label: "角色私人剧本" } },
       { id: "arcs", title: "分幕节奏", link: { canvas: "profiles", view: "writer", label: "角色私人剧本" } }

@@ -1,0 +1,168 @@
+{
+  "purpose": "HELDOUT_PRECISION — not regression",
+  "note": "Do NOT tune Promotion V3 against this file. Label first; only then decide if V3 generalizes.",
+  "sourceCanon": "captures/compiler-v2-trial/changsheng-canon-promotion-v3/canon-memory.json",
+  "excludedRegressionEvents": 30,
+  "excludedNonEventKeys": 21,
+  "poolSizes": {
+    "events": 84,
+    "nonEvents": 11
+  },
+  "sampled": {
+    "events": 20,
+    "nonEvents": 11
+  },
+  "targets": {
+    "eventValid": "≥80%",
+    "nonEventValid": "≥80%",
+    "wrongFact": "≈0"
+  },
+  "eventLabels": "VALID_EVENT|DUPLICATE|NOT_EVENT|WRONG_FACT|OVER_MERGED",
+  "nonEventLabels": "VALID_NODE|DUPLICATE|WRONG_TYPE|WRONG_FACT|OVER_MERGED|SHOULD_BE_EVENT",
+  "instructions": "VALID_NODE|DUPLICATE|WRONG_TYPE|WRONG_FACT|OVER_MERGED|SHOULD_BE_EVENT",
+  "sample": [
+    {
+      "sampleIndex": 1,
+      "nodeId": "cnode_5425cfeb00f64bad",
+      "type": "DECISION",
+      "title": "生门/死门抉择",
+      "summary": "本段为剧情高潮与尾声，陆卿原与白初在生门死门诀别，白初幸存后成为孤儿院院长，最终前往天津。",
+      "sourceSectionIds": [
+        "src_1babc1584a204fdf"
+      ],
+      "promotedFrom": "promotion_v3",
+      "label": "WRONG_TYPE",
+      "notes": "摘要描述的是一条具体生死结局及后日谈，不是“做出生门/死门选择”本身；更接近 BRANCH outcome。"
+    },
+    {
+      "sampleIndex": 2,
+      "nodeId": "cnode_ffb3eda3ad2b4792",
+      "type": "BRANCH",
+      "title": "顾怀辰/陶梦芸结局分支",
+      "summary": "本段为第三幕结局小剧场，描述顾怀辰与陶梦芸在墓室中共同赴死或生还后的结局，包含情感高潮与关键道具石头项链。",
+      "sourceSectionIds": [
+        "src_da06485bea164206"
+      ],
+      "promotedFrom": "promotion_v3",
+      "label": "VALID_NODE",
+      "notes": "明确描述顾怀辰/陶梦芸不同生死结果及小剧场，BRANCH 类型正确。"
+    },
+    {
+      "sampleIndex": 3,
+      "nodeId": "cnode_e5ea4283a58445b6",
+      "type": "BRANCH",
+      "title": "杨峥/白初结局分支",
+      "summary": "规则说明：当杨峥和白初死亡时，主持人发放对应小剧场给玩家。",
+      "sourceSectionIds": [
+        "src_155584b186524c29"
+      ],
+      "promotedFrom": "promotion_v3",
+      "label": "VALID_NODE",
+      "notes": "按杨峥/白初死亡条件触发小剧场，是标准 BRANCH 条件节点。"
+    },
+    {
+      "sampleIndex": 4,
+      "nodeId": "cnode_0740417489f54e5b",
+      "type": "BRANCH",
+      "title": "顾怀辰/陶梦芸结局分支",
+      "summary": "本段为结局流程规则，说明根据玩家抉择触发不同结局，按三对CP顺序进行旁白或小剧场，游戏结束。",
+      "sourceSectionIds": [
+        "src_1882149f984f477e"
+      ],
+      "promotedFrom": "promotion_v3",
+      "label": "VALID_NODE",
+      "notes": "根据玩家抉择触发不同结局并按CP顺序进入小剧场，属于结局 BRANCH 框架。"
+    },
+    {
+      "sampleIndex": 5,
+      "nodeId": "cnode_7917d325172a4d85",
+      "type": "BRANCH",
+      "title": "黎小曼生，张九孚死结局",
+      "summary": "黎小曼生还，张九孚牺牲，黎小曼在日月山庄醒来后离开，匿名寄给张作芳明长陵地图，后遁入空门。",
+      "sourceSectionIds": [
+        "src_0603081a519e4763"
+      ],
+      "promotedFrom": "event_reclassify_v3",
+      "label": "VALID_NODE",
+      "notes": "黎小曼生、张九孚死的特定结局及后日谈，作为 BRANCH outcome 合理。"
+    },
+    {
+      "sampleIndex": 6,
+      "nodeId": "cnode_2783500a528a4314",
+      "type": "BRANCH",
+      "title": "杨峥/白初结局分支",
+      "summary": "本段为结局分支：白初死、陆卿原生，后续陆卿原行善并每年祭扫白初坟包。",
+      "sourceSectionIds": [
+        "src_249c978be05d4362"
+      ],
+      "promotedFrom": "promotion_v3",
+      "label": "VALID_NODE",
+      "notes": "白初死、陆卿原生的特定结局及后日谈，作为 BRANCH outcome 合理。"
+    },
+    {
+      "sampleIndex": 7,
+      "nodeId": "cnode_6e9dee6cd95e45f7",
+      "type": "PROCESS",
+      "title": "投凶环节",
+      "summary": "流程指令：投凶后翻页并切换BGM，主持人引导小剧场。",
+      "sourceSectionIds": [
+        "src_7c80c1b245e44719"
+      ],
+      "promotedFrom": "promotion_v3",
+      "label": "VALID_NODE",
+      "notes": "投凶后的翻页/BGM/小剧场引导是明确流程节点，PROCESS 正确。"
+    },
+    {
+      "sampleIndex": 8,
+      "nodeId": "cnode_b681283900aa4a2c",
+      "type": "PROCESS",
+      "title": "搜证/取证推进",
+      "summary": "众人被困地下墓室，发现刘警探尸体和可触发回忆的玉石，开启第一轮搜证。",
+      "sourceSectionIds": [
+        "src_d1527d793f36434d"
+      ],
+      "promotedFrom": "promotion_v3",
+      "label": "SHOULD_BE_EVENT",
+      "notes": "摘要主体是发现刘警探尸体和回忆玉石等剧情事件，只有末尾“开启第一轮搜证”是流程；整体更适合作为事件节点。"
+    },
+    {
+      "sampleIndex": 9,
+      "nodeId": "cnode_6d5af933dc3d4aed",
+      "type": "BRANCH",
+      "title": "黎小曼/张九孚结局分支",
+      "summary": "本段为关键剧情：黎小曼牺牲自己解除张九孚诅咒，二人在墓室中成婚，随后张九孚独活，晚年孤独终老。",
+      "sourceSectionIds": [
+        "src_adbd6a317b4d4dfc"
+      ],
+      "promotedFrom": "promotion_v3",
+      "label": "VALID_NODE",
+      "notes": "黎小曼牺牲、张九孚独活的一条结局路径及后日谈，作为 BRANCH outcome 合理。"
+    },
+    {
+      "sampleIndex": 10,
+      "nodeId": "cnode_fe8c9bb294e54d97",
+      "type": "PROCESS",
+      "title": "搜证/取证推进",
+      "summary": "第二幕流程指引：分发线索、播放音频、引导公聊，推进至小剧场危机。",
+      "sourceSectionIds": [
+        "src_d506376a40b142dc"
+      ],
+      "promotedFrom": "promotion_v3",
+      "label": "VALID_NODE",
+      "notes": "分发线索、播放音频、公聊并推进危机是典型 PROCESS。"
+    },
+    {
+      "sampleIndex": 11,
+      "nodeId": "cnode_a3cabdf031034350",
+      "type": "BRANCH",
+      "title": "黎小曼/张九孚结局分支",
+      "summary": "本段为第三幕结局分支，根据黎小曼与张九孚的生死情况，呈现三种不同结局剧情。",
+      "sourceSectionIds": [
+        "src_0603081a519e4763"
+      ],
+      "promotedFrom": "promotion_v3",
+      "label": "VALID_NODE",
+      "notes": "根据黎小曼/张九孚生死呈现三种结局，是标准 BRANCH。"
+    }
+  ]
+}

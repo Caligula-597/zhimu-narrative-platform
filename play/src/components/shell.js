@@ -7,6 +7,8 @@ import { renderSyncStatusBannerHtml } from "../runtime/sync-helpers.js";
 import { state } from "../state.js";
 import { renderAuth } from "../views/auth.js";
 import { renderGame, renderGameResume } from "../views/game.js";
+import { renderBoardGamePlayer } from "../views/board-game-player.js";
+import { renderTabletopRpgPlayer } from "../views/tabletop-rpg-player.js";
 import { renderJoin } from "../views/join.js";
 import { renderLanding } from "../views/landing.js";
 import { renderLobby } from "../views/lobby.js";
@@ -23,6 +25,8 @@ function renderMainView() {
   if (state.view === "dm") return renderDm();
   if (state.view === "join") return renderJoin();
   if (state.view === "game" && state.roomId) {
+    if (state.home?.room?.creationType === "board_game") return renderBoardGamePlayer();
+    if (state.home?.room?.creationType === "tabletop_rpg") return renderTabletopRpgPlayer();
     if (state.home) return renderGame();
     return renderGameResume();
   }

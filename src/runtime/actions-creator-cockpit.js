@@ -63,21 +63,6 @@ const showError = (error, fallback = "操作失败") => showToast(normalizeError
           .openCurrentCreatorMechanismWorkbench();
         return true;
 
-      case "cockpit-open-story-mechanism-workbench":
-        await (await import("../views/creator-story-mechanism-workbench.js"))
-          .openCurrentCreatorStoryMechanismWorkbench();
-        return true;
-
-      case "cockpit-open-master-outline":
-        await (await import("../views/creator-master-outline-workbench.js"))
-          .openCurrentCreatorMasterOutlineWorkbench();
-        return true;
-
-      case "cockpit-open-production-master-draft":
-        await (await import("../views/creator-production-master-draft-workbench.js"))
-          .openCurrentCreatorProductionMasterDraftWorkbench();
-        return true;
-
       case "cockpit-open-playable-compile":
         await (await import("../views/creator-playable-compile-workbench.js"))
           .openCurrentCreatorPlayableCompileWorkbench();

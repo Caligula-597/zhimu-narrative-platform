@@ -9,4 +9,6 @@ export { renderPlaza, renderPlazaThread } from "./views/plaza.js";
 export { renderFriends, renderMessages, renderDm } from "./views/social.js";
 export { renderAuth } from "./views/auth.js";
 export { renderGame, renderGameHome, renderSections, renderClues, renderExploration, renderInventory } from "./views/game.js";
+export { renderBoardGamePlayer } from "./views/board-game-player.js";
+export { renderTabletopRpgPlayer } from "./views/tabletop-rpg-player.js";
 export { renderVoiceTab, renderVoiceHub, renderVoiceChat } from "./views/voice.js";

@@ -1,0 +1,305 @@
+{
+  "purpose": "HELDOUT_PRECISION — not regression",
+  "note": "Do NOT tune Promotion V3 against this file. Label first; only then decide if V3 generalizes.",
+  "sourceCanon": "captures/compiler-v2-trial/changsheng-canon-promotion-v3/canon-memory.json",
+  "excludedRegressionEvents": 30,
+  "excludedNonEventKeys": 21,
+  "poolSizes": {
+    "events": 84,
+    "nonEvents": 11
+  },
+  "sampled": {
+    "events": 20,
+    "nonEvents": 11
+  },
+  "targets": {
+    "eventValid": "≥80%",
+    "nonEventValid": "≥80%",
+    "wrongFact": "≈0"
+  },
+  "eventLabels": "VALID_EVENT|DUPLICATE|NOT_EVENT|WRONG_FACT|OVER_MERGED",
+  "nonEventLabels": "VALID_NODE|DUPLICATE|WRONG_TYPE|WRONG_FACT|OVER_MERGED|SHOULD_BE_EVENT",
+  "instructions": "VALID_EVENT|DUPLICATE|NOT_EVENT|WRONG_FACT|OVER_MERGED",
+  "sample": [
+    {
+      "sampleIndex": 1,
+      "eventId": "cevt_7078ba08a23d4971",
+      "order": 11,
+      "title": "张九孚得知家族诅咒",
+      "summary": "张九孚20岁生日时，黎小曼得知灭门凶手姓陶，张九孚打开母亲遗物发现家族诅咒，痛苦之下疏远黎小曼，谎称从未付出真心。",
+      "importance": "CORE",
+      "needsSplit": false,
+      "sourceSectionIds": [
+        "src_1f9c595f2c3842d5"
+      ],
+      "label": "OVER_MERGED",
+      "notes": "同一生日节点内同时包含黎小曼获知仇家姓陶、张九孚发现诅咒、疏远黎小曼并撒谎等多个独立信息/行动中心。"
+    },
+    {
+      "sampleIndex": 2,
+      "eventId": "cevt_17f4b8f0e0774546",
+      "order": 32,
+      "title": "陶老板任务失败",
+      "summary": "陶老板寻找长生水的任务彻底失败。",
+      "importance": "SUPPORTING",
+      "needsSplit": false,
+      "sourceSectionIds": [
+        "src_4e231b90b6cf45bc"
+      ],
+      "label": "VALID_EVENT",
+      "notes": "“寻找长生水任务彻底失败”可视为一个明确结果/状态变化节点。"
+    },
+    {
+      "sampleIndex": 3,
+      "eventId": "cevt_95f2693b6b164493",
+      "order": 49,
+      "title": "侯玄星之死",
+      "summary": "1645年剃发令颁布，傅月生发现嘉定抗清首领侯峒曾的小女儿侯玄星颈有北斗星胎记，即妹妹转世标志，但相认后侯玄星很快死于清军刀下。",
+      "importance": "CORE",
+      "needsSplit": false,
+      "sourceSectionIds": [
+        "src_6072c3ce4dd240ca"
+      ],
+      "label": "OVER_MERGED",
+      "notes": "包含发现侯玄星转世、相认、随后侯玄星死于清军等多个连续但可独立成节点的事件。"
+    },
+    {
+      "sampleIndex": 4,
+      "eventId": "cevt_48897d51e56249ce",
+      "order": 30,
+      "title": "李家下墓惨死，陆未晞苏醒",
+      "summary": "李家打洞至第二层藏有长生水的墓室，机关重重，大当家李瑶及伙计悉数惨死，血气使陆未晞苏醒。",
+      "importance": "CORE",
+      "needsSplit": false,
+      "sourceSectionIds": [
+        "src_4e231b90b6cf45bc"
+      ],
+      "label": "VALID_EVENT",
+      "notes": "李家下墓触发惨死并由血气直接导致陆未晞苏醒，属于同一地点和直接因果链。"
+    },
+    {
+      "sampleIndex": 5,
+      "eventId": "cevt_c3250d65d4d642ea",
+      "order": 93,
+      "title": "张九孚接受任务调查明长陵",
+      "summary": "1918年，张九孚受张作芳之命寻找明长陵地图，南下调查发现张家灭门案，并拜访顾家，遇到冒充顾怀辰的傅月生。",
+      "importance": "CORE",
+      "needsSplit": false,
+      "sourceSectionIds": [
+        "src_a73f962172e6442f"
+      ],
+      "label": "OVER_MERGED",
+      "notes": "接受任务、南下调查、查到灭门案、拜访顾家、遇见冒充者跨越多个调查节点。"
+    },
+    {
+      "sampleIndex": 6,
+      "eventId": "cevt_5d67dfdabb754519",
+      "order": 38,
+      "title": "傅月生追查张家",
+      "summary": "傅月生发现1858年下明长陵的盗墓贼是长沙张家，但1894年后张家销声匿迹。",
+      "importance": "SUPPORTING",
+      "needsSplit": true,
+      "sourceSectionIds": [
+        "src_4e231b90b6cf45bc"
+      ],
+      "label": "OVER_MERGED",
+      "notes": "追查并确认1858年盗墓者身份与1894年后张家消失是两个不同时间层的调查结论。"
+    },
+    {
+      "sampleIndex": 7,
+      "eventId": "cevt_329711cb6d6c4bee",
+      "order": 88,
+      "title": "傅月生饮长生水失踪",
+      "summary": "为实现与妹妹的约定，傅月生饮下长生水后失踪，白莲教幸存党羽认为他独吞长生水，视其为叛徒。",
+      "importance": "CORE",
+      "needsSplit": false,
+      "sourceSectionIds": [
+        "src_a2e087bd063a4194"
+      ],
+      "label": "VALID_EVENT",
+      "notes": "饮下长生水后失踪及其直接引发的白莲教认定叛徒，可作为同一核心事件及后果。"
+    },
+    {
+      "sampleIndex": 8,
+      "eventId": "cevt_efd908cb769e4d80",
+      "order": 63,
+      "title": "南一将未晞随葬苗王墓",
+      "summary": "苗王死后，南一将沉睡的未晞作为长生水随葬，设计双层墓保护底层未晞。",
+      "importance": "SUPPORTING",
+      "needsSplit": false,
+      "sourceSectionIds": [
+        "src_7671ba07c61f4a23"
+      ],
+      "label": "VALID_EVENT",
+      "notes": "将未晞随葬并设计双层墓是同一目的下的连续处置行动。"
+    },
+    {
+      "sampleIndex": 9,
+      "eventId": "cevt_4c6ccd873a5f429a",
+      "order": 18,
+      "title": "众人从幻境中回神",
+      "summary": "旁白描述众人从幻境中回过神来，彼此眼神意味深长。",
+      "importance": "SUPPORTING",
+      "needsSplit": false,
+      "sourceSectionIds": [
+        "src_4d32c81f06b34f75"
+      ],
+      "label": "VALID_EVENT",
+      "notes": "众人从幻境中回神是单一、明确的场景事件。"
+    },
+    {
+      "sampleIndex": 10,
+      "eventId": "cevt_c6d47fe3e668490b",
+      "order": 48,
+      "title": "傅月生复仇明朝",
+      "summary": "饮下长生水的傅月生隐姓埋名，寻找妹妹转世并仇恨明朝，百年间布局，暗中协助清军，利用吴三桂引清兵入关，覆灭明朝为妹报仇。",
+      "importance": "CORE",
+      "needsSplit": false,
+      "sourceSectionIds": [
+        "src_6072c3ce4dd240ca"
+      ],
+      "label": "OVER_MERGED",
+      "notes": "百年复仇、长期布局、协助清军、利用吴三桂、明亡等跨度过大，不应压成一个事件。"
+    },
+    {
+      "sampleIndex": 11,
+      "eventId": "cevt_ee59e7e7c54f4d3c",
+      "order": 92,
+      "title": "白初被绑，陆卿原舍身相救",
+      "summary": "1914年，白初被黑衣人绑架，陆卿原为救她身中数枪，两人配合反杀，白初带陆卿原回孤儿院，两人在一起。",
+      "importance": "CORE",
+      "needsSplit": false,
+      "sourceSectionIds": [
+        "src_a73f962172e6442f"
+      ],
+      "label": "OVER_MERGED",
+      "notes": "绑架、舍身救援、反杀、回孤儿院、确立关系跨越多个场景与结果节点。"
+    },
+    {
+      "sampleIndex": 12,
+      "eventId": "cevt_9c7229470fc344fb",
+      "order": 25,
+      "title": "张九孚询问晕倒前的声音",
+      "summary": "张九孚问众人是否记得晕倒前听到的声音，他在画面中听到几句。",
+      "importance": "SUPPORTING",
+      "needsSplit": false,
+      "sourceSectionIds": [
+        "src_4d32c81f06b34f75"
+      ],
+      "label": "VALID_EVENT",
+      "notes": "张九孚询问众人晕倒前所闻，是单一明确的对话行动节点。"
+    },
+    {
+      "sampleIndex": 13,
+      "eventId": "cevt_9fb4e0c0a98c441b",
+      "order": 70,
+      "title": "众人失忆并讨论处境",
+      "summary": "黎小曼、陶梦芸等人发现自己失忆，杨峥推测是瘴气所致，白初听到婴儿啼哭声，顾怀辰猜测是阵法仪式，陶梦芸害怕，张九孚提议想办法。",
+      "importance": "SUPPORTING",
+      "needsSplit": false,
+      "sourceSectionIds": [
+        "src_8242083ac35d4313"
+      ],
+      "label": "VALID_EVENT",
+      "notes": "失忆后的集体讨论发生在同一场景、同一短时段，粒度可接受。"
+    },
+    {
+      "sampleIndex": 14,
+      "eventId": "cevt_d2e5887475194762",
+      "order": 67,
+      "title": "陶老板计划血祭",
+      "summary": "1919年4月，陶老板发现长生水材料为灵魂，伪造长生水并宣布6月20日拍卖，实则准备在日月山庄地下墓室启动血祭。",
+      "importance": "CORE",
+      "needsSplit": false,
+      "sourceSectionIds": [
+        "src_7bb2c185cfa64793"
+      ],
+      "label": "OVER_MERGED",
+      "notes": "发现材料真相、伪造长生水、宣布拍卖、筹备血祭是多个筹谋与执行节点。"
+    },
+    {
+      "sampleIndex": 15,
+      "eventId": "cevt_23b0962105164719",
+      "order": 61,
+      "title": "暮尘牺牲，未晞成为容器",
+      "summary": "南一与暮尘为救未晞，暮尘进入封锁的村庄，将昏睡的未晞放入阵眼作为长生水容器，自己牺牲。",
+      "importance": "CORE",
+      "needsSplit": false,
+      "sourceSectionIds": [
+        "src_7671ba07c61f4a23"
+      ],
+      "label": "VALID_EVENT",
+      "notes": "暮尘进入封锁村庄、将未晞置入阵眼并牺牲，属于同一救援/牺牲行动链。"
+    },
+    {
+      "sampleIndex": 16,
+      "eventId": "cevt_973bead140ef4389",
+      "order": 52,
+      "title": "傅月生与荣妙珠相识并下明长陵",
+      "summary": "1858年，傅月生认识妹妹第二次转世荣妙珠，为满足其愿望，决定带她下明长陵寻找《永乐大典》。",
+      "importance": "SUPPORTING",
+      "needsSplit": false,
+      "sourceSectionIds": [
+        "src_6f673ed7d5d34df5"
+      ],
+      "label": "VALID_EVENT",
+      "notes": "认识荣妙珠并决定带她下明长陵属于同一动机驱动的连续行动。"
+    },
+    {
+      "sampleIndex": 17,
+      "eventId": "cevt_2fb7db2117a64a8b",
+      "order": 104,
+      "title": "17:00-17:10 白初布置现场，陆卿原假扮杨峥",
+      "summary": "白初以管家助理身份布置舞台；陆卿原戴上杨峥人皮面具假扮杨峥，藏起三张新面具。",
+      "importance": "SUPPORTING",
+      "needsSplit": false,
+      "sourceSectionIds": [
+        "src_d757681be82c41d3"
+      ],
+      "label": "OVER_MERGED",
+      "notes": "同一时间段内白初布置现场与陆卿原假扮杨峥是两个并行且主体不同的事件。"
+    },
+    {
+      "sampleIndex": 18,
+      "eventId": "cevt_444d66c96f3f411f",
+      "order": 7,
+      "title": "白初加入红十字会前往天津",
+      "summary": "数年后，长沙城北孤儿院被征用，白初加入红十字会志愿者队伍前往天津，途中在一荒废学堂的水井边恍惚。",
+      "importance": "SUPPORTING",
+      "needsSplit": false,
+      "sourceSectionIds": [
+        "src_1babc1584a204fdf"
+      ],
+      "label": "VALID_EVENT",
+      "notes": "加入红十字会并前往天津，途中在学堂水井边恍惚，整体仍是同一旅程场景链。"
+    },
+    {
+      "sampleIndex": 19,
+      "eventId": "cevt_59024930b2d14b8a",
+      "order": 102,
+      "title": "陶老板死亡真相揭示",
+      "summary": "通过线索推理，陶老板真正死因是头部重击，非中毒，死亡时间在18:20之前，且18:30出现的陶老板是假扮的。",
+      "importance": "CORE",
+      "needsSplit": false,
+      "sourceSectionIds": [
+        "src_d757681be82c41d3"
+      ],
+      "label": "NOT_EVENT",
+      "notes": "这是对陶老板死因、死亡时间及假扮事实的推理揭示，应进入 REVEAL 而非 EVENT。"
+    },
+    {
+      "sampleIndex": 20,
+      "eventId": "cevt_1d69eac3f60b4424",
+      "order": 82,
+      "title": "苗王密令研制长生水",
+      "summary": "1416年，体弱多病的苗王命各族巫医秘密研制不死药长生水。",
+      "importance": "SUPPORTING",
+      "needsSplit": false,
+      "sourceSectionIds": [
+        "src_a2e087bd063a4194"
+      ],
+      "label": "VALID_EVENT",
+      "notes": "1416年苗王下令秘密研制长生水，是标准历史事件。"
+    }
+  ]
+}

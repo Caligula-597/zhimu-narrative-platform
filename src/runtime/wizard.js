@@ -142,6 +142,9 @@ export async function finishWizard() {
     if (postCreateJourney === "upload") {
       void callView("writer", "openOpeningPackage");
     }
+    if (postCreateJourney === "mainline" && draft.creationType === "murder_mystery") {
+      void callView("writer", "openMainlineHierarchy");
+    }
     showToast(`已创建空白${productDomainDefinition(draft.creationType).label}「${draft.worldName}」`);
   } catch (error) {
     creating = false;

@@ -88,7 +88,8 @@ export async function loadAuthorizedPlayerHomeContent({ roomId, actorId }) {
        m.release_created_at,
        jsonb_build_object(
          'id', m.room_id, 'name', m.room_name,
-         'invite_code', m.invite_code, 'status', m.room_status
+         'invite_code', m.invite_code, 'status', m.room_status,
+         'creationType', COALESCE(NULLIF(m.world_settings->'narrativeProfile'->>'creationType', ''), NULLIF(m.world_settings->>'creationType', ''), CASE WHEN m.world_settings->>'worldMode' = 'campaign' THEN 'tabletop_rpg' ELSE 'murder_mystery' END)
        ) AS room,
        COALESCE((
          SELECT jsonb_agg(to_jsonb(section_row) ORDER BY section_row.sequence)
@@ -191,7 +192,8 @@ export async function loadPlayerHomeContent({ roomId, roleSlotId }) {
     query(
       `SELECT
          (SELECT jsonb_build_object(
-            'id', r.id, 'name', r.name, 'invite_code', r.invite_code, 'status', r.status
+            'id', r.id, 'name', r.name, 'invite_code', r.invite_code, 'status', r.status,
+            'creationType', COALESCE(NULLIF(world.settings->'narrativeProfile'->>'creationType', ''), NULLIF(world.settings->>'creationType', ''), CASE WHEN world.settings->>'worldMode' = 'campaign' THEN 'tabletop_rpg' ELSE 'murder_mystery' END)
           ) FROM rooms r WHERE r.id = $1) AS room,
          room_binding.release_id,
          room_binding.world_id,

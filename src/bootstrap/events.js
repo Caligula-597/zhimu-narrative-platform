@@ -34,6 +34,10 @@ export function initEvents({ content, modalBackdrop, R, go }) {
   mainNav?.addEventListener("click", (event) => {
     dispatchDelegatedAction(event, mainNav);
   });
+  const productSwitcher = document.querySelector(".product-switcher");
+  productSwitcher?.addEventListener("click", (event) => {
+    dispatchDelegatedAction(event, productSwitcher);
+  });
 
   document.querySelectorAll(".nav-item[data-view]").forEach((btn) => btn.addEventListener("click", () => go(btn.dataset.view)));
   document.querySelector("#run-btn").onclick = () => {

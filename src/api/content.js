@@ -61,6 +61,16 @@ export function syncStoryManuscriptToGraph(body) {
   return worldWrite(`/worlds/${demoContext.worldId}/story-manuscript/sync-to-graph`, { method: "POST", body: { body } });
 }
 
+/* ── Mainline generation hierarchy ── */
+
+export function getMainlineHierarchyDraft(worldId = demoContext.worldId) {
+  return request(`/worlds/${worldId}/mainline-hierarchy`, { userId: demoContext.hostUserId });
+}
+
+export function saveMainlineHierarchyDraft(draft, worldId = demoContext.worldId) {
+  return worldWrite(`/worlds/${worldId}/mainline-hierarchy`, { worldId, method: "PUT", body: { draft } });
+}
+
 /* ── Rules ── */
 
 export function getRules() {

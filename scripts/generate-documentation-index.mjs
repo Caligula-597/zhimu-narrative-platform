@@ -29,6 +29,7 @@ const CURRENT_TRUTH = new Set([
   "docs/SSE_FAILURE_MATRIX_ZH.md",
   "docs/AUTH_FAILURE_MATRIX_ZH.md",
   "docs/UI_OVERLAY_SURFACE_AUDIT_ZH.md",
+  "docs/MAINLINE_HIERARCHY_ZH.md",
   "host/README.md",
   "play/README.md",
   "site/README.md"

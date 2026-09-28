@@ -26,7 +26,6 @@ import {
   storyAssistantAnalyzeSchema,
   storyAssistantImportSchema
 } from "./schemas.js";
-import { registerWorldEngineRoutes } from "./world-engine-routes.js";
 
 const llmPreHandler = createLlmContextPreHandler(sendErr);
 
@@ -100,6 +99,4 @@ export async function registerStoryAssistantRoutes(app) {
       { sendErr, statusCode: 201 }
     );
   });
-
-  await registerWorldEngineRoutes(app);
 }

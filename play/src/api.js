@@ -126,6 +126,13 @@ export const api = {
   playerHomeSocial: (roomId, currentActKey = "ch1") =>
     request(`/rooms/${roomId}/player-home/social?currentActKey=${encodeURIComponent(currentActKey)}`),
   playerCurrentState: (roomId) => request(`/rooms/${roomId}/current-state`),
+  boardGameRuntime: (roomId) => request(`/rooms/${roomId}/board-game-runtime`),
+  submitBoardGameCommand: (roomId, command) =>
+    request(`/rooms/${roomId}/board-game-runtime/commands`, {
+      method: "POST",
+      body: command,
+      idempotent: true
+    }),
   playableRuntime: (roomId) => request(`/rooms/${roomId}/playable-runtime`),
   playableContentUnit: (roomId, contentUnitId) =>
     request(`/rooms/${roomId}/playable-runtime/content/${encodeURIComponent(contentUnitId)}`),

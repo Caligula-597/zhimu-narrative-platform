@@ -131,7 +131,8 @@ async function loadAuthConfig() {
 const {
   pullRoomData,
   flushPendingRoomRefresh,
-  coalescedPartialRefresh
+  coalescedPartialRefresh,
+  refreshBoardGameRuntime
 } = createPlayerHomeController({
   api, state, render, isUuid, normalizeMiniGame, formatApiError,
   ensureDefaultVoiceRoom, refreshVoiceMessages, patchGameView,
@@ -194,6 +195,7 @@ const {
   state, render, getSessionToken, clearSession, connectRoomEvents,
   disconnectRoomEvents, connectPlatformEvents, disconnectPlatformEvents,
   refreshVoiceMessages, patchGameView, pullRoomData, coalescedPartialRefresh,
+  refreshBoardGameRuntime,
   setToast, patchGameHostBanner, normalizeMiniGame,
   getGamePatchCtx: () => gamePatchCtx, patchSyncChromeOrRender, bumpTabPulse,
   loadPlazaPosts, loadPlazaThread, loadFriends, loadDmConversations,
@@ -423,6 +425,9 @@ app.addEventListener("click", async (event) => {
     handleGuestSubmit, handleOAuth, handleLogout, resetVoiceOnLeave,
     disconnectRoomEvents, roomEventCtx, persistRoom, isUuid, syncPlatformStream,
     refreshHome, setToast
+  })) return;
+  if (await handleLazyPlayActionController("boardGame", {
+    action, button, state, api, render, setToast, formatApiError
   })) return;
   await handleLazyPlayActionController("content", {
     action, button, state, api, render, setBusy, setToast, formatApiError,

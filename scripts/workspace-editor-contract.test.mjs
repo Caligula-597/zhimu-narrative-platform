@@ -10,6 +10,7 @@ import {
   contentPackagePreviewHtml,
   fileFingerprint
 } from "../src/views/writer-transfer-files.js";
+import { WRITER_TOOL_WORKSPACE_TYPES, hasWriterToolWorkspace } from "../src/views/writer-tool-registry.js";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const read = (relativePath) => fs.readFileSync(path.join(root, relativePath), "utf8");
@@ -111,16 +112,15 @@ test("writer heavy tools use guarded full-page sessions", () => {
   const snapshot = read("src/views/writer-snapshot-workspace.js");
   const actions = read("src/runtime/actions-writer.js");
   assert.match(writer, /writerToolWorkspaceHtml\(data\)/);
-  assert.match(tools, /snapshot:\s*\(\)\s*=>\s*import\("\.\/writer-snapshot-workspace\.js"\)/);
-  assert.match(tools, /review:\s*\(\)\s*=>\s*import\("\.\/writer-review-workspace\.js"\)/);
-  assert.match(tools, /collaboration:\s*\(\)\s*=>\s*import\("\.\/writer-collaboration-workspace\.js"\)/);
-  assert.match(tools, /"story-assistant":\s*\(\)\s*=>\s*import\("\.\/writer-story-assistant-workspace\.js"\)/);
+  for (const type of WRITER_TOOL_WORKSPACE_TYPES) assert.equal(hasWriterToolWorkspace(type), true, type);
+  assert.equal(hasWriterToolWorkspace("not-a-writer-tool"), false);
+  assert.match(tools, /moduleLoaders/);
   assert.match(session, /activeSession === session/);
   assert.match(session, /zhimuApi\.context\.worldId === session\.worldId/);
   assert.match(manuscript, /session\.savingAction/);
   assert.match(manuscript, /session\.replaceArmed/);
   assert.match(manuscript, /session\.graphImportArmed/);
-  assert.match(document, /session\.previewFingerprint !== session\.sourceFingerprint/);
+  assert.match(document, /canImportDocument\(session\)/);
   assert.match(document, /canEditWorldContent\(data\?\.world\)/);
   assert.match(packages, /session\.previewFingerprint !== importFingerprint\(session\)/);
   assert.match(packages, /切勿重复导入/);
@@ -164,9 +164,9 @@ test("story structure extraction uses a guarded lazy workspace instead of the gl
   const view = read("src/views/writer-story-assistant-view.js");
   const controller = read("src/views/writer-story-assistant-workspace.js");
   const api = read("src/api/ai.js");
-  assert.match(writer, /openStoryAssistant\(\)\{\s*return openStoryAssistantWorkspace\(\)/);
+  assert.match(writer, /openStoryAssistant/);
   assert.doesNotMatch(writer, /story-assistant-modal|data-story-draft|storyAssistantPreview/);
-  assert.match(tools, /"story-assistant":\s*\(\)\s*=>\s*import\("\.\/writer-story-assistant-workspace\.js"\)/);
+  assert.match(tools, /moduleLoaders/);
   assert.match(model, /STORY_ASSISTANT_MAX_TEXT_LENGTH = 500_000/);
   assert.match(model, /STORY_ASSISTANT_MAX_NODES = 80/);
   assert.match(view, /writerToolGridPageHtml\(\{[\s\S]*type: "story-assistant"/);

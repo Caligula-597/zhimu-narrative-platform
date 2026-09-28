@@ -64,6 +64,7 @@ export function createPlayerHomeController({
     if (currentGeneration !== generation) return;
 
     state.home = mergeCoreWithPreviousSocial(homeCore, state.home);
+    await refreshBoardGameRuntime({ silent: true });
     const homeGame = homeCore.currentGame ?? homeCore.current_game
       ?? homeCore.roomRunningState?.current_game ?? homeCore.room_running_state?.current_game;
     if (homeGame !== undefined) state.currentGame = normalizeMiniGame(homeGame);
@@ -95,6 +96,27 @@ export function createPlayerHomeController({
     }
     render();
     void refreshSupplemental(currentGeneration, partial);
+  }
+
+  async function refreshBoardGameRuntime({ silent = false } = {}) {
+    const creationType = state.home?.room?.creationType || state.home?.room?.creation_type;
+    if (creationType !== "board_game" || typeof api.boardGameRuntime !== "function" || !state.roomId) {
+      state.boardGameRuntime = null;
+      state.boardGameRuntimeError = "";
+      return null;
+    }
+    try {
+      const result = await api.boardGameRuntime(state.roomId);
+      state.boardGameRuntime = result;
+      state.boardGameRuntimeError = "";
+      return result;
+    } catch (error) {
+      state.boardGameRuntimeError = error?.code === "BOARD_GAME_RUNTIME_MISSING"
+        ? "主持人尚未开启桌游运行态。"
+        : formatApiError(error, "桌游状态同步失败");
+      if (!silent) setToast(state.boardGameRuntimeError, render);
+      return null;
+    }
   }
 
   function patchContext() {
@@ -231,7 +253,7 @@ export function createPlayerHomeController({
     }
   });
 
-  return { pullRoomData, flushPendingRoomRefresh, coalescedPartialRefresh, loadPlayerHomeCoreCompat };
+  return { pullRoomData, flushPendingRoomRefresh, coalescedPartialRefresh, loadPlayerHomeCoreCompat, refreshBoardGameRuntime };
 }
 
 function mergeCoreWithPreviousSocial(homeCore, previousHome) {

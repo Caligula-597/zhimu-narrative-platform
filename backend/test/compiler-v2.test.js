@@ -30,7 +30,8 @@ describe("Compiler V2 state", () => {
     assert.ok(Array.isArray(state.sourceSections));
     assert.equal(state.stageSchema, null);
     assert.equal(state.stageSchemaProposal, null);
-    assert.equal(COMPILER_V2_STAGES.length, 8);
+    assert.equal(COMPILER_V2_STAGES.length, 9);
+    assert.ok(COMPILER_V2_STAGES.includes("canon_memory"));
   });
 });
 
@@ -743,5 +744,572 @@ describe("Compiler V2 StageSchema (user confirmation)", () => {
     assert.ok(shared);
     assert.deepEqual(shared.stages, ["玉满楼", "灵石"]);
     assert.equal(shared.suggestion, "SHARED_GAME_STAGES");
+  });
+});
+
+describe("Compiler V2 — CanonMemory Stage 2.5", () => {
+  it("audits source coverage and flags missing capsules", async () => {
+    const { auditSourceCoverage } = await import("../src/compiler-v2/canon-memory/coverage.js");
+    const sections = [
+      { id: "s1", originalText: "墓室苏醒" },
+      { id: "s2", originalText: "规则说明" }
+    ];
+    const capsules = [
+      {
+        id: "c1",
+        sourceSectionId: "s1",
+        type: "EVENT",
+        events: [{ title: "苏醒", summary: "墓室苏醒" }]
+      }
+    ];
+    const audit = auditSourceCoverage(sections, capsules);
+    assert.equal(audit.total, 2);
+    assert.equal(audit.covered, 1);
+    assert.deepEqual(audit.missing, ["s2"]);
+  });
+
+  it("merges GlobalOutline + SectionCapsules into CanonMemory events", async () => {
+    const { mergeCanonMemory } = await import("../src/compiler-v2/canon-memory/merge.js");
+    const canon = mergeCanonMemory({
+      globalOutline: {
+        characters: [{ name: "杨峥", aliases: [], roleHint: null }],
+        locations: ["墓室"],
+        majorIncidents: []
+      },
+      sectionCapsules: [
+        {
+          id: "cap1",
+          sourceSectionId: "src1",
+          type: "EVENT",
+          characters: ["杨峥"],
+          locations: ["墓室"],
+          events: [
+            {
+              title: "婴儿啼哭危机",
+              summary: "墓室出现婴儿啼哭，玩家晕倒",
+              importance: "DETAIL",
+              sourceSectionIds: ["src1"]
+            }
+          ],
+          mechanismHints: [],
+          importantObjects: []
+        }
+      ],
+      sourceCoverage: { total: 1, covered: 1, rate: 1, missing: [], suspicious: [] }
+    });
+    assert.equal(canon.events.length, 1);
+    assert.equal(canon.characters.length, 1);
+    assert.ok(canon.locations.includes("墓室"));
+    assert.equal(canon.eventCount, 1);
+  });
+
+  it("scores G01–G14 gold presence from Canon events and capsule text", async () => {
+    const { scoreCanonGoldPresence } = await import("../src/compiler-v2/canon-memory/gold-presence.js");
+    const { CHANGSHENG_HOST_TRUE_GOLD } = await import(
+      "../src/compiler-v2/benchmarks/changsheng-host-true-gold.js"
+    );
+    const canon = {
+      events: [
+        {
+          id: "e1",
+          title: "墓室苏醒失忆",
+          summary: "众人在墓室苏醒，回忆拍卖",
+          sourceSectionIds: ["s1"]
+        },
+        {
+          id: "e2",
+          title: "陶老板被吊灯砸死",
+          summary: "拍卖会命案",
+          sourceSectionIds: ["s2"]
+        }
+      ],
+      sectionCapsules: [
+        {
+          summary: "婴儿啼哭导致晕倒",
+          events: [],
+          importantObjects: [],
+          mechanismHints: []
+        },
+        {
+          summary: "杨峥揭下人皮面具",
+          events: [],
+          importantObjects: ["人皮面具"],
+          mechanismHints: []
+        }
+      ],
+      sourceCoverage: { rate: 1 }
+    };
+    const score = scoreCanonGoldPresence(canon, { gold: CHANGSHENG_HOST_TRUE_GOLD });
+    assert.ok(score.coverage.covered >= 4);
+    assert.ok(score.coverage.eventOnly.covered >= 2);
+  });
+
+  it("compileCanonMemoryFromState with mocked LLM achieves full coverage", async () => {
+    const { compileCanonMemoryFromState } = await import(
+      "../src/compiler-v2/canon-memory/compiler.js"
+    );
+    const state = createEmptyCompilerV2State({ worldId: "w_canon" });
+    state.documents = [{ id: "doc_host", kind: "HOST_BOOK", text: "主持" }];
+    state.sourceSections = [
+      {
+        id: "src1",
+        documentId: "doc_host",
+        headingPath: ["开场"],
+        originalText: "众人在墓室苏醒，失忆。"
+      },
+      {
+        id: "src2",
+        documentId: "doc_host",
+        headingPath: ["案发"],
+        originalText: "拍卖会陶老板被吊灯砸死。"
+      },
+      {
+        id: "src3",
+        documentId: "doc_host",
+        headingPath: ["规则"],
+        originalText: "搜证与投凶规则。"
+      }
+    ];
+
+    let call = 0;
+    const requestJson = async (_msgs, opts) => {
+      call += 1;
+      if (opts?.phase === "compiler-v2-canon-global-outline") {
+        return {
+          value: {
+            characters: [{ name: "陶老板" }],
+            locations: ["墓室"],
+            majorIncidents: [{ label: "陶老板之死", sourceSectionIds: ["src2"] }]
+          },
+          usage: { promptTokens: 100, completionTokens: 50, totalTokens: 150 }
+        };
+      }
+      const user = JSON.parse(_msgs[1].content);
+      const sid = user.sourceSection?.id;
+      const payloads = {
+        src1: {
+          type: "EVENT",
+          events: [{ title: "墓室苏醒", summary: "墓室苏醒失忆", importance: "CORE" }]
+        },
+        src2: {
+          type: "EVENT",
+          events: [{ title: "陶老板之死", summary: "吊灯砸死陶老板", importance: "CORE" }]
+        },
+        src3: { type: "RULE", events: [], summary: "搜证投凶规则" }
+      };
+      return {
+        value: payloads[sid] || { type: "NO_RELEVANT_CONTENT", events: [] },
+        usage: { promptTokens: 40, completionTokens: 20, totalTokens: 60 }
+      };
+    };
+
+    const result = await compileCanonMemoryFromState(state, {
+      requestJson,
+      useCache: false,
+      enableRecovery: false,
+      concurrency: 2
+    });
+
+    assert.equal(result.sourceCoverage.total, 3);
+    assert.equal(result.sourceCoverage.covered, 3);
+    assert.equal(result.sourceCoverage.missing.length, 0);
+    assert.ok(result.canonMemory.events.length >= 2);
+    assert.ok(call >= 4);
+  });
+
+  it("canon_memory stage skips LLM when not enabled", async () => {
+    const { stage25CanonMemoryCompiler } = await import(
+      "../src/compiler-v2/stages/stage25-canon-memory.js"
+    );
+    const state = createEmptyCompilerV2State({ worldId: "w6" });
+    state.documents = [{ id: "h1", kind: "HOST_BOOK", text: "x" }];
+    state.sourceSections = [
+      { id: "s1", documentId: "h1", originalText: "正文" }
+    ];
+    const next = await stage25CanonMemoryCompiler(state, { enableLlm: false });
+    assert.equal(next.canonMemory, null);
+    assert.ok(next.unresolved.some((u) => u.field === "canonMemory"));
+    assert.ok(next.job.completedStages.includes("canon_memory"));
+  });
+
+  it("Merge V2 promotes PROCESS/DECISION/BRANCH and lifts G03/G11/G12 knowledge", async () => {
+    const { mergeCanonMemory } = await import("../src/compiler-v2/canon-memory/merge.js");
+    const { scoreCanonGoldV2, GOLD_MATCH } = await import(
+      "../src/compiler-v2/canon-memory/gold-scorer-v2.js"
+    );
+    const { CHANGSHENG_HOST_TRUE_GOLD_V2 } = await import(
+      "../src/compiler-v2/benchmarks/changsheng-host-true-gold-v2.js"
+    );
+
+    const sections = [
+      {
+        id: "src_40446d1c175846be",
+        originalText: "组织玩家进行第一轮取证，发放公共线索，搜证期间可私聊。投凶环节见后文。"
+      },
+      {
+        id: "src_49fe822720af4a96",
+        originalText:
+          "此处为抉择的规则：现在长生水制造的阵法已经启动。存在多处死门和对应的生门。"
+      },
+      {
+        id: "src_1882149f984f477e",
+        originalText: "4、结局部分：根据玩家不同的抉择结果，来触发不同的结局。结局会根据分支触发旁白。"
+      }
+    ];
+    const capsules = [
+      {
+        id: "c1",
+        sourceSectionId: "src_40446d1c175846be",
+        type: "RULE",
+        summary: "第一轮取证与公共线索",
+        events: [],
+        characters: [],
+        locations: [],
+        importantObjects: [],
+        mechanismHints: []
+      },
+      {
+        id: "c2",
+        sourceSectionId: "src_49fe822720af4a96",
+        type: "RULE",
+        summary: "生门死门抉择规则",
+        events: [],
+        characters: [],
+        locations: [],
+        importantObjects: [],
+        mechanismHints: []
+      },
+      {
+        id: "c3",
+        sourceSectionId: "src_1882149f984f477e",
+        type: "META",
+        summary: "结局分支框架",
+        events: [],
+        characters: [],
+        locations: [],
+        importantObjects: [],
+        mechanismHints: []
+      }
+    ];
+
+    const canon = mergeCanonMemory({
+      globalOutline: { majorIncidents: [], truthSections: [] },
+      sectionCapsules: capsules,
+      sourceSections: sections,
+      sourceCoverage: { total: 3, covered: 3, rate: 1 }
+    });
+
+    assert.equal(canon.schemaVersion, 3);
+    assert.ok(canon.nodes.some((n) => n.type === "PROCESS"));
+    assert.ok(canon.nodes.some((n) => n.type === "DECISION"));
+    assert.ok(canon.nodes.some((n) => n.type === "BRANCH"));
+
+    const subset = CHANGSHENG_HOST_TRUE_GOLD_V2.filter((g) =>
+      ["G03", "G11", "G12"].includes(g.id)
+    );
+    const scored = scoreCanonGoldV2(canon, { gold: subset });
+    assert.equal(scored.counts.HIT, 3);
+    assert.equal(scored.counts.MISS, 0);
+    for (const d of scored.detail) {
+      assert.equal(d.status, GOLD_MATCH.HIT);
+    }
+  });
+
+  it("Promotion V1.2 maps STATIC_FACT/CLUE_REVEAL/META and keeps BRANCH strict", async () => {
+    const { classifyCapsuleEvent } = await import(
+      "../src/compiler-v2/canon-memory/needs-split.js"
+    );
+    const { promoteCapsuleToNodes } = await import("../src/compiler-v2/canon-memory/promote.js");
+    const { detectEventBoundary } = await import(
+      "../src/compiler-v2/canon-memory/event-boundary-detector.js"
+    );
+
+    const fact = classifyCapsuleEvent({
+      title: "两人素颜几乎无法分辨",
+      summary: "姐姐与妹妹素颜时几乎无法分辨，旁人常认错。"
+    });
+    assert.equal(fact.type, "FACT");
+
+    const reveal = classifyCapsuleEvent({
+      title: "尸体身份确认",
+      summary: "根据线索确认两具尸体身份为某对夫妇。"
+    });
+    assert.equal(reveal.type, "REVEAL");
+
+    const meta = classifyCapsuleEvent({
+      title: "剧本简介，说明类型、人数、时长及核心机制特点",
+      summary: "剧本简介，说明类型、人数、时长及核心机制特点。"
+    });
+    assert.equal(meta.skip, true);
+
+    const outro = classifyCapsuleEvent({
+      title: "结局彩蛋段，宣告游戏结束并预告续作，无实际剧情推进",
+      summary: "宣告游戏结束并预告续作，无实际剧情推进。"
+    });
+    assert.equal(outro.skip, true);
+
+    const none = promoteCapsuleToNodes({
+      id: "c_meta",
+      sourceSectionId: "src_meta",
+      type: "META",
+      summary: "开本前主持人介绍规则和背景，包含游戏机制提示和故事背景卡朗读。",
+      events: [],
+      importantObjects: [],
+      mechanismHints: []
+    });
+    assert.equal(none.length, 0);
+
+    const multi = detectEventBoundary({
+      title: "误下毒与仇杀藏尸",
+      summary:
+        "误将毒药下给目标却被他人误饮；随后追人得知身世，一气之下致死并拖至草堆藏尸。"
+    });
+    assert.equal(multi.needsSplit, true);
+
+    const keepMurder = detectEventBoundary({
+      title: "夜潜杀人并嫁祸",
+      summary: "潜入府中迷晕看守，杀害目标后布置嫁祸现场。"
+    });
+    assert.equal(keepMurder.needsSplit, false);
+  });
+
+  it("EventBoundaryDetector V1 splits multi-center campaigns, keeps continuous scenes", async () => {
+    const { detectEventBoundary } = await import(
+      "../src/compiler-v2/canon-memory/event-boundary-detector.js"
+    );
+
+    const multiPhase = detectEventBoundary({
+      title: "张九孚接受任务调查明长陵",
+      summary:
+        "张九孚接受任务后南下调查，发现张家灭门案，拜访顾家，遇见傅月生。"
+    });
+    assert.equal(multiPhase.needsSplit, true);
+    assert.ok(
+      multiPhase.signals.some((s) =>
+        ["GOAL_ACTION_CENTER", "ACTOR_CENTER", "OUTCOME_CENTER", "TEMPORAL_CENTER"].includes(s.kind)
+      )
+    );
+
+    const campaign = detectEventBoundary({
+      title: "傅月生复仇明朝",
+      summary:
+        "傅月生百年布局，协助清军，利用吴三桂，最终明朝覆灭。"
+    });
+    assert.equal(campaign.needsSplit, true);
+
+    const parallel = detectEventBoundary({
+      title: "17:00–17:10 白初布置现场，陆卿原假扮杨峥",
+      summary: "白初布置现场；同时陆卿原假扮杨峥进入大厅。"
+    });
+    assert.equal(parallel.needsSplit, true);
+
+    const continuous = detectEventBoundary({
+      title: "17:30-17:40 顾怀辰潜入，陶梦芸呼救",
+      summary: "顾怀辰潜入陶老板房间找长生水，被陶梦芸发现，陶梦芸呼救逃跑，顾怀辰追至二楼。"
+    });
+    assert.equal(continuous.needsSplit, false);
+  });
+
+  it("Promotion V3 flags OVER_MERGED and avoids generic reveal titles", async () => {
+    const { detectNeedsSplit, classifyCapsuleEvent } = await import(
+      "../src/compiler-v2/canon-memory/needs-split.js"
+    );
+    const { promoteCapsuleToNodes } = await import("../src/compiler-v2/canon-memory/promote.js");
+
+    const over = detectNeedsSplit({
+      title: "朱棣继续寻找长生水，死于途中",
+      summary: "朱棣命人寻找，五年后朱棣死，未得长生水。"
+    });
+    assert.equal(over.needsSplit, true);
+
+    const cleanEv = detectNeedsSplit({
+      title: "17:50 杨峥探查陶老板房间",
+      summary: "17:50，杨峥到陶老板房间查探长生水，但被陶老板拒绝鉴定。"
+    });
+    assert.equal(cleanEv.needsSplit, false);
+
+    const notEvent = classifyCapsuleEvent({
+      title: "揭示凶手",
+      summary: "明确杀死陶老板的凶手是白初。"
+    });
+    assert.equal(notEvent.type, "REVEAL");
+
+    const nodes = promoteCapsuleToNodes(
+      {
+        id: "c",
+        sourceSectionId: "src_a73f",
+        type: "BACKGROUND",
+        summary: "本段叙述黎小曼离开、白初与陆卿原相救相恋、张九孚调查明长陵。",
+        events: [],
+        importantObjects: [],
+        mechanismHints: []
+      },
+      { id: "src_a73f", originalText: "傅月生与人皮面具出现在远史叙述中，但本段不是揭示现场。" }
+    );
+    assert.equal(nodes.length, 0);
+  });
+
+  it("Splitter V1 proposes parallel/time splits without inventing facts", async () => {
+    const { proposeEventSplit, applySplitProposal, validateSplitProposal } = await import(
+      "../src/compiler-v2/canon-memory/splitter-v1.js"
+    );
+
+    const parallel = proposeEventSplit(
+      {
+        id: "e_par",
+        title: "顾怀辰威胁假陶老板",
+        summary:
+          "18:25，白初出房间时被顾怀辰误认为陶老板并威胁，黎小曼出现使白初逃脱。同时张九孚与陶梦芸在大厅碰面。",
+        sourceSectionIds: ["src_x"],
+        needsSplit: true
+      },
+      { force: true }
+    );
+    assert.ok(parallel.proposal);
+    assert.equal(parallel.proposal.reason, "PARALLEL_EVENT");
+    assert.equal(parallel.proposal.children.length, 2);
+    assert.ok(parallel.validation.ok);
+
+    const time = proposeEventSplit(
+      {
+        id: "e_time",
+        title: "朱棣继续寻找长生水，死于途中",
+        summary: "朱棣心有不甘，命陶文庆继续寻找，五年后朱棣死，未得长生水。",
+        sourceSectionIds: ["src_y"],
+        needsSplit: true
+      },
+      { force: true }
+    );
+    assert.ok(time.proposal);
+    assert.equal(time.proposal.reason, "TIME_SHIFT");
+
+    const continuous = proposeEventSplit(
+      {
+        id: "e_ok",
+        title: "17:30-17:40 顾怀辰潜入，陶梦芸呼救",
+        summary: "顾怀辰潜入陶老板房间找长生水，被陶梦芸发现，陶梦芸呼救逃跑，顾怀辰追至二楼。",
+        sourceSectionIds: ["src_z"],
+        needsSplit: false
+      },
+      { force: false }
+    );
+    assert.equal(continuous.shouldSplit, false);
+
+    assert.throws(() =>
+      applySplitProposal(
+        {
+          id: "e_par",
+          title: "顾怀辰威胁假陶老板",
+          summary:
+            "18:25，白初出房间时被顾怀辰误认为陶老板并威胁，黎小曼出现使白初逃脱。同时张九孚与陶梦芸在大厅碰面。",
+          sourceSectionIds: ["src_x"]
+        },
+        parallel.proposal,
+        { confirmed: false }
+      )
+    );
+    const applied2 = applySplitProposal(
+      {
+        id: "e_par",
+        title: "顾怀辰威胁假陶老板",
+        summary:
+          "18:25，白初出房间时被顾怀辰误认为陶老板并威胁，黎小曼出现使白初逃脱。同时张九孚与陶梦芸在大厅碰面。",
+        sourceSectionIds: ["src_x"]
+      },
+      parallel.proposal,
+      { confirmed: true }
+    );
+    assert.equal(applied2.ok, true);
+    assert.equal(applied2.parent.status, "SPLIT_PARENT");
+    assert.equal(applied2.children.length, 2);
+    assert.ok(validateSplitProposal(applied2.parent, parallel.proposal).ok !== false);
+  });
+
+  it("Gold Scorer V2 rejects keyword hit without source overlap (FALSE_MATCH)", async () => {
+    const { matchGoldEventV2, GOLD_MATCH, scoreCanonGoldV2 } = await import(
+      "../src/compiler-v2/canon-memory/gold-scorer-v2.js"
+    );
+    const { CHANGSHENG_HOST_TRUE_GOLD_V2 } = await import(
+      "../src/compiler-v2/benchmarks/changsheng-host-true-gold-v2.js"
+    );
+
+    const g01 = CHANGSHENG_HOST_TRUE_GOLD_V2.find((g) => g.id === "G01");
+    const falseHit = matchGoldEventV2(g01, [
+      {
+        id: "e_wrong",
+        title: "仪式进行与顾怀辰的牺牲",
+        summary: "顾怀辰站在死门，墓室红光中苏醒般的仪式",
+        sourceSectionIds: ["src_007b7327adda42db"]
+      }
+    ]);
+    assert.equal(falseHit.status, GOLD_MATCH.FALSE_MATCH);
+
+    const trueHit = matchGoldEventV2(g01, [
+      {
+        id: "e_ok",
+        title: "众人苏醒于墓室",
+        summary: "晕倒在地的你们缓缓睁开眼，眼前是一座墓室，什么也想不起来，失忆了",
+        sourceSectionIds: ["src_8242083ac35d4313"]
+      }
+    ]);
+    assert.equal(trueHit.status, GOLD_MATCH.HIT);
+
+    const g13 = CHANGSHENG_HOST_TRUE_GOLD_V2.find((g) => g.id === "G13");
+    const g08 = CHANGSHENG_HOST_TRUE_GOLD_V2.find((g) => g.id === "G08");
+    const endingFalse = matchGoldEventV2(g13, [
+      {
+        id: "e_end",
+        title: "顾怀辰生陶梦芸死的结局",
+        summary: "日月山庄阵法中的结局分支",
+        sourceSectionIds: ["src_da06485bea164206"]
+      }
+    ]);
+    assert.equal(endingFalse.status, GOLD_MATCH.FALSE_MATCH);
+
+    const g06 = CHANGSHENG_HOST_TRUE_GOLD_V2.find((g) => g.id === "G06");
+    const partial = matchGoldEventV2(g06, [
+      {
+        id: "e_partial",
+        title: "张九孚询问晕倒前的声音",
+        summary: "张九孚问起晕倒前听到的声音",
+        sourceSectionIds: ["src_51dd9e5b815f4f91"]
+      }
+    ]);
+    assert.equal(partial.status, GOLD_MATCH.PARTIAL);
+
+    const g08Joint = matchGoldEventV2(g08, [
+      {
+        id: "e_fu",
+        title: "白初揭露顾怀辰身份",
+        summary: "白初称呼顾怀辰为傅月生",
+        sourceSectionIds: ["src_4d32c81f06b34f75"]
+      },
+      {
+        id: "e_mask",
+        title: "杨峥揭下人皮面具",
+        summary: "杨峥缓缓揭下了自己的人皮面具",
+        sourceSectionIds: ["src_4d32c81f06b34f75"]
+      }
+    ]);
+    assert.equal(g08Joint.status, GOLD_MATCH.HIT);
+    assert.ok(
+      g08Joint.reason === "JOINT_NODES_CLAIMS_AND_SOURCE" ||
+        g08Joint.reason === "NODE_CLAIMS_AND_SOURCE" ||
+        g08Joint.reason === "JOINT_CLAIMS_ACROSS_IN_ZONE_EVENTS"
+    );
+    assert.ok(g08Joint.supportingEventIds.length >= 2);
+
+    const scored = scoreCanonGoldV2({
+      events: [
+        {
+          id: "e_ok",
+          title: "众人苏醒于墓室",
+          summary: "睁开眼看见墓室，什么也想不起来，失忆",
+          sourceSectionIds: ["src_8242083ac35d4313"]
+        }
+      ]
+    });
+    assert.equal(scored.counts.HIT, 1);
+    assert.ok(scored.counts.MISS + scored.counts.PARTIAL + scored.counts.FALSE_MATCH === 13);
   });
 });

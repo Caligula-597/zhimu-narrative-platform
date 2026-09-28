@@ -47,6 +47,13 @@ import {
   openStoryAssistantWorkspace,
   warmWriterToolModules,
   openOpeningPackageWorkspace,
+  openMainlineHierarchyWorkspace,
+  selectMainlineStage,
+  saveMainlineDraft,
+  lockMainlineStage,
+  unlockMainlineStage,
+  backMainlineStage,
+  closeMainlineHierarchyWorkspace,
   nextOpeningPackageStep,
   backOpeningPackageStep,
   skipOpeningPackageStep,
@@ -57,9 +64,6 @@ import {
   editOpeningPackageStageSchema,
   saveOpeningPackageStageSchemaManual,
   cancelOpeningPackageStageSchemaManual,
-  openWorldEngineWorkspace,
-  seedWorldEngineWorkspace,
-  searchWorldEngineWorkspace,
   openMisidentificationWorkspace,
   closeMisidentificationWorkspace,
   openRelationshipArcWorkspace,
@@ -86,10 +90,6 @@ import {
   closeNpcScriptWorkspace,
   openLocationStateWorkspace,
   closeLocationStateWorkspace,
-  commitWorldEngineWorkspace,
-  lowerWorldEngineWorkspace,
-  searchWorldEngineEpistemicWorkspace,
-  renderWorldEngineWorkspace,
   openWorldLogsWorkspace,
   parseDocumentWorkspace,
   previousExportWorkspaceStep,
@@ -308,7 +308,7 @@ export function writer(){
  const isReviewer=membershipRole==="reviewer";
  const statusName={draft:"草稿",testing:"测试中",published:"已发布"};
  const checks=worldStore.get().cloudCreatorChecks||[];
- const quickActions=canEdit?`<div class="row writer-hero-actions"><button class="primary-btn" data-action="world-engine">世界引擎</button><button class="primary-btn" data-action="story-manuscript">完整内容</button><button class="primary-btn" data-action="opening-package">上传开本包</button><button class="secondary-btn" data-action="story-assistant">结构提取</button><button class="secondary-btn" data-action="creator-import">导入备份</button><button class="secondary-btn" data-action="creator-export">导出备份</button><button class="secondary-btn" data-action="publish-impact-preview">发布影响预览</button><button class="secondary-btn" data-action="creator-check">运行发布检查</button><button class="secondary-btn" data-action="creator-snapshot">＋ 保存创作版本</button></div>`:isReviewer?`<div class="row writer-hero-actions"><button class="primary-btn" data-action="creator-review">打开协作者审稿</button></div>`:`<div class="empty-state">当前身份不开放内容预览。</div>`;
+ const quickActions=canEdit?`<div class="row writer-hero-actions"><button class="primary-btn" data-action="mainline-hierarchy">开始新主线层级</button><button class="secondary-btn" data-action="opening-package">导入已有剧本</button><button class="secondary-btn" data-action="story-manuscript">完整内容</button><button class="secondary-btn" data-action="creator-import">导入备份</button><button class="secondary-btn" data-action="creator-export">导出备份</button><button class="secondary-btn" data-action="publish-impact-preview">发布影响预览</button><button class="secondary-btn" data-action="creator-check">运行发布检查</button><button class="secondary-btn" data-action="creator-snapshot">＋ 保存创作版本</button></div>`:isReviewer?`<div class="row writer-hero-actions"><button class="primary-btn" data-action="creator-review">打开协作者审稿</button></div>`:`<div class="empty-state">当前身份不开放内容预览。</div>`;
  const archiveMap=archiveMapFromList(worldStore.get().cloudRoleArchives||[]);
  const selectedRoleId=roles.some((role)=>role.id===uiStore.get().writerSelectedRoleId)?uiStore.get().writerSelectedRoleId:roles[0]?.id||null;
  const selectedRole=roles.find((role)=>role.id===selectedRoleId)||null;
@@ -320,7 +320,7 @@ export function writer(){
  const accessBanner=isReviewer?`<section class="demo-strip catalog-experience-strip"><div><span class="cloud-pill">受邀审稿 · 只读</span><strong style="margin-top:7px">你可以查看私有草稿并提交审稿意见</strong><p>正文、角色档案和版本内容不可由此身份修改或导出；审稿意见仅作者、编辑和受邀审稿人可见。</p></div></section>`:catalogExperienceBanner(data.world);
  const toolboxItems=[membershipRole==="owner"?creatorTool("协作权限","邀请成员并分配编辑、审稿、主持或玩家权限","creator-collaboration","管理成员 →"):"",["owner","editor","reviewer"].includes(membershipRole)?creatorTool("协作者审稿","批注、修改建议、版本对比与影响范围检查","creator-review","打开审稿台 →"):"",["owner","editor","host"].includes(membershipRole)?creatorTool("运行日志","筛选阅读、调查、规则触发与主持操作记录","creator-logs","查看日志 →"):"",canEdit?creatorTool("文档解析","解析 TXT、Markdown、DOCX、PDF 或飞书稿件，预览后结构化写入","creator-document-parser","解析文档 →"):""].join("");
  const heroKicker="MURDER MYSTERY CREATOR";
- const heroIntro=isReviewer?`逐项查看${escapeHtml(terms.roleShort)}档案、私人${escapeHtml(terms.act)}和版本差异，并把问题记录为可追踪的审稿意见。`:`从完整剧情、${escapeHtml(terms.roleShort)}档案或私人${escapeHtml(terms.act)}任一处开始，系统不会强迫固定顺序。`;
+ const heroIntro=isReviewer?`逐项查看${escapeHtml(terms.roleShort)}档案、私人${escapeHtml(terms.act)}和版本差异，并把问题记录为可追踪的审稿意见。`:`以“地点场合 → 场景地点 → 公开故事 → 完整故事 → 后期对抗”为主线推进；已有稿件请走导入，正文与角色细编作为后续编辑层。`;
  return `${accessBanner}<section class="writer-hero"><div><p class="section-kicker">${heroKicker}</p><h2>${escapeHtml(terms.work)}${isReviewer?"审稿":"创作"}中心</h2><p>${heroIntro}</p></div>${collapsibleCard({ id: "writer:quick-actions", title: "快捷操作", subtitle: canEdit?"完整内容、导入导出、检查与版本":"只读预览与审稿", body: quickActions, defaultOpen: true, className: "collapse-panel-bare", nested: true })}</section>
  ${isReviewer?"":contentLayerMapHtml({ open: false })}
  <section class="writer-grid">
@@ -547,10 +547,6 @@ export function openStoryAssistant() {
   return open();
 }
 
-export function openWorldEngine(){
- return openWorldEngineWorkspace();
-}
-
 export function openMisidentification(){
  return openMisidentificationWorkspace();
 }
@@ -651,5 +647,5 @@ export function createCreatorSnapshot(){return openSnapshotWorkspace()}
 export async function restoreCreatorSnapshot(versionId){try{await zhimuApi.restoreContentVersion(versionId);await loadCloudData();showToast("已恢复该版本的正文与发布状态")}catch(error){showError(error)}}
 export async function deleteCreatorSnapshot(versionId){try{await zhimuApi.deleteContentVersion(versionId);await loadCloudData();showToast("创作版本记录已删除")}catch(error){showError(error)}}
 
-export const writerViewApi = { writer, loadWriterRoleArchives, selectWriterRole, createCreatorSnapshot, restoreCreatorSnapshot, deleteCreatorSnapshot, creatorTool, openCreatorSection, closeWriterSectionEditor, saveWriterSectionEditor, deleteWriterSectionEditor, discardWriterSectionDraft, replaceWriterSectionText, formatWriterSectionText, switchWriterSection, bindWriterSectionEditor, bindWriterMetadataEditor, closeWriterMetadataEditor, saveWriterMetadataEditor, deleteWriterRoleEditor, bindWriterToolWorkspace, closeWriterToolWorkspace, warmWriterToolModules, saveManuscriptWorkspace, syncManuscriptFromGraphWorkspace, syncManuscriptToGraphWorkspace, analyzeStoryAssistantWorkspace, importStoryAssistantWorkspace, parseDocumentWorkspace, importDocumentWorkspace, openDocumentWorkspace, nextOpeningPackageStep, backOpeningPackageStep, skipOpeningPackageStep, previewOpeningPackageWorkspace, commitOpeningPackageWorkspace, confirmOpeningPackageStageSchema, rejectOpeningPackageStageSchema, editOpeningPackageStageSchema, saveOpeningPackageStageSchemaManual, cancelOpeningPackageStageSchemaManual, openOpeningPackage, nextExportWorkspaceStep, previousExportWorkspaceStep, runExportWorkspace, previewImportWorkspace, runImportWorkspace, saveSnapshotWorkspace, setReviewWorkspaceMode, setReviewFilter, refreshReviewList, createReviewFromWorkspace, replyReviewFromWorkspace, updateReviewStatusFromWorkspace, compareReviewVersions, refreshCollaborationWorkspace, inviteCollaboratorFromWorkspace, saveCollaboratorRoleFromWorkspace, removeCollaboratorFromWorkspace, resendCollaboratorInviteFromWorkspace, revokeCollaboratorInviteFromWorkspace, copyCollaborationInviteLink, dismissCollaborationInviteLink, setWorldLogFilter, applyWorldLogFilters, clearWorldLogFilters, refreshWorldLogs, loadMoreWorldLogs, openCreatorRole, openCreatorChapter, deleteCreatorChapter, runCreatorChecks, openStoryManuscript, openCollaboration, openCreatorReview, openWorldLogs, openDocumentParser, openDocumentWorkspace, openStoryAssistant, openWorldEngine, seedWorldEngineWorkspace, searchWorldEngineWorkspace, commitWorldEngineWorkspace, lowerWorldEngineWorkspace, searchWorldEngineEpistemicWorkspace, renderWorldEngineWorkspace, openPublishImpactPreview, openCreatorExport, exportCreatorPackage, openCreatorImport, importCreatorPackage, openObjectLifecycle, closeObjectLifecycle, openTimeline, closeTimeline, openHistoryCausal, closeHistoryCausal, openRuntimeStateMachine, closeRuntimeStateMachine };
+export const writerViewApi = { writer, loadWriterRoleArchives, selectWriterRole, createCreatorSnapshot, restoreCreatorSnapshot, deleteCreatorSnapshot, creatorTool, openCreatorSection, closeWriterSectionEditor, saveWriterSectionEditor, deleteWriterSectionEditor, discardWriterSectionDraft, replaceWriterSectionText, formatWriterSectionText, switchWriterSection, bindWriterSectionEditor, bindWriterMetadataEditor, closeWriterMetadataEditor, saveWriterMetadataEditor, deleteWriterRoleEditor, bindWriterToolWorkspace, closeWriterToolWorkspace, warmWriterToolModules, saveManuscriptWorkspace, syncManuscriptFromGraphWorkspace, syncManuscriptToGraphWorkspace, analyzeStoryAssistantWorkspace, importStoryAssistantWorkspace, parseDocumentWorkspace, importDocumentWorkspace, openDocumentWorkspace, nextOpeningPackageStep, backOpeningPackageStep, skipOpeningPackageStep, previewOpeningPackageWorkspace, commitOpeningPackageWorkspace, confirmOpeningPackageStageSchema, rejectOpeningPackageStageSchema, editOpeningPackageStageSchema, saveOpeningPackageStageSchemaManual, cancelOpeningPackageStageSchemaManual, openOpeningPackage, openMainlineHierarchy: openMainlineHierarchyWorkspace, selectMainlineStage, saveMainlineDraft, lockMainlineStage, unlockMainlineStage, backMainlineStage, closeMainlineHierarchyWorkspace, nextExportWorkspaceStep, previousExportWorkspaceStep, runExportWorkspace, previewImportWorkspace, runImportWorkspace, saveSnapshotWorkspace, setReviewWorkspaceMode, setReviewFilter, refreshReviewList, createReviewFromWorkspace, replyReviewFromWorkspace, updateReviewStatusFromWorkspace, compareReviewVersions, refreshCollaborationWorkspace, inviteCollaboratorFromWorkspace, saveCollaboratorRoleFromWorkspace, removeCollaboratorFromWorkspace, resendCollaboratorInviteFromWorkspace, revokeCollaboratorInviteFromWorkspace, copyCollaborationInviteLink, dismissCollaborationInviteLink, setWorldLogFilter, applyWorldLogFilters, clearWorldLogFilters, refreshWorldLogs, loadMoreWorldLogs, openCreatorRole, openCreatorChapter, deleteCreatorChapter, runCreatorChecks, openStoryManuscript, openCollaboration, openCreatorReview, openWorldLogs, openDocumentParser, openDocumentWorkspace, openStoryAssistant, openPublishImpactPreview, openCreatorExport, exportCreatorPackage, openCreatorImport, importCreatorPackage, openObjectLifecycle, closeObjectLifecycle, openTimeline, closeTimeline, openHistoryCausal, closeHistoryCausal, openRuntimeStateMachine, closeRuntimeStateMachine };
 registerView("writer", writerViewApi);

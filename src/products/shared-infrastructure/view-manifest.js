@@ -1,4 +1,5 @@
 export const SHARED_INFRASTRUCTURE_VIEW_MODULES = Object.freeze({
+  productHub: [() => import("../../views/product-hub.js")],
   rooms: [() => import("../../views/rooms.js")],
   account: [
     () => import("../../views/account.css"),

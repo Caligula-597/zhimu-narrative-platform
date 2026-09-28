@@ -20,7 +20,7 @@ README → PRODUCT_BRAND_MAINTENANCE_HUB（产品与品牌）
        → GENERATED_PROJECT_STATUS.json（易漂移数字）
 ```
 
-## 当前事实与工程入口（23）
+## 当前事实与工程入口（24）
 
 可用于当前开发、验收和发布判断；变化时必须同步代码证据。
 
@@ -36,6 +36,7 @@ README → PRODUCT_BRAND_MAINTENANCE_HUB（产品与品牌）
 | [领域边界与迁移门禁](./DOMAIN_BOUNDARIES_ZH.md) | `docs/DOMAIN_BOUNDARIES_ZH.md` |
 | [前端说明](./FRONTEND_README_ZH.md) | `docs/FRONTEND_README_ZH.md` |
 | [织幕 · 主持端（host）工程说明](./HOST_PORTAL_ZH.md) | `docs/HOST_PORTAL_ZH.md` |
+| [新主线生成层级：地点场合与场景地点展开](./MAINLINE_HIERARCHY_ZH.md) | `docs/MAINLINE_HIERARCHY_ZH.md` |
 | [非功能性审计与上线门禁](./NONFUNCTIONAL_AUDIT_ZH.md) | `docs/NONFUNCTIONAL_AUDIT_ZH.md` |
 | [平台地图](./PLATFORM_MAP_ZH.md) | `docs/PLATFORM_MAP_ZH.md` |
 | [织幕 · 玩家端（play）工程说明](./PLAY_PORTAL_ZH.md) | `docs/PLAY_PORTAL_ZH.md` |
@@ -50,32 +51,66 @@ README → PRODUCT_BRAND_MAINTENANCE_HUB（产品与品牌）
 | [安全与测试收口](../SECURITY_AND_TESTING.md) | `SECURITY_AND_TESTING.md` |
 | [织幕 · 官网（营销站）](../site/README.md) | `site/README.md` |
 
-## 产品、流程与用户指南（42）
+## 产品、流程与用户指南（98）
 
 描述产品意图、工作流和用户操作；部分页面同时包含待实现设计。
 
 | 文档 | 路径 |
 |---|---|
-| [槐荫路旧邮电所人物登场册](../创意提案-织幕/重生成样稿-槐荫路最后一封信/玩家层/00_人物登场册.md) | `创意提案-织幕/重生成样稿-槐荫路最后一封信/玩家层/00_人物登场册.md` |
-| [江雁回](../创意提案-织幕/重生成样稿-槐荫路最后一封信/玩家层/01_江雁回.md) | `创意提案-织幕/重生成样稿-槐荫路最后一封信/玩家层/01_江雁回.md` |
-| [罗启川](../创意提案-织幕/重生成样稿-槐荫路最后一封信/玩家层/02_罗启川.md) | `创意提案-织幕/重生成样稿-槐荫路最后一封信/玩家层/02_罗启川.md` |
-| [陈停云](../创意提案-织幕/重生成样稿-槐荫路最后一封信/玩家层/03_陈停云.md) | `创意提案-织幕/重生成样稿-槐荫路最后一封信/玩家层/03_陈停云.md` |
-| [袁素](../创意提案-织幕/重生成样稿-槐荫路最后一封信/玩家层/04_袁素.md) | `创意提案-织幕/重生成样稿-槐荫路最后一封信/玩家层/04_袁素.md` |
-| [沈砚秋](../创意提案-织幕/重生成样稿-槐荫路最后一封信/玩家层/05_沈砚秋.md) | `创意提案-织幕/重生成样稿-槐荫路最后一封信/玩家层/05_沈砚秋.md` |
-| [唐竞](../创意提案-织幕/重生成样稿-槐荫路最后一封信/玩家层/06_唐竞.md) | `创意提案-织幕/重生成样稿-槐荫路最后一封信/玩家层/06_唐竞.md` |
-| [一致性与越界复核](../创意提案-织幕/重生成样稿-槐荫路最后一封信/质检/05_一致性与越界复核.md) | `创意提案-织幕/重生成样稿-槐荫路最后一封信/质检/05_一致性与越界复核.md` |
-| [主持人手册](../创意提案-织幕/重生成样稿-槐荫路最后一封信/主持层/03_主持人手册.md) | `创意提案-织幕/重生成样稿-槐荫路最后一封信/主持层/03_主持人手册.md` |
-| [线索与道具全文](../创意提案-织幕/重生成样稿-槐荫路最后一封信/主持层/04_线索与道具全文.md) | `创意提案-织幕/重生成样稿-槐荫路最后一封信/主持层/04_线索与道具全文.md` |
-| [创作合同（作者层，禁止向玩家发放）](../创意提案-织幕/重生成样稿-槐荫路最后一封信/作者层/00_创作合同.md) | `创意提案-织幕/重生成样稿-槐荫路最后一封信/作者层/00_创作合同.md` |
-| [唯一真相与双时间线（作者层，禁止向玩家发放）](../创意提案-织幕/重生成样稿-槐荫路最后一封信/作者层/01_唯一真相与双时间线.md) | `创意提案-织幕/重生成样稿-槐荫路最后一封信/作者层/01_唯一真相与双时间线.md` |
-| [关系图与知识矩阵（作者层，禁止向玩家发放）](../创意提案-织幕/重生成样稿-槐荫路最后一封信/作者层/02_关系图与知识矩阵.md) | `创意提案-织幕/重生成样稿-槐荫路最后一封信/作者层/02_关系图与知识矩阵.md` |
-| [人物行为与叙事差异（作者层，禁止向玩家发放）](../创意提案-织幕/重生成样稿-槐荫路最后一封信/作者层/03_人物行为与叙事差异.md) | `创意提案-织幕/重生成样稿-槐荫路最后一封信/作者层/03_人物行为与叙事差异.md` |
-| [《槐荫路最后一封信》](../创意提案-织幕/重生成样稿-槐荫路最后一封信/README.md) | `创意提案-织幕/重生成样稿-槐荫路最后一封信/README.md` |
+| [成品导入 Compiler V2 实现计划（定稿）](../.trae/documents/成品导入CompilerV2实现计划.md) | `.trae/documents/成品导入CompilerV2实现计划.md` |
+| [《青楼》四层生产母本：全内容对应版（含扩展机制模块）](../青楼_四层生产母本_全内容对应版_含扩展模块.md) | `青楼_四层生产母本_全内容对应版_含扩展模块.md` |
+| [《长生叹》四层生产母本：全内容对应版](../长生叹_四层生产母本_全内容对应版.md) | `长生叹_四层生产母本_全内容对应版.md` |
+| [织幕｜持续性场合纯语义库 V1.0](../织幕_持续性场合纯语义库_V1.0.md) | `织幕_持续性场合纯语义库_V1.0.md` |
+| [织幕｜纯机制库 V1.0](../织幕_纯机制库_V1.0.md) | `织幕_纯机制库_V1.0.md` |
+| [织幕｜机制层当前候选池](../织幕_机制层当前候选池_V1.0.md) | `织幕_机制层当前候选池_V1.0.md` |
+| [织幕：成品设计库 V2.0](../织幕_机制成品设计库_V2.0.md) | `织幕_机制成品设计库_V2.0.md` |
+| [织幕：机制成品设计库 V2.1｜剧情原生机制补全版](../织幕_机制成品设计库_V2.1_剧情原生机制补全版.md) | `织幕_机制成品设计库_V2.1_剧情原生机制补全版.md` |
+| [织幕：机制母型库 V1.0](../织幕_机制母型库_V1.0.md) | `织幕_机制母型库_V1.0.md` |
+| [织幕｜剧本内容 V1.0](../织幕_剧本内容_V1.0_CAST_PUBLIC_FRAME.md) | `织幕_剧本内容_V1.0_CAST_PUBLIC_FRAME.md` |
+| [织幕｜剧本内容 V2｜八人人生初稿](../织幕_剧本内容_V2_八人人生初稿.md) | `织幕_剧本内容_V2_八人人生初稿.md` |
+| [织幕｜聚齐理由纯语义库 V1.0](../织幕_聚齐理由纯语义库_V1.0.md) | `织幕_聚齐理由纯语义库_V1.0.md` |
+| [织幕｜新主线生成层级：地点场合与场景地点展开](../织幕_新主线生成层级_地点场合与场景地点展开_第一版.md) | `织幕_新主线生成层级_地点场合与场景地点展开_第一版.md` |
+| [一百款成熟商业桌游机制拆解库](../桌游_百作机制拆解总表.md) | `桌游_百作机制拆解总表.md` |
+| [成熟商业桌游机制拆解报告](../桌游_成熟商业作品机制拆解.md) | `桌游_成熟商业作品机制拆解.md` |
+| [商业桌游核心机制抽取与线上调配验证](../桌游_核心机制抽取_商业参考_01.md) | `桌游_核心机制抽取_商业参考_01.md` |
+| [桌游机制并列坐标系与平台补齐路线](../桌游_机制并列坐标系与平台补齐路线.md) | `桌游_机制并列坐标系与平台补齐路线.md` |
+| [桌游机制覆盖与复刻可行性审计 01](../桌游_机制覆盖与复刻可行性审计_01.md) | `桌游_机制覆盖与复刻可行性审计_01.md` |
+| [桌游卡牌与角色平衡深度审计](../桌游_卡牌与角色平衡深度审计.md) | `桌游_卡牌与角色平衡深度审计.md` |
+| [商业机制基准局：AI 全局复跑审计报告](../桌游_商业机制基准局_AI复跑审计报告_01.md) | `桌游_商业机制基准局_AI复跑审计报告_01.md` |
+| [桌游审计与横向设计方案](../桌游_审计与横向设计计划.md) | `桌游_审计与横向设计计划.md` |
+| [商业桌游机制拆解 02：从公共供给到强非对称](../桌游_新增商业桌游机制拆解_02.md) | `桌游_新增商业桌游机制拆解_02.md` |
+| [逐款深度分析 01：Wingspan 的卡牌与引擎平衡](../桌游_逐款深度分析_01_Wingspan.md) | `桌游_逐款深度分析_01_Wingspan.md` |
+| [逐款深度分析 02：7 Wonders 的轮抽、卡牌与文明板平衡](../桌游_逐款深度分析_02_7_Wonders.md) | `桌游_逐款深度分析_02_7_Wonders.md` |
+| [《最后灯塔：潮痕纪元》完整设计档案](../桌游_最后灯塔_完整设计.md) | `桌游_最后灯塔_完整设计.md` |
+| [桌游 AI 全局对局测试与改进报告](../桌游_AI全局对局测试与改进报告_01.md) | `桌游_AI全局对局测试与改进报告_01.md` |
+| [Dominion 2E 本地研究复刻说明书](../桌游_Dominion_本地研究复刻说明书.md) | `桌游_Dominion_本地研究复刻说明书.md` |
+| [CANON DESCENDANT CONTRACT PREFLIGHT V1](../canon-descendant-contract-preflight-v1.md) | `canon-descendant-contract-preflight-v1.md` |
+| [Boundary Dev Sample V1](../captures/compiler-v2-trial/changsheng-boundary-dev-v1/README.md) | `captures/compiler-v2-trial/changsheng-boundary-dev-v1/README.md` |
+| [Boundary → Splitter Funnel (长生叹 full canon)](../captures/compiler-v2-trial/changsheng-boundary-funnel-v1/REPORT.md) | `captures/compiler-v2-trial/changsheng-boundary-funnel-v1/REPORT.md` |
+| [Sealed Boundary Eval — event-boundary-v1.1.0](../captures/compiler-v2-trial/changsheng-boundary-sealed-eval/REPORT.md) | `captures/compiler-v2-trial/changsheng-boundary-sealed-eval/REPORT.md` |
+| [Canon Gold Scorer V2 — 离线重评（无 API）](../captures/compiler-v2-trial/changsheng-canon-gold-v2-rescore/REPORT.md) | `captures/compiler-v2-trial/changsheng-canon-gold-v2-rescore/REPORT.md` |
+| [Held-out Precision Sample (Promotion V3)](../captures/compiler-v2-trial/changsheng-canon-heldout-v3/README.md) | `captures/compiler-v2-trial/changsheng-canon-heldout-v3/README.md` |
+| [Compiler V2 Stage 2.5：长生叹 CanonMemory V1](../captures/compiler-v2-trial/changsheng-canon-memory-v1/REPORT.md) | `captures/compiler-v2-trial/changsheng-canon-memory-v1/REPORT.md` |
+| [Canon Merge V2 — 离线重 merge（0 API）](../captures/compiler-v2-trial/changsheng-canon-merge-v2/REPORT.md) | `captures/compiler-v2-trial/changsheng-canon-merge-v2/REPORT.md` |
+| [Canon Promotion V3 — 离线 remesh + Regression（0 API）](../captures/compiler-v2-trial/changsheng-canon-promotion-v3/REPORT.md) | `captures/compiler-v2-trial/changsheng-canon-promotion-v3/REPORT.md` |
+| [Splitter V1 Bench（0 API, proposal-only）](../captures/compiler-v2-trial/changsheng-canon-splitter-v1/REPORT.md) | `captures/compiler-v2-trial/changsheng-canon-splitter-v1/REPORT.md` |
+| [Held-out V3 Score (SEALED)](../captures/compiler-v2-trial/changsheng-heldout-v3-score/REPORT.md) | `captures/compiler-v2-trial/changsheng-heldout-v3-score/REPORT.md` |
+| [《长生叹》Stage 2.5 — freeze snapshot](../captures/compiler-v2-trial/changsheng-stage25-freeze/STATUS.md) | `captures/compiler-v2-trial/changsheng-stage25-freeze/STATUS.md` |
+| [Stage 3A Pass 1 架构探针（长生叹 × 3 sections）](../captures/compiler-v2-trial/changsheng-stage3a-arch-probe/REPORT.md) | `captures/compiler-v2-trial/changsheng-stage3a-arch-probe/REPORT.md` |
+| [Compiler V2 Stage 3A：长生叹 Host TRUE Timeline](../captures/compiler-v2-trial/changsheng-stage3a-host-true/REPORT.md) | `captures/compiler-v2-trial/changsheng-stage3a-host-true/REPORT.md` |
+| [Compiler V2 Stage 3A V2：长生叹 Host TRUE Timeline (Stateful)](../captures/compiler-v2-trial/changsheng-stage3a-v2-stateful/REPORT.md) | `captures/compiler-v2-trial/changsheng-stage3a-v2-stateful/REPORT.md` |
+| [Compiler V2 试跑：changsheng-tan-lixiaoman](../captures/compiler-v2-trial/changsheng-tan-lixiaoman/REPORT.md) | `captures/compiler-v2-trial/changsheng-tan-lixiaoman/REPORT.md` |
+| [Compiler V2 试跑：changsheng-tan-slots](../captures/compiler-v2-trial/changsheng-tan-slots/REPORT.md) | `captures/compiler-v2-trial/changsheng-tan-slots/REPORT.md` |
+| [青楼合订本 Boundary Resolver（零 API）](../captures/compiler-v2-trial/qinglou-boundary-split/REPORT.md) | `captures/compiler-v2-trial/qinglou-boundary-split/REPORT.md` |
+| [《青楼》Host-only Canon V1（跨剧本 · 冻结原样）](../captures/compiler-v2-trial/qinglou-host-canon-v1/REPORT.md) | `captures/compiler-v2-trial/qinglou-host-canon-v1/REPORT.md` |
+| [《青楼》Host-only Cross-Script Score](../captures/compiler-v2-trial/qinglou-host-canon-v1/score/REPORT.md) | `captures/compiler-v2-trial/qinglou-host-canon-v1/score/REPORT.md` |
+| [Qinglou Host Canon — V1.2 remesh (diagnostic)](../captures/compiler-v2-trial/qinglou-host-canon-v12-remesh/REPORT.md) | `captures/compiler-v2-trial/qinglou-host-canon-v12-remesh/REPORT.md` |
+| [Compiler V2 试跑：qinglou-host-slot-only](../captures/compiler-v2-trial/qinglou-host-slot-only/REPORT.md) | `captures/compiler-v2-trial/qinglou-host-slot-only/REPORT.md` |
+| [Compiler V2 试跑：qinglou](../captures/compiler-v2-trial/qinglou/REPORT.md) | `captures/compiler-v2-trial/qinglou/REPORT.md` |
+| [P7 Playable Fixture Compile Report](../captures/playable-project-p70/P7_PLAYABLE_FIXTURE_COMPILE_REPORT.md) | `captures/playable-project-p70/P7_PLAYABLE_FIXTURE_COMPILE_REPORT.md` |
 | [织幕创作者机制设计与多审查工作台 V1](./创作者机制设计与多审查工作台-V1.md) | `docs/创作者机制设计与多审查工作台-V1.md` |
 | [机制运行包与主持端联动实施基线 V1](./机制运行包与主持端联动实施基线-V1.md) | `docs/机制运行包与主持端联动实施基线-V1.md` |
-| [AI 剧本杀生成架构 V4.2（可执行规格 · 开发中）](./AI_GENERATION_ARCHITECTURE_V4_2_ZH.md) | `docs/AI_GENERATION_ARCHITECTURE_V4_2_ZH.md` |
-| [AI 剧本杀生成架构 V6.0（历史冻结）](./AI_GENERATION_ARCHITECTURE_V6_ZH.md) | `docs/AI_GENERATION_ARCHITECTURE_V6_ZH.md` |
-| [AI 剧本杀生成架构 V9.0（冻结）](./AI_GENERATION_ARCHITECTURE_V9_ZH.md) | `docs/AI_GENERATION_ARCHITECTURE_V9_ZH.md` |
+| [平台功能 vs 《青楼》需求映射分析文档](./analysis/平台功能vs青楼需求映射.md) | `docs/analysis/平台功能vs青楼需求映射.md` |
 | [商业作者工作流与稿件安全](./COMMERCIAL_CREATOR_WORKFLOW_ZH.md) | `docs/COMMERCIAL_CREATOR_WORKFLOW_ZH.md` |
 | [内容平台路由边界](./CONTENT_PLATFORM_ROUTE_BOUNDARIES_ZH.md) | `docs/CONTENT_PLATFORM_ROUTE_BOUNDARIES_ZH.md` |
 | [织幕 · 创作者步骤指引](./CREATOR_GUIDE.md) | `docs/CREATOR_GUIDE.md` |
@@ -86,10 +121,18 @@ README → PRODUCT_BRAND_MAINTENANCE_HUB（产品与品牌）
 | [织幕 · 身份与权限底座](./IDENTITY_AND_PERMISSIONS.md) | `docs/IDENTITY_AND_PERMISSIONS.md` |
 | [上线优先级](./LAUNCH_PRIORITIES_ZH.md) | `docs/LAUNCH_PRIORITIES_ZH.md` |
 | [MVP 跑局验收清单](./MVP_RUN_ACCEPTANCE_ZH.md) | `docs/MVP_RUN_ACCEPTANCE_ZH.md` |
+| [P7.1 Content Runtime V1 — 验收报告](./P7_CONTENT_RUNTIME_V1_REPORT.md) | `docs/P7_CONTENT_RUNTIME_V1_REPORT.md` |
+| [P7.3 M09 Vote + Ending Settlement V1 — 验收报告](./P7_M09_ENDING_SETTLEMENT_V1_REPORT.md) | `docs/P7_M09_ENDING_SETTLEMENT_V1_REPORT.md` |
+| [P7.2 Playable Mechanism Runtime Bridge V1 — 验收报告](./P7_MECHANISM_RUNTIME_BRIDGE_V1_REPORT.md) | `docs/P7_MECHANISM_RUNTIME_BRIDGE_V1_REPORT.md` |
+| [P7 Playable Fixture Compile Report](./P7_PLAYABLE_FIXTURE_COMPILE_REPORT.md) | `docs/P7_PLAYABLE_FIXTURE_COMPILE_REPORT.md` |
+| [P7.4 Product Playtest Round 1 — 执行单](./P7_PRODUCT_PLAYTEST_ROUND1_ZH.md) | `docs/P7_PRODUCT_PLAYTEST_ROUND1_ZH.md` |
+| [P7.2.5 Runtime Code Health Gate — 报告](./P7_RUNTIME_CODE_HEALTH_V1_REPORT.md) | `docs/P7_RUNTIME_CODE_HEALTH_V1_REPORT.md` |
+| [P7 Runtime Dependency Boundary（P7.2.5 冻结 · P7.3 遵守）](./P7_RUNTIME_DEPENDENCY_ZH.md) | `docs/P7_RUNTIME_DEPENDENCY_ZH.md` |
 | [Player 首页性能验收](./performance/PLAYER_HOME_ACCEPTANCE_ZH.md) | `docs/performance/PLAYER_HOME_ACCEPTANCE_ZH.md` |
 | [性能问题文档](./performance/README.md) | `docs/performance/README.md` |
 | [SSE 真实容量验收](./performance/SSE_CAPACITY_ACCEPTANCE_ZH.md) | `docs/performance/SSE_CAPACITY_ACCEPTANCE_ZH.md` |
 | [实体卡（Physical Token）后端 API](./PHYSICAL_TOKENS_API.md) | `docs/PHYSICAL_TOKENS_API.md` |
+| [P7 Playable Vertical Slice V1 — 范围冻结](./PLAYABLE_VERTICAL_SLICE_P7_ZH.md) | `docs/PLAYABLE_VERTICAL_SLICE_P7_ZH.md` |
 | [生产级 SaaS 评估](./PRODUCTION_SAAS_ASSESSMENT_ZH.md) | `docs/PRODUCTION_SAAS_ASSESSMENT_ZH.md` |
 | [Segment 契约](./SEGMENT_CONTRACT_ZH.md) | `docs/SEGMENT_CONTRACT_ZH.md` |
 | [三产品线工具边界与桌游原型契约](./THREE_PRODUCT_TOOL_BOUNDARIES_ZH.md) | `docs/THREE_PRODUCT_TOOL_BOUNDARIES_ZH.md` |
@@ -97,6 +140,20 @@ README → PRODUCT_BRAND_MAINTENANCE_HUB（产品与品牌）
 | [织幕 · 错误提示与排查手册](./USER_ERROR_GUIDE.md) | `docs/USER_ERROR_GUIDE.md` |
 | [世界、示例与测试桩](./WORLDS_AND_FIXTURES_ZH.md) | `docs/WORLDS_AND_FIXTURES_ZH.md` |
 | [结构化案例包（可导入体验）](../fixtures/cases/README.md) | `fixtures/cases/README.md` |
+| [IMMUTABLE STAGE PROTOCOL V1 — Test Report](../immutable-stage-protocol-test-report.md) | `immutable-stage-protocol-test-report.md` |
+| [INTRA-STAGE FACT LOCK V1 — Test Report](../intra-stage-fact-lock-test-report.md) | `intra-stage-fact-lock-test-report.md` |
+| [INTRA-STAGE FACT LOCK V1](../intra-stage-fact-lock-v1.md) | `intra-stage-fact-lock-v1.md` |
+| [M07 记忆/身份 Content Pack V1](../shared/M07_CONTENT_COVERAGE.md) | `shared/M07_CONTENT_COVERAGE.md` |
+| [M08 阵营 Content Pack V1](../shared/M08_CONTENT_COVERAGE.md) | `shared/M08_CONTENT_COVERAGE.md` |
+| [拍卖夜：残卷｜主持人手册](../tests/fixtures/negative/rolebook-regressions/host-manual.md) | `tests/fixtures/negative/rolebook-regressions/host-manual.md` |
+| [拍卖夜：残卷｜顾沉舟角色本](../tests/fixtures/negative/rolebook-regressions/rolebook-A-顾沉舟.md) | `tests/fixtures/negative/rolebook-regressions/rolebook-A-顾沉舟.md` |
+| [拍卖夜：残卷｜林砚秋角色本](../tests/fixtures/negative/rolebook-regressions/rolebook-B-林砚秋.md) | `tests/fixtures/negative/rolebook-regressions/rolebook-B-林砚秋.md` |
+| [拍卖夜：残卷｜沈知微角色本](../tests/fixtures/negative/rolebook-regressions/rolebook-C-沈知微.md) | `tests/fixtures/negative/rolebook-regressions/rolebook-C-沈知微.md` |
+| [拍卖夜：残卷｜霍清和角色本](../tests/fixtures/negative/rolebook-regressions/rolebook-D-霍清和.md) | `tests/fixtures/negative/rolebook-regressions/rolebook-D-霍清和.md` |
+| [拍卖夜：残卷｜陆闻笙角色本](../tests/fixtures/negative/rolebook-regressions/rolebook-E-陆闻笙.md) | `tests/fixtures/negative/rolebook-regressions/rolebook-E-陆闻笙.md` |
+| [拍卖夜：残卷｜秦昭角色本](../tests/fixtures/negative/rolebook-regressions/rolebook-F-秦昭.md) | `tests/fixtures/negative/rolebook-regressions/rolebook-F-秦昭.md` |
+| [拍卖夜：残卷｜祁衡角色本](../tests/fixtures/negative/rolebook-regressions/rolebook-G-祁衡.md) | `tests/fixtures/negative/rolebook-regressions/rolebook-G-祁衡.md` |
+| [V4.2 内容验收对照表](../v42-runtime/captures/content-acceptance/CONTENT_REVIEW.md) | `v42-runtime/captures/content-acceptance/CONTENT_REVIEW.md` |
 | [@zhimu/v42-runtime (V4.2)](../v42-runtime/README.md) | `v42-runtime/README.md` |
 
 ## 方案、路线图与决策记录（6）
@@ -195,13 +252,22 @@ README → PRODUCT_BRAND_MAINTENANCE_HUB（产品与品牌）
 | [织幕隐私政策（草案）](./legal/PRIVACY_ZH.md) | `docs/legal/PRIVACY_ZH.md` |
 | [织幕用户服务协议（草案）](./legal/USER_TERMS_ZH.md) | `docs/legal/USER_TERMS_ZH.md` |
 
-## 组件与目录说明（2）
+## 组件与目录说明（11）
 
 面向具体子应用、部署兼容层或示例目录。
 
 | 文档 | 路径 |
 |---|---|
 | [勿将本目录作为 Railway Root Directory](../backend/RAILWAY_README.md) | `backend/RAILWAY_README.md` |
+| [Canon Compiler — research status (V1.2)](../backend/src/compiler-v2/benchmarks/CANON_V12_STATUS.md) | `backend/src/compiler-v2/benchmarks/CANON_V12_STATUS.md` |
+| [Stage 2.5 / Canon Compiler V1 — FROZEN (长生叹)](../backend/src/compiler-v2/benchmarks/CHANGSHENG_STAGE25_FROZEN.md) | `backend/src/compiler-v2/benchmarks/CHANGSHENG_STAGE25_FROZEN.md` |
+| [Boundary Detector DEV V1](../backend/src/compiler-v2/benchmarks/changsheng-boundary-dev-v1/README.md) | `backend/src/compiler-v2/benchmarks/changsheng-boundary-dev-v1/README.md` |
+| [Held-out V3 — FROZEN (do not tune against)](../backend/src/compiler-v2/benchmarks/changsheng-heldout-v3-frozen/README.md) | `backend/src/compiler-v2/benchmarks/changsheng-heldout-v3-frozen/README.md` |
+| [青楼跨剧本诊断（V1.2 输入 · 禁止用本集磨指标）](../backend/src/compiler-v2/benchmarks/qinglou-host-cross-script-v1/DIAGNOSIS.md) | `backend/src/compiler-v2/benchmarks/qinglou-host-cross-script-v1/DIAGNOSIS.md` |
+| [青楼 Host-only Cross-Script V1](../backend/src/compiler-v2/benchmarks/qinglou-host-cross-script-v1/README.md) | `backend/src/compiler-v2/benchmarks/qinglou-host-cross-script-v1/README.md` |
+| [《青楼》Host-only Cross-Script Score](../backend/src/compiler-v2/benchmarks/qinglou-host-cross-script-v1/SCORECARD.md) | `backend/src/compiler-v2/benchmarks/qinglou-host-cross-script-v1/SCORECARD.md` |
+| [第三剧本 Smoke 协议（V1.2 后 · True Recall）](../backend/src/compiler-v2/benchmarks/THIRD_SCRIPT_SMOKE_PROTOCOL.md) | `backend/src/compiler-v2/benchmarks/THIRD_SCRIPT_SMOKE_PROTOCOL.md` |
+| [Compiler V2 — Design invariants (frozen ingress)](../backend/src/compiler-v2/DESIGN.md) | `backend/src/compiler-v2/DESIGN.md` |
 | [E2E / 浏览器测试](../e2e/README.md) | `e2e/README.md` |
 
 ## 维护责任

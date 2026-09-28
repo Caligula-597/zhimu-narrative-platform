@@ -1,23 +1,23 @@
 {
-  "generatedAt": "2026-08-26T05:14:29.422Z",
+  "generatedAt": "2026-09-28T09:27:25.612Z",
   "source": {
-    "gitCommit": "73843c3",
+    "gitCommit": "5771e52",
     "node": "v24.13.0",
     "note": "Counts describe source declarations and files, not a claim that every test was executed."
   },
   "backend": {
     "tests": {
-      "declarations": 1212,
-      "files": 288
+      "declarations": 1171,
+      "files": 285
     },
-    "migrations": 115,
-    "latestMigration": "115_case_play_extensions",
+    "migrations": 133,
+    "latestMigration": "133_mainline_hierarchy_drafts",
     "routes": {
-      "modules": 80,
+      "modules": 96,
       "directDatabaseCalls": 5
     },
     "schemas": {
-      "domainFiles": 43
+      "domainFiles": 60
     }
   },
   "frontend": {
@@ -25,20 +25,20 @@
     "entryLines": {
       "creator": 43,
       "host": 141,
-      "player": 445
+      "player": 450
     },
     "tests": {
       "sharedAndTooling": {
-        "declarations": 432,
-        "files": 90
+        "declarations": 635,
+        "files": 116
       },
       "host": {
         "declarations": 83,
         "files": 21
       },
       "player": {
-        "declarations": 116,
-        "files": 35
+        "declarations": 118,
+        "files": 36
       }
     }
   },
@@ -47,19 +47,22 @@
     "note": "Validated by npm run check:world-writes; run the command for pass/fail evidence."
   },
   "documentation": {
-    "trackedFiles": 135,
+    "trackedFiles": 201,
     "byArea": {
-      "创意提案-织幕": 15,
+      ".trae": 1,
       "软著材料": 4,
-      "backend": 3,
-      "docs": 102,
+      "backend": 12,
+      "captures": 23,
+      "docs": 109,
       "e2e": 1,
       "fixtures": 1,
       "host": 1,
       "play": 1,
-      "root": 5,
+      "root": 35,
+      "shared": 2,
       "site": 1,
-      "v42-runtime": 1
+      "tests": 8,
+      "v42-runtime": 2
     }
   }
 }

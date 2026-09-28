@@ -4,14 +4,14 @@ $port = 4180
 $lines = netstat -ano | Select-String ":$port\s"
 foreach ($line in $lines) {
   if ($line -match "\s(\d+)\s*$") {
-    $pid = [int]$Matches[1]
-    if ($pid -gt 0) {
-      Write-Host "Stopping PID $pid on port $port"
-      taskkill /PID $pid /F | Out-Null
+    $processId = [int]$Matches[1]
+    if ($processId -gt 0) {
+      Write-Host "Stopping PID $processId on port $port"
+      taskkill /PID $processId /F | Out-Null
     }
   }
 }
-Set-Location $PSScriptRoot
+Set-Location (Split-Path -Parent $PSScriptRoot)
 if (-not (Test-Path ".env")) {
   Write-Host "Warning: backend/.env missing. Copy .env.example to .env first."
 }

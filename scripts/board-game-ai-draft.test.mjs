@@ -46,6 +46,6 @@ test("AI preview blocks non-runnable engine references", () => {
 });
 
 test("request capability scan identifies features the V1 demo cannot execute", () => {
-  const unsupported = detectedUnsupportedBoardGameRequirements("加入手牌管理、公开竞价和掷骰移动");
-  assert.deepEqual(unsupported.map((item) => item.capabilityId), ["action.bid", "action.draw", "random.seeded"]);
+  const unsupported = detectedUnsupportedBoardGameRequirements("加入手牌管理、公开竞价和设备级隐藏信息");
+  assert.deepEqual(unsupported.map((item) => item.capabilityId), ["action.reveal"]);
 });

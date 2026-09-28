@@ -1,5 +1,5 @@
 /**
- * Murder-mystery author assistance: structure extract, playtest, V6 world engine.
+ * Murder-mystery author assistance: structure extract and playtest.
  */
 import {
   deepseekRequest,
@@ -40,57 +40,3 @@ export function runAiPlaytest(payload, worldId = demoContext.worldId) {
   });
 }
 
-export function getWorldEngine(worldId = demoContext.worldId) {
-  return request(`/worlds/${worldId}/world-engine`, { userId: demoContext.hostUserId });
-}
-
-export function seedWorldEngine(body, { worldId = demoContext.worldId } = {}) {
-  return worldWrite(`/worlds/${worldId}/world-engine/seed`, {
-    worldId,
-    method: "PUT",
-    body
-  });
-}
-
-export function searchWorldEngineEvents({ worldId = demoContext.worldId } = {}) {
-  return deepseekRequest(`/worlds/${worldId}/world-engine/search`, {
-    userId: demoContext.hostUserId,
-    method: "POST",
-    body: {},
-    timeoutMs: 180_000
-  });
-}
-
-export function commitWorldEngineEvents(body, { worldId = demoContext.worldId } = {}) {
-  return worldWrite(`/worlds/${worldId}/world-engine/commit`, {
-    worldId,
-    method: "POST",
-    body
-  });
-}
-
-export function lowerWorldEngineType(actionType, { worldId = demoContext.worldId } = {}) {
-  return worldWrite(`/worlds/${worldId}/world-engine/lower-type`, {
-    worldId,
-    method: "POST",
-    body: { actionType }
-  });
-}
-
-export function searchWorldEngineEpistemic({ worldId = demoContext.worldId } = {}) {
-  return deepseekRequest(`/worlds/${worldId}/world-engine/epistemic/search`, {
-    userId: demoContext.hostUserId,
-    method: "POST",
-    body: {},
-    timeoutMs: 180_000
-  });
-}
-
-export function renderWorldEngineScript(body, { worldId = demoContext.worldId } = {}) {
-  return deepseekRequest(`/worlds/${worldId}/world-engine/render`, {
-    userId: demoContext.hostUserId,
-    method: "POST",
-    body,
-    timeoutMs: 180_000
-  });
-}

@@ -158,6 +158,10 @@ export const ROOM_EVENT_SCHEMAS = Object.freeze({
   "room.game_started": schema(["currentGame"], { currentGame: object }),
   "room.game_completed": schema(["currentGame"], { currentGame: object, forced: boolean, correct: boolean }),
   "room.game_updated": schema(["currentGame", "correct"], { currentGame: object, correct: boolean }),
+  "room.board_game_state_updated": schema(["revision", "snapshot"], {
+    revision: number,
+    snapshot: object
+  }),
   "room.checkpoint_restored": schema(["checkpointId", "restoreId", "sourceRoomId", "crossRoom"], {
     checkpointId: id,
     restoreId: id,

@@ -39,6 +39,9 @@ export const state = {
   platform: null,
   roomId: storedRoomId,
   home: null,
+  boardGameRuntime: null,
+  boardGameRuntimeError: "",
+  boardGameCommandBusy: false,
   playableRuntime: null,
   exploration: null,
   discoverySessions: [],
@@ -191,23 +194,73 @@ export function clearGameSession() {
   localStorage.removeItem(GAME_SECTION_KEY);
 }
 
+function clearRoomScopedState() {
+  Object.assign(state, {
+    home: null,
+    boardGameRuntime: null,
+    boardGameRuntimeError: "",
+    boardGameCommandBusy: false,
+    playableRuntime: null,
+    exploration: null,
+    discoverySessions: [],
+    discoverySyncError: "",
+    paceClock: null,
+    sessionConclusion: null,
+    itemActions: [],
+    relationships: [],
+    tab: "home",
+    sectionId: "",
+    clueId: "",
+    bookletId: "",
+    selectedRoleId: "",
+    recapLatest: null,
+    recapDetail: null,
+    recapLibrarySelected: null,
+    recapLoading: false,
+    satisfactionSubmitted: false,
+    recapError: "",
+    recapId: "",
+    myTimeline: null,
+    myTimelineLoading: false,
+    myTimelineError: "",
+    notesDraft: "",
+    notesDraftTitle: "",
+    modal: null,
+    modalDraft: "",
+    clueShareRoles: [],
+    clueTransferTargetRoleSlotId: "",
+    voiceRoomId: "",
+    voiceRoomName: "",
+    voiceMessages: [],
+    voiceLiveStatus: "idle",
+    voiceMicEnabled: false,
+    voiceParticipants: [],
+    voicePlaybackBlocked: false,
+    voiceLiveError: "",
+    voiceChatDraft: "",
+    voiceInviteUserIds: [],
+    explorationError: "",
+    hostNudge: null,
+    currentGame: null,
+    roomEventsConnected: false,
+    roomEventsStatus: "idle",
+    roomSyncDiagnostics: createSyncDiagnostics(),
+    pendingRoomRefresh: false,
+    tabPulse: { home: false, sections: false, tasks: false, suspicions: false, social: false, explore: false, clues: false, inventory: false, voice: false, timeline: false, notes: false },
+    tabPulseCount: { home: 0, sections: 0, tasks: 0, suspicions: 0, social: 0, explore: 0, clues: 0, inventory: 0, voice: 0, timeline: 0, notes: 0 }
+  });
+  clearGameSession();
+}
+
 export function persistRoom(roomId, isUuid) {
   const next = roomId && isUuid(roomId) ? roomId : "";
   if (next !== state.roomId) {
-    state.discoverySessions = [];
-    state.discoverySyncError = "";
-    state.paceClock = null;
-    state.sessionConclusion = null;
-    state.itemActions = [];
-    state.relationships = [];
-    state.recapLibrarySelected = null;
-    state.recapDetail = null;
+    clearRoomScopedState();
   }
   state.roomId = next;
   if (next) localStorage.setItem(ROOM_KEY, next);
   else {
     localStorage.removeItem(ROOM_KEY);
-    clearGameSession();
   }
 }
 

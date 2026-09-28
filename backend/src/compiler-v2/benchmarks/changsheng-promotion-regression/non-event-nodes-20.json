@@ -1,0 +1,266 @@
+{
+  "instructions": "VALID_NODE|DUPLICATE|WRONG_TYPE|WRONG_FACT|OVER_MERGED|SHOULD_BE_EVENT",
+  "sample": [
+    {
+      "sampleIndex": 1,
+      "nodeId": "cnode_efadfce391bc4fab",
+      "type": "PROCESS",
+      "title": "阵法启动（抉择规则生效）",
+      "summary": "本段为第三幕结局分支，根据黎小曼与张九孚的生死情况，呈现三种不同结局剧情。",
+      "sourceSectionIds": [
+        "src_0603081a519e4763"
+      ],
+      "promotedFrom": "capsule_heuristic",
+      "label": "WRONG_TYPE",
+      "notes": "按生死条件产生多结局，应为 BRANCH。"
+    },
+    {
+      "sampleIndex": 2,
+      "nodeId": "cnode_607ec8d1ceaa460e",
+      "type": "REVEAL",
+      "title": "身份/面具揭示",
+      "summary": "本段讲述长生水的起源、傅月生夺水及妹妹之死，导致其饮长生水失踪，以及朱棣和陶文庆后续追寻的往事。",
+      "sourceSectionIds": [
+        "src_a2e087bd063a4194"
+      ],
+      "promotedFrom": "capsule_heuristic",
+      "label": "WRONG_FACT",
+      "notes": "标题称身份/面具揭示，摘要实际是长生水与朱棣追寻史。"
+    },
+    {
+      "sampleIndex": 3,
+      "nodeId": "cnode_a51f7bb688e74e6e",
+      "type": "BRANCH",
+      "title": "结局分支框架",
+      "summary": "本段为流程规则：若顾怀辰死而陶梦芸生，则主持人发放对应小剧场给两位玩家。",
+      "sourceSectionIds": [
+        "src_85b44cbded88402a"
+      ],
+      "promotedFrom": "capsule_heuristic",
+      "label": "VALID_NODE",
+      "notes": "明确的结局触发条件，BRANCH 正确。"
+    },
+    {
+      "sampleIndex": 4,
+      "nodeId": "cnode_5495273cffdd44c6",
+      "type": "BRANCH",
+      "title": "结局分支框架",
+      "summary": "本段为第三幕结局分支，描述顾怀辰与陶梦芸在墓室进行仪式，根据生死不同产生三种结局，并交代后续发展。",
+      "sourceSectionIds": [
+        "src_007b7327adda42db"
+      ],
+      "promotedFrom": "capsule_heuristic",
+      "label": "VALID_NODE",
+      "notes": "三种结局由生死组合触发，BRANCH 正确。"
+    },
+    {
+      "sampleIndex": 5,
+      "nodeId": "cnode_7f93984cbcf44ffb",
+      "type": "REVEAL",
+      "title": "身份/面具揭示",
+      "summary": "众人从幻境中回神，杨峥揭下人皮面具，白初揭露顾怀辰为傅月生，同时墓室红光增强，众人乏力。",
+      "sourceSectionIds": [
+        "src_4d32c81f06b34f75"
+      ],
+      "promotedFrom": "capsule_heuristic",
+      "label": "VALID_NODE",
+      "notes": "揭面具与身份揭露，REVEAL 正确。"
+    },
+    {
+      "sampleIndex": 6,
+      "nodeId": "cnode_652af577e7a740ea",
+      "type": "REVEAL",
+      "title": "长生水真相揭示",
+      "summary": "本段为剧情推进，众人因长生水秘密陷入危机，遭遇婴儿啼哭声和机关弩箭，顾怀辰救陶梦芸后众人晕倒，并包含主持人操作指引。",
+      "sourceSectionIds": [
+        "src_51dd9e5b815f4f91"
+      ],
+      "promotedFrom": "capsule_heuristic",
+      "label": "SHOULD_BE_EVENT",
+      "notes": "主体是啼哭、弩箭、救人、晕倒等剧情事件链。"
+    },
+    {
+      "sampleIndex": 7,
+      "nodeId": "cnode_a743950a8e374ee4",
+      "type": "PROCESS",
+      "title": "搜证与投凶推进",
+      "summary": "第一幕流程规则：自我介绍后发放公共线索和搜身线索，进行取证、公聊、回忆线索分享，最后投凶指认杀死陶老板的凶手；包含怀表和人皮面具的特殊机制说明。",
+      "sourceSectionIds": [
+        "src_40446d1c175846be"
+      ],
+      "promotedFrom": "capsule_heuristic",
+      "label": "VALID_NODE",
+      "notes": "搜证、公聊、线索分享、投凶是 PROCESS。"
+    },
+    {
+      "sampleIndex": 8,
+      "nodeId": "cnode_1557262afe8740ec",
+      "type": "REVEAL",
+      "title": "身份/面具揭示",
+      "summary": "本段叙述黎小曼离开、白初与陆卿原相救相恋、张九孚调查明长陵并发现张家灭门疑点等关键剧情。",
+      "sourceSectionIds": [
+        "src_a73f962172e6442f"
+      ],
+      "promotedFrom": "capsule_heuristic",
+      "label": "SHOULD_BE_EVENT",
+      "notes": "摘要是多段角色行动与调查，不是身份/面具揭示。"
+    },
+    {
+      "sampleIndex": 9,
+      "nodeId": "cnode_731c16d2a3eb4a53",
+      "type": "REVEAL",
+      "title": "身份/面具揭示",
+      "summary": "本段交代张家盗墓发迹与分裂背景，以及傅月生百年复仇和妹妹转世侯玄星之死的关键剧情。",
+      "sourceSectionIds": [
+        "src_6072c3ce4dd240ca"
+      ],
+      "promotedFrom": "capsule_heuristic",
+      "label": "WRONG_FACT",
+      "notes": "标题称身份/面具揭示，摘要实际是张家背景与傅月生复仇史。"
+    },
+    {
+      "sampleIndex": 10,
+      "nodeId": "cnode_ad23179c35c04100",
+      "type": "REVEAL",
+      "title": "身份/面具揭示",
+      "summary": "本段叙述苗王墓事件后各方后续：陆卿原假冒杨峥脱身，陆未晞被误认为李瑶成白莲教教主，白初被陆卿原收留，傅月生追查张家线索。",
+      "sourceSectionIds": [
+        "src_4e231b90b6cf45bc"
+      ],
+      "promotedFrom": "capsule_heuristic",
+      "label": "SHOULD_BE_EVENT",
+      "notes": "摘要是多个角色后续行动与命运变化。"
+    },
+    {
+      "sampleIndex": 11,
+      "nodeId": "cnode_5feeeaab2e584b71",
+      "type": "REVEAL",
+      "title": "长生水真相揭示",
+      "summary": "本段揭示陶老板被杀案的凶手为白初。",
+      "sourceSectionIds": [
+        "src_d0b35b78b7604484"
+      ],
+      "promotedFrom": "capsule_heuristic",
+      "label": "WRONG_FACT",
+      "notes": "摘要揭示的是陶老板案凶手，不是长生水真相。"
+    },
+    {
+      "sampleIndex": 12,
+      "nodeId": "cnode_4822ddb2f6a14d10",
+      "type": "PROCESS",
+      "title": "长生水的炼制",
+      "summary": "长生水由人的灵魂制成，第一次由杨氏炼制，第二次由杨南一等人参与，陆未晞成为容器。",
+      "sourceSectionIds": [
+        "src_a2e087bd063a4194",
+        "src_7671ba07c61f4a23"
+      ],
+      "promotedFrom": "outline_orphan_stub",
+      "label": "OVER_MERGED",
+      "notes": "第一次炼制、第二次炼制、成为容器被合成一个 PROCESS。"
+    },
+    {
+      "sampleIndex": 13,
+      "nodeId": "cnode_fc9eae2f4bc745b5",
+      "type": "DECISION",
+      "title": "生门/死门抉择",
+      "summary": "本段为抉择规则说明：阵法启动后，玩家需在生门/死门间选择，规则决定生死。",
+      "sourceSectionIds": [
+        "src_49fe822720af4a96"
+      ],
+      "promotedFrom": "capsule_heuristic",
+      "label": "VALID_NODE",
+      "notes": "生门/死门选择及生死规则是 DECISION。"
+    },
+    {
+      "sampleIndex": 14,
+      "nodeId": "cnode_318a340722bc40aa",
+      "type": "REVEAL",
+      "title": "长生水真相揭示",
+      "summary": "本段讲述苗疆第二次炼制长生水失败，导致杨氏诅咒、未晞沉睡随葬，以及守墓人南一名字的由来。",
+      "sourceSectionIds": [
+        "src_7671ba07c61f4a23"
+      ],
+      "promotedFrom": "capsule_heuristic",
+      "label": "VALID_NODE",
+      "notes": "第二次炼制失败及后果作为真相揭示可接受。"
+    },
+    {
+      "sampleIndex": 15,
+      "nodeId": "cnode_0e40608b9bf2419f",
+      "type": "BRANCH",
+      "title": "结局分支框架",
+      "summary": "本段为杨峥与白初的结局分支，杨峥死则白初生，并触发小剧场。",
+      "sourceSectionIds": [
+        "src_f35227d8baa24a3e"
+      ],
+      "promotedFrom": "capsule_heuristic",
+      "label": "VALID_NODE",
+      "notes": "杨峥死/白初生触发小剧场，是 BRANCH。"
+    },
+    {
+      "sampleIndex": 16,
+      "nodeId": "cnode_80468e8cd6fb4060",
+      "type": "PROCESS",
+      "title": "阵法启动（抉择规则生效）",
+      "summary": "本段描述白初伪装陶老板制造未死假象，并利用吊灯砸尸，最终众人被困山庄并发现地下墓穴。",
+      "sourceSectionIds": [
+        "src_85fcf1bf58c741d7"
+      ],
+      "promotedFrom": "capsule_heuristic",
+      "label": "SHOULD_BE_EVENT",
+      "notes": "摘要是伪装、砸尸、被困、发现墓穴等事件链。"
+    },
+    {
+      "sampleIndex": 17,
+      "nodeId": "cnode_72deff0c1e214730",
+      "type": "PROCESS",
+      "title": "阵法启动（抉择规则生效）",
+      "summary": "本段为抉择规则说明：阵法启动后，玩家需在生门/死门间选择，规则决定生死。",
+      "sourceSectionIds": [
+        "src_49fe822720af4a96"
+      ],
+      "promotedFrom": "capsule_heuristic",
+      "label": "WRONG_TYPE",
+      "notes": "摘要是生门/死门选择规则，应为 DECISION。"
+    },
+    {
+      "sampleIndex": 18,
+      "nodeId": "cnode_650773dc33884047",
+      "type": "REVEAL",
+      "title": "身份/面具揭示",
+      "summary": "本段交代陶梦芸身世、陶老板血祭阴谋及众人齐聚日月山庄的缘由。",
+      "sourceSectionIds": [
+        "src_7bb2c185cfa64793"
+      ],
+      "promotedFrom": "capsule_heuristic",
+      "label": "WRONG_FACT",
+      "notes": "摘要是陶梦芸身世、陶老板阴谋及齐聚缘由，不是身份/面具揭示。"
+    },
+    {
+      "sampleIndex": 19,
+      "nodeId": "cnode_d1eb46bbe08a4c36",
+      "type": "BRANCH",
+      "title": "结局分支框架",
+      "summary": "本段为流程规则，说明黎小曼死亡而张九孚存活时的结局小剧场发放条件。",
+      "sourceSectionIds": [
+        "src_7d312bc95ebf430b"
+      ],
+      "promotedFrom": "capsule_heuristic",
+      "label": "VALID_NODE",
+      "notes": "黎小曼死/张九孚生触发结局，是 BRANCH。"
+    },
+    {
+      "sampleIndex": 20,
+      "nodeId": "cnode_e59fbc1d2d2a4fb8",
+      "type": "REVEAL",
+      "title": "身份/面具揭示",
+      "summary": "本段描述白初伪装陶老板制造未死假象，并利用吊灯砸尸，最终众人被困山庄并发现地下墓穴。",
+      "sourceSectionIds": [
+        "src_85fcf1bf58c741d7"
+      ],
+      "promotedFrom": "capsule_heuristic",
+      "label": "SHOULD_BE_EVENT",
+      "notes": "摘要是伪装、砸尸、被困与发现墓穴等事件。"
+    }
+  ]
+}

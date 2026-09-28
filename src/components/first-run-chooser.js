@@ -65,8 +65,8 @@ import { accountScopedStorageKey, currentStorageUserId } from "../runtime/storag
               <p class="section-kicker">织幕</p>
               <h2>${compact ? "这个项目还是空白——你今天想做什么？" : "你今天想做什么？"}</h2>
               <p>${compact
-                ? "从零一步步搭剧情，或导入已有剧本继续修改和运行。正文会保留原稿。"
-                : "织幕只服务两件事：最快从零做出一个剧本，或把已有剧本无损搬进来继续改。"}</p>
+      ? "按主线层级推进，或导入已有剧本继续修改和运行。正文会保留原稿。"
+                : "织幕的剧本杀主线只有两条：按新主线层级逐层创作，或把已有剧本无损导入后继续改。"}</p>
               ${contextLine}
             </div>
           </div>
@@ -75,10 +75,10 @@ import { accountScopedStorageKey, currentStorageUserId } from "../runtime/storag
       </div>
       <div class="creator-journey-paths first-run-grid">
         <article class="creator-journey-card first-run-card first-run-card-plan first-run-card-primary">
-          <div class="first-run-card-head"><p class="eyebrow">从零创作</p><span>带你走完</span></div>
-          <h3>从零创作一个剧本</h3>
-          <p>我会带你一步步完成：定方向、搭剧情、整母稿、加玩法、写成成品、试跑发布。</p>
-          <ul><li>只问你能回答的问题（人数、题材、体验）</li><li>用剧情积木搭骨架，再写成成品</li></ul>
+          <div class="first-run-card-head"><p class="eyebrow">主线创作</p><span>按层级推进</span></div>
+          <h3>从地点与场合开始</h3>
+          <p>按新主线生成层级逐层完成：地点场合、场景地点、公开故事、完整故事与后期对抗。</p>
+          <ul><li>每一层先保存，再锁定进入下一层</li><li>上游没有确认的内容不会进入下游</li></ul>
           <button type="button" class="primary-btn" data-action="creator-journey-plan">开始创作 →</button>
         </article>
         ${isMurderMystery ? `<article class="creator-journey-card first-run-card first-run-card-upload">
@@ -134,9 +134,15 @@ import { accountScopedStorageKey, currentStorageUserId } from "../runtime/storag
   function startPlan() {
     dismiss();
     if (hasActiveWorld()) {
-      go("creatorCockpit");
+      if (isMurderMystery) {
+        go("writer");
+        setTimeout(() => callView("writer", "openMainlineHierarchy"), 0);
+      } else {
+        go("creatorCockpit");
+      }
       return;
     }
+    if (isMurderMystery) wizardStore.set({ postCreateJourney: "mainline" });
     callRuntime("openWizard");
   }
 

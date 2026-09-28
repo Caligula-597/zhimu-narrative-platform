@@ -3,6 +3,7 @@ import { query } from "../db.js";
 export async function findInviteAccess(inviteCode, actorId, executor = query) {
   const result = await executor(
     `SELECT r.id, r.name, r.status, r.world_id, w.name AS world_name,
+            COALESCE(NULLIF(w.settings->'narrativeProfile'->>'creationType', ''), NULLIF(w.settings->>'creationType', ''), CASE WHEN w.settings->>'worldMode' = 'campaign' THEN 'tabletop_rpg' ELSE 'murder_mystery' END) AS creation_type,
             r.release_id, w.content_revision AS current_content_revision,
             release.release_number, release.label AS release_label,
             release.source_content_revision AS release_source_revision,
@@ -34,6 +35,54 @@ export async function findInviteAccess(inviteCode, actorId, executor = query) {
     [inviteCode, actorId]
   );
   return result.rows[0] ?? null;
+}
+
+/**
+ * Board-game seats are authored in boardGameDesign rather than as narrative
+ * character roles. Materialize matching role slots so the existing invite,
+ * occupancy and room-member concurrency contract can safely be reused.
+ */
+export async function ensureBoardGameRoleSlots(client, { roomId, inviteCode } = {}) {
+  const result = await client.query(
+    `SELECT r.id AS room_id, r.world_id, w.settings
+     FROM rooms r
+     JOIN worlds w ON w.id = r.world_id
+     WHERE ${roomId ? "r.id = $1" : "r.invite_code = $1"}
+     FOR UPDATE OF r`,
+    [roomId || inviteCode]
+  );
+  const room = result.rows[0];
+  const profile = room?.settings?.narrativeProfile?.creationType || room?.settings?.creationType;
+  const design = room?.settings?.boardGameDesign;
+  if (!room || profile !== "board_game" || !design || typeof design !== "object") return 0;
+  const seats = Array.isArray(design.seats) ? design.seats : [];
+  if (!seats.length) return 0;
+  const existingResult = await client.query(
+    `SELECT id, sequence, settings->>'boardGameSeatId' AS board_game_seat_id
+     FROM role_slots WHERE world_id = $1 FOR UPDATE`,
+    [room.world_id]
+  );
+  const existingBySeat = new Map(existingResult.rows.map((row) => [String(row.board_game_seat_id || ""), row]));
+  let created = 0;
+  for (const [index, seat] of seats.entries()) {
+    const seatId = String(seat?.id || `board-seat-${index + 1}`);
+    if (existingBySeat.has(seatId)) continue;
+    const sequence = Number(seat?.sequence) > 0 ? Number(seat.sequence) : index + 1;
+    await client.query(
+      `INSERT INTO role_slots (world_id, name, public_profile, private_profile, sequence, settings)
+       VALUES ($1, $2, $3, '', $4, $5::jsonb)
+       ON CONFLICT (world_id, sequence) DO NOTHING`,
+      [
+        room.world_id,
+        String(seat?.name || `玩家席位 ${index + 1}`).slice(0, 160),
+        String(seat?.description || "桌游玩家席位").slice(0, 1000),
+        sequence,
+        JSON.stringify({ boardGameSeatId: seatId, boardGameSeat: true })
+      ]
+    );
+    created += 1;
+  }
+  return created;
 }
 
 export async function configureJoinTransaction(client) {

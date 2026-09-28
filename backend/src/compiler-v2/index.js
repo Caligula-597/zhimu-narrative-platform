@@ -6,6 +6,7 @@
 import { COMPILER_V2_STAGES, createEmptyCompilerV2State } from "./state.js";
 import { stage1ProjectIdentify } from "./stages/stage1-project-identify.js";
 import { stage2ManuscriptIngest } from "./stages/stage2-manuscript-ingest.js";
+import { stage25CanonMemoryCompiler } from "./stages/stage25-canon-memory.js";
 import { stage3TimelineCompiler } from "./stages/stage3-timeline-compiler.js";
 import { stage4SceneResolver } from "./stages/stage4-scene-resolver.js";
 import { stage5ClueAssetImport } from "./stages/stage5-clue-asset.js";
@@ -16,6 +17,7 @@ import { stage8IntegrityValidator } from "./stages/stage8-integrity-check.js";
 const STAGE_RUNNERS = Object.freeze({
   project_identify: stage1ProjectIdentify,
   manuscript_ingest: stage2ManuscriptIngest,
+  canon_memory: stage25CanonMemoryCompiler,
   timeline_compiler: stage3TimelineCompiler,
   scene_resolver: stage4SceneResolver,
   clue_asset: stage5ClueAssetImport,
@@ -26,12 +28,16 @@ const STAGE_RUNNERS = Object.freeze({
 
 /**
  * Run stages synchronously (caller schedules as background job).
- * @param {{ inputFiles?: object, toStage?: string, enableTimelineLlm?: boolean }} options
+ * @param {{ inputFiles?: object, toStage?: string, enableCanonLlm?: boolean, enableTimelineLlm?: boolean }} options
  *   toStage — stop after this stage id (inclusive). Default: full pipeline to integrity_check.
+ *   enableCanonLlm — Stage 2.5 CanonMemory LLM (default: env COMPILER_V2_ENABLE_CANON_LLM=1).
  *   enableTimelineLlm — Stage 3A Host TRUE Timeline LLM (default: env COMPILER_V2_ENABLE_TIMELINE_LLM=1).
  * Stops at integrity_check — does NOT auto-commit to runtime.
  */
-export async function runCompilerV2Pipeline(initialState, { inputFiles, toStage, enableTimelineLlm } = {}) {
+export async function runCompilerV2Pipeline(
+  initialState,
+  { inputFiles, toStage, enableCanonLlm, enableTimelineLlm } = {}
+) {
   let state = initialState || createEmptyCompilerV2State();
   state = {
     ...state,
@@ -56,6 +62,7 @@ export async function runCompilerV2Pipeline(initialState, { inputFiles, toStage,
     };
     let ctx = {};
     if (stageId === "project_identify") ctx = { inputFiles };
+    if (stageId === "canon_memory") ctx = { enableLlm: enableCanonLlm };
     if (stageId === "timeline_compiler") ctx = { enableLlm: enableTimelineLlm };
     state = await runner(state, ctx);
   }

@@ -1,6 +1,6 @@
 import { sendErr, throwErr } from "../api-errors.js";
 import { requireActor } from "../request-actor.js";
-import { PlayableContentRuntimeError } from "../../shared/playable-content-runtime.js";
+import { PlayableContentRuntimeError } from "../../../shared/playable-content-runtime.js";
 import {
   getPlayerPlayableRuntime,
   getPlayerPlayableContentUnit,

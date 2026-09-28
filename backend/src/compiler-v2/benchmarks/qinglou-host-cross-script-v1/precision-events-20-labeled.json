@@ -1,0 +1,266 @@
+{
+  "instructions": "VALID_EVENT|DUPLICATE|NOT_EVENT|WRONG_FACT|OVER_MERGED",
+  "targetPrecision": 0.8,
+  "sample": [
+    {
+      "sampleIndex": 1,
+      "eventId": "cevt_9cd0e635c8084dac",
+      "order": 35,
+      "title": "尸体身份确认",
+      "summary": "根据尸体线索和莫怀的公开，确认城西青树埋的一男一女为莫玄宗和红姨；另一具黑麻袋男尸通过时间线和衙门令确认为莫寒。",
+      "importance": "CORE",
+      "sourceSectionIds": [
+        "src_a54af516a1d14a5b"
+      ],
+      "label": "NOT_EVENT",
+      "notes": "尸体身份确认属于线索推理后的 REVEAL/结论，不是世界内离散事件。"
+    },
+    {
+      "sampleIndex": 2,
+      "eventId": "cevt_000c185eed524762",
+      "order": 25,
+      "title": "白斋子被赶出西河村",
+      "summary": "白斋子因父亲犯罪被村民嫌弃，年仅四岁被赶出西河村，流落至长安城。",
+      "importance": "CORE",
+      "sourceSectionIds": [
+        "src_8e200108e2084d2c"
+      ],
+      "label": "VALID_EVENT",
+      "notes": "四岁被赶出西河村并流落长安，是一个清晰背景事件。"
+    },
+    {
+      "sampleIndex": 3,
+      "eventId": "cevt_eb12b9e6e8ff4c95",
+      "order": 20,
+      "title": "姜红儿下毒与刘青龙之死",
+      "summary": "姜红儿误将毒药当泻药下给齐剑心，却被红姨误饮；姜红儿追刘青龙得知身世，一气之下戳伤刘青龙致其死亡，并拖至草堆。",
+      "importance": "CORE",
+      "sourceSectionIds": [
+        "src_608293df7069466a"
+      ],
+      "label": "OVER_MERGED",
+      "notes": "下毒误饮与追刘青龙、得知身世、致死并藏尸是多个独立事件中心。"
+    },
+    {
+      "sampleIndex": 4,
+      "eventId": "cevt_d39f4f85e2284839",
+      "order": 26,
+      "title": "白斋子最后一次见到父亲",
+      "summary": "白斋子在长安城街头看到被押往监狱的父亲，父亲身体发胖，疑似藏物，此后永别。",
+      "importance": "SUPPORTING",
+      "sourceSectionIds": [
+        "src_8e200108e2084d2c"
+      ],
+      "label": "VALID_EVENT",
+      "notes": "街头最后一次见到被押送的父亲，是单一可定位事件。"
+    },
+    {
+      "sampleIndex": 5,
+      "eventId": "cevt_cb21c9e7710d459c",
+      "order": 40,
+      "title": "灵石传送至树林",
+      "summary": "一阵异光后，灵石将二人传送到一片无人涉足的树林，空中弥漫花草香。",
+      "importance": "CORE",
+      "sourceSectionIds": [
+        "src_bb76546eca9043a7"
+      ],
+      "label": "VALID_EVENT",
+      "notes": "灵石传送至树林是单一核心事件。"
+    },
+    {
+      "sampleIndex": 6,
+      "eventId": "cevt_1f25dff83fed47c2",
+      "order": 12,
+      "title": "杜霄元夜潜莫府杀莫寒",
+      "summary": "杜霄元得知真相后，趁夜潜入莫府，利用晕厥粉迷晕陈一兔和白斋子，潜入莫寒房间，趁莫寒和董小婉昏迷时杀死莫寒，并布置现场嫁祸白斋子。",
+      "importance": "CORE",
+      "sourceSectionIds": [
+        "src_3939b21b112245f7"
+      ],
+      "label": "VALID_EVENT",
+      "notes": "潜入、迷晕、杀害并布置嫁祸发生在同一夜、同一谋杀目标下，粒度可接受。"
+    },
+    {
+      "sampleIndex": 7,
+      "eventId": "cevt_5700f8663e274fd2",
+      "order": 48,
+      "title": "街市线索",
+      "summary": "街坊告知舒悦昨天出玉满楼到回玉满楼刚好一个时辰。",
+      "importance": "SUPPORTING",
+      "sourceSectionIds": [
+        "src_d8b71013051a4ac1"
+      ],
+      "label": "NOT_EVENT",
+      "notes": "街坊提供舒悦外出时长属于线索/信息揭示，不是世界内事件。"
+    },
+    {
+      "sampleIndex": 8,
+      "eventId": "cevt_39e7d6fefd4847e3",
+      "order": 2,
+      "title": "姜红儿进场表演",
+      "summary": "姜红儿作为玉满楼四花旦之一的玉伎进场，以颂歌得名，国色天香，主持人邀请宾客出价一百银两与其邂逅。",
+      "importance": "SUPPORTING",
+      "sourceSectionIds": [
+        "src_18762e2b54f14d03"
+      ],
+      "label": "VALID_EVENT",
+      "notes": "姜红儿进场表演并进入拍卖流程是同一连续场景事件。"
+    },
+    {
+      "sampleIndex": 9,
+      "eventId": "cevt_356e656ed8d04870",
+      "order": 13,
+      "title": "董小婉自杀",
+      "summary": "董小婉醒来后误以为白斋子杀了莫寒，因羞愧和绝望，用匕首刺胸自杀。",
+      "importance": "CORE",
+      "sourceSectionIds": [
+        "src_3939b21b112245f7"
+      ],
+      "label": "VALID_EVENT",
+      "notes": "董小婉误判后自杀是清晰单一事件。"
+    },
+    {
+      "sampleIndex": 10,
+      "eventId": "cevt_b6d8b4190fd1462c",
+      "order": 3,
+      "title": "陈一兔的身世与暗恋",
+      "summary": "陈一兔六岁时被越红接走，在玉满楼长大，发现母亲窥探莫府，偷看时对莫怀产生情愫，但不知其为亲哥哥。",
+      "importance": "CORE",
+      "sourceSectionIds": [
+        "src_276ea0edc98140ae"
+      ],
+      "label": "OVER_MERGED",
+      "notes": "幼年被接走、在玉满楼长大、窥探莫府、产生情愫跨越多个阶段与状态。"
+    },
+    {
+      "sampleIndex": 11,
+      "eventId": "cevt_c50b31be1d624aad",
+      "order": 28,
+      "title": "莫将军委托作画寻人",
+      "summary": "莫将军通过莫怀认识白斋子，委托其晚上作画寻人，白斋子连续数晚前往莫府作画。",
+      "importance": "SUPPORTING",
+      "sourceSectionIds": [
+        "src_8e200108e2084d2c"
+      ],
+      "label": "OVER_MERGED",
+      "notes": "委托作画是离散事件，连续数晚前往莫府作画是持续过程。"
+    },
+    {
+      "sampleIndex": 12,
+      "eventId": "cevt_18e4bd1ff0b94852",
+      "order": 9,
+      "title": "发现三具尸体",
+      "summary": "三具尸体被发现，两具一男一女埋在城西青树，另一具男尸装于黑麻袋发现于府南河下游湖中，均面目全非，死于不同人之手。",
+      "importance": "CORE",
+      "sourceSectionIds": [
+        "src_29246c623474464e"
+      ],
+      "label": "OVER_MERGED",
+      "notes": "三具尸体分处不同地点并非同一发现动作，合成一条粒度过大。"
+    },
+    {
+      "sampleIndex": 13,
+      "eventId": "cevt_614d376d78854b7a",
+      "order": 27,
+      "title": "白斋子被书斋先生收留",
+      "summary": "十岁时白斋子被一书斋先生收留并取名白斋子。",
+      "importance": "SUPPORTING",
+      "sourceSectionIds": [
+        "src_8e200108e2084d2c"
+      ],
+      "label": "VALID_EVENT",
+      "notes": "十岁被书斋先生收留并取名，是一个明确事件。"
+    },
+    {
+      "sampleIndex": 14,
+      "eventId": "cevt_e5d4f67ea7d045bd",
+      "order": 6,
+      "title": "舒悦与莫寒相恋",
+      "summary": "舒悦经书斋先生介绍来到玉满楼，与莫寒从小相伴，被称天造地设的一对。",
+      "importance": "SUPPORTING",
+      "sourceSectionIds": [
+        "src_276ea0edc98140ae"
+      ],
+      "label": "NOT_EVENT",
+      "notes": "“从小相伴、被称天造地设的一对”主要是长期关系状态。"
+    },
+    {
+      "sampleIndex": 15,
+      "eventId": "cevt_86cb6c1283e64499",
+      "order": 51,
+      "title": "杜家搜查",
+      "summary": "在杜霄元房间发现满是血迹的衣服和一袋未使用的晕厥粉。",
+      "importance": "CORE",
+      "sourceSectionIds": [
+        "src_d8b71013051a4ac1"
+      ],
+      "label": "VALID_EVENT",
+      "notes": "在杜霄元房间发现血衣和晕厥粉，是清晰搜证发现事件。"
+    },
+    {
+      "sampleIndex": 16,
+      "eventId": "cevt_6f6fcd8a48924f33",
+      "order": 8,
+      "title": "莫将军寻找越红",
+      "summary": "莫将军重病，托莫寒找董小婉画越红画像，但不知越红已毁容成为红姨。",
+      "importance": "CORE",
+      "sourceSectionIds": [
+        "src_276ea0edc98140ae"
+      ],
+      "label": "VALID_EVENT",
+      "notes": "莫将军因重病委托莫寒找董小婉画像寻越红，核心行动明确。"
+    },
+    {
+      "sampleIndex": 17,
+      "eventId": "cevt_5578d81635544bf8",
+      "order": 41,
+      "title": "二人结为至亲",
+      "summary": "二人因共同经历生死，将对方视为最亲之人，并祝愿彼此问心无愧。",
+      "importance": "SUPPORTING",
+      "sourceSectionIds": [
+        "src_bb76546eca9043a7"
+      ],
+      "label": "NOT_EVENT",
+      "notes": "“结为至亲、视为最亲之人”是关系状态/情感结果。"
+    },
+    {
+      "sampleIndex": 18,
+      "eventId": "cevt_c018d12fe1aa404b",
+      "order": 54,
+      "title": "红姨告知身世后死亡",
+      "summary": "莫怀夜中醒来，红姨告知其身世后因九还散发作死亡，莫怀将母亲遗体抱回莫府。",
+      "importance": "CORE",
+      "sourceSectionIds": [
+        "src_dae953c9380c44c0"
+      ],
+      "label": "VALID_EVENT",
+      "notes": "红姨告知身世、发作死亡、莫怀抱回遗体发生在同一连续场景。"
+    },
+    {
+      "sampleIndex": 19,
+      "eventId": "cevt_1956962894414af6",
+      "order": 16,
+      "title": "姜红儿与柳诗诗外貌相似",
+      "summary": "姜红儿与柳诗诗在素颜状态下几乎无法分辨。",
+      "importance": "DETAIL",
+      "sourceSectionIds": [
+        "src_4af69a6838a0475e"
+      ],
+      "label": "NOT_EVENT",
+      "notes": "两人素颜几乎无法分辨是静态人物事实。"
+    },
+    {
+      "sampleIndex": 20,
+      "eventId": "cevt_1caa960be1754d8e",
+      "order": 4,
+      "title": "刘青龙威胁柳诗诗",
+      "summary": "刘青龙醉酒后以柳诗诗和姜红儿的身世威胁柳诗诗，柳诗诗为保护妹妹而答应献身。",
+      "importance": "CORE",
+      "sourceSectionIds": [
+        "src_276ea0edc98140ae"
+      ],
+      "label": "VALID_EVENT",
+      "notes": "威胁与柳诗诗为保护妹妹而答应献身构成同一连续冲突事件。"
+    }
+  ]
+}

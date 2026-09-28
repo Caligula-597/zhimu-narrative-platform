@@ -49,7 +49,9 @@ npm run build
 
 ### Writer 工作台边界
 
-新的 Writer 长流程不得自行重复拼接 `.writer-tool-workspace`、返回按钮和双栏上下文结构，应使用 `writer-tool-layout.js`。当前母稿、发布影响、文档解析、导入导出、版本、审稿、协作、玩家模拟和剧情结构提取均已接入。
+新的 Writer 长流程不得自行重复拼接 `.writer-tool-workspace`、返回按钮和双栏上下文结构，应使用 `writer-tool-layout.js`。当前新主线层级、母稿、发布影响、文档解析、导入导出、版本、审稿、协作、玩家模拟和剧情结构提取均已接入。
+
+新主线创作使用 `src/views/mainline-hierarchy-workspace.js`，按 L1–L7 依赖推进；草稿通过 `GET/PUT /api/worlds/:worldId/mainline-hierarchy` 持久化，不能写入外部剧本导入或完整母稿接口。
 
 共享层只负责布局与动态文本转义，不持有 API、store 或领域状态。领域功能继续遵守：
 

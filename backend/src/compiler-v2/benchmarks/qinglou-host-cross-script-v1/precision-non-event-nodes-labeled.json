@@ -1,0 +1,123 @@
+{
+  "instructions": "VALID_NODE|WRONG_TYPE|SHOULD_BE_EVENT|WRONG_FACT|OVER_MERGED",
+  "targetPrecision": 0.8,
+  "sample": [
+    {
+      "sampleIndex": 1,
+      "nodeId": "cnode_35afc1748172437c",
+      "type": "PROCESS",
+      "title": "搜证/取证推进",
+      "summary": "主持人开启搜索杀人环节，说明武器防具规则、搜索规则及结束条件。",
+      "sourceSectionIds": [
+        "src_06827b346a0c4941"
+      ],
+      "promotedFrom": "promotion_v3",
+      "label": "VALID_NODE",
+      "notes": "搜索杀人环节及武器、防具、搜索、结束条件属于 PROCESS。"
+    },
+    {
+      "sampleIndex": 2,
+      "nodeId": "cnode_3028f313b3154872",
+      "type": "PROCESS",
+      "title": "搜证/取证推进",
+      "summary": "本段为衙门令搜证阶段的规则说明，描述太守发放衙门令及玩家外出调查的机制。",
+      "sourceSectionIds": [
+        "src_2485412383274f19"
+      ],
+      "promotedFrom": "promotion_v3",
+      "label": "VALID_NODE",
+      "notes": "衙门令发放与外出调查规则属于搜证 PROCESS。"
+    },
+    {
+      "sampleIndex": 3,
+      "nodeId": "cnode_8db09e4addf947f3",
+      "type": "BRANCH",
+      "title": "剧本《青楼》简介，说明类型、人数、时长及核心机制特点",
+      "summary": "剧本《青楼》简介，说明类型、人数、时长及核心机制特点。",
+      "sourceSectionIds": [
+        "src_f29598df1f844691"
+      ],
+      "promotedFrom": "promotion_v3",
+      "label": "WRONG_TYPE",
+      "notes": "剧本简介、人数、时长和机制特点是 META，不是 BRANCH。"
+    },
+    {
+      "sampleIndex": 4,
+      "nodeId": "cnode_fa2f8ec1f4ef408a",
+      "type": "BRANCH",
+      "title": "结局彩蛋段，宣告游戏结束并预告续作，无实际剧情推进",
+      "summary": "结局彩蛋段，宣告游戏结束并预告续作，无实际剧情推进。",
+      "sourceSectionIds": [
+        "src_eb24d8e1498742b3"
+      ],
+      "promotedFrom": "promotion_v3",
+      "label": "WRONG_TYPE",
+      "notes": "宣告游戏结束并预告续作、无剧情推进的彩蛋段不是 BRANCH。"
+    },
+    {
+      "sampleIndex": 5,
+      "nodeId": "cnode_815fc9ec6e2b46a9",
+      "type": "BRANCH",
+      "title": "开本前主持人介绍规则和背景，包含游戏机制提示和故事背景卡朗读",
+      "summary": "开本前主持人介绍规则和背景，包含游戏机制提示和故事背景卡朗读。",
+      "sourceSectionIds": [
+        "src_408f030a371849ec"
+      ],
+      "promotedFrom": "promotion_v3",
+      "label": "WRONG_TYPE",
+      "notes": "开本前主持规则和背景卡朗读属于 META/流程前置信息，不是 BRANCH。"
+    },
+    {
+      "sampleIndex": 6,
+      "nodeId": "cnode_b314822431674f59",
+      "type": "PROCESS",
+      "title": "投凶环节",
+      "summary": "本段为投凶统票规则说明，无剧情推进。",
+      "sourceSectionIds": [
+        "src_7c7994927cc24f14"
+      ],
+      "promotedFrom": "promotion_v3",
+      "label": "VALID_NODE",
+      "notes": "投凶统票与流程规则属于 PROCESS。"
+    },
+    {
+      "sampleIndex": 7,
+      "nodeId": "cnode_c8e331869f5149ac",
+      "type": "PROCESS",
+      "title": "搜证/取证推进",
+      "summary": "线索搜证阶段的流程指引，包含NPC演绎和搜证规则。",
+      "sourceSectionIds": [
+        "src_84e99b4863b341ac"
+      ],
+      "promotedFrom": "promotion_v3",
+      "label": "VALID_NODE",
+      "notes": "NPC 演绎与搜证规则的阶段性指引属于 PROCESS。"
+    },
+    {
+      "sampleIndex": 8,
+      "nodeId": "cnode_0714b50e030c4b59",
+      "type": "PROCESS",
+      "title": "搜证/取证推进",
+      "summary": "本段为线索卡摆放及搜证流程规则说明。",
+      "sourceSectionIds": [
+        "src_b0a6a9d9b6254c97"
+      ],
+      "promotedFrom": "promotion_v3",
+      "label": "VALID_NODE",
+      "notes": "线索卡摆放与搜证流程规则属于 PROCESS。"
+    },
+    {
+      "sampleIndex": 9,
+      "nodeId": "cnode_26289d2150bc4552",
+      "type": "PROCESS",
+      "title": "搜证/取证推进",
+      "summary": "搜证规则：每位玩家拿5张线索，最多2张城闻线索，不能拿自己角色的线索。",
+      "sourceSectionIds": [
+        "src_c069e19fcbf0481a"
+      ],
+      "promotedFrom": "promotion_v3",
+      "label": "VALID_NODE",
+      "notes": "每人拿线索数量、城闻上限及角色线索限制属于 PROCESS。"
+    }
+  ]
+}
