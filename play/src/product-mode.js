@@ -31,7 +31,12 @@ export function normalizeProductMode(value) {
 }
 
 export function productModeForRoom(room) {
-  return normalizeProductMode(room?.creationType || room?.creation_type);
+  return normalizeProductMode(
+    room?.creationType
+    || room?.creation_type
+    || room?.room?.creationType
+    || room?.room?.creation_type
+  );
 }
 
 export function productModeMeta(mode) {

@@ -27,7 +27,7 @@ export function renderJoin() {
     : roles.filter((r) => !r.occupied || r.occupied_by_current).length;
   const selected = roles.find((r) => r.id === state.selectedRoleId);
   const binding = roomContentBindingPresentation(preview.room.contentBinding);
-  const roomMode = productModeForRoom(preview.room);
+  const roomMode = productModeForRoom(preview);
   const selectedMode = productModeMeta(state.productMode);
   const roomModeMeta = productModeMeta(roomMode || state.productMode);
   const modeMatches = !roomMode || roomMode === state.productMode;

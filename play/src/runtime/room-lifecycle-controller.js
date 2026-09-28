@@ -97,7 +97,7 @@ export function createRoomLifecycleController({
       await ensureSession();
       await refreshJoinPreview(code);
       if (!selectedModeMatchesPreview()) {
-        const roomMode = productModeForRoom(state.joinPreview?.room);
+        const roomMode = productModeForRoom(state.joinPreview);
         state.view = "join";
         state.joinStep = 2;
         setToast(`当前选择的是${productModeMeta(state.productMode).label}，该邀请码对应${productModeMeta(roomMode).label}，请先切换模式`, render);
@@ -138,7 +138,7 @@ export function createRoomLifecycleController({
       await ensureSession();
       await refreshJoinPreview(code);
       if (!selectedModeMatchesPreview()) {
-        const roomMode = productModeForRoom(state.joinPreview?.room);
+        const roomMode = productModeForRoom(state.joinPreview);
         state.joinStep = 2;
         setToast(`当前选择的是${productModeMeta(state.productMode).label}，该房间需要${productModeMeta(roomMode).label}`, render);
         return;
