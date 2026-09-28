@@ -1,62 +1,76 @@
 import { escapeHtml } from "../../../shared/security.js";
 import { state } from "../state.js";
+import { PLAYER_PRODUCT_MODES, productModeForRoom } from "../product-mode.js";
+
+function roomMode(room) {
+  return productModeForRoom(room) || "murder_mystery";
+}
+
+function renderLobbyCard(room) {
+  return `
+    <article class="lobby-card card">
+      ${room.worldCoverUrl
+        ? `<div class="lobby-card-cover"><img src="${escapeHtml(room.worldCoverUrl)}" alt="" loading="lazy" decoding="async" /></div>`
+        : `<div class="lobby-card-cover lobby-card-cover-fallback" aria-hidden="true"><span>${escapeHtml((room.worldName || "本")[0])}</span></div>`}
+      <div class="lobby-card-head">
+        <p class="eyebrow">${escapeHtml(room.worldName)}</p>
+        <h3>${escapeHtml(room.roomName)}</h3>
+      </div>
+      <p class="lobby-summary">${escapeHtml(room.worldSummary || "暂无内容简介")}</p>
+      <dl class="entry-meta lobby-meta">
+        <div><dt>主持</dt><dd>${escapeHtml(room.hostDisplayName || "玩家")}</dd></div>
+        <div><dt>空席</dt><dd>${room.openSeats} / ${room.roleCount}</dd></div>
+        <div><dt>状态</dt><dd>${escapeHtml(room.roomStatus || "运行中")}</dd></div>
+      </dl>
+      <button class="btn primary full" type="button" data-action="lobby-join" data-invite-code="${escapeHtml(room.inviteCode)}" ${room.openSeats <= 0 || state.busy ? "disabled" : ""}>
+        ${room.openSeats <= 0 ? "席位已满" : "加入这局"}
+      </button>
+    </article>`;
+}
+
+function renderLobbySection(mode, items) {
+  const unavailable = mode.id === "tabletop_rpg" && !mode.available;
+  return `
+    <section class="lobby-product-section" aria-labelledby="lobby-${mode.id}">
+      <div class="lobby-product-heading">
+        <div>
+          <p class="eyebrow">${escapeHtml(mode.label)}</p>
+          <h2 id="lobby-${mode.id}">${escapeHtml(mode.label)}房间</h2>
+        </div>
+        <span class="lobby-product-status">${unavailable ? "暂未开放" : `${items.length} 个房间`}</span>
+      </div>
+      ${items.length
+        ? `<div class="lobby-grid">${items.map(renderLobbyCard).join("")}</div>`
+        : `<article class="card lobby-empty lobby-product-empty"><span class="empty-icon" aria-hidden="true">◇</span><h3>${unavailable ? "跑团暂未开放" : "暂时没有公开房间"}</h3><p class="muted">${unavailable ? "" : `主持人公开${escapeHtml(mode.label)}房间后，会显示在这里。`}</p></article>`}
+    </section>`;
+}
 
 export function renderLobby() {
   const listing = state.publicRooms;
   const items = listing?.items || [];
+  const filter = state.lobbyProductFilter || "all";
+  const visibleModes = filter === "all" ? PLAYER_PRODUCT_MODES : PLAYER_PRODUCT_MODES.filter((mode) => mode.id === filter);
   return `
     <section class="lobby-shell">
       <div class="lobby-head">
         <div>
           <p class="eyebrow">PUBLIC LOBBY · 在线凑局</p>
-          <h1>正在开放的剧本房间</h1>
-          <p class="lede">主持人在织幕里把平行房<strong>公开到大厅</strong>后，会出现在这里。选一间加入，认领角色即可与陌生玩家同局。</p>
-          <p class="hint muted">这与「公开剧本库」不同：这里是<strong>正在运行的实时房间</strong>。</p>
+          <h1>正在开放的房间</h1>
+          <p class="lede">公开房间按<strong>剧本杀、跑团、桌游</strong>分区显示。这里仅展示已经存在的实时房间。</p>
         </div>
         <button class="btn outline" type="button" data-action="refresh-lobby" ${state.busy ? "disabled" : ""}>刷新列表</button>
       </div>
+
+      <nav class="lobby-product-filter" aria-label="房间类型">
+        <button class="btn ${filter === "all" ? "primary" : "outline"}" type="button" data-action="lobby-filter" data-product-mode="all" aria-pressed="${filter === "all"}">全部</button>
+        ${PLAYER_PRODUCT_MODES.map((mode) => `<button class="btn ${filter === mode.id ? "primary" : "outline"}" type="button" data-action="lobby-filter" data-product-mode="${mode.id}" aria-pressed="${filter === mode.id}">${escapeHtml(mode.label)}</button>`).join("")}
+      </nav>
 
       ${listing === null && !state.lobbyError
         ? `<article class="card lobby-empty enriched-empty"><span class="loading-dots">加载大厅中…</span></article>`
         : state.lobbyError
           ? `<div class="banner error inline-retry">${escapeHtml(state.lobbyError)}<button class="btn outline compact" type="button" data-action="refresh-lobby">重试</button></div>`
-          : items.length
-        ? `
-        <div class="lobby-grid">
-          ${items
-            .map(
-              (room) => `
-            <article class="lobby-card card">
-              ${room.worldCoverUrl
-                ? `<div class="lobby-card-cover"><img src="${escapeHtml(room.worldCoverUrl)}" alt="" loading="lazy" decoding="async" /></div>`
-                : `<div class="lobby-card-cover lobby-card-cover-fallback" aria-hidden="true"><span>${escapeHtml((room.worldName || "本")[0])}</span></div>`}
-              <div class="lobby-card-head">
-                <p class="eyebrow">${escapeHtml(room.worldName)}</p>
-                <h3>${escapeHtml(room.roomName)}</h3>
-              </div>
-              <p class="lobby-summary">${escapeHtml(room.worldSummary || "暂无剧本简介")}</p>
-              <dl class="entry-meta lobby-meta">
-                <div><dt>主持</dt><dd>${escapeHtml(room.hostDisplayName || "玩家")}</dd></div>
-                <div><dt>空席</dt><dd>${room.openSeats} / ${room.roleCount}</dd></div>
-                <div><dt>状态</dt><dd>${escapeHtml(room.roomStatus || "运行中")}</dd></div>
-              </dl>
-              <button class="btn primary full" type="button" data-action="lobby-join" data-invite-code="${escapeHtml(room.inviteCode)}" ${room.openSeats <= 0 || state.busy ? "disabled" : ""}>
-                ${room.openSeats <= 0 ? "席位已满" : "加入这局"}
-              </button>
-            </article>`
-            )
-            .join("")}
-        </div>`
-        : `
-        <article class="card lobby-empty enriched-empty">
-          <span class="empty-icon" aria-hidden="true">◇</span>
-          <h3>暂时没有公开房间</h3>
-          <p class="muted">主持人可在创作者端把平行房「公开到大厅」；或使用邀请码 / 官方示例入房。</p>
-          <div class="row-actions">
-            <button class="btn outline" type="button" data-action="back-landing">输入邀请码</button>
-            <button class="btn quiet" type="button" data-action="join-official">体验官方示例</button>
-          </div>
-        </article>`}
+          : `<div class="lobby-product-sections">${visibleModes.map((mode) => renderLobbySection(mode, items.filter((room) => roomMode(room) === mode.id))).join("")}</div>`}
 
       <button class="text-btn" type="button" data-action="back-landing">← 返回首页</button>
     </section>`;

@@ -60,6 +60,7 @@ test("GET /api/platform/public-rooms lists only release-backed public rooms", as
     assert.ok(body.items.some((item) => item.roomId === roomId));
     const listed = body.items.find((item) => item.roomId === roomId);
     assert.equal(listed.inviteCode, room.rows[0].invite_code);
+    assert.equal(listed.creationType, "murder_mystery");
     assert.ok(listed.roleCount >= 1);
     assert.ok("worldCoverUrl" in listed);
   } finally {

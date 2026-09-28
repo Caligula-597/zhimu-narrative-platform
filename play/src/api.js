@@ -249,7 +249,6 @@ export const api = {
       method: "POST",
       body: { body }
     }),
-  joinOfficialExample: () => request("/platform/official-example/join", { method: "POST", body: {} }),
   latestRecap: (roomId) => request(`/rooms/${roomId}/recap/latest`),
   getRecap: (roomId, recapId) => request(`/rooms/${roomId}/recaps/${recapId}`),
   recapLibrary: (filters = {}) => {

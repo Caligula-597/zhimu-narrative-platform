@@ -3,12 +3,12 @@ export async function runPlayStartup(ctx) {
     state, api, render, setBusy, setToast, formatApiError, normalizeUser,
     setSessionToken, cleanAuthUrl, loadSessionUser, ensureSession,
     loadAuthConfig, loadPlatform, loadPublicRooms, loadDmConversations,
-    loadPlazaPosts, loadFriends, loadPlazaThread, handleJoinOfficial,
+    loadPlazaPosts, loadFriends, loadPlazaThread,
     handleLookupInvite, refreshHome, loadRecapSummary, syncPlatformStream,
     normalizeInviteCode, isUuid, persistRoom, resolveInitialRoute
   } = ctx;
   const params = new URLSearchParams(window.location.search);
-  const { joinCode, wantOfficial } = resolveInitialRoute({
+  const { joinCode } = resolveInitialRoute({
     state, params, normalizeInviteCode, isUuid, persistRoom
   });
 
@@ -30,7 +30,7 @@ export async function runPlayStartup(ctx) {
     if (state.user?.id && state.view === "auth" && ["login", "register"].includes(state.authMode)) {
       state.view = state.roomId ? "game" : (state.joinPreview ? "join" : "landing");
     }
-    const shouldCreateGuest = state.view !== "auth" || Boolean(joinCode) || wantOfficial || Boolean(state.roomId);
+    const shouldCreateGuest = state.view !== "auth" || Boolean(joinCode) || Boolean(state.roomId);
     if (shouldCreateGuest && !state.user?.id) await ensureSession();
     if (state.pendingVerifyToken) {
       try { await ctx.handleEmailVerify(state.pendingVerifyToken); }
@@ -42,8 +42,7 @@ export async function runPlayStartup(ctx) {
     if (state.view === "friends") await loadFriends({ silent: true });
     if (state.view === "messages") await loadDmConversations({ silent: true });
     if (state.view === "plaza-thread" && state.plazaPostId) await loadPlazaThread({ silent: true });
-    if (wantOfficial) await handleJoinOfficial({ silent: true });
-    else if (joinCode) {
+    if (joinCode) {
       state.inviteCode = joinCode;
       await handleLookupInvite({ silent: true });
     } else if (state.roomId && state.view === "game") {

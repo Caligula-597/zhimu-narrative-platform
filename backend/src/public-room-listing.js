@@ -16,11 +16,19 @@ export async function listPublicRooms({ limit = 24 } = {}) {
             w.id AS world_id,
             w.name AS world_name,
             w.summary AS world_summary,
+            COALESCE(NULLIF(w.settings->'narrativeProfile'->>'creationType', ''), NULLIF(w.settings->>'creationType', ''), CASE WHEN w.settings->>'worldMode' = 'campaign' THEN 'tabletop_rpg' ELSE 'murder_mystery' END) AS creation_type,
             COALESCE((
               SELECT profile.display_name FROM user_portal_profiles profile
               WHERE profile.user_id = u.id AND profile.portal = 'host'
             ), u.display_name) AS host_display_name,
-            (SELECT COUNT(*)::int FROM role_slots rs WHERE rs.world_id = w.id) AS role_count,
+            GREATEST(
+              (SELECT COUNT(*)::int FROM role_slots rs WHERE rs.world_id = w.id),
+              CASE
+                WHEN COALESCE(NULLIF(w.settings->'narrativeProfile'->>'creationType', ''), NULLIF(w.settings->>'creationType', ''), CASE WHEN w.settings->>'worldMode' = 'campaign' THEN 'tabletop_rpg' ELSE 'murder_mystery' END) = 'board_game'
+                THEN jsonb_array_length(COALESCE(w.settings->'boardGameDesign'->'seats', '[]'::jsonb))
+                ELSE 0
+              END
+            ) AS role_count,
             (SELECT COUNT(*)::int
              FROM room_members rm
              WHERE rm.room_id = r.id
@@ -40,7 +48,13 @@ export async function listPublicRooms({ limit = 24 } = {}) {
      WHERE r.public_listing = true
        AND w.status <> 'archived'
        AND r.status <> 'completed'
-       AND EXISTS (SELECT 1 FROM role_slots rs WHERE rs.world_id = w.id)
+       AND (
+         EXISTS (SELECT 1 FROM role_slots rs WHERE rs.world_id = w.id)
+         OR (
+           COALESCE(NULLIF(w.settings->'narrativeProfile'->>'creationType', ''), NULLIF(w.settings->'creationType', ''), CASE WHEN w.settings->>'worldMode' = 'campaign' THEN 'tabletop_rpg' ELSE 'murder_mystery' END) = 'board_game'
+           AND jsonb_array_length(COALESCE(w.settings->'boardGameDesign'->'seats', '[]'::jsonb)) > 0
+         )
+       )
      ORDER BY r.updated_at DESC
      LIMIT $1`,
     [safeLimit]
@@ -53,6 +67,7 @@ export async function listPublicRooms({ limit = 24 } = {}) {
     roomStatus: row.room_status,
     updatedAt: row.updated_at,
     worldId: row.world_id,
+    creationType: row.creation_type,
     worldName: row.world_name,
     worldSummary: row.world_summary,
     worldCoverUrl: row.has_cover ? worldCoverApiPath(row.world_id) : null,

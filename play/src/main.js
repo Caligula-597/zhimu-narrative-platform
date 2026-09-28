@@ -211,12 +211,11 @@ const {
   refreshHome,
   loadPublicRooms,
   handleLookupInvite,
-  handleJoinRoom,
-  handleJoinOfficial
+  handleJoinRoom
 } = createRoomLifecycleController({
   api, state, render, setBusy, setToast, formatApiError, normalizeInviteCode,
   ensureSession, persistRoom, persistGameSession, isUuid, cleanAuthUrl,
-  setProductMode, hydrateProductModeFromRoom,
+  hydrateProductModeFromRoom,
   pullRoomData, syncRoomStream, syncPlatformStream, disconnectRoomEvents,
   roomEventCtx, pauseVoiceSession,
   loadRecapSummary: (options) => loadRecapSummary(options),
@@ -232,7 +231,7 @@ async function bootstrap() {
     state, api, render, setBusy, setToast, formatApiError, normalizeUser,
     setSessionToken, clearSession, cleanAuthUrl, loadSessionUser, ensureSession,
     loadAuthConfig, loadPlatform, loadPublicRooms, loadDmConversations,
-    loadPlazaPosts, loadFriends, loadPlazaThread, handleJoinOfficial,
+    loadPlazaPosts, loadFriends, loadPlazaThread,
     handleLookupInvite, refreshHome, loadRecapSummary, syncPlatformStream,
     handleEmailVerify, normalizeInviteCode, isUuid, persistRoom, resolveInitialRoute
   });
@@ -425,7 +424,7 @@ app.addEventListener("click", async (event) => {
   })) return;
   if (await handleLazyPlayActionController("session", {
     action, button, event, state, render, normalizeInviteCode, handleLookupInvite,
-    handleJoinRoom, handleJoinOfficial, handleResendVerification, goToLanding,
+    handleJoinRoom, handleResendVerification, goToLanding,
     handleGuestSubmit, handleOAuth, handleLogout, resetVoiceOnLeave,
     disconnectRoomEvents, roomEventCtx, persistRoom, isUuid, syncPlatformStream,
     refreshHome, setToast

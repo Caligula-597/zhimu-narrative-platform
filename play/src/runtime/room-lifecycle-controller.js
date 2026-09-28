@@ -3,7 +3,7 @@ import { productModeForRoom, productModeMeta, productModeMatchesRoom } from "../
 export function createRoomLifecycleController({
   api, state, render, setBusy, setToast, formatApiError, normalizeInviteCode,
   ensureSession, persistRoom, persistGameSession, isUuid, cleanAuthUrl,
-  setProductMode, hydrateProductModeFromRoom,
+  hydrateProductModeFromRoom,
   pullRoomData, syncRoomStream, syncPlatformStream, disconnectRoomEvents,
   roomEventCtx, pauseVoiceSession, loadRecapSummary, loadDmConversations
 }) {
@@ -168,30 +168,8 @@ export function createRoomLifecycleController({
     }
   }
 
-  async function handleJoinOfficial({ silent = false } = {}) {
-    setBusy(true, render);
-    try {
-      setProductMode?.("murder_mystery");
-      await ensureSession();
-      const result = await api.joinOfficialExample();
-      state.inviteCode = result.room?.invite_code || "";
-      if (!state.inviteCode) throw new Error("示例房间创建失败");
-      cleanAuthUrl();
-      await handleLookupInvite({ silent: true });
-      if (!silent) setToast("已创建示例运行房，请选择角色", render);
-    } catch (error) {
-      if (error.code === "EMAIL_NOT_VERIFIED" || error.status === 403) {
-        state.error = "体验官方示例需要登录并验证邮箱。";
-        state.view = "auth";
-      } else if (!silent) setToast(error.message || "无法进入示例", render);
-      else state.error = formatApiError(error, "无法进入官方示例");
-    } finally {
-      setBusy(false, render);
-    }
-  }
-
   return {
     goToLanding, refreshHome, loadPublicRooms, refreshJoinPreview,
-    handleLookupInvite, handleJoinRoom, handleJoinOfficial
+    handleLookupInvite, handleJoinRoom
   };
 }

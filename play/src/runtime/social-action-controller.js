@@ -115,6 +115,10 @@ export async function handlePlaySocialAction(ctx) {
     case "refresh-lobby":
       await loadPublicRooms();
       return true;
+    case "lobby-filter":
+      state.lobbyProductFilter = button.dataset.productMode || "all";
+      render();
+      return true;
     default:
       return false;
   }

@@ -6,13 +6,15 @@ export const PLAYER_PRODUCT_MODES = Object.freeze([
     label: "剧本杀",
     title: "角色剧情与线索",
     description: "阅读分幕、探索场景、管理线索，专注于角色推理。",
+    available: true,
     accent: "plum"
   },
   {
     id: "tabletop_rpg",
     label: "跑团",
-    title: "地图、行动与判定",
-    description: "围绕地图、角色行动、检定和主持节奏展开游戏。",
+    title: "暂未开放",
+    description: "",
+    available: false,
     accent: "blue"
   },
   {
@@ -20,6 +22,7 @@ export const PLAYER_PRODUCT_MODES = Object.freeze([
     label: "桌游",
     title: "牌桌、资源与回合",
     description: "查看公共桌面、手牌、资源、回合和卡牌响应。",
+    available: true,
     accent: "brass"
   }
 ]);

@@ -1,7 +1,7 @@
 export async function handlePlaySessionAction(ctx) {
   const {
     action, button, event, state, render, normalizeInviteCode, handleLookupInvite,
-    handleJoinRoom, handleJoinOfficial, handleResendVerification, goToLanding,
+    handleJoinRoom, handleResendVerification, goToLanding,
     handleGuestSubmit, handleOAuth, handleLogout, resetVoiceOnLeave,
     disconnectRoomEvents, roomEventCtx, persistRoom, isUuid, syncPlatformStream,
     refreshHome, setToast
@@ -27,9 +27,6 @@ export async function handlePlaySessionAction(ctx) {
       return true;
     case "confirm-join":
       await handleJoinRoom();
-      return true;
-    case "join-official":
-      await handleJoinOfficial();
       return true;
     case "resend-verification":
       await handleResendVerification();

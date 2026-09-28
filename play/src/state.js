@@ -61,6 +61,7 @@ export const state = {
   inviteCode: "",
   joinPreview: null,
   publicRooms: null,
+  lobbyProductFilter: "all",
   plazaPosts: null,
   plazaFilter: "all",
   plazaDraftKind: "chat",

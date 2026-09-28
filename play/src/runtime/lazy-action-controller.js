@@ -66,6 +66,7 @@ const definitions = {
       "plaza-join",
       "lobby-join",
       "refresh-lobby"
+      ,"lobby-filter"
     ]),
     load: () => import("./social-action-controller.js"),
     handler: "handlePlaySocialAction"
@@ -124,7 +125,6 @@ const definitions = {
       "start-join",
       "lookup-invite",
       "confirm-join",
-      "join-official",
       "resend-verification",
       "back-landing",
       "guest-continue",

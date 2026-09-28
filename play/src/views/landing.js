@@ -16,7 +16,7 @@ function renderLandingAuthActions() {
     return `
       <div class="landing-actions">
         <button class="btn outline" type="button" data-action="show-auth">登录 / 注册账号</button>
-        <p class="hint">你正在以访客身份浏览；注册后可发帖、加好友并使用官方示例。</p>
+        <p class="hint">你正在以访客身份浏览；注册后可发帖、加好友并加入房间。</p>
       </div>`;
   }
   return `
@@ -24,50 +24,6 @@ function renderLandingAuthActions() {
         <button class="btn outline" type="button" data-action="show-auth">登录 / 注册账号</button>
         <button class="btn quiet" type="button" data-action="guest-continue" ${state.busy ? "disabled" : ""}>以访客身份继续</button>
       </div>`;
-}
-
-function renderOfficialExampleHint(example) {
-  if (!example?.available) return "";
-  if (isRegisteredUser(state.user)) {
-    if (state.user.emailVerified) return "";
-    return `<p class="hint">你的账号尚未验证邮箱，验证后即可进入示例体验。</p>`;
-  }
-  return `<p class="hint">需<strong>登录并验证邮箱</strong>后，系统会为你创建独立运行房并进入选角。</p>`;
-}
-
-function renderOfficialExampleCard() {
-  const example = state.platform?.officialExample;
-  if (!example?.configured) {
-    if (state.busy && !state.platform) {
-      return `
-    <article class="entry-card entry-card-demo entry-card-placeholder" aria-busy="true">
-      <div class="entry-card-head">
-        <p class="eyebrow">无需邀请码</p>
-        <h3>官方示例剧本</h3>
-      </div>
-      <p class="entry-card-lede muted">正在加载示例配置…</p>
-      <div class="entry-card-skeleton" aria-hidden="true"></div>
-    </article>`;
-    }
-    return "";
-  }
-  const available = example.available;
-  return `
-    <article class="entry-card entry-card-demo ${available ? "" : "is-disabled"}">
-      <div class="entry-card-head">
-        <p class="eyebrow">无需邀请码</p>
-        <h3>${escapeHtml(example.name || "官方示例剧本杀")}</h3>
-      </div>
-      <p class="entry-card-lede">${escapeHtml(example.summary || "快速体验玩家阅读、探索与线索流程。")}</p>
-      <dl class="entry-meta">
-        <div><dt>角色</dt><dd>${example.roleCount || 0} 个席位</dd></div>
-        <div><dt>适合</dt><dd>第一次了解织幕的玩家</dd></div>
-      </dl>
-      ${available
-        ? `<button class="btn primary full" type="button" data-action="join-official" data-testid="join-official" ${state.busy ? "disabled" : ""}>进入示例体验</button>`
-        : `<p class="hint warn">${escapeHtml(example.unavailableReason || "示例暂不可用")}</p>`}
-      ${renderOfficialExampleHint(example)}
-    </article>`;
 }
 
 function renderProductModeSelector() {
@@ -81,27 +37,30 @@ function renderProductModeSelector() {
         </div>
         <span class="player-mode-current">当前：${escapeHtml(selectedMode.label)}</span>
       </div>
-      <p class="muted">这是统一的玩家入口。选择只决定你看到哪套玩家工作区，邀请码只负责进入对应房间。</p>
+      <p class="muted">三个产品入口分开显示。选择已完成的玩法后，再输入对应房间的邀请码。</p>
       <div class="player-mode-grid" role="list" aria-label="选择玩家模式">
-        ${PLAYER_PRODUCT_MODES.map((mode) => `
-          <button
-            class="player-mode-card ${mode.accent} ${state.productMode === mode.id ? "is-selected" : ""}"
-            type="button"
-            data-action="select-product-mode"
-            data-product-mode="${mode.id}"
-            aria-pressed="${state.productMode === mode.id}"
-            role="listitem">
-            <span class="player-mode-label">${escapeHtml(mode.label)}</span>
-            <strong>${escapeHtml(mode.title)}</strong>
-            <span>${escapeHtml(mode.description)}</span>
-          </button>`).join("")}
+        ${PLAYER_PRODUCT_MODES.map((mode) => mode.available === false
+          ? `<div class="player-mode-card ${mode.accent} is-unavailable" role="listitem" aria-disabled="true">
+              <span class="player-mode-label">${escapeHtml(mode.label)}</span>
+              <strong>${escapeHtml(mode.title)}</strong>
+            </div>`
+          : `<button
+              class="player-mode-card ${mode.accent} ${state.productMode === mode.id ? "is-selected" : ""}"
+              type="button"
+              data-action="select-product-mode"
+              data-product-mode="${mode.id}"
+              aria-pressed="${state.productMode === mode.id}"
+              role="listitem">
+              <span class="player-mode-label">${escapeHtml(mode.label)}</span>
+              <strong>${escapeHtml(mode.title)}</strong>
+              <span>${escapeHtml(mode.description)}</span>
+            </button>`).join("")}
       </div>
-      <p class="hint">进入房间前如果模式不匹配，系统会明确提示你切换，不会偷偷替你切页面。</p>
+      <p class="hint">房间列表也会按玩法分区；未完成的玩法不会展示虚构功能。</p>
     </section>`;
 }
 
 export function renderLanding() {
-  const example = state.platform?.officialExample;
   const openCount = state.publicRooms?.total || 0;
   return `
     <section class="landing-shell">
@@ -113,14 +72,13 @@ export function renderLanding() {
         <div class="landing-hero">
           <p class="eyebrow">PLAYER · 纯玩家视角</p>
           <h1>先选玩法，再进入你的房间</h1>
-          <p class="lede">织幕玩家端是一个统一入口：你可以进入<strong>剧本杀、跑团或桌游</strong>。先选择这次的玩法，再输入邀请码；邀请码只负责找到房间。</p>
+          <p class="lede">织幕玩家端把<strong>剧本杀、跑团、桌游</strong>分开呈现。先选择已开放的玩法，再输入对应房间的邀请码。</p>
         </div>
       </div>
 
       ${renderProductModeSelector()}
 
       <div class="entry-grid entry-grid-priority">
-        ${renderOfficialExampleCard()}
         <article class="entry-card entry-card-primary">
           <div class="entry-card-head">
             <p class="eyebrow">我有邀请码</p>
@@ -179,7 +137,6 @@ export function renderLanding() {
           <li>把邀请码或 <code>play.getzhimu.com/?join=邀请码</code> 链接发给玩家</li>
           <li>每位玩家选择<strong>不同的角色席位</strong>，进入后只能看到自己的私人分幕与线索</li>
         </ul>
-        ${example?.available ? `<button class="btn outline" type="button" data-action="join-official">还没有邀请码？先体验官方示例</button>` : ""}
       </section>
 
       ${renderLandingAuthActions()}
