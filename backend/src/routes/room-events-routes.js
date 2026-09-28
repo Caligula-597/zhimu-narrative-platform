@@ -22,6 +22,9 @@ export async function registerRoomEventsRoutes(app) {
       Connection: "keep-alive",
       "X-Accel-Buffering": "no"
     });
+    reply.raw.flushHeaders?.();
+    reply.raw.setTimeout?.(0);
+    reply.raw.socket?.setKeepAlive?.(true, 25000);
 
     let closed = false;
     let unsubscribe = () => {};

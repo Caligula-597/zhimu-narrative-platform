@@ -1,5 +1,8 @@
 const DEFAULT_MAX_BUFFERED_BYTES = 1024 * 1024;
-const DEFAULT_MAX_CONNECTION_AGE_MS = 5 * 60 * 1000;
+// Long enough that a normal table session does not look like a recurring
+// disconnect. The client still reconnects with Last-Event-ID when a proxy or
+// deploy rotates the socket earlier.
+const DEFAULT_MAX_CONNECTION_AGE_MS = 20 * 60 * 1000;
 
 export function resolveSseMaxBufferedBytes(raw = process.env.SSE_MAX_BUFFERED_BYTES) {
   const value = Number(raw ?? DEFAULT_MAX_BUFFERED_BYTES);

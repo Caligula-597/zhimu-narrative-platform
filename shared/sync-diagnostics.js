@@ -80,6 +80,7 @@ export function markSyncError(current, error, meta = {}) {
     : globalThis.navigator?.onLine === false ? "offline" : "stream_error";
   return {
     ...previous,
+    status: globalThis.navigator?.onLine === false ? "offline" : "reconnecting",
     connected: false,
     catchUpPending: false,
     reason: meta.reason || reason,

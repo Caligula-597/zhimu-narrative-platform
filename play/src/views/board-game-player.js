@@ -28,6 +28,46 @@ function phase() {
   return catalog().phases[current?.phaseIndex || 0] || null;
 }
 
+function rulebook() {
+  return catalog().rulebook || {};
+}
+
+function phaseIcon(value) {
+  const text = `${value?.id || ""} ${value?.label || ""}`.toLowerCase();
+  if (/航|route|move|travel/.test(text)) return "↗";
+  if (/建设|build|construct|工坊/.test(text)) return "⌂";
+  if (/资源|远征|research|trade|market/.test(text)) return "✦";
+  if (/战|combat|attack/.test(text)) return "⚔";
+  return "●";
+}
+
+function actionIcon(action) {
+  const kind = String(action?.kind || "").toLowerCase();
+  if (kind === "move") return "↗";
+  if (["gain", "draw", "draft"].includes(kind)) return "＋";
+  if (["control", "place"].includes(kind)) return "⌂";
+  if (["mechanism", "play"].includes(kind)) return "✦";
+  if (["roll", "bid"].includes(kind)) return "◈";
+  return "—";
+}
+
+function renderRules() {
+  const book = rulebook();
+  const phases = catalog().phases || [];
+  const title = catalog().title || state.home?.room?.name || "线上桌游";
+  const componentCount = (catalog().components || []).reduce((sum, component) => sum + (Number(component.quantity) || 1), 0);
+  return `<section class="board-player-rules"><div class="board-player-rules-head"><div><span class="eyebrow">HOW TO PLAY</span><h2>${escapeHtml(title)}</h2><p>${escapeHtml(catalog().designGoal || "先读懂目标、回合结构和结算条件，再开始行动。")}</p></div><div class="board-player-rule-stats"><span><strong>${Number(catalog().playerCount?.min) || 1}—${Number(catalog().playerCount?.max) || 1}</strong>人</span><span><strong>${Number(catalog().playTimeMinutes) || "—"}</strong>分钟</span><span><strong>${componentCount}</strong>件组件</span></div></div><div class="board-player-rule-columns"><article><span class="board-player-rule-label">获胜目标</span><p>${escapeHtml(book.objective || "按规则完成终局结算。")}</p></article><article><span class="board-player-rule-label">开局准备</span><p>${escapeHtml(book.setup || "等待牌局初始化。")}</p></article><article><span class="board-player-rule-label">一轮怎么走</span><p>${escapeHtml(book.turnStructure || "按当前流程依次完成行动。")}</p></article><article><span class="board-player-rule-label">结束与胜负</span><p>${escapeHtml(book.endCondition || "满足终局条件后结算分数。")}</p></article></div><div class="board-player-phase-rail">${phases.map((item, index) => `<div class="board-player-phase-step ${item.id === phase()?.id ? "is-current" : index < Number(publicState()?.phaseIndex || 0) ? "is-done" : ""}"><span>${phaseIcon(item)}</span><div><strong>${index + 1}. ${escapeHtml(item.label || item.id)}</strong><small>${escapeHtml(item.description || (item.mode === "simultaneous" ? "同时选择，统一结算" : "按席位行动"))}</small></div></div>`).join("")}</div><details class="board-player-rules-details"><summary>查看完整规则说明</summary><div><p><strong>玩家行动：</strong>${escapeHtml(book.playerActions || "按行动卡说明执行。")}</p><p><strong>平局处理：</strong>${escapeHtml(book.tieBreak || "按规则中的次级指标处理。")}</p><p><strong>线上提示：</strong>每次操作都会由服务器校验并同步；倒计时结束时，系统会执行该阶段的默认处理。</p></div></details></section>`;
+}
+
+function renderResources() {
+  const current = publicState() || {};
+  const seatIndex = Number(viewer()?.seatIndex);
+  const values = current.playerValues?.[seatIndex] || {};
+  const variables = (catalog().variables || []).filter((variable) => variable.scope === "player");
+  if (!variables.length) return "";
+  return `<section class="board-player-resource-panel"><div class="board-player-panel-head"><div><span class="eyebrow">YOUR ECONOMY</span><h2>资源面板</h2></div><span class="board-player-private-badge">席位 ${seatIndex + 1}</span></div><div class="board-player-resource-grid">${variables.map((variable) => { const value = Number(values[variable.id] ?? 0); const max = Number(variable.max) > Number(variable.min) ? Number(variable.max) : Math.max(value, 1); const percent = Math.max(0, Math.min(100, (value - Number(variable.min || 0)) / (max - Number(variable.min || 0)) * 100)); return `<div class="board-player-resource"><div><span>${escapeHtml(variable.label)}</span><strong>${Number.isFinite(value) ? value : 0}</strong></div><div class="board-player-resource-track"><i style="width:${percent}%"></i></div></div>`; }).join("")}</div></section>`;
+}
+
 function secondsLeft() {
   const deadlineAt = Number(runtime()?.snapshot?.deadline?.deadlineAt);
   return Number.isFinite(deadlineAt) ? Math.max(0, Math.ceil((deadlineAt - Date.now()) / 1000)) : 0;
@@ -71,7 +111,7 @@ function renderActionCard(action, { response = false } = {}) {
     ? `<label class="board-player-control"><span>牌</span><select data-board-game-card>${viewer().hand.map((card) => `<option value="${escapeHtml(card.id)}">${escapeHtml(card.name || card.id)}</option>`).join("")}</select></label>`
     : "";
   return `<article class="board-player-action-card ${response ? "is-response" : ""}">
-    <div><span class="board-player-action-kind">${escapeHtml(response ? "响应" : action.kind || "行动")}</span><h3>${escapeHtml(action.label || action.id)}</h3><p>${escapeHtml(action.description || "执行这项行动，结算结果会同步给全桌。")}</p></div>
+    <div class="board-player-action-title"><span class="board-player-action-icon">${actionIcon(action)}</span><div><span class="board-player-action-kind">${escapeHtml(response ? "响应" : action.kind || "行动")}</span><h3>${escapeHtml(action.label || action.id)}</h3></div></div><p>${escapeHtml(action.description || "执行这项行动，结算结果会同步给全桌。")}</p>
     ${renderTarget(action)}
     ${cardPicker}
     ${action.kind === "bid" ? `<label class="board-player-control"><span>出价</span><input type="number" min="0" max="999999" value="0" data-board-game-bid></label>` : ""}
@@ -82,11 +122,10 @@ function renderActionCard(action, { response = false } = {}) {
 function renderPublicBoard() {
   const current = publicState() || {};
   const nodes = Object.keys(current.owners || {});
-  return `<section class="board-player-panel board-player-map"><div class="board-player-panel-head"><div><span class="eyebrow">PUBLIC BOARD</span><h2>公共桌面</h2></div><span class="board-player-sync">修订 ${Number(runtime()?.snapshot?.revision) || 0}</span></div><div class="board-player-node-grid">${nodes.length ? nodes.map((id) => {
-    const node = catalog().nodes.find((candidate) => candidate.id === id);
-    const owner = current.owners[id];
-    return `<div class="board-player-node"><strong>${escapeHtml(node?.label || id)}</strong><span>${owner == null ? "未占领" : `席位 ${Number(owner) + 1}`}</span></div>`;
-  }).join("") : `<p class="board-player-muted">当前设计没有公开区域。</p>`}</div></section>`;
+  const mapNodes = catalog().nodes || [];
+  const mapEdges = catalog().edges || [];
+  const nodeById = new Map(mapNodes.map((node) => [node.id, node]));
+  return `<section class="board-player-panel board-player-map"><div class="board-player-panel-head"><div><span class="eyebrow">PUBLIC BOARD</span><h2>公共桌面</h2><p>地图、路线和席位控制权对全桌公开。</p></div><span class="board-player-sync">修订 ${Number(runtime()?.snapshot?.revision) || 0}</span></div><div class="board-player-board-visual"><svg viewBox="0 0 100 100" role="img" aria-label="公共地图">${mapEdges.map((edge) => { const from = nodeById.get(edge.from); const to = nodeById.get(edge.to); return from && to ? `<line x1="${from.x}" y1="${from.y}" x2="${to.x}" y2="${to.y}" />` : ""; }).join("")}${mapNodes.map((node) => { const owner = current.owners?.[node.id]; return `<g class="board-player-map-node ${owner == null ? "" : "is-owned"}" transform="translate(${node.x} ${node.y})"><circle r="5"></circle><text y="10">${escapeHtml(node.label)}</text><text y="-8" class="board-player-map-owner">${owner == null ? "开放" : `席位${Number(owner) + 1}`}</text></g>`; }).join("")}</svg></div><div class="board-player-board-legend"><span><i class="is-open"></i>开放区域</span><span><i class="is-owned"></i>已控制</span><span>${nodes.length} 个可见区域</span></div></section>`;
 }
 
 function renderScoreboard() {
@@ -123,7 +162,7 @@ export function renderBoardGamePlayer() {
     return `<section class="board-player-shell"><div class="board-player-empty"><span class="eyebrow">BOARD GAME TABLE</span><h1>桌游牌桌</h1><p>${escapeHtml(state.boardGameRuntimeError || "正在读取桌游运行态…")}</p><div class="board-player-loader"></div></div></section>`;
   }
   const current = publicState() || {};
-  return `<section class="board-player-shell"><header class="board-player-header"><div><span class="eyebrow">ONLINE BOARD GAME · SEAT ${Number(viewer()?.seatIndex) + 1}</span><h1>${escapeHtml(state.home?.room?.name || "实时桌游牌桌")}</h1><p>剧本杀、跑团、桌游各自使用独立玩家界面。你的手牌与派系信息只在本席位显示。</p></div><div class="board-player-header-meta"><span>第 ${Number(current.round) || 1} 轮</span><span>${escapeHtml(phase()?.label || "等待阶段")}</span><span class="${state.roomEventsConnected ? "is-live" : ""}">${state.roomEventsConnected ? "实时同步" : "轮询恢复"}</span></div></header><div class="board-player-grid">${renderScoreboard()}${renderPrivatePanel()}${renderPublicBoard()}${renderActionPanel()}</div></section>`;
+  return `<section class="board-player-shell"><header class="board-player-header"><div><span class="eyebrow">ONLINE BOARD GAME · SEAT ${Number(viewer()?.seatIndex) + 1}</span><h1>${escapeHtml(state.home?.room?.name || "实时桌游牌桌")}</h1><p>先看规则与当前阶段，再从行动卡选择；所有结算由服务器确认后同步给全桌。</p></div><div class="board-player-header-meta"><span>第 ${Number(current.round) || 1} 轮</span><span>${escapeHtml(phase()?.label || "等待阶段")}</span><span class="${state.roomEventsConnected ? "is-live" : ""}">${state.roomEventsConnected ? "实时同步" : "状态恢复中"}</span></div></header>${renderRules()}<div class="board-player-grid">${renderScoreboard()}${renderResources()}${renderPrivatePanel()}${renderPublicBoard()}${renderActionPanel()}</div></section>`;
 }
 
 export function buildBoardGameCommand(button, form) {

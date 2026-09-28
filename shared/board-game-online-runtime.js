@@ -21,6 +21,37 @@ function projectBoardGameCatalog(designValue = {}) {
   const phases = Array.isArray(engine.phases) ? engine.phases : [];
   const nodes = Array.isArray(engine.map?.nodes) ? engine.map.nodes : [];
   return {
+    title: text(design.title, 160),
+    designGoal: text(design.designGoal, 2400),
+    playerCount: {
+      min: integer(design.playerCount?.min, 1, 1, 99),
+      max: integer(design.playerCount?.max, 1, 1, 99)
+    },
+    playTimeMinutes: integer(design.playTimeMinutes, 0, 0, 10080),
+    rulebook: design.rulebook && typeof design.rulebook === "object" ? {
+      objective: text(design.rulebook.objective, 4000),
+      setup: text(design.rulebook.setup, 8000),
+      turnStructure: text(design.rulebook.turnStructure, 8000),
+      playerActions: text(design.rulebook.playerActions, 8000),
+      endCondition: text(design.rulebook.endCondition, 4000),
+      tieBreak: text(design.rulebook.tieBreak, 2400),
+      notes: text(design.rulebook.notes, 8000)
+    } : null,
+    components: Array.isArray(design.components) ? design.components.map((component) => ({
+      id: text(component?.id, 120),
+      type: text(component?.type, 60),
+      name: text(component?.name, 160),
+      quantity: integer(component?.quantity, 1, 1, 9999),
+      description: text(component?.description, 1200),
+      playerAction: text(component?.playerAction, 1200)
+    })) : [],
+    variables: Array.isArray(design.variables) ? design.variables.map((variable) => ({
+      id: text(variable?.id, 120),
+      label: text(variable?.label || variable?.id, 160),
+      scope: text(variable?.scope, 40),
+      min: integer(variable?.min, 0, -999999, 999999),
+      max: integer(variable?.max, 0, -999999, 999999)
+    })) : [],
     phases: phases.map((phase) => ({
       id: text(phase?.id, 120),
       label: text(phase?.label, 160),
@@ -40,7 +71,10 @@ function projectBoardGameCatalog(designValue = {}) {
     nodes: nodes.map((node) => ({
       id: text(node?.id, 120),
       label: text(node?.label || node?.name || node?.id, 160),
-      kind: text(node?.kind, 60)
+      kind: text(node?.kind || node?.terrain, 60),
+      x: integer(node?.x, 50, 0, 100),
+      y: integer(node?.y, 50, 0, 100),
+      scoreValue: integer(node?.scoreValue, 0, -999, 999)
     })),
     edges: Array.isArray(engine.map?.edges) ? engine.map.edges.map((edge) => ({
       id: text(edge?.id, 120),
