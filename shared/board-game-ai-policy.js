@@ -123,6 +123,7 @@ function targetValue(design, state, action, targetId, seatIndex, profile) {
 function affordability(design, state, action, seatIndex, cardId) {
   if (action.cost > 0 && variableValue(design, state, seatIndex, action.resourceKey) < action.cost) return false;
   if (["draw", "play"].includes(action.kind) && variableValue(design, state, seatIndex, action.resourceKey) < Math.abs(action.amount || 1)) return false;
+  if (action.kind === "contribute" && variableValue(design, state, seatIndex, action.resourceKey) < Math.max(1, Math.abs(action.amount || 1))) return false;
   if (action.kind === "play" && !(state.hands?.[seatIndex] || []).some((card) => card.id === cardId)) return false;
   if (action.kind === "draft" && action.draftMode === "hand" && !(state.hands?.[seatIndex] || []).some((card) => card.id === cardId)) return false;
   if (action.kind === "draft" && action.draftMode !== "hand" && !(state.market || []).some((card) => card.id === cardId)) return false;

@@ -72,6 +72,7 @@ export const BOARD_GAME_ENGINE_CAPABILITIES = Object.freeze([
   { id: "action.roll", label: "风险掷骰", status: "supported", note: "使用确定性随机掷骰推进本轮风险，允许继续或停手。" },
   { id: "action.stop", label: "风险停手", status: "supported", note: "把当前风险进度安全结算为个人分数。" },
   { id: "action.contribute", label: "投入公共目标", status: "supported", note: "席位将资源原子投入共享危机池，并写入公开响应。" },
+  { id: "action.place_tile", label: "地块放置", status: "supported", note: "从席位私有地块手牌中取出地块，按邻接与拓扑规则放入空置格位。" },
   { id: "action.reveal", label: "公开对象", status: "supported", note: "支持公共、席位私密和团队私密揭示，并在玩家投影中按权限返回。" },
   { id: "effects.response_standard", label: "标准效果响应链", status: "supported", note: "支持作用域、条件、优先级、延迟时机、重复、连锁、可见性和逐条 before/after 审计。" },
   { id: "timing.response_window", label: "玩家反应窗口", status: "supported", note: "顺序行动后的玩家响应支持最多三层嵌套，带服务端截止时间、默认响应、外层恢复和超时审计。" },

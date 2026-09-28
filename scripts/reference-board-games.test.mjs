@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { BOARD_GAME_REFERENCE_CATALOG, createRouteNetworkDesign, createSkylineDraftDesign, createStormClimbDesign } from "../shared/reference-board-game-presets.js";
+import { createEmberAuctionDesign, createMosaicFrontierDesign, createTideCrisisDesign } from "../shared/new-board-game-presets.js";
 import { compileBoardGameEngine, createBoardGameRuntimeState, executeBoardGameAction, advanceBoardGameRuntime } from "../shared/board-game-engine.js";
 
 test("参考机制桌游全部通过引擎编译并提供说明书", () => {
@@ -60,4 +61,42 @@ test("风险推进使用确定性骰面，继续掷骰不换席，停手才结�
   terminal.playerValues[0].score = 30;
   terminal.resolved = true;
   assert.equal(advanceBoardGameRuntime(design, terminal).ended, true);
+});
+
+test("新增密封竞价桌游按第二价格结算并触发遗物效果", () => {
+  const design = createEmberAuctionDesign();
+  let state = createBoardGameRuntimeState(design, 3);
+  const bids = [5, 3, 2];
+  for (let seatIndex = 0; seatIndex < 3; seatIndex += 1) {
+    const result = executeBoardGameAction(design, state, { actionId: "action-ember-bid", seatIndex, bidAmount: bids[seatIndex] });
+    assert.equal(result.ok, true);
+    state = result.state;
+  }
+  assert.equal(state.claimedCards[0].length, 1);
+  assert.equal(state.playerValues[0].coins, 7);
+  assert.ok(state.playerValues[0].score > 0);
+  assert.equal(state.auctionLog[0].pricePaid, 3);
+});
+
+test("新增合作危机桌游把投入写入公共池并减少个人补给", () => {
+  const design = createTideCrisisDesign();
+  const state = createBoardGameRuntimeState(design, 3);
+  const result = executeBoardGameAction(design, state, { actionId: "action-tide-contribute", seatIndex: 0 });
+  assert.equal(result.ok, true);
+  assert.equal(result.state.sharedPools.rescue, 1);
+  assert.equal(result.state.playerValues[0].supply, 4);
+  assert.ok(result.state.responseEvents.some((event) => event.operation === "contribute"));
+});
+
+test("新增六角拼图桌游隔离私有地块手牌并完成相邻放置", () => {
+  const design = createMosaicFrontierDesign();
+  const state = createBoardGameRuntimeState(design, 2);
+  assert.equal(state.hands[0].length, 4);
+  assert.equal(state.hands[1].length, 4);
+  const targetId = design.engine.map.nodes[0].id;
+  const result = executeBoardGameAction(design, state, { actionId: "action-mosaic-place", targetId, seatIndex: 0 });
+  assert.equal(result.ok, true);
+  assert.equal(result.state.tilePlacements[targetId].placedBy, 0);
+  assert.equal(result.state.hands[0].length, 3);
+  assert.equal(result.state.hands[1].length, 4);
 });

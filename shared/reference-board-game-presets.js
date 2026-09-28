@@ -1,4 +1,5 @@
 import { normalizeBoardGameDesign } from "./board-game-design.js";
+import { NEW_BOARD_GAME_CATALOG, createEmberAuctionDesign, createMosaicFrontierDesign, createTideCrisisDesign } from "./new-board-game-presets.js";
 
 const entry = (id, name, description, quantity = 1, effects = [], tags = []) => ({ id, name, description, quantity, effects, tags });
 
@@ -353,7 +354,8 @@ export const BOARD_GAME_REFERENCE_CATALOG = Object.freeze([
   { id: "route-network", label: "星港商路", summary: "路线争夺 · 长度计分", create: createRouteNetworkDesign },
   { id: "skyline-draft", label: "天穹城", summary: "公开轮抽 · 引擎构筑", create: createSkylineDraftDesign },
   { id: "storm-climb", label: "风暴峰线", summary: "风险推进 · 继续停手", create: createStormClimbDesign },
-  { id: "dawn-ring-draft", label: "暮环城", summary: "私有手牌轮抽 · 三时代 · 非对称议会", create: createDawnRingDraftDesign }
+  { id: "dawn-ring-draft", label: "暮环城", summary: "私有手牌轮抽 · 三时代 · 非对称议会", create: createDawnRingDraftDesign },
+  ...NEW_BOARD_GAME_CATALOG
 ]);
 
 export function createBoardGameReferencePreset(presetId = "route-network") {
