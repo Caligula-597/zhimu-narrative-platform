@@ -48,6 +48,7 @@ import { callView } from "./view-registry.js";
       case "board-load-last-lighthouse": callView("boardGame", "loadLastLighthouseDesign"); return true;
       case "board-load-preset": callView("boardGame", "loadBoardGamePreset", el?.dataset?.boardPresetId); return true;
       case "board-load-mechanism-preset": callView("boardGame", "loadBoardGameMechanismPreset", el?.dataset?.boardMechanismPresetId); return true;
+      case "board-load-commercial-study": callView("boardGame", "loadBoardGameCommercialStudyPreset", el?.dataset?.boardCommercialStudyId); return true;
       case "board-design-save": void callView("boardGame", "saveBoardGameDesign"); return true;
       default: return false;
     }

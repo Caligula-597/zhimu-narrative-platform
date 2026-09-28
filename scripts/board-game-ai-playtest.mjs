@@ -6,6 +6,7 @@ import {
 } from "../shared/board-game-engine.js";
 import { createBoardGamePreset } from "../shared/board-game-variant-presets.js";
 import { BOARD_GAME_REFERENCE_CATALOG } from "../shared/reference-board-game-presets.js";
+import { COMMERCIAL_STUDY_CATALOG } from "../shared/commercial-study-presets.js";
 import { boardGameAiProfiles, chooseBoardGameAiDecision, projectBoardGameAiState } from "../shared/board-game-ai-policy.js";
 
 const clone = (value) => structuredClone(value);
@@ -235,6 +236,10 @@ function variantDesigns() {
   return ["last-lighthouse-standard", "last-lighthouse-black-tide", "last-lighthouse-trade-route", "last-lighthouse-race"].map((id) => createBoardGamePreset(id));
 }
 
+function commercialStudyDesigns() {
+  return COMMERCIAL_STUDY_CATALOG.filter((entry) => entry.status === "runnable_adapter").map((entry) => entry.create());
+}
+
 function summarizeGames(games) {
   const wins = new Map();
   games.forEach((game) => {
@@ -255,7 +260,7 @@ function summarizeGames(games) {
   };
 }
 
-const designs = [...referenceDesigns(), ...variantDesigns()];
+const designs = [...commercialStudyDesigns(), ...referenceDesigns(), ...variantDesigns()];
 const allReports = [];
 for (const design of designs) {
   const games = [0, 1, 2].map((gameIndex) => runOneGame(design, { gameIndex, seatCount: Math.min(design.playerCount.max, Math.max(2, design.playerCount.min)) }));

@@ -70,7 +70,7 @@
     "verify:isolated:3": "node scripts/verify-full-repeat.mjs --count=3",
     "test:e2e": "playwright test",
     "test:board-game-ai": "node scripts/board-game-ai-playtest.mjs",
-    "test:board-game-acceptance": "node --test scripts/board-game-full-mechanism-acceptance.test.mjs scripts/board-game-engine.test.mjs scripts/board-game-advanced-primitives.test.mjs scripts/board-game-online-runtime.test.mjs scripts/board-game-mechanism-audit.test.mjs",
+    "test:board-game-acceptance": "node --test scripts/board-game-full-mechanism-acceptance.test.mjs scripts/board-game-engine.test.mjs scripts/board-game-advanced-primitives.test.mjs scripts/board-game-online-runtime.test.mjs scripts/board-game-mechanism-audit.test.mjs scripts/board-game-commercial-study.test.mjs",
     "test:board-game-commercial-ai": "node scripts/board-game-commercial-ai-playtest.mjs",
     "test:dominion-study": "node --test scripts/dominion-study-replica.test.mjs",
     "playtest:dominion-study": "node scripts/dominion-study-replica-playtest.mjs",

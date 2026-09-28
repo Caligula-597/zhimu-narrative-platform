@@ -47,6 +47,7 @@ import { BOARD_GAME_COUNCIL_CATALOG, createBoardGameCouncilPreset } from "../../
 import { BOARD_GAME_WORKSHOP_CATALOG, createBoardGameWorkshopPreset } from "../../shared/season-workshop-preset.js";
 import { BOARD_GAME_ARCHIVE_CATALOG, createBoardGameArchivePreset } from "../../shared/echo-archive-preset.js";
 import { BOARD_GAME_REFERENCE_CATALOG, createBoardGameReferencePreset } from "../../shared/reference-board-game-presets.js";
+import { COMMERCIAL_STUDY_CATALOG, createCommercialStudyPreset } from "../../shared/commercial-study-presets.js";
 import { BOARD_GAME_MECHANISM_AXES, boardGameMechanismCoverage } from "../../shared/board-game-mechanism-matrix.js";
 import { BOARD_GAME_MECHANISM_COMPOSITION_RECIPES, composeBoardGameRecipe } from "../../shared/board-game-mechanism-composer.js";
 import { createDominionStudyGame, dispatchDominionCommand } from "../../shared/dominion-study-replica.js";
@@ -418,12 +419,16 @@ function aiDraftPanel(session) {
 }
 
 function boardGamePresetStrip() {
-  return `<section class="board-preset-strip"><div><p class="section-kicker">HORIZONTAL PROTOTYPES</p><strong>同类型横向配置</strong><span>先用同一引擎比较压力、经济与竞速，再进入不同机制。</span></div><div class="board-preset-buttons">${BOARD_GAME_PRESET_CATALOG.map((preset) => `<button type="button" class="secondary-btn" data-action="board-load-preset" data-board-preset-id="${escapeHtml(preset.id)}"><strong>${escapeHtml(preset.label)}</strong><small>${escapeHtml(preset.summary)}</small></button>`).join("")}</div></section>`;
+  return `<section class="board-preset-strip"><div><p class="section-kicker">LEGACY PROTOTYPES</p><strong>既有原创原型</strong><span>保留用于对照和回归测试；商业机制研究库是当前桌游主线。</span></div><div class="board-preset-buttons">${BOARD_GAME_PRESET_CATALOG.map((preset) => `<button type="button" class="secondary-btn" data-action="board-load-preset" data-board-preset-id="${escapeHtml(preset.id)}"><strong>${escapeHtml(preset.label)}</strong><small>${escapeHtml(preset.summary)}</small></button>`).join("")}</div></section>`;
+}
+
+function boardGameCommercialStudyStrip() {
+  return `<section class="board-preset-strip board-commercial-study-strip"><div><p class="section-kicker">COMMERCIAL MECHANISM STUDIES</p><strong>成熟商业机制研究库</strong><span>先按真实商业桌游的核心循环、资源压力、信息边界与终局节奏试玩；名称、文本、美术和具体牌面均为原创适配。</span></div><div class="board-preset-buttons">${COMMERCIAL_STUDY_CATALOG.map((preset) => `<button type="button" class="secondary-btn" data-action="board-load-commercial-study" data-board-commercial-study-id="${escapeHtml(preset.id)}"><strong>${escapeHtml(preset.label)}</strong><small>${escapeHtml(preset.sourceGame)} · ${escapeHtml(preset.family)}</small><em>${escapeHtml(preset.status === "runnable_adapter" ? "可直接试玩" : "拆解中")}</em></button>`).join("")}</div></section>`;
 }
 
 function boardGameMechanismStrip() {
   const presets = [...BOARD_GAME_MECHANISM_CATALOG, ...BOARD_GAME_COUNCIL_CATALOG, ...BOARD_GAME_WORKSHOP_CATALOG, ...BOARD_GAME_ARCHIVE_CATALOG, ...BOARD_GAME_REFERENCE_CATALOG];
-  return `<section class="board-preset-strip board-mechanism-strip"><div><p class="section-kicker">NEW MECHANISM LAB</p><strong>不同机制实验</strong><span>每款原型都必须有完整说明书，并且只能载入已通过引擎能力检查的机制。</span></div><div class="board-preset-buttons">${presets.map((preset) => `<button type="button" class="secondary-btn" data-action="board-load-mechanism-preset" data-board-mechanism-preset-id="${escapeHtml(preset.id)}"><strong>${escapeHtml(preset.label)}</strong><small>${escapeHtml(preset.summary)}</small></button>`).join("")}</div></section>`;
+  return `<section class="board-preset-strip board-mechanism-strip"><div><p class="section-kicker">ORIGINAL EXPERIMENTS</p><strong>原创实验区</strong><span>只有完成商业机制研究和全机制验收后，原创内容才进入正式产品线。</span></div><div class="board-preset-buttons">${presets.map((preset) => `<button type="button" class="secondary-btn" data-action="board-load-mechanism-preset" data-board-mechanism-preset-id="${escapeHtml(preset.id)}"><strong>${escapeHtml(preset.label)}</strong><small>${escapeHtml(preset.summary)}</small></button>`).join("")}</div></section>`;
 }
 
 function boardGameMechanismMatrix() {
@@ -477,6 +482,7 @@ export function boardGame() {
   return `<div class="board-game-workbench" data-board-workbench>
     <header class="board-game-header"><div><p class="section-kicker">BOARD GAME WORKBENCH</p><h1>${escapeHtml(world.name)}</h1><p>桌游专属工作台：玩家席位、组件资产、状态规则和可执行试玩在同一份数据里互相引用。</p></div><div class="board-head-actions"><button type="button" class="secondary-btn" data-action="board-load-last-lighthouse">载入《最后灯塔》完整原型</button><button type="button" class="primary-btn ${session.dirty ? "has-changes" : ""}" data-action="board-design-save" data-board-save ${session.saving ? "disabled" : ""}><span data-board-save-label>${session.saving ? "正在保存…" : session.dirty ? "保存更改" : "已保存"}</span></button></div></header>
     ${aiDraftPanel(session)}
+    ${boardGameCommercialStudyStrip()}
     ${boardGamePresetStrip()}
     ${boardGameMechanismStrip()}
     ${boardGameMechanismMatrix()}
@@ -1078,6 +1084,16 @@ export function loadBoardGameMechanismPreset(presetId = "ruins-auction") {
   loadBoardGameDesignPreset(session, createBoardGameArchivePreset(archivePreset.id), archivePreset.label);
 }
 
+export function loadBoardGameCommercialStudyPreset(presetId = "commercial-ticket-route") {
+  const session = initializeSession();
+  const preset = COMMERCIAL_STUDY_CATALOG.find((item) => item.id === presetId) || COMMERCIAL_STUDY_CATALOG[0];
+  if (preset.status !== "runnable_adapter") {
+    showToast(`「${preset.label}」仍在拆解阶段，尚未开放试玩`);
+    return;
+  }
+  loadBoardGameDesignPreset(session, createCommercialStudyPreset(preset.id), `${preset.label}（${preset.sourceGame} 机制适配）`);
+}
+
 function loadBoardGameDesignPreset(session, design, label) {
   if ((session.design.components.length || session.design.seats.length) && !window.confirm("载入完整原型会覆盖当前未保存的桌游设计，是否继续？")) return;
   session.undoDesign = structuredClone(session.design);
@@ -1208,6 +1224,7 @@ registerView("boardGame", {
   loadLastLighthouseDesign,
   loadBoardGamePreset,
   loadBoardGameMechanismPreset,
+  loadBoardGameCommercialStudyPreset,
   generateBoardGameDraft,
   applyBoardGameDraft,
   discardBoardGameDraft,
