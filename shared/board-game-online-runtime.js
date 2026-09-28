@@ -2,6 +2,7 @@ import {
   boardGameEngineSignature,
   advanceBoardGameRuntime,
   expireBoardGameResponseWindow,
+  expireBoardGamePhase,
   executeBoardGameAction
 } from "./board-game-engine.js";
 
@@ -227,7 +228,9 @@ export function applyBoardGameOnlineCommand(design, stateValue, commandValue, op
   const result = command.commandType === "advance"
     ? advanceBoardGameRuntime(design, stateValue)
     : command.commandType === "timeout"
-      ? expireBoardGameResponseWindow(design, stateValue, serverNow)
+      ? (stateValue?.pendingResponseWindow
+        ? expireBoardGameResponseWindow(design, stateValue, serverNow)
+        : expireBoardGamePhase(design, stateValue, serverNow))
       : executeBoardGameAction(design, stateValue, { ...command, serverNow });
   if (!result.ok) return { ...result, state: stateValue };
   const state = clone(result.state);

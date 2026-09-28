@@ -152,7 +152,12 @@ function renderScoreboard() {
   const current = publicState() || {};
   const ownSeat = viewer()?.seatIndex;
   const scores = Array.isArray(current.scores) ? current.scores : [];
-  return `<section class="board-player-panel"><div class="board-player-panel-head"><div><span class="eyebrow">TABLE STATUS</span><h2>全桌状态</h2></div><span class="board-player-turn">当前席位 ${Number(current.activeSeatIndex) + 1}</span></div><div class="board-player-score-grid">${scores.map((score, index) => `<div class="board-player-score ${index === ownSeat ? "is-self" : ""} ${index === current.activeSeatIndex ? "is-active" : ""}"><span>席位 ${index + 1}</span><strong>${Number(score) || 0}</strong><small>${index === ownSeat ? "你的席位" : index === current.activeSeatIndex ? "正在行动" : "等待中"}</small></div>`).join("")}</div></section>`;
+  const scoreVariable = (catalog().variables || []).find((variable) => variable.id === "score")?.id || "score";
+  const visibleScores = Array.from({ length: Number(current.seatCount) || scores.length || 0 }, (_, index) => Number(current.playerValues?.[index]?.[scoreVariable] ?? scores[index] ?? 0));
+  const highScore = visibleScores.length ? Math.max(...visibleScores) : 0;
+  const leaders = visibleScores.map((score, index) => score === highScore ? index + 1 : null).filter(Boolean);
+  const winner = current.ended && leaders.length ? `<div class="board-player-winner"><span>终局结果</span><strong>${leaders.length === 1 ? `席位 ${leaders[0]} 获胜` : `席位 ${leaders.join("、")} 并列获胜`}</strong></div>` : "";
+  return `<section class="board-player-panel"><div class="board-player-panel-head"><div><span class="eyebrow">TABLE STATUS</span><h2>全桌状态</h2>${winner}</div><span class="board-player-turn">当前席位 ${Number(current.activeSeatIndex) + 1}</span></div><div class="board-player-score-grid">${visibleScores.map((score, index) => `<div class="board-player-score ${index === ownSeat ? "is-self" : ""} ${index + 1 === leaders[0] && current.ended ? "is-winner" : ""} ${index === current.activeSeatIndex ? "is-active" : ""}"><span>席位 ${index + 1}</span><strong>${score}</strong><small>${index === ownSeat ? "你的席位" : current.ended && leaders.includes(index + 1) ? "获胜席位" : index === current.activeSeatIndex ? "正在行动" : "等待中"}</small></div>`).join("")}</div></section>`;
 }
 
 function renderPrivatePanel() {
@@ -172,7 +177,9 @@ function renderActionPanel() {
   const parallel = isParallelPhase();
   const waiting = pending ? (responseEligible ? `等待你在 ${secondsLeft()} 秒内响应` : `席位 ${Number(current.activeSeatIndex) + 1} 正在处理响应`) : parallel ? "同时选择阶段：每个席位各自提交一次，之后统一公开" : ownSeat === current.activeSeatIndex ? "轮到你选择行动" : `等待席位 ${Number(current.activeSeatIndex) + 1}`;
   const advance = current.resolved && !current.ended ? `<button type="button" class="btn quiet board-player-advance" data-action="board-game-advance">推进到下一流程</button>` : "";
-  const timeout = pending && secondsLeft() === 0 ? `<button type="button" class="btn quiet board-player-advance" data-action="board-game-timeout">提交超时默认处理</button>` : "";
+  const timeout = secondsLeft() === 0 && !current.resolved
+    ? `<button type="button" class="btn quiet board-player-advance" data-action="board-game-timeout">${pending ? "提交超时默认处理" : "结束等待并执行默认行动"}</button>`
+    : "";
   return `<section class="board-player-panel board-player-actions"><div class="board-player-panel-head"><div><span class="eyebrow">YOUR ACTIONS</span><h2>${escapeHtml(phase()?.label || "行动阶段")}</h2><p>${escapeHtml(waiting)}</p></div><span class="board-player-deadline">${secondsLeft() ? `${secondsLeft()}s` : "同步中"}</span></div>${actions.length ? `<div class="board-player-action-grid">${actions.map((action) => renderActionCard(action, { response: Boolean(pending) })).join("")}</div>` : `<div class="board-player-waiting"><strong>${current.ended ? "本局已结束" : "现在还不是你的操作窗口"}</strong><p>状态会通过房间同步自动更新，不需要刷新页面。</p></div>`}${advance}${timeout}</section>`;
 }
 

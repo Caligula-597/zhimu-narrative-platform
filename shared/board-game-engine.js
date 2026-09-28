@@ -1239,7 +1239,7 @@ function applyPendingResponseAction(design, engine, state, input) {
 export function expireBoardGameResponseWindow(designValue, stateValue, nowValue = Date.now()) {
   const design = record(designValue);
   const engine = normalizeBoardGameEngine(design.engine);
-  const state = clone(stateValue);
+  let state = clone(stateValue);
   normalizeBoardGameAdvancedState(state, state.seatCount);
   const window = state.pendingResponseWindow;
   if (!window) return { ok: false, code: "RESPONSE_WINDOW_NONE", message: "当前没有待处理的反应窗口。", state: stateValue };
@@ -1704,6 +1704,67 @@ export function executeBoardGameAction(designValue, stateValue, input = {}) {
   state.activeSeatIndex = 0;
   addLog(state, `${phase.mode === "reveal" ? "选择已统一公开" : "同时选择已统一结算"}：${resolutions.join("；")}。`, "resolution");
   return { ok: true, state, message: resolutions.join("；"), phaseResolved: true };
+}
+
+function defaultBoardGameSubmission(design, engine, state, seatIndex, excludedCardIds = new Set()) {
+  const phase = currentPhase(engine, state);
+  if (!phase) return null;
+  for (const actionId of phase.actionIds) {
+    const action = actionFor(engine, actionId);
+    if (!action) continue;
+    const targets = action.target === "none" ? [""] : legalBoardGameTargets(design, state, action.id, seatIndex);
+    const cards = action.kind === "draft"
+      ? (action.draftMode === "hand" ? (state.hands?.[seatIndex] || []) : (state.market || []))
+      : action.kind === "play" ? (state.hands?.[seatIndex] || []) : [null];
+    for (const targetId of targets) {
+      for (const card of cards) {
+        const cardId = card?.id || "";
+        if (cardId && excludedCardIds.has(cardId)) continue;
+        const validation = validateAction(design, engine, state, action, targetId, seatIndex, 0, cardId);
+        if (validation.ok) return { seatIndex, actionId: action.id, targetId, cardId, bidAmount: 0 };
+      }
+    }
+  }
+  return null;
+}
+
+/**
+ * Resolve a normal action phase after its server deadline. Missing seats take
+ * the first legal deterministic action; public drafts prefer cards that have
+ * not already been claimed in this submission window.
+ */
+export function expireBoardGamePhase(designValue, stateValue, nowValue = Date.now()) {
+  const design = record(designValue);
+  const engine = normalizeBoardGameEngine(design.engine);
+  let state = clone(stateValue);
+  normalizeBoardGameAdvancedState(state, state.seatCount);
+  if (state.pendingResponseWindow) return expireBoardGameResponseWindow(design, state, nowValue);
+  if (state.resolved || state.ended) return { ok: false, code: "PHASE_ALREADY_RESOLVED", message: "当前阶段已经结束。", state: stateValue };
+  const phase = currentPhase(engine, state);
+  if (!phase) return { ok: false, code: "PHASE_MISSING", message: "当前阶段不存在。", state: stateValue };
+  const details = [];
+  const maxSteps = Math.max(1, state.seatCount * 2 + 2);
+  for (let step = 0; step < maxSteps && !state.resolved && !state.pendingResponseWindow; step += 1) {
+    const seatIndex = integer(state.activeSeatIndex, 0, 0, Math.max(0, state.seatCount - 1));
+    const excluded = new Set(Object.values(state.submissions || {}).map((submission) => submission?.cardId).filter(Boolean));
+    const submission = defaultBoardGameSubmission(design, engine, state, seatIndex, excluded);
+    if (!submission) return { ok: false, code: "PHASE_TIMEOUT_NO_DEFAULT", message: "超时后没有可执行的默认行动。", state: stateValue };
+    const result = executeBoardGameAction(design, state, submission);
+    if (!result.ok) return { ...result, state: stateValue };
+    state = result.state;
+    state.overdueSeats = [...new Set([...(state.overdueSeats || []), seatIndex])];
+    details.push(`席位 ${seatIndex + 1} 自动执行「${actionFor(engine, submission.actionId)?.label || submission.actionId}」`);
+  }
+  if (!state.resolved && !state.pendingResponseWindow) {
+    return { ok: false, code: "PHASE_TIMEOUT_STALLED", message: "超时默认行动未能完成阶段结算。", state: stateValue };
+  }
+  return {
+    ok: true,
+    state,
+    detail: `${details.join("；")}${state.pendingResponseWindow ? "；进入响应窗口" : "；阶段已自动结算"}`,
+    phaseResolved: Boolean(state.resolved),
+    timedOut: true
+  };
 }
 
 function compare(left, operator, right) {

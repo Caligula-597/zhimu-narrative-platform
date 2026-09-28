@@ -3,7 +3,8 @@ import { applyBoardGameOnlineCommand, createBoardGameDeadline, createBoardGameOn
 import { compileBoardGameEngine, createBoardGameRuntimeState } from "../../shared/board-game-engine.js";
 import { normalizeBoardGameDesign } from "../../shared/board-game-design.js";
 
-const DEADLINE_SECONDS = 15;
+const DEADLINE_SECONDS = 30;
+const INITIAL_DEADLINE_SECONDS = 90;
 
 function fail(code, message = code, details = undefined) {
   const error = new Error(message);
@@ -111,7 +112,7 @@ export async function getBoardGameRuntime({ roomId, actorId }) {
         revision: 0,
         lastCommandId: null,
         lastClientSequence: 0,
-        deadline: createBoardGameDeadline(Date.now(), DEADLINE_SECONDS)
+        deadline: createBoardGameDeadline(Date.now(), INITIAL_DEADLINE_SECONDS)
       };
       await persistRoomState(client, room, state);
       queueEvent(roomId, "room.board_game_state_updated", {
@@ -138,7 +139,7 @@ export async function initializeBoardGameRuntime({ roomId, actorId }) {
       revision: 0,
       lastCommandId: null,
       lastClientSequence: 0,
-      deadline: createBoardGameDeadline(Date.now(), DEADLINE_SECONDS)
+      deadline: createBoardGameDeadline(Date.now(), INITIAL_DEADLINE_SECONDS)
     };
     await persistRoomState(client, room, state);
     queueEvent(roomId, "room.board_game_state_updated", {

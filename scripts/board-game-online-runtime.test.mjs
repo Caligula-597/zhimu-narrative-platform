@@ -85,3 +85,19 @@ test("公开轮抽快照向玩家提供市场卡与并行阶段元数据", () =>
   assert.equal(snapshot.publicState.market.length, 4);
   assert.equal(snapshot.viewerStates[0].viewer.hand.length, 0);
 });
+
+test("普通阶段超时会为缺席席位执行默认行动并完成轮抽", () => {
+  const design = createSkylineDraftDesign();
+  const state = createBoardGameRuntimeState(design, 4);
+  const command = createBoardGameOnlineCommand(design, {
+    commandId: "cmd-timeout-draft",
+    commandType: "timeout",
+    clientSequence: 1,
+    seatIndex: 0
+  });
+  const result = applyBoardGameOnlineCommand(design, state, command, { serverNow: 999999 });
+  assert.equal(result.ok, true);
+  assert.equal(result.state.resolved, true);
+  assert.equal(result.state.submissions["0"].cardId !== "", true);
+  assert.equal(result.state.overdueSeats.length, 4);
+});
