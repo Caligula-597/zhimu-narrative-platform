@@ -491,6 +491,19 @@ const boardGameRulebookSchema = {
   },
 };
 
+const boardGameCommercialStudySchema = {
+  type: "object",
+  additionalProperties: false,
+  properties: {
+    studyId: { type: "string", maxLength: 120 },
+    sourceGame: { type: "string", maxLength: 160 },
+    family: { type: "string", maxLength: 240 },
+    coreMechanisms: { type: "array", maxItems: 40, items: { type: "string", maxLength: 160 } },
+    adaptationBoundary: { type: "string", maxLength: 800 },
+    onlineOptimizations: { type: "array", maxItems: 20, items: { type: "string", maxLength: 400 } }
+  }
+};
+
 export const boardGameDesignSchema = {
   type: "object",
   additionalProperties: false,
@@ -516,6 +529,7 @@ export const boardGameDesignSchema = {
     mechanisms: { type: "array", maxItems: 300, items: boardGameMechanismSchema },
     engine: boardGameEngineSchema,
     rulebook: boardGameRulebookSchema,
+    commercialStudy: boardGameCommercialStudySchema,
     updatedAt: { anyOf: [{ type: "string", maxLength: 80 }, { type: "null" }] },
   },
 };

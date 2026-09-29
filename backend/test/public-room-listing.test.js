@@ -63,9 +63,55 @@ test("GET /api/platform/public-rooms lists only release-backed public rooms", as
     assert.equal(listed.creationType, "murder_mystery");
     assert.ok(listed.roleCount >= 1);
     assert.ok("worldCoverUrl" in listed);
+    assert.ok("boardGameId" in listed);
+    assert.equal(listed.boardGameId, null);
   } finally {
     await query(`DELETE FROM rooms WHERE id = $1`, [roomId]);
     await query(`DELETE FROM world_releases WHERE id = $1`, [releaseId]);
+  }
+});
+
+test("GET /api/platform/public-rooms exposes playable board study metadata", async (context) => {
+  const app = await createApp();
+  context.after(() => app.close());
+  const original = await query(`SELECT settings FROM worlds WHERE id = $1`, [fixtureWorldId]);
+  const releaseId = await createFixtureRelease();
+  const room = await query(
+    `INSERT INTO rooms (
+       world_id, host_user_id, name, invite_code, status, public_listing, release_id
+     )
+     VALUES ($1, $2, $3, $4, 'testing', true, $5)
+     RETURNING id`,
+    [fixtureWorldId, hostUserId, `公开桌游测试-${Date.now()}`, `BOARD-${Date.now().toString(36).toUpperCase()}`, releaseId]
+  );
+  const roomId = room.rows[0].id;
+  try {
+    await query(
+      `UPDATE worlds
+       SET settings = jsonb_set(
+         jsonb_set(
+           COALESCE(settings, '{}'::jsonb),
+           '{creationType}', '"board_game"'::jsonb, true
+         ),
+         '{boardGameDesign}',
+         '{"title":"潮汐牌库：循环构筑研究局","commercialStudy":{"studyId":"commercial-dominion-cycle","sourceGame":"Dominion","family":"牌库构筑"}}'::jsonb,
+         true
+       )
+       WHERE id = $1`,
+      [fixtureWorldId]
+    );
+    const response = await app.inject({ method: "GET", url: "/api/platform/public-rooms?limit=48" });
+    assert.equal(response.statusCode, 200);
+    const listed = response.json().items.find((item) => item.roomId === roomId);
+    assert.equal(listed.boardGameId, "commercial-dominion-cycle");
+    assert.equal(listed.boardGameSource, "Dominion");
+    assert.equal(listed.boardGameFamily, "牌库构筑");
+    assert.equal(listed.boardGameTitle, "潮汐牌库：循环构筑研究局");
+    assert.equal(listed.creationType, "board_game");
+  } finally {
+    await query(`DELETE FROM rooms WHERE id = $1`, [roomId]);
+    await query(`DELETE FROM world_releases WHERE id = $1`, [releaseId]);
+    await query(`UPDATE worlds SET settings = $2 WHERE id = $1`, [fixtureWorldId, original.rows[0].settings]);
   }
 });
 

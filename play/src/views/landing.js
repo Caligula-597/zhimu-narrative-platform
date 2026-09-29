@@ -3,6 +3,7 @@ import { escapeHtml } from "../../../shared/security.js";
 import { state } from "../state.js";
 import { PLAYER_PRODUCT_MODES, productModeMeta } from "../product-mode.js";
 import { isRegisteredUser, userSessionLabel } from "../utils/user.js";
+import { COMMERCIAL_GAME_LIBRARY } from "../../../shared/commercial-game-library.js";
 
 function renderLandingAuthActions() {
   const label = userSessionLabel(state.user);
@@ -60,6 +61,20 @@ function renderProductModeSelector() {
     </section>`;
 }
 
+function renderBoardGameLibrary() {
+  if (state.productMode !== "board_game") return "";
+  return `<section class="board-library-panel" aria-labelledby="board-library-title">
+    <div class="board-library-head"><div><p class="eyebrow">BOARD GAME LIBRARY · 机制研究适配</p><h2 id="board-library-title">选择一款桌游开始找局</h2><p>先按成熟商业桌游的核心机制挑选，再进入对应的公开牌局。这里的世界观、牌面和美术都是原创线上适配。</p></div><span class="board-library-count">${COMMERCIAL_GAME_LIBRARY.length} 款可试玩</span></div>
+    <div class="board-library-grid">${COMMERCIAL_GAME_LIBRARY.map((game) => `<article class="board-library-card accent-${escapeHtml(game.accent)} ${state.boardGameLibrarySelection === game.id ? "is-selected" : ""}">
+      <div class="board-library-card-top"><span class="board-library-glyph">${escapeHtml(game.family.slice(0, 1))}</span><span class="board-library-status">${escapeHtml(game.status)}</span></div>
+      <p class="board-library-source">机制研究：${escapeHtml(game.sourceGame)}</p><h3>${escapeHtml(game.title)}</h3><strong>${escapeHtml(game.family)}</strong><p>${escapeHtml(game.summary)}</p>
+      <div class="board-library-meta"><span>${escapeHtml(game.players)}</span><span>${escapeHtml(game.minutes)}</span><span>${escapeHtml(game.difficulty)}</span></div>
+      <button class="btn primary full" type="button" data-action="board-library-browse" data-board-game-id="${escapeHtml(game.id)}">浏览这款桌游的牌局</button>
+    </article>`).join("")}</div>
+    <p class="board-library-note">没有公开房间时，主持人可以在创作端载入同名研究适配，创建运行房后会自动出现在这里。</p>
+  </section>`;
+}
+
 export function renderLanding() {
   const openCount = state.publicRooms?.total || 0;
   return `
@@ -77,6 +92,7 @@ export function renderLanding() {
       </div>
 
       ${renderProductModeSelector()}
+      ${renderBoardGameLibrary()}
 
       <div class="entry-grid entry-grid-priority">
         <article class="entry-card entry-card-primary">

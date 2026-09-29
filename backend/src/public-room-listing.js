@@ -17,6 +17,10 @@ export async function listPublicRooms({ limit = 24 } = {}) {
             w.name AS world_name,
             w.summary AS world_summary,
             COALESCE(NULLIF(w.settings->'narrativeProfile'->>'creationType', ''), NULLIF(w.settings->>'creationType', ''), CASE WHEN w.settings->>'worldMode' = 'campaign' THEN 'tabletop_rpg' ELSE 'murder_mystery' END) AS creation_type,
+            NULLIF(w.settings->'boardGameDesign'->'commercialStudy'->>'studyId', '') AS board_game_id,
+            NULLIF(w.settings->'boardGameDesign'->'commercialStudy'->>'sourceGame', '') AS board_game_source,
+            NULLIF(w.settings->'boardGameDesign'->'commercialStudy'->>'family', '') AS board_game_family,
+            NULLIF(w.settings->'boardGameDesign'->>'title', '') AS board_game_title,
             COALESCE((
               SELECT profile.display_name FROM user_portal_profiles profile
               WHERE profile.user_id = u.id AND profile.portal = 'host'
@@ -55,6 +59,10 @@ export async function listPublicRooms({ limit = 24 } = {}) {
     updatedAt: row.updated_at,
     worldId: row.world_id,
     creationType: row.creation_type,
+    boardGameId: row.board_game_id,
+    boardGameSource: row.board_game_source,
+    boardGameFamily: row.board_game_family,
+    boardGameTitle: row.board_game_title,
     worldName: row.world_name,
     worldSummary: row.world_summary,
     worldCoverUrl: row.has_cover ? worldCoverApiPath(row.world_id) : null,

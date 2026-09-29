@@ -36,6 +36,16 @@ function rulebook() {
   return catalog().rulebook || {};
 }
 
+function renderPublicFeed() {
+  const current = publicState() || {};
+  const responseEvents = Array.isArray(current.responseEvents) ? current.responseEvents.slice(0, 5) : [];
+  const logs = Array.isArray(current.log) ? current.log.slice(0, 5) : [];
+  const items = responseEvents.length
+    ? responseEvents.map((event) => `<li class="board-player-feed-item is-${escapeHtml(event.status || "applied")}"><span>${escapeHtml(event.sourceLabel || event.sourceId || "规则响应")}</span><strong>${escapeHtml(event.detail || `${event.targetKey || "状态"} ${event.operation || "更新"}`)}</strong></li>`)
+    : logs.map((entry) => `<li class="board-player-feed-item"><span>${escapeHtml(entry.tone || "记录")}</span><strong>${escapeHtml(entry.text || "桌面状态已更新")}</strong></li>`);
+  return `<section class="board-player-panel board-player-feed"><div class="board-player-panel-head"><div><span class="eyebrow">LIVE TABLE FEED</span><h2>桌面刚刚发生</h2><p>公开结算、卡牌响应和流程推进会出现在这里。</p></div><span class="board-player-sync">${items.length ? `${items.length} 条更新` : "等待首个结算"}</span></div>${items.length ? `<ol>${items.join("")}</ol>` : `<div class="board-player-feed-empty">第一条公开结算出现后，会在这里显示“谁触发了什么效果”。</div>`}</section>`;
+}
+
 function phaseIcon(value) {
   const text = `${value?.id || ""} ${value?.label || ""}`.toLowerCase();
   if (/航|route|move|travel/.test(text)) return "↗";
@@ -60,7 +70,8 @@ function renderRules() {
   const phases = catalog().phases || [];
   const title = catalog().title || state.home?.room?.name || "线上桌游";
   const componentCount = (catalog().components || []).reduce((sum, component) => sum + (Number(component.quantity) || 1), 0);
-  return `<section class="board-player-rules"><div class="board-player-rules-head"><div><span class="eyebrow">HOW TO PLAY</span><h2>${escapeHtml(title)}</h2><p>${escapeHtml(catalog().designGoal || "先读懂目标、回合结构和结算条件，再开始行动。")}</p></div><div class="board-player-rule-stats"><span><strong>${Number(catalog().playerCount?.min) || 1}—${Number(catalog().playerCount?.max) || 1}</strong>人</span><span><strong>${Number(catalog().playTimeMinutes) || "—"}</strong>分钟</span><span><strong>${componentCount}</strong>件组件</span></div></div><div class="board-player-rule-columns"><article><span class="board-player-rule-label">获胜目标</span><p>${escapeHtml(book.objective || "按规则完成终局结算。")}</p></article><article><span class="board-player-rule-label">开局准备</span><p>${escapeHtml(book.setup || "等待牌局初始化。")}</p></article><article><span class="board-player-rule-label">一轮怎么走</span><p>${escapeHtml(book.turnStructure || "按当前流程依次完成行动。")}</p></article><article><span class="board-player-rule-label">结束与胜负</span><p>${escapeHtml(book.endCondition || "满足终局条件后结算分数。")}</p></article></div><div class="board-player-phase-rail">${phases.map((item, index) => `<div class="board-player-phase-step ${item.id === phase()?.id ? "is-current" : index < Number(publicState()?.phaseIndex || 0) ? "is-done" : ""}"><span>${phaseIcon(item)}</span><div><strong>${index + 1}. ${escapeHtml(item.label || item.id)}</strong><small>${escapeHtml(item.description || (item.mode === "simultaneous" ? "同时选择，统一结算" : "按席位行动"))}</small></div></div>`).join("")}</div><details class="board-player-rules-details"><summary>查看完整规则说明</summary><div><p><strong>玩家行动：</strong>${escapeHtml(book.playerActions || "按行动卡说明执行。")}</p><p><strong>平局处理：</strong>${escapeHtml(book.tieBreak || "按规则中的次级指标处理。")}</p><p><strong>线上提示：</strong>每次操作都会由服务器校验并同步；倒计时结束时，系统会执行该阶段的默认处理。</p></div></details></section>`;
+  const study = catalog().commercialStudy;
+  return `<section class="board-player-rules"><div class="board-player-rules-head"><div><span class="eyebrow">HOW TO PLAY</span><h2>${escapeHtml(title)}</h2><p>${escapeHtml(catalog().designGoal || "先读懂目标、回合结构和结算条件，再开始行动。")}</p>${study ? `<div class="board-player-study-line"><span>商业机制研究适配</span><strong>${escapeHtml(study.sourceGame)}</strong><small>${escapeHtml(study.family)}</small></div>` : ""}</div><div class="board-player-rule-stats"><span><strong>${Number(catalog().playerCount?.min) || 1}—${Number(catalog().playerCount?.max) || 1}</strong>人</span><span><strong>${Number(catalog().playTimeMinutes) || "—"}</strong>分钟</span><span><strong>${componentCount}</strong>件组件</span></div></div><div class="board-player-rule-columns"><article><span class="board-player-rule-label">获胜目标</span><p>${escapeHtml(book.objective || "按规则完成终局结算。")}</p></article><article><span class="board-player-rule-label">开局准备</span><p>${escapeHtml(book.setup || "等待牌局初始化。")}</p></article><article><span class="board-player-rule-label">一轮怎么走</span><p>${escapeHtml(book.turnStructure || "按当前流程依次完成行动。")}</p></article><article><span class="board-player-rule-label">结束与胜负</span><p>${escapeHtml(book.endCondition || "满足终局条件后结算分数。")}</p></article></div><div class="board-player-phase-rail">${phases.map((item, index) => `<div class="board-player-phase-step ${item.id === phase()?.id ? "is-current" : index < Number(publicState()?.phaseIndex || 0) ? "is-done" : ""}"><span>${phaseIcon(item)}</span><div><strong>${index + 1}. ${escapeHtml(item.label || item.id)}</strong><small>${escapeHtml(item.description || (item.mode === "simultaneous" ? "同时选择，统一结算" : "按席位行动"))}</small></div></div>`).join("")}</div><details class="board-player-rules-details"><summary>查看完整规则说明</summary><div><p><strong>玩家行动：</strong>${escapeHtml(book.playerActions || "按行动卡说明执行。")}</p><p><strong>平局处理：</strong>${escapeHtml(book.tieBreak || "按规则中的次级指标处理。")}</p><p><strong>线上提示：</strong>每次操作都会由服务器校验并同步；倒计时结束时，系统会执行该阶段的默认处理。</p></div></details></section>`;
 }
 
 function renderResources() {
@@ -169,18 +180,18 @@ function renderActionPanel() {
   const current = publicState() || {};
   const ownSeat = viewer()?.seatIndex;
   const pending = current.pendingResponseWindow;
+  const parallel = isParallelPhase();
   const responseEligible = pending?.eligibleSeatIndexes?.includes(ownSeat);
   const ids = pending && responseEligible
     ? pending.actionIds || []
     : (!pending && (parallel || ownSeat === current.activeSeatIndex) ? phase()?.actionIds || [] : []);
   const actions = ids.map(actionById).filter(Boolean);
-  const parallel = isParallelPhase();
   const waiting = pending ? (responseEligible ? `等待你在 ${secondsLeft()} 秒内响应` : `席位 ${Number(current.activeSeatIndex) + 1} 正在处理响应`) : parallel ? "同时选择阶段：每个席位各自提交一次，之后统一公开" : ownSeat === current.activeSeatIndex ? "轮到你选择行动" : `等待席位 ${Number(current.activeSeatIndex) + 1}`;
   const advance = current.resolved && !current.ended ? `<button type="button" class="btn quiet board-player-advance" data-action="board-game-advance">推进到下一流程</button>` : "";
   const timeout = secondsLeft() === 0 && !current.resolved
     ? `<button type="button" class="btn quiet board-player-advance" data-action="board-game-timeout">${pending ? "提交超时默认处理" : "结束等待并执行默认行动"}</button>`
     : "";
-  return `<section class="board-player-panel board-player-actions"><div class="board-player-panel-head"><div><span class="eyebrow">YOUR ACTIONS</span><h2>${escapeHtml(phase()?.label || "行动阶段")}</h2><p>${escapeHtml(waiting)}</p></div><span class="board-player-deadline">${secondsLeft() ? `${secondsLeft()}s` : "同步中"}</span></div>${actions.length ? `<div class="board-player-action-grid">${actions.map((action) => renderActionCard(action, { response: Boolean(pending) })).join("")}</div>` : `<div class="board-player-waiting"><strong>${current.ended ? "本局已结束" : "现在还不是你的操作窗口"}</strong><p>状态会通过房间同步自动更新，不需要刷新页面。</p></div>`}${advance}${timeout}</section>`;
+  return `<section class="board-player-panel board-player-actions"><div class="board-player-panel-head"><div><span class="eyebrow">YOUR ACTIONS</span><h2>${escapeHtml(phase()?.label || "行动阶段")}</h2><p>${escapeHtml(waiting)}</p></div><span class="board-player-deadline ${secondsLeft() && secondsLeft() <= 5 ? "is-urgent" : ""}">${secondsLeft() ? `${secondsLeft()}s` : "同步中"}</span></div>${actions.length ? `<div class="board-player-action-grid">${actions.map((action) => renderActionCard(action, { response: Boolean(pending) })).join("")}</div>` : `<div class="board-player-waiting"><strong>${current.ended ? "本局已结束" : "现在还不是你的操作窗口"}</strong><p>状态会通过房间同步自动更新，不需要刷新页面。</p></div>`}${advance}${timeout}</section>`;
 }
 
 export function renderBoardGamePlayer() {
@@ -189,7 +200,7 @@ export function renderBoardGamePlayer() {
     return `<section class="board-player-shell"><div class="board-player-empty"><span class="eyebrow">BOARD GAME TABLE</span><h1>桌游牌桌</h1><p>${escapeHtml(state.boardGameRuntimeError || "正在读取桌游运行态…")}</p><div class="board-player-loader"></div></div></section>`;
   }
   const current = publicState() || {};
-  return `<section class="board-player-shell"><header class="board-player-header"><div><span class="eyebrow">ONLINE BOARD GAME · SEAT ${Number(viewer()?.seatIndex) + 1}</span><h1>${escapeHtml(state.home?.room?.name || "实时桌游牌桌")}</h1><p>先看规则与当前阶段，再从行动卡选择；所有结算由服务器确认后同步给全桌。</p></div><div class="board-player-header-meta"><span>第 ${Number(current.round) || 1} 轮</span><span>${escapeHtml(phase()?.label || "等待阶段")}</span><span class="${state.roomEventsConnected ? "is-live" : ""}">${state.roomEventsConnected ? "实时同步" : "状态恢复中"}</span></div></header>${renderRules()}<div class="board-player-grid">${renderScoreboard()}${renderResources()}${renderPrivatePanel()}${renderMarket()}${renderPublicBoard()}${renderActionPanel()}</div></section>`;
+  return `<section class="board-player-shell"><header class="board-player-header"><div><span class="eyebrow">ONLINE BOARD GAME · SEAT ${Number(viewer()?.seatIndex) + 1}</span><h1>${escapeHtml(state.home?.room?.name || "实时桌游牌桌")}</h1><p>先看规则与当前阶段，再从行动卡选择；所有结算由服务器确认后同步给全桌。</p></div><div class="board-player-header-meta"><span>第 ${Number(current.round) || 1} 轮</span><span>${escapeHtml(phase()?.label || "等待阶段")}</span><span class="${state.roomEventsConnected ? "is-live" : ""}">${state.roomEventsConnected ? "实时同步" : "状态恢复中"}</span></div></header>${renderRules()}<div class="board-player-grid">${renderScoreboard()}${renderResources()}${renderPrivatePanel()}${renderMarket()}${renderPublicBoard()}${renderPublicFeed()}${renderActionPanel()}</div></section>`;
 }
 
 export function buildBoardGameCommand(button, form) {

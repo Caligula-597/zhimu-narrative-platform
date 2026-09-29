@@ -128,6 +128,7 @@ test("main.js wires room SSE sync, lobby, plaza and social", () => {
   const shellSource = readFileSync(path.join(root, "src", "components", "shell.js"), "utf8");
   assert.match(shellSource, /renderGameResume/);
   const landingSource = readFileSync(path.join(root, "src", "views", "landing.js"), "utf8");
+  const boardPlayerSource = readFileSync(path.join(root, "src", "views", "board-game-player.js"), "utf8");
   const errorsSource = readFileSync(path.join(root, "src", "errors.js"), "utf8");
   assert.match(landingSource, /renderLandingAuthActions/);
   assert.match(errorsSource, /ROLE_ALREADY_BOUND/);
@@ -150,6 +151,11 @@ test("main.js wires room SSE sync, lobby, plaza and social", () => {
   assert.match(socialSource, /renderFriends/);
   assert.match(socialSource, /renderDm/);
   assert.match(lobbySource, /renderLobby/);
+  assert.match(landingSource, /COMMERCIAL_GAME_LIBRARY/);
+  assert.match(landingSource, /board-library-browse/);
+  assert.match(lobbySource, /boardGameLibrarySelection/);
+  assert.match(boardPlayerSource, /renderPublicFeed/);
+  assert.match(boardPlayerSource, /is-urgent/);
 });
 
 test("web vitals are reported to the shared app backend", () => {

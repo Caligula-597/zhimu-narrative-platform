@@ -305,6 +305,8 @@ export function createDefaultBoardGameDesign(title = "") {
 export function normalizeBoardGameDesign(value = {}, { title = "" } = {}) {
   const source = record(value);
   const players = record(source.playerCount);
+  const study = record(source.commercialStudy);
+  const hasCommercialStudy = Object.keys(study).length > 0;
   const minPlayers = integer(players.min, 2, 1, 99);
   return {
     version: BOARD_GAME_DESIGN_VERSION,
@@ -321,6 +323,16 @@ export function normalizeBoardGameDesign(value = {}, { title = "" } = {}) {
     mechanisms: (Array.isArray(source.mechanisms) ? source.mechanisms : []).slice(0, 300).map(normalizeBoardGameMechanism),
     engine: normalizeBoardGameEngine(source.engine),
     rulebook: normalizeBoardGameRulebook(source.rulebook),
+    ...(hasCommercialStudy ? {
+      commercialStudy: {
+        studyId: text(study.studyId, 120),
+        sourceGame: text(study.sourceGame, 160),
+        family: text(study.family, 240),
+        coreMechanisms: Array.isArray(study.coreMechanisms) ? study.coreMechanisms.slice(0, 40).map((item) => text(item, 160)).filter(Boolean) : [],
+        adaptationBoundary: text(study.adaptationBoundary, 800),
+        onlineOptimizations: Array.isArray(study.onlineOptimizations) ? study.onlineOptimizations.slice(0, 20).map((item) => text(item, 400)).filter(Boolean) : []
+      }
+    } : {}),
     updatedAt: text(source.updatedAt, 80) || null
   };
 }

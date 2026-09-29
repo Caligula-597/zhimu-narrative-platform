@@ -12,6 +12,7 @@ function adaptDesign(factory, config) {
   design.title = config.adapterTitle;
   design.designGoal = config.designGoal;
   design.commercialStudy = {
+    studyId: config.studyId || "",
     sourceGame: config.sourceGame,
     family: config.family,
     coreMechanisms: [...config.coreMechanisms],
@@ -188,5 +189,9 @@ export const COMMERCIAL_STUDY_CATALOG = Object.freeze([
 
 export function createCommercialStudyPreset(presetId = "commercial-ticket-route") {
   const preset = COMMERCIAL_STUDY_CATALOG.find((item) => item.id === presetId) || COMMERCIAL_STUDY_CATALOG[0];
-  return preset.create();
+  const design = preset.create();
+  if (design.commercialStudy && typeof design.commercialStudy === "object") {
+    design.commercialStudy.studyId = preset.id;
+  }
+  return design;
 }

@@ -378,7 +378,8 @@ app.addEventListener("click", async (event) => {
     openDmConversation,
     openDmWithPeer,
     ensureSession,
-    handleLookupInvite
+    handleLookupInvite,
+    setProductMode
   })) return;
   if (await handleLazyPlayActionController("game", {
     action,

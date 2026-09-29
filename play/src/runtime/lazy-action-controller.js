@@ -67,6 +67,8 @@ const definitions = {
       "lobby-join",
       "refresh-lobby"
       ,"lobby-filter"
+      ,"board-library-browse"
+      ,"lobby-clear-board-selection"
     ]),
     load: () => import("./social-action-controller.js"),
     handler: "handlePlaySocialAction"

@@ -4,11 +4,21 @@ export async function handlePlaySocialAction(ctx) {
     openModalState, closeModalState, normalizeInviteCode, syncPlatformStream,
     loadPublicRooms, loadPlazaPosts, openPlazaThread, handlePlazaReport,
     submitPlazaReport, loadPlazaThread, loadFriends, loadDmConversations,
-    openDmConversation, openDmWithPeer, ensureSession, handleLookupInvite
+    openDmConversation, openDmWithPeer, ensureSession, handleLookupInvite, setProductMode
   } = ctx;
 
   switch (action) {
     case "go-lobby":
+      await loadPublicRooms();
+      state.view = "lobby";
+      syncPlatformStream();
+      render();
+      return true;
+    case "board-library-browse":
+      if (setProductMode) setProductMode("board_game");
+      else state.productMode = "board_game";
+      state.boardGameLibrarySelection = button.dataset.boardGameId || "";
+      state.lobbyProductFilter = "board_game";
       await loadPublicRooms();
       state.view = "lobby";
       syncPlatformStream();
@@ -117,6 +127,11 @@ export async function handlePlaySocialAction(ctx) {
       return true;
     case "lobby-filter":
       state.lobbyProductFilter = button.dataset.productMode || "all";
+      render();
+      return true;
+    case "lobby-clear-board-selection":
+      state.boardGameLibrarySelection = "";
+      state.lobbyProductFilter = "board_game";
       render();
       return true;
     default:

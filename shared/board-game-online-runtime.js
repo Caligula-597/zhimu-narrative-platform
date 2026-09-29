@@ -29,6 +29,13 @@ function projectBoardGameCatalog(designValue = {}) {
       max: integer(design.playerCount?.max, 1, 1, 99)
     },
     playTimeMinutes: integer(design.playTimeMinutes, 0, 0, 10080),
+    commercialStudy: design.commercialStudy && typeof design.commercialStudy === "object" ? {
+      studyId: text(design.commercialStudy.studyId, 120),
+      sourceGame: text(design.commercialStudy.sourceGame, 160),
+      family: text(design.commercialStudy.family, 240),
+      coreMechanisms: Array.isArray(design.commercialStudy.coreMechanisms) ? design.commercialStudy.coreMechanisms.map((item) => text(item, 120)).filter(Boolean) : [],
+      adaptationBoundary: text(design.commercialStudy.adaptationBoundary, 800)
+    } : null,
     rulebook: design.rulebook && typeof design.rulebook === "object" ? {
       objective: text(design.rulebook.objective, 4000),
       setup: text(design.rulebook.setup, 8000),
