@@ -237,7 +237,7 @@ function variantDesigns() {
 }
 
 function commercialStudyDesigns() {
-  return COMMERCIAL_STUDY_CATALOG.filter((entry) => entry.status === "runnable_adapter").map((entry) => entry.create());
+  return COMMERCIAL_STUDY_CATALOG.filter((entry) => ["runnable_adapter", "production_ready"].includes(entry.status)).map((entry) => entry.create());
 }
 
 function summarizeGames(games) {

@@ -326,11 +326,13 @@ export function normalizeBoardGameDesign(value = {}, { title = "" } = {}) {
     ...(hasCommercialStudy ? {
       commercialStudy: {
         studyId: text(study.studyId, 120),
+        releaseTier: text(study.releaseTier, 40) || "research",
         sourceGame: text(study.sourceGame, 160),
         family: text(study.family, 240),
         coreMechanisms: Array.isArray(study.coreMechanisms) ? study.coreMechanisms.slice(0, 40).map((item) => text(item, 160)).filter(Boolean) : [],
         adaptationBoundary: text(study.adaptationBoundary, 800),
-        onlineOptimizations: Array.isArray(study.onlineOptimizations) ? study.onlineOptimizations.slice(0, 20).map((item) => text(item, 400)).filter(Boolean) : []
+        onlineOptimizations: Array.isArray(study.onlineOptimizations) ? study.onlineOptimizations.slice(0, 20).map((item) => text(item, 400)).filter(Boolean) : [],
+        acceptanceChecklist: Array.isArray(study.acceptanceChecklist) ? study.acceptanceChecklist.slice(0, 40).map((item) => text(item, 240)).filter(Boolean) : []
       }
     } : {}),
     updatedAt: text(source.updatedAt, 80) || null

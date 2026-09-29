@@ -423,7 +423,7 @@ function boardGamePresetStrip() {
 }
 
 function boardGameCommercialStudyStrip() {
-  return `<section class="board-preset-strip board-commercial-study-strip"><div><p class="section-kicker">COMMERCIAL MECHANISM STUDIES</p><strong>成熟商业机制研究库</strong><span>先按真实商业桌游的核心循环、资源压力、信息边界与终局节奏试玩；名称、文本、美术和具体牌面均为原创适配。</span></div><div class="board-preset-buttons">${COMMERCIAL_STUDY_CATALOG.map((preset) => `<button type="button" class="secondary-btn" data-action="board-load-commercial-study" data-board-commercial-study-id="${escapeHtml(preset.id)}"><strong>${escapeHtml(preset.label)}</strong><small>${escapeHtml(preset.sourceGame)} · ${escapeHtml(preset.family)}</small><em>${escapeHtml(preset.status === "runnable_adapter" ? "可直接试玩" : "拆解中")}</em></button>`).join("")}</div></section>`;
+  return `<section class="board-preset-strip board-commercial-study-strip"><div><p class="section-kicker">COMMERCIAL MECHANISM STUDIES</p><strong>成熟商业机制研究库</strong><span>先按真实商业桌游的核心循环、资源压力、信息边界与终局节奏试玩；名称、文本、美术和具体牌面均为原创适配。标记为稳定首发的条目已经通过逐组件和 AI 全局验收。</span></div><div class="board-preset-buttons">${COMMERCIAL_STUDY_CATALOG.map((preset) => `<button type="button" class="secondary-btn" data-action="board-load-commercial-study" data-board-commercial-study-id="${escapeHtml(preset.id)}"><strong>${escapeHtml(preset.label)}</strong><small>${escapeHtml(preset.sourceGame)} · ${escapeHtml(preset.family)}</small><em>${escapeHtml(preset.status === "production_ready" ? "稳定首发" : preset.status === "runnable_adapter" ? "可直接试玩" : "拆解中")}</em></button>`).join("")}</div></section>`;
 }
 
 function boardGameMechanismStrip() {

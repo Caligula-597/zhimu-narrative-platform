@@ -7,11 +7,13 @@ import { compileBoardGameEngine } from "../shared/board-game-engine.js";
 import { createBoardGamePortingReport } from "../shared/board-game-porting-contract.js";
 
 test("商业机制研究库的每个可玩适配都带来源、边界和完整说明书", () => {
-  assert.equal(COMMERCIAL_STUDY_CATALOG.length, 7);
+  assert.equal(COMMERCIAL_STUDY_CATALOG.length, 12);
+  const production = COMMERCIAL_STUDY_CATALOG.filter((item) => item.status === "production_ready");
+  assert.equal(production.length, 5);
   assert.deepEqual(
     COMMERCIAL_GAME_LIBRARY.map((item) => item.id),
-    COMMERCIAL_STUDY_CATALOG.map((item) => item.id),
-    "玩家库与创作端研究库必须一一对应"
+    production.map((item) => item.id),
+    "玩家库只展示已经通过首发验收的条目"
   );
   const ids = new Set();
   for (const preset of COMMERCIAL_STUDY_CATALOG) {
@@ -19,9 +21,9 @@ test("商业机制研究库的每个可玩适配都带来源、边界和完整�
     ids.add(preset.id);
     assert.ok(preset.sourceGame);
     assert.ok(preset.family);
-    assert.equal(preset.status, "runnable_adapter");
+    assert.ok(["runnable_adapter", "production_ready"].includes(preset.status));
     assert.ok(preset.coreMechanisms.length >= 3);
-    assert.match(preset.summary, /研究/);
+    assert.ok(preset.summary.includes("研究") || preset.status === "production_ready");
     const design = createCommercialStudyPreset(preset.id);
     assert.equal(design.commercialStudy.studyId, preset.id);
     assert.equal(normalizeBoardGameDesign(design).commercialStudy.studyId, preset.id, `${preset.id} 元数据未被规范化层保留`);
@@ -30,6 +32,18 @@ test("商业机制研究库的每个可玩适配都带来源、边界和完整�
     for (const field of ["objective", "setup", "turnStructure", "playerActions", "endCondition", "tieBreak", "notes"]) {
       assert.ok(String(design.rulebook[field] || "").length >= 12, `${preset.id} 缺少说明书字段 ${field}`);
     }
+  }
+});
+
+test("首发五款桌游具备逐项内容清单并锁定生产状态", () => {
+  for (const preset of COMMERCIAL_STUDY_CATALOG.filter((item) => item.status === "production_ready")) {
+    const design = createCommercialStudyPreset(preset.id);
+    assert.equal(design.commercialStudy.releaseTier, "production");
+    assert.equal(design.commercialStudy.acceptanceChecklist.length, 5, `${preset.id} 缺少五项首发验收清单`);
+    assert.ok(design.components.length >= 1);
+    assert.ok(design.seats.length >= design.playerCount.min);
+    assert.ok(design.engine.phases.every((phase) => phase.actionIds.length > 0));
+    assert.ok(design.engine.actions.every((action) => action.description.length >= 12));
   }
 });
 

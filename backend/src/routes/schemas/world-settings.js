@@ -496,11 +496,13 @@ const boardGameCommercialStudySchema = {
   additionalProperties: false,
   properties: {
     studyId: { type: "string", maxLength: 120 },
+    releaseTier: { type: "string", enum: ["research", "production"] },
     sourceGame: { type: "string", maxLength: 160 },
     family: { type: "string", maxLength: 240 },
     coreMechanisms: { type: "array", maxItems: 40, items: { type: "string", maxLength: 160 } },
     adaptationBoundary: { type: "string", maxLength: 800 },
-    onlineOptimizations: { type: "array", maxItems: 20, items: { type: "string", maxLength: 400 } }
+    onlineOptimizations: { type: "array", maxItems: 20, items: { type: "string", maxLength: 400 } },
+    acceptanceChecklist: { type: "array", maxItems: 40, items: { type: "string", maxLength: 240 } }
   }
 };
 

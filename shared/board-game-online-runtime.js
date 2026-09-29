@@ -31,10 +31,12 @@ function projectBoardGameCatalog(designValue = {}) {
     playTimeMinutes: integer(design.playTimeMinutes, 0, 0, 10080),
     commercialStudy: design.commercialStudy && typeof design.commercialStudy === "object" ? {
       studyId: text(design.commercialStudy.studyId, 120),
+      releaseTier: text(design.commercialStudy.releaseTier, 40) || "research",
       sourceGame: text(design.commercialStudy.sourceGame, 160),
       family: text(design.commercialStudy.family, 240),
       coreMechanisms: Array.isArray(design.commercialStudy.coreMechanisms) ? design.commercialStudy.coreMechanisms.map((item) => text(item, 120)).filter(Boolean) : [],
-      adaptationBoundary: text(design.commercialStudy.adaptationBoundary, 800)
+      adaptationBoundary: text(design.commercialStudy.adaptationBoundary, 800),
+      acceptanceChecklist: Array.isArray(design.commercialStudy.acceptanceChecklist) ? design.commercialStudy.acceptanceChecklist.map((item) => text(item, 240)).filter(Boolean) : []
     } : null,
     rulebook: design.rulebook && typeof design.rulebook === "object" ? {
       objective: text(design.rulebook.objective, 4000),
