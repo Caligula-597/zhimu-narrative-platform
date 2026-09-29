@@ -165,6 +165,14 @@ export function normalizeBoardGameEntry(value, index = 0) {
     age: integer(source.age, 0, 0, 99),
     quantity: integer(source.quantity, 1, 1, 9999),
     tags: (Array.isArray(source.tags) ? source.tags : []).slice(0, 20).map((tag) => text(tag, 60)).filter(Boolean),
+    cardFace: source.cardFace && typeof source.cardFace === "object" ? {
+      eyebrow: text(source.cardFace.eyebrow, 80),
+      icon: text(source.cardFace.icon, 20),
+      accent: text(source.cardFace.accent, 40),
+      illustration: text(source.cardFace.illustration, 160),
+      rulesText: text(source.cardFace.rulesText, 1600),
+      effectText: text(source.cardFace.effectText, 1600)
+    } : null,
     effects,
     triggers: (Array.isArray(source.triggers) ? source.triggers : []).slice(0, 20).map(normalizeBoardGameTrigger).filter((trigger) => trigger.event && trigger.effects.length),
     continuousEffects: (Array.isArray(source.continuousEffects) ? source.continuousEffects : []).slice(0, 20).map(normalizeBoardGameEffect).filter((effect) => effect.targetKey)

@@ -715,6 +715,7 @@ export function createBoardGameRuntimeState(designValue, seatCountValue = 0) {
           description: entry.description,
           age: entry.age || 0,
           tags: Array.isArray(entry.tags) ? [...entry.tags] : [],
+          cardFace: entry.cardFace ? clone(entry.cardFace) : null,
           effects: Array.isArray(entry.effects) ? clone(entry.effects) : [],
           triggers: Array.isArray(entry.triggers) ? clone(entry.triggers) : [],
           continuousEffects: Array.isArray(entry.continuousEffects) ? clone(entry.continuousEffects) : []

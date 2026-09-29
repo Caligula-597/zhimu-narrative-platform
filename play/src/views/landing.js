@@ -66,6 +66,7 @@ function renderBoardGameLibrary() {
   return `<section class="board-library-panel" aria-labelledby="board-library-title">
     <div class="board-library-head"><div><p class="eyebrow">BOARD GAME LIBRARY · 机制研究适配</p><h2 id="board-library-title">选择一款桌游开始找局</h2><p>先按成熟商业桌游的核心机制挑选，再进入对应的公开牌局。这里的世界观、牌面和美术都是原创线上适配。</p></div><span class="board-library-count">${COMMERCIAL_GAME_LIBRARY.length} 款可试玩</span></div>
     <div class="board-library-grid">${COMMERCIAL_GAME_LIBRARY.map((game) => `<article class="board-library-card accent-${escapeHtml(game.accent)} ${state.boardGameLibrarySelection === game.id ? "is-selected" : ""}">
+      <div class="board-library-card-art"><img class="board-library-cover" src="${escapeHtml(game.coverAsset)}" alt="${escapeHtml(game.title)}原创视觉封面" loading="lazy" /></div>
       <div class="board-library-card-top"><span class="board-library-glyph">${escapeHtml(game.family.slice(0, 1))}</span><span class="board-library-status">${escapeHtml(game.status)}</span></div>
       <p class="board-library-source">机制研究：${escapeHtml(game.sourceGame)}</p><h3>${escapeHtml(game.title)}</h3><strong>${escapeHtml(game.family)}</strong><p>${escapeHtml(game.summary)}</p>
       <div class="board-library-meta"><span>${escapeHtml(game.players)}</span><span>${escapeHtml(game.minutes)}</span><span>${escapeHtml(game.difficulty)}</span></div>

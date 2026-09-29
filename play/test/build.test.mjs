@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -32,6 +32,17 @@ test("index.html uses module entry without inline scripts", () => {
   const html = readFileSync(path.join(root, "index.html"), "utf8");
   assert.match(html, /src="\/src\/main\.js"/);
   assert.doesNotMatch(html, /<script(?![^>]*type="module")[^>]*>/);
+});
+
+test("首发桌游库的原创封面素材已随玩家端发布", () => {
+  for (const asset of ["ember-auction-cover.png", "skyline-draft-cover.png", "mosaic-frontier-cover.png", "storm-climb-cover.png", "route-network-cover.png"]) {
+    assert.equal(existsSync(path.join(root, "public", "assets", "board-games", asset)), true, `${asset} 缺少`);
+  }
+  const landingSource = readFileSync(path.join(root, "src", "views", "landing.js"), "utf8");
+  const playerSource = readFileSync(path.join(root, "src", "views", "board-game-player.js"), "utf8");
+  assert.match(landingSource, /board-library-cover/);
+  assert.match(playerSource, /renderCardFace/);
+  assert.match(playerSource, /board-player-card-effect/);
 });
 
 test("play api uses credentialed cookies with a tab-scoped bearer fallback", () => {

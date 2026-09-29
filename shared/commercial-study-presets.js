@@ -22,7 +22,30 @@ function adaptDesign(factory, config) {
     acceptanceChecklist: Array.isArray(config.acceptanceChecklist) ? [...config.acceptanceChecklist] : []
   };
   design.rulebook.notes = `${config.rulebookNote} ${design.rulebook.notes}`;
+  annotateCardFaces(design, config);
   return design;
+}
+
+function annotateCardFaces(design, config) {
+  const accent = config.visualTheme?.accent || "ember";
+  const icon = config.visualTheme?.icon || "✦";
+  const eyebrow = config.visualTheme?.eyebrow || "原创牌面";
+  for (const component of Array.isArray(design.components) ? design.components : []) {
+    for (const entry of Array.isArray(component.entries) ? component.entries : []) {
+      const effects = Array.isArray(entry.effects) ? entry.effects : [];
+      const effectText = effects.length
+        ? `效果：${effects.map((effect) => `${effect.targetKey} ${effect.operation} ${effect.value}`).join("；")}`
+        : "效果：无即时数值变化；按条目说明进入对应区域。";
+      entry.cardFace = {
+        eyebrow,
+        icon,
+        accent,
+        illustration: `${config.id || "board-game"}/${entry.id}`,
+        rulesText: entry.description || "按当前牌面与行动说明执行。",
+        effectText
+      };
+    }
+  }
 }
 
 const commonOnlineOptimizations = [
@@ -198,7 +221,8 @@ export const COMMERCIAL_STUDY_CATALOG = Object.freeze([
     designGoal: "在短局密封竞价中管理铸币储备，判断每件遗物的即时价值和终局价值。",
     rulebookNote: "本局是竞价机制族的原创线上适配版；每张遗物、每次出价、第二价格、并列裁决和终局资源都进入标准响应日志。",
     coreMechanisms: ["密封竞价", "第二价格", "资源储备", "即时卡牌效果", "终局平局裁决"],
-    acceptanceChecklist: ["全部遗物条目可消费", "每轮并发出价统一结算", "最高价与第二价格可回放", "出价过期有默认策略", "铸币与声望终局平局可审计"]
+    acceptanceChecklist: ["全部遗物条目可消费", "每轮并发出价统一结算", "最高价与第二价格可回放", "出价过期有默认策略", "铸币与声望终局平局可审计"],
+    visualTheme: { accent: "ember", icon: "◈", eyebrow: "余烬牌面" }
   }),
   productionStudy({
     id: "stable-skyline-draft",
@@ -211,7 +235,8 @@ export const COMMERCIAL_STUDY_CATALOG = Object.freeze([
     designGoal: "在同时轮抽和选择冲突中搭建个人城市，让公开市场、私有手牌和成长轨共同决定终局声望。",
     rulebookNote: "本局是同时轮抽机制族的原创线上适配版；每轮选择、冲突重选、市场补牌、个人桌面和终局比较均有明确状态。",
     coreMechanisms: ["私有手牌", "同时提交", "选择冲突重选", "桌面引擎", "多轨终局计分"],
-    acceptanceChecklist: ["所有模块条目可选择", "缺席席位按时限自动提交", "重复选择进入重选队列", "卡牌效果按顺序结算", "能源科研贸易平局顺序可审计"]
+    acceptanceChecklist: ["所有模块条目可选择", "缺席席位按时限自动提交", "重复选择进入重选队列", "卡牌效果按顺序结算", "能源科研贸易平局顺序可审计"],
+    visualTheme: { accent: "sky", icon: "⌂", eyebrow: "天穹模块牌" }
   }),
   productionStudy({
     id: "stable-mosaic-frontier",
@@ -224,7 +249,8 @@ export const COMMERCIAL_STUDY_CATALOG = Object.freeze([
     designGoal: "从私有地块中选择并放入合法邻接位置，用连通结构、地块标签和扩张数量争夺边境声望。",
     rulebookNote: "本局是空间放置机制族的原创线上适配版；坐标合法性、邻接校验、地块归属、连通关系和终局平局都由服务器结算。",
     coreMechanisms: ["私有地块", "合法邻接", "坐标放置", "连通组件", "空间终局计分"],
-    acceptanceChecklist: ["每种地块条目可抽取和放置", "非法坐标被拒绝", "放置后归属和效果公开", "连通组件可重算", "数量、声望、剩余手牌平局可审计"]
+    acceptanceChecklist: ["每种地块条目可抽取和放置", "非法坐标被拒绝", "放置后归属和效果公开", "连通组件可重算", "数量、声望、剩余手牌平局可审计"],
+    visualTheme: { accent: "sand", icon: "⬡", eyebrow: "边境地块牌" }
   }),
   productionStudy({
     id: "stable-storm-climb",
@@ -237,7 +263,8 @@ export const COMMERCIAL_STUDY_CATALOG = Object.freeze([
     designGoal: "在继续挑战和安全停手之间管理风险，把每次骰点变成可回放、可解释的登峰决策。",
     rulebookNote: "本局是推运气机制族的原创线上适配版；骰点种子、风险变化、爆裂回退、停手结算和终局平局全部记录。",
     coreMechanisms: ["服务器骰点", "继续或停手", "爆裂回退", "个人风险轨", "多条件终局"],
-    acceptanceChecklist: ["每次骰点可回放", "继续行动保持当前席位", "爆裂只回退未结算风险", "超时执行安全停手", "声望、停手风险、爆裂次数平局可审计"]
+    acceptanceChecklist: ["每次骰点可回放", "继续行动保持当前席位", "爆裂只回退未结算风险", "超时执行安全停手", "声望、停手风险、爆裂次数平局可审计"],
+    visualTheme: { accent: "coral", icon: "⚡", eyebrow: "风暴事件牌" }
   }),
   productionStudy({
     id: "stable-route-network",
@@ -250,7 +277,8 @@ export const COMMERCIAL_STUDY_CATALOG = Object.freeze([
     designGoal: "在公开路线网络中支付资源占领关键航线，计算连通奖励并判断阻断与终局扩张的时机。",
     rulebookNote: "本局是公共路线机制族的原创线上适配版；路线占用、资源支付、网络连通、最长网络和终局资源均保持可复盘。",
     coreMechanisms: ["公开路线", "资源支付", "路线阻断", "图连通", "终局网络计分"],
-    acceptanceChecklist: ["每条路线可消费且不可重复占领", "资源支付原子结算", "路线连通可重算", "公共阻断立即同步", "网络长度和剩余资源平局可审计"]
+    acceptanceChecklist: ["每条路线可消费且不可重复占领", "资源支付原子结算", "路线连通可重算", "公共阻断立即同步", "网络长度和剩余资源平局可审计"],
+    visualTheme: { accent: "teal", icon: "✧", eyebrow: "星港航线牌" }
   })
 ]);
 

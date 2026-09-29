@@ -144,6 +144,16 @@ function renderActionCard(action, { response = false } = {}) {
   </article>`;
 }
 
+function renderCardFace(card, extraClass = "") {
+  const face = card?.cardFace || {};
+  return `<article class="board-player-card ${extraClass} board-player-card-face accent-${escapeHtml(face.accent || "ember")}">
+    <div class="board-player-card-art"><span class="board-player-card-icon">${escapeHtml(face.icon || "✦")}</span><small>${escapeHtml(face.eyebrow || "原创牌面")}</small></div>
+    <strong>${escapeHtml(card?.name || card?.id || "未命名牌")}</strong>
+    <p>${escapeHtml(face.rulesText || card?.description || "按当前牌面与行动说明执行。")}</p>
+    <span class="board-player-card-effect">${escapeHtml(face.effectText || "效果：按牌面说明结算。")}</span>
+  </article>`;
+}
+
 function renderMarket() {
   const market = publicState()?.market || [];
   if (!market.length) return "";
@@ -173,7 +183,7 @@ function renderScoreboard() {
 
 function renderPrivatePanel() {
   const own = viewer();
-  return `<section class="board-player-panel board-player-private"><div class="board-player-panel-head"><div><span class="eyebrow">PRIVATE ZONE</span><h2>你的区域</h2></div><span class="board-player-private-badge">仅你可见</span></div><div class="board-player-cards"><div><small>手牌 ${own?.hand?.length || 0}</small>${(own?.hand || []).map((card) => `<article class="board-player-card"><strong>${escapeHtml(card.name || card.id)}</strong><p>${escapeHtml(card.description || "")}</p></article>`).join("") || `<p class="board-player-muted">当前没有手牌。</p>`}</div><div><small>面板 ${own?.tableau?.length || 0}</small>${(own?.tableau || []).map((card) => `<article class="board-player-card is-tableau"><strong>${escapeHtml(card.name || card.id)}</strong><p>${escapeHtml(card.description || "")}</p></article>`).join("") || `<p class="board-player-muted">当前没有已部署牌。</p>`}</div></div></section>`;
+  return `<section class="board-player-panel board-player-private"><div class="board-player-panel-head"><div><span class="eyebrow">PRIVATE ZONE</span><h2>你的区域</h2></div><span class="board-player-private-badge">仅你可见</span></div><div class="board-player-cards"><div><small>手牌 ${own?.hand?.length || 0}</small>${(own?.hand || []).map((card) => renderCardFace(card)).join("") || `<p class="board-player-muted">当前没有手牌。</p>`}</div><div><small>面板 ${own?.tableau?.length || 0}</small>${(own?.tableau || []).map((card) => renderCardFace(card, "is-tableau")).join("") || `<p class="board-player-muted">当前没有已部署牌。</p>`}</div></div></section>`;
 }
 
 function renderActionPanel() {

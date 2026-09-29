@@ -216,6 +216,14 @@ const boardGameEntrySchema = {
     age: { type: "integer", minimum: 0, maximum: 99 },
     quantity: { type: "integer", minimum: 1, maximum: 9999 },
     tags: { type: "array", maxItems: 20, items: { type: "string", maxLength: 60 } },
+    cardFace: { type: "object", additionalProperties: false, properties: {
+      eyebrow: { type: "string", maxLength: 80 },
+      icon: { type: "string", maxLength: 20 },
+      accent: { type: "string", maxLength: 40 },
+      illustration: { type: "string", maxLength: 160 },
+      rulesText: { type: "string", maxLength: 1600 },
+      effectText: { type: "string", maxLength: 1600 }
+    } },
     effects: { type: "array", maxItems: 20, items: { type: "object", additionalProperties: true } },
     triggers: { type: "array", maxItems: 20, items: {
       type: "object", additionalProperties: false,

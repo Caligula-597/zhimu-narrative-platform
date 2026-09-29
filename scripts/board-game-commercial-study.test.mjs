@@ -44,6 +44,10 @@ test("首发五款桌游具备逐项内容清单并锁定生产状态", () => {
     assert.ok(design.seats.length >= design.playerCount.min);
     assert.ok(design.engine.phases.every((phase) => phase.actionIds.length > 0));
     assert.ok(design.engine.actions.every((action) => action.description.length >= 12));
+    const entries = design.components.flatMap((component) => component.entries || []);
+    assert.ok(entries.length >= 1, `${preset.id} 没有可展示牌面条目`);
+    assert.ok(entries.every((entry) => entry.cardFace?.rulesText && entry.cardFace?.effectText), `${preset.id} 存在缺少规则/效果文字的牌面`);
+    assert.ok(entries.every((entry) => entry.cardFace?.illustration), `${preset.id} 存在缺少原创视觉指向的牌面`);
   }
 });
 

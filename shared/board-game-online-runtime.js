@@ -53,7 +53,22 @@ function projectBoardGameCatalog(designValue = {}) {
       name: text(component?.name, 160),
       quantity: integer(component?.quantity, 1, 1, 9999),
       description: text(component?.description, 1200),
-      playerAction: text(component?.playerAction, 1200)
+      playerAction: text(component?.playerAction, 1200),
+      entries: Array.isArray(component?.entries) ? component.entries.map((entry) => ({
+        id: text(entry?.id, 120),
+        name: text(entry?.name, 160),
+        description: text(entry?.description, 1600),
+        quantity: integer(entry?.quantity, 1, 1, 9999),
+        tags: Array.isArray(entry?.tags) ? entry.tags.map((item) => text(item, 60)).filter(Boolean) : [],
+        cardFace: entry?.cardFace && typeof entry.cardFace === "object" ? {
+          eyebrow: text(entry.cardFace.eyebrow, 80),
+          icon: text(entry.cardFace.icon, 20),
+          accent: text(entry.cardFace.accent, 40),
+          illustration: text(entry.cardFace.illustration, 160),
+          rulesText: text(entry.cardFace.rulesText, 1600),
+          effectText: text(entry.cardFace.effectText, 1600)
+        } : null
+      })) : []
     })) : [],
     variables: Array.isArray(design.variables) ? design.variables.map((variable) => ({
       id: text(variable?.id, 120),
